@@ -15,6 +15,11 @@ on:
         description: 'Prefix for Slack messages'
         required: true
         type: string
+      is_browserstack:
+        description: 'Enable BrowserStack Test Observability'
+        required: false
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -28,11 +33,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Content modules removed - they have their own workflow (content-regression-test.yml)
         module: [
             chat,
             platforms,
             global-search,
-            content,
             de,
             de-api,
             de-api-abac,
@@ -40,10 +45,7 @@ jobs:
             reward-settings,
             recognition,
             privateRecognition,
-            content-abac,
             frontline,
-            content-settings,
-            content-studio,
             alert-notification,
             employee-listening,
             form-designer,
@@ -54,6 +56,11 @@ jobs:
       MODULE_NAME: ${{ matrix.module }}
       TEST_ENV: ${{ inputs.environment }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack Test Observability
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ github.ref_name }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
     steps:
       - name: Display configuration
         run: |
@@ -85,14 +92,43 @@ jobs:
 
       - name: Run regression tests
         run: |
-          if [ "${{ matrix.module }}" = "reward" ]; then
-            echo "Running Reward tests (excluding P3) and with 3 workers..."
-            npm run test:${{ matrix.module }} -- --grep-invert="@rewards-db|P3" --workers=3
-          elif [ "${{ matrix.module }}" = "reward-settings" ]; then
-            echo "Running Reward Settings tests (excluding P3) and with 1 worker..."
-            npm run test:${{ matrix.module }} -- --grep-invert="@rewards-db|P3" --workers=1
+          # Set TLS config for test environments
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+          if [ "${{ inputs.is_browserstack }}" = "true" ]; then
+            echo "🔬 Running with BrowserStack Test Observability..."
+            RUN_CMD="npx browserstack-node-sdk playwright test"
           else
-            npm run test:${{ matrix.module }} -- --workers=3
+            echo "🧪 Running locally..."
+            RUN_CMD="npx playwright test"
+          fi
+
+          if [ "${{ matrix.module }}" = "reward" ]; then
+            echo "Running Reward tests (excluding P3) with 3 workers..."
+            $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts --grep-invert="@rewards-db|P3" --workers=3
+          elif [ "${{ matrix.module }}" = "reward-settings" ]; then
+            echo "Running Reward Settings tests (excluding P3) with 1 worker..."
+            $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts --grep-invert="@rewards-db|P3" --workers=1
+          elif [ "${{ matrix.module }}" = "de" ]; then
+            echo "Running Data Engineering tests with 3 workers..."
+            $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "de-api" ]; then
+            echo "Running Data Engineering API tests with 3 workers..."
+            $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "de-api-abac" ]; then
+            echo "Running Data Engineering API ABAC tests with 3 workers..."
+            $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "content-settings" ]; then
+            echo "Running Content Settings tests with 3 workers..."
+            $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "content-studio" ]; then
+            echo "Running Content Studio tests with 3 workers..."
+            $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "content-abac" ]; then
+            echo "Running Content ABAC tests with 3 workers..."
+            $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts --workers=3
+          else
+            $RUN_CMD --config=src/modules/${{ matrix.module }}/playwright.${{ matrix.module }}.config.ts --workers=3
           fi
 
       - name: Upload test report to github artifact backup

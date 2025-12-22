@@ -14,7 +14,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('recognition post notification', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, () => {
   test(
-    '[RC-2619] Validate system notifications on rewards and recognition',
+    'RC-2619 Validate system notifications on rewards and recognition',
     {
       tag: [REWARD_FEATURE_TAGS.RECOGNITION_NOTIFICATION_CHECK, TestPriority.P0, TestGroupType.REGRESSION],
     },

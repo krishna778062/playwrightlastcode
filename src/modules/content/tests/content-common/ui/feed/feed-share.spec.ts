@@ -21,7 +21,7 @@ test.describe(
   },
   () => {
     test(
-      'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page',
+      'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page CONT-27696',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, '@CONT-27696'],
       },
@@ -208,7 +208,7 @@ test.describe(
     );
 
     test(
-      'verify link preview is disabled while sharing feed posts',
+      'verify link preview is disabled while sharing feed posts CONT-27697',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27697'],
       },
@@ -402,7 +402,7 @@ test.describe(
     );
 
     test(
-      'verify Share icon is visible for Feed posts and comments on Private and Unlisted sites',
+      'verify Share icon is visible for Feed posts and comments on Private and Unlisted sites CONT-19565',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-19565'],
       },

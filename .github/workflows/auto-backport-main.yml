@@ -29,7 +29,53 @@ jobs: # dummy test
             echo "⏭️ This is release promotion, not hotfix - skipping backport"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
-            echo "✅ This is a hotfix - will backport to release and develop"
+            echo "✅ This is a hotfix - checking backport labels..."
+          fi
+
+      - name: Check backport options from PR description
+        if: steps.check.outputs.skip == 'false'
+        id: labels
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Parse checkboxes from PR description
+          # Checked: [x] or [X]  |  Unchecked: [ ]
+
+          # First, check if this is marked as a Hotfix
+          if echo "$PR_BODY" | grep -iE '\[x\].*\*\*Hotfix\*\*' > /dev/null; then
+            echo "is_hotfix=true" >> $GITHUB_OUTPUT
+            echo "✅ PR is marked as Hotfix - checking backport options..."
+          else
+            echo "is_hotfix=false" >> $GITHUB_OUTPUT
+            echo "⚠️ PR not marked as Hotfix - defaulting to develop only"
+            echo "backport_develop=true" >> $GITHUB_OUTPUT
+            echo "backport_release=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for "Develop" checkbox in backport section
+          if echo "$PR_BODY" | grep -iE '\[x\].*\*\*Develop\*\*.*Sync to' > /dev/null; then
+            echo "backport_develop=true" >> $GITHUB_OUTPUT
+            echo "✅ 'Develop' checkbox is checked - will sync to develop"
+          else
+            echo "backport_develop=false" >> $GITHUB_OUTPUT
+            echo "⏭️ 'Develop' checkbox not checked - skipping develop sync"
+          fi
+
+          # Check for "Release" checkbox in backport section
+          if echo "$PR_BODY" | grep -iE '\[x\].*\*\*Release\*\*.*Sync to' > /dev/null; then
+            echo "backport_release=true" >> $GITHUB_OUTPUT
+            echo "✅ 'Release' checkbox is checked - will sync to release"
+          else
+            echo "backport_release=false" >> $GITHUB_OUTPUT
+            echo "⏭️ 'Release' checkbox not checked - skipping release sync"
+          fi
+
+          # If no backport section found at all, default to develop
+          if ! echo "$PR_BODY" | grep -i "Backport Options" > /dev/null; then
+            echo "⚠️ No backport section found - defaulting to develop only"
+            echo "backport_develop=true" >> $GITHUB_OUTPUT
+            echo "backport_release=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Set PR info
@@ -85,11 +131,21 @@ jobs: # dummy test
           fi
 
       - name: Create/Update sync PR for release
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.skip == 'false' && steps.labels.outputs.backport_release == 'true'
         id: sync_release
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
         run: |
+          STAGE=${CURRENT_STAGE:-qa}
+
+          # Skip main→release sync if we're in production stage (release is dormant)
+          if [ "$STAGE" == "production" ]; then
+            echo "⏭️ Stage is 'production' - release branch is dormant, skipping main→release sync"
+            echo "skipped=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           git fetch origin main release
 
           DIFF_COUNT=$(git rev-list --count origin/release..origin/main)
@@ -169,7 +225,7 @@ jobs: # dummy test
           fi
 
       - name: Create/Update sync PR for develop
-        if: steps.check.outputs.skip == 'false'
+        if: steps.check.outputs.skip == 'false' && steps.labels.outputs.backport_develop == 'true'
         id: sync_develop
         env:
           GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
