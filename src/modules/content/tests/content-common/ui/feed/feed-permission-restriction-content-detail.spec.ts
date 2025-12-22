@@ -19,7 +19,7 @@ test.describe(
   },
   () => {
     test(
-      'verify Site Owner and Site Manager can comment on Content Detail Page of a Public Site when feed permission is set to "Only site owners and site managers can make feed posts"',
+      'verify Site Owner and Site Manager can comment on Content Detail Page of a Public Site when feed permission is set to "Only site owners and site managers can make feed posts" CONT-37171',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@Public_Site_Permission_Restriction'],
       },

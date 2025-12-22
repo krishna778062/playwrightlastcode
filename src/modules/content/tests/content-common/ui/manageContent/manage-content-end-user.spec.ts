@@ -24,7 +24,7 @@ test.describe(
     });
 
     test(
-      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User',
+      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters - End User CONT-25055',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25055'],
       },

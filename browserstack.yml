@@ -1,0 +1,32 @@
+# =============================
+# Set BrowserStack Credentials
+# =============================
+# Use environment variables for sensitive data (set in CI secrets)
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
+
+# ======================
+# BrowserStack Reporting
+# ======================
+# Dynamic build/project names from CI environment
+# Note: These env vars MUST be set before running tests
+buildName: ${MODULE_NAME} - ${TEST_ENV}
+projectName: ${MODULE_NAME}
+buildIdentifier: '#${BUILD_NUMBER}'
+sessionName: '${MODULE_NAME} - ${TEST_ENV}'
+CUSTOM_TAG_1: ${MODULE_NAME}
+CUSTOM_TAG_2: ${TEST_ENV}
+
+# ======================
+# Test Observability Only
+# ======================
+# Run tests locally, report to BrowserStack
+testObservability: true
+browserstackAutomation: false # Tests run locally, NOT on BrowserStack browsers
+
+# ===================
+# Debugging features
+# ===================
+debug: false
+networkLogs: true
+consoleLogs: errors
