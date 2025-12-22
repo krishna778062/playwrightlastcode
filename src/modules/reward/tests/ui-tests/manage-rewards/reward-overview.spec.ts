@@ -23,7 +23,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   });
 
   test(
-    '[RC-3095] Validate Budget Exceeded Warnings on reward overview page',
+    'RC-3095 Validate Budget Exceeded Warnings on reward overview page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -59,7 +59,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3329] Validate if allowances summary shows 0 points when allowances are refreshing.',
+    'RC-3329 Validate if allowances summary shows 0 points when allowances are refreshing.',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_OVERVIEW,
@@ -109,7 +109,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-2192] Validate rewards overview tab page',
+    'RC-2192 Validate rewards overview tab page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -195,7 +195,7 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5419] Validate on navigating to rewards tab & all its sub tabs one by one, rewards api is called for once only',
+    'RC-5419 Validate on navigating to rewards tab & all its sub tabs one by one, rewards api is called for once only',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
