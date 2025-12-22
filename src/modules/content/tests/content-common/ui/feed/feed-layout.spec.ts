@@ -6,10 +6,12 @@ import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent'
 import { SmartFeedBlock } from '@/src/modules/content/constants/smartFeedBlocks';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
+import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   'feed Layout Tests',
@@ -58,7 +60,7 @@ test.describe(
         // Setup: Create event and update user DOB so smart feed blocks are visible
         await test.step('Setup: Create event and update user DOB for smart feed blocks', async () => {
           // Get a public site
-          const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
           siteId = siteDetails.siteId;
 
           // Create an event on the site for "Upcoming events" block
@@ -72,7 +74,6 @@ test.describe(
             },
           });
           eventId = eventInfo.contentId;
-          console.log(`Created event via API: ${eventId} in site: ${siteId}`);
 
           // Update user's date of birth for celebration block
           const today = new Date();
@@ -84,8 +85,8 @@ test.describe(
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
+            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
+            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -164,7 +165,7 @@ test.describe(
         // Setup: Create event and update user DOB so smart feed blocks are visible
         await test.step('Setup: Create event and update user DOB for smart feed blocks', async () => {
           // Get a public site
-          const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
           siteId = siteDetails.siteId;
 
           // Create an event on the site for "Upcoming events" block
@@ -181,7 +182,6 @@ test.describe(
           console.log(`Created event via API: ${eventId} in site: ${siteId}`);
 
           // Update user's date of birth for celebration block
-          const today = new Date();
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
 
           const appManagerUserId = await appManagerFixture.page.evaluate(() => {
@@ -190,8 +190,8 @@ test.describe(
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
+            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
+            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -281,7 +281,6 @@ test.describe(
           console.log(`Created event via API: ${eventId} in site: ${allEmployeesSiteId}`);
 
           // Update user's date of birth for celebration block
-          const today = new Date();
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
 
           const appManagerUserId = await appManagerFixture.page.evaluate(() => {
@@ -290,8 +289,8 @@ test.describe(
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
+            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
+            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -385,7 +384,6 @@ test.describe(
           console.log(`Created event via API: ${eventId} in site: ${allEmployeesSiteId}`);
 
           // Update user's date of birth for celebration block
-          const today = new Date();
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
 
           const appManagerUserId = await appManagerFixture.page.evaluate(() => {
@@ -394,8 +392,8 @@ test.describe(
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = today.getMonth() + 1;
-            const birthDay = today.getDate() + Math.floor(Math.random() * 7);
+            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
+            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',

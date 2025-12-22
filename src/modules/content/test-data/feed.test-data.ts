@@ -96,4 +96,34 @@ export const FEED_TEST_DATA = {
     type: 'post',
     variant: 'standard',
   },
+  DATES: {
+    UPCOMING_DATE: (() => {
+      const today = new Date();
+      const upcoming = new Date(today);
+      upcoming.setDate(today.getDate() + Math.floor(Math.random() * 7) + 1);
+      return upcoming.toISOString().split('T')[0];
+    })(),
+    PAST_DATE: (() => {
+      const today = new Date();
+      const past = new Date(today);
+      past.setDate(today.getDate() - Math.floor(Math.random() * 7) - 1);
+      return past.toISOString().split('T')[0];
+    })(),
+    CURRENT_DATE: (() => {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    })(),
+    MONTH: (() => {
+      const today = new Date();
+      return today.getMonth();
+    })(),
+    DAY: (() => {
+      const today = new Date();
+      return today.getDate();
+    })(),
+    UPCOMING_DAY: (() => {
+      const today = new Date();
+      return today.getDate() + Math.floor(Math.random() * 7);
+    })(),
+  },
 } as const;
