@@ -16,7 +16,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
   });
 
   test(
-    '[RC-3216] Validate Edit Budget flow modal when Rewards is disabled',
+    'RC-3216 Validate Edit Budget flow modal when Rewards is disabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -116,7 +116,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
   );
 
   test(
-    '[RC-3043] Validate the Add Budget flow modal when rewards is disabled',
+    'RC-3043 Validate the Add Budget flow modal when rewards is disabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -199,7 +199,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
   );
 
   test(
-    '[RC-3251] Validate if adding "Rewards Budget" is an optional option to enable rewards',
+    'RC-3251 Validate if adding "Rewards Budget" is an optional option to enable rewards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -310,7 +310,7 @@ test.describe('budget flows when Reward is disabled', { tag: [REWARD_SUITE_TAGS.
   );
 
   test(
-    '[RC-3250] Validate "Add Rewards budget" option on Rewards overview page',
+    'RC-3250 Validate "Add Rewards budget" option on Rewards overview page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_BUDGET_SUMMARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
