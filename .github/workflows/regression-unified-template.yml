@@ -115,9 +115,10 @@ on:
         description: |
           Enable BrowserStack Test Observability integration.
           When true, tests run via browserstack-node-sdk.
+          NOTE: BrowserStack SDK is only in develop branch, so disable for main/release runs.
         required: false
         type: boolean
-        default: true
+        default: false
 
       workers:
         description: |

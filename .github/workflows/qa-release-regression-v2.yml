@@ -86,5 +86,6 @@ jobs:
       slack_prefix: QA Release Regression
       git_ref: ''
       modules: ${{ inputs.module == 'all' && '' || format('["{0}"]', inputs.module) }}
-      is_browserstack: ${{ github.event_name == 'schedule' && true || inputs.is_browserstack }}
+      # BrowserStack disabled by default (SDK not in main/release branches)
+      is_browserstack: ${{ github.event_name == 'schedule' && false || inputs.is_browserstack }}
     secrets: inherit
