@@ -14,7 +14,7 @@ test.describe('reward Dialog Box', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, ()
   });
 
   test(
-    '[RC-2985] Validate Reward Detail Dialog Box on Rewards store page',
+    'RC-2985 Validate Reward Detail Dialog Box on Rewards store page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -80,7 +80,7 @@ test.describe('reward Dialog Box', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, ()
   );
 
   test(
-    '[RC-3539] Validate Error Message Logic for Variable amount gift card redemptions',
+    'RC-3539 Validate Error Message Logic for Variable amount gift card redemptions',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -184,7 +184,7 @@ test.describe('reward Dialog Box', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, ()
   );
 
   test(
-    '[RC-3263] Validate Truncating the description in Redemption Dialog',
+    'RC-3263 Validate Truncating the description in Redemption Dialog',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -237,7 +237,7 @@ test.describe('reward Dialog Box', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, ()
   );
 
   test(
-    '[RC-3464] Validate fixed reward dialog for points available',
+    'RC-3464 Validate fixed reward dialog for points available',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -303,7 +303,7 @@ test.describe('reward Dialog Box', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, ()
   );
 
   test(
-    '[RC-3256] Validate form validation when the redemption dialog is opened and display error message',
+    'RC-3256 Validate form validation when the redemption dialog is opened and display error message',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

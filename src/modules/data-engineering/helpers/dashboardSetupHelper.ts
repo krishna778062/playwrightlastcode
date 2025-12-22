@@ -1,7 +1,8 @@
 import { Browser, Page, test } from '@playwright/test';
 
+import { ContentDashboard } from '../ui/dashboards/content-dashboard/contentDashboard';
+
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
-import { ContentDashboardQueryHelper } from './contentDashboardQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { MonthlyReportsQueryHelper } from './monthlyReportsQueryHelper';
 import { PeopleDashboardQueryHelper } from './peopleDashboardQueryHelper';
@@ -10,11 +11,10 @@ import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
-import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
+import { ContentDashboardQueryHelper, SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SearchDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
-import { ContentDashboard } from '@/src/modules/data-engineering/ui/dashboards/content-dashboard/contentDashboard';
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
 import { MonthlyReportsDashboard } from '@/src/modules/data-engineering/ui/dashboards/monthly-reports/monthlyReportsDashboard';
 import { OverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards/overview/overviewDashboard';

@@ -21,11 +21,6 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
       checkout_ref: ${{ steps.check.outputs.checkout_ref }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Determine checkout ref for UAT regression tests
         id: check
         env:
@@ -35,30 +30,19 @@ jobs:
           echo "Current stage: $STAGE"
 
           if [ "$STAGE" == "production" ]; then
-            # Release completed - use main HEAD
             echo "should_run=true" >> $GITHUB_OUTPUT
             echo "checkout_ref=main" >> $GITHUB_OUTPUT
-            echo "✅ Production stage - will test main HEAD"
+            echo "✅ Production stage - will test from main"
 
           elif [ "$STAGE" == "uat" ]; then
-            # Active release - use latest UAT tag
-            TAG=$(git ls-remote --tags origin | \
-                  grep -o 'refs/tags/.*-uat\.[0-9]*$' | \
-                  sort -V | tail -n1 | cut -d'/' -f3)
-
-            if [ -z "$TAG" ]; then
-              echo "should_run=false" >> $GITHUB_OUTPUT
-              echo "⏭️ No UAT tags found - skipping"
-            else
-              echo "should_run=true" >> $GITHUB_OUTPUT
-              echo "checkout_ref=$TAG" >> $GITHUB_OUTPUT
-              echo "✅ UAT stage - will test tag: $TAG"
-            fi
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "checkout_ref=release" >> $GITHUB_OUTPUT
+            echo "✅ UAT stage - will test from release branch"
 
           else
-            # QA stage - skip UAT tests
+            # QA stage - skip UAT cron
             echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "⏭️ Skipping (current stage: $STAGE)"
+            echo "⏭️ Skipping UAT regression (current stage: $STAGE)"
           fi
 
   regression-tests:
@@ -70,6 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         module: [
+            reward-browserstack, # Testing BrowserStack integration
             chat,
             platforms,
             global-search,
@@ -80,7 +65,6 @@ jobs:
             reward,
             reward-settings,
             recognition,
-            privateRecognition,
             content-abac,
             frontline,
             content-settings,
@@ -89,17 +73,21 @@ jobs:
             employee-listening,
             form-designer,
             comms-planner,
-          ] # de is short for data-engineering
+          ] # Add -browserstack suffix to use BrowserStack Test Observability
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
       TEST_ENV: ${{ inputs.environment }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack env vars override browserstack.yml (only used by -browserstack modules)
+      BROWSERSTACK_PROJECT_NAME: ${{ matrix.module }}
+      BROWSERSTACK_BUILD_NAME: ${{ matrix.module }}-${{ inputs.environment }}-${{ github.run_number }}
     steps:
       - name: Display configuration
         run: |
           echo "🌍 Environment: ${{ inputs.environment }}"
           echo "🔖 Git Ref: ${{ needs.check-stage.outputs.checkout_ref }}"
+          echo "📦 Module: ${{ matrix.module }}"
 
       - name: Checkout code
         uses: actions/checkout@v4
