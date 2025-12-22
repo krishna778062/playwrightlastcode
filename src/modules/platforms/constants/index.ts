@@ -4,4 +4,5 @@ export * from './companyValues';
 export * from './featureOwners';
 export * from './fieldValidation';
 export * from './popupButtons';
+export * from './quickTask';
 export * from './testTags';

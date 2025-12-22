@@ -13,7 +13,7 @@ test.describe(
   { tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE] },
   () => {
     test(
-      '[RC-6099] Validate the Message and URL column value in the points given CSV for the Imported Data',
+      'RC-6099 Validate the Message and URL column value in the points given CSV for the Imported Data',
       {
         tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P3],
       },

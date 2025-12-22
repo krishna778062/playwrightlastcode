@@ -60,7 +60,7 @@ test.describe(
     });
 
     test(
-      'event Content Add attach file with all the Mandatory fields',
+      'event Content Add attach file with all the Mandatory fields CONT-10824',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.EVENT_CREATION, '@healthcheck', '@CONT-10824'],
       },
@@ -105,9 +105,9 @@ test.describe(
       }
     );
     test(
-      'to verify language dropdown in event creation & updation',
+      'to verify language dropdown in event creation & updation CONT-30648',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.LANGUAGE_IN_CONTENT],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.LANGUAGE_IN_CONTENT, '@CONT-30648'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
