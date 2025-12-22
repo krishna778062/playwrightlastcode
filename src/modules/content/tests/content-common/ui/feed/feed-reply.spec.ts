@@ -466,23 +466,23 @@ for (const testData of feedTestData) {
             await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
 
             // Update reply text
-            await replyCreateFeedPostComponent.updatePostText(updatedReplyText);
+            await replyCreateFeedPostComponent.actions.updatePostText(updatedReplyText);
 
             // Click Update button in reply editor (using reply-specific method)
-            await replyCreateFeedPostComponent.clickReplyUpdateButton();
+            await replyCreateFeedPostComponent.actions.clickReplyUpdateButton(postWithAttachmentText);
 
             // Verify updated reply is visible
             await appManagerFeedPage.assertions.verifyReplyIsVisible(updatedReplyText);
 
             // ==================== DELETE REPLY ====================
             // Open reply options menu
-            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
+            await listFeedComponent.actions.openReplyOptionsMenu(updatedReplyText);
 
             // Click Delete option
-            await listFeedComponent.clickReplyDeleteOption();
+            await listFeedComponent.actions.clickReplyDeleteOption();
 
             // Confirm deletion dialog
-            await listFeedComponent.confirmDelete();
+            await listFeedComponent.actions.confirmDelete();
 
             // Verify reply is removed
             await appManagerFeedPage.assertions.verifyReplyIsNotVisible(updatedReplyText);
@@ -492,10 +492,10 @@ for (const testData of feedTestData) {
             await siteDashboardPage.actions.clickOnOptionsMenu(postWithAttachmentText);
 
             // Click Delete
-            await siteDashboardPage.listFeedComponent.clickDeleteOption();
+            await siteDashboardPage.listFeedComponent.actions.clickDeleteOption();
 
             // Confirm Delete dialog "Are you sure you want to delete this post?"
-            await siteDashboardPage.listFeedComponent.confirmDelete();
+            await siteDashboardPage.listFeedComponent.actions.confirmDelete();
 
             // Verify feed post is removed
             await siteDashboardPage.assertions.validatePostNotVisible(postWithAttachmentText);
@@ -557,9 +557,9 @@ for (const testData of feedTestData) {
             const replyCreateFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
             const listFeedComponent = appManagerFeedPage['listFeedComponent'];
 
-            await replyCreateFeedPostComponent.createPost(replyText);
+            await replyCreateFeedPostComponent.actions.createPost(replyText);
 
-            await replyCreateFeedPostComponent.uploadFilesToReply([gifPath], postWithAttachmentText);
+            await replyCreateFeedPostComponent.actions.uploadFilesToReply([gifPath], postWithAttachmentText);
 
             await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
 
@@ -583,15 +583,15 @@ for (const testData of feedTestData) {
 
             await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
 
-            await replyCreateFeedPostComponent.updatePostText(updatedReplyText);
+            await replyCreateFeedPostComponent.actions.updatePostText(updatedReplyText);
 
-            await replyCreateFeedPostComponent.clickReplyUpdateButton();
+            await replyCreateFeedPostComponent.actions.clickReplyUpdateButton(postWithAttachmentText);
 
             await appManagerFeedPage.assertions.verifyReplyIsVisible(updatedReplyText);
 
-            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
-            await listFeedComponent.clickReplyDeleteOption();
-            await listFeedComponent.confirmDelete();
+            await listFeedComponent.actions.openReplyOptionsMenu(updatedReplyText);
+            await listFeedComponent.actions.clickReplyDeleteOption();
+            await listFeedComponent.actions.confirmDelete();
             await appManagerFeedPage.assertions.verifyReplyIsNotVisible(updatedReplyText);
 
             await appManagerFixture.feedManagementHelper.deleteFeed(postWithAttachmentId);

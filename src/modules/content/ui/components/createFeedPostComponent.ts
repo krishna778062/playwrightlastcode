@@ -499,8 +499,8 @@ export class CreateFeedPostComponent
     });
   }
 
-  async clickReplyUpdateButton(): Promise<void> {
-    await test.step('Click update button in reply editor', async () => {
+  async clickReplyUpdateButton(postText: string): Promise<void> {
+    await test.step(`Click update button in reply editor for post ${postText}`, async () => {
       const updateButton = this.updateButton.last();
       await this.clickOnElement(updateButton);
     });
