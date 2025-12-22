@@ -13,7 +13,7 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   });
 
   test(
-    '[RC-3267] Verify the resend reward status when order date is more than 90 days old',
+    'RC-3267 Verify the resend reward status when order date is more than 90 days old',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_STORE,
@@ -39,7 +39,7 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   );
 
   test(
-    '[RC-3245] Validate Resend reward dialogue on order history Resending',
+    'RC-3245 Validate Resend reward dialogue on order history Resending',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_STORE,
@@ -75,7 +75,7 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   );
 
   test(
-    '[RC-3242] Validate order history resending using secondary email address',
+    'RC-3242 Validate order history resending using secondary email address',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_STORE,
@@ -111,7 +111,7 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
   );
 
   test(
-    '[RC-3244] Validate(form validation) if both email address field contains same value on resend reward dialogue',
+    'RC-3244 Validate(form validation) if both email address field contains same value on resend reward dialogue',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_STORE,

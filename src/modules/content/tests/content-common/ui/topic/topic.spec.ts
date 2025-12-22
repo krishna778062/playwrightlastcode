@@ -46,9 +46,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   });
 
   test(
-    'in Zeus to verify the Edit topic - negative scenario',
+    'in Zeus to verify the Edit topic - negative scenario CONT-38095',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS, '@CONT-38095'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -69,9 +69,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     }
   );
   test(
-    'to verify search topics',
+    'to verify search topics CONT-21059',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS, '@CONT-21059'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -93,9 +93,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     }
   );
   test(
-    'to verify topic details page in content',
+    'to verify topic details page in content CONT-21076',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_CONTENT],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_CONTENT, '@CONT-21076'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -171,9 +171,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     }
   );
   test(
-    'to verify topic details page in home & site feed',
+    'to verify topic details page in home & site feed CONT-40817',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED, '@CONT-40817'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -228,7 +228,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify cancel behaviour of delete topic',
+    'verify cancel behaviour of delete topic CONT-40977',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-40977'],
     },
@@ -249,9 +249,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     }
   );
   test(
-    'verify standard user is able to add/list topic in Content',
+    'verify standard user is able to add/list topic in Content CONT-25968',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25969'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25968'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -326,7 +326,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'managing Topic Follow/Unfollow Status',
+    'managing Topic Follow/Unfollow Status CONT-41028',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-41028'],
     },
@@ -355,7 +355,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify topic gets deleted',
+    'verify topic gets deleted CONT-21066',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-21066'],
     },
@@ -392,7 +392,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI',
+    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI CONT-31145',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-31145'],
     },
@@ -420,7 +420,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'manage Topics View topic list',
+    'manage Topics View topic list CONT-20590',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20590'],
     },
@@ -453,7 +453,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'application should allow to add/edit/delete topic when merge and delete action',
+    'application should allow to add/edit/delete topic when merge and delete action CONT-20591',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20591'],
     },
@@ -484,7 +484,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums',
+    'verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums CONT-24165',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-24165'],
     },
@@ -547,7 +547,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic',
+    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic CONT-25971',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-25971'],
     },

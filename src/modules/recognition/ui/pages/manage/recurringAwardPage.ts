@@ -8,6 +8,8 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
+import { AWARD_CREATION_MESSAGES } from '@/src/modules/recognition/constants/messages';
+
 export class RecurringAwardPage extends BasePage {
   readonly recurringTab: Locator;
   newRecurringAwardButton: Locator;
@@ -24,9 +26,9 @@ export class RecurringAwardPage extends BasePage {
   participationWindowLabel: Locator;
   nominationsCloseLabel: Locator;
   awardOverdueLabel: Locator;
+  defaultAwardOverdue: Locator;
   defaultParticipationWindow: Locator;
   defaultNominationsClose: Locator;
-  defaultAwardOverdue: Locator;
 
   // Award table elements
   readonly noRecurringAwardsMessage: Locator;
@@ -50,6 +52,7 @@ export class RecurringAwardPage extends BasePage {
   awardTimeZoneDropdown: Locator;
   awardTimeZoneOption: (timezone: string) => Locator;
   startDateDropdown: Locator;
+  startDateDropdownOptions: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION) {
     super(page, pageUrl);
@@ -107,7 +110,10 @@ export class RecurringAwardPage extends BasePage {
     this.awardTimeZoneDropdown = awardTimeZoneField.locator('input').first();
     this.awardTimeZoneOption = (timezone: string) =>
       awardTimeZoneField.locator('[role="menuitem"]').filter({ hasText: timezone });
-    this.startDateDropdown = page.locator('select#startDate');
+
+    //Effective from dropdown
+    this.startDateDropdown = page.locator('select#startDate').first();
+    this.startDateDropdownOptions = page.locator('select#startDate option');
   }
 
   /**
@@ -225,6 +231,30 @@ export class RecurringAwardPage extends BasePage {
       } else {
         throw new Error(`Invalid frequency type: ${frequencyType}. Expected 'Monthly' or 'Quarterly'.`);
       }
+    });
+  }
+
+  /**
+   * Select the effective from dropdown by index.
+   * @param frequencyType - The type of frequency ('Monthly' or 'Quarterly').
+   * @param optionIndex - The index of the option to select.
+   */
+  async selectEffectiveFromDropdownByIndex(
+    frequencyType: 'Monthly' | 'Quarterly',
+    optionIndex?: number | null
+  ): Promise<void> {
+    // Skip disabled placeholder (index 0)
+    const baseIndex = 1;
+    const index =
+      optionIndex !== null && optionIndex !== undefined
+        ? optionIndex + baseIndex
+        : frequencyType === 'Monthly'
+          ? baseIndex
+          : baseIndex + 2; // Quarterly example
+
+    await test.step(`Selecting effective from dropdown by index: ${index}`, async () => {
+      await this.startDateDropdown.waitFor({ state: 'visible' });
+      await this.startDateDropdown.selectOption({ index });
     });
   }
 
@@ -415,14 +445,14 @@ export class RecurringAwardPage extends BasePage {
         const cellHandle = await row.locator('td').nth(j).elementHandle();
         if (!cellHandle) continue;
         await this.page.evaluate(el => {
-          if (el && el instanceof HTMLElement) {
+          if (el instanceof HTMLElement) {
             el.style.outline = '3px solid red';
             el.style.transition = 'outline 0.3s ease-in-out';
           }
         }, cellHandle);
         await this.verifier.verifyTheElementIsVisible(row.locator('td').nth(j));
         await this.page.evaluate(el => {
-          if (el && el instanceof HTMLElement) {
+          if (el instanceof HTMLElement) {
             el.style.outline = '';
           }
         }, cellHandle);
@@ -493,7 +523,8 @@ export class RecurringAwardPage extends BasePage {
     delegateUserName: string,
     awardType: string,
     frequencyType: string,
-    timezone: string
+    timezone: string,
+    effectiveFromOption?: string | number | null
   ) {
     await test.step('Completing recurring award form page two', async () => {
       await this.selectSingleAwardDelegate(delegateUserName);
@@ -501,6 +532,23 @@ export class RecurringAwardPage extends BasePage {
       await this.recurringAwardType(awardType);
       await this.whoCanWinOrNominate('Nominate', 'All employees', 2);
       await this.selectAwardFrequency(frequencyType);
+
+      if (effectiveFromOption !== undefined) {
+        const parsedIndex =
+          typeof effectiveFromOption === 'number'
+            ? effectiveFromOption
+            : /^\d+$/.test(String(effectiveFromOption))
+              ? Number.parseInt(String(effectiveFromOption), 10)
+              : undefined;
+        if (parsedIndex !== undefined) {
+          // Ensure frequencyType is correctly typed for selectEffectiveFromDropdownByIndex
+          if (frequencyType === 'Monthly' || frequencyType === 'Quarterly') {
+            await this.selectEffectiveFromDropdownByIndex(frequencyType, parsedIndex);
+          } else {
+            throw new Error(`Invalid frequencyType value: ${frequencyType}`);
+          }
+        }
+      }
       await this.selectAwardTimeZoneRecurringAward(timezone);
     });
   }
@@ -810,5 +858,143 @@ export class RecurringAwardPage extends BasePage {
       return text;
     }
     return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+
+  /**
+   * Select the overdue option for the custom recurring award.
+   * @param overdueFilter - The overdue filter.
+   */
+  async selectOverdueOption(overdueFilter: 'Default' | 'None' | 'Custom'): Promise<void> {
+    await test.step(`Selecting overdue filter for a recurring award`, async () => {
+      await expect(this.awardOverdueLabel, 'expecting award overdue label to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      for (const helperText of [
+        AWARD_CREATION_MESSAGES.DELEGATE_SELECTION_BY,
+        AWARD_CREATION_MESSAGES.AWARD_ISSUED_ON_FIRST_DAY,
+      ]) {
+        try {
+          await this.awardCreationForm.verifyHelperTextOnPage(helperText);
+        } catch (error) {
+          console.warn(`Helper text not visible (continuing): ${helperText}`, error);
+        }
+      }
+
+      if (overdueFilter === 'Default') {
+        await this.awardCreationForm.checkRadioButton('Award overdue', 'On the last day of the month');
+      } else if (overdueFilter === 'None') {
+        await this.awardCreationForm.checkRadioButton('Award overdue', 'No overdue date');
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      } else if (overdueFilter === 'Custom') {
+        await this.awardCreationForm.checkRadioButton('Award overdue', 'Custom');
+        await this.verifier.verifyTheElementIsVisible(this.page.getByText('Day(s)').last(), {
+          timeout: TIMEOUTS.MEDIUM,
+          assertionMessage: `Day(s) text should be visible on page`,
+        });
+      } else {
+        throw new Error(`Unsupported overdue filter: ${overdueFilter}`);
+      }
+    });
+  }
+
+  /**
+   * Set the custom range for the custom recurring award.
+   * @param fieldTestId - The field test id.
+   * @param plusClicks - The number of plus clicks.
+   * @param minusClicks - The number of minus clicks.
+   * @param expectPlusDisabled - The expected plus disabled.
+   * @param expectMinusDisabled - The expected minus disabled.
+   * @param expectedValue - The expected value.
+   */
+  async setCustomRangeForCustomRecurringAward({
+    fieldTestId,
+    plusClicks = 0,
+    minusClicks = 0,
+    expectPlusDisabled = false,
+    expectMinusDisabled = false,
+    expectedValue,
+  }: {
+    fieldTestId: string;
+    plusClicks?: number;
+    minusClicks?: number;
+    unit?: string;
+    expectedValue?: number;
+    expectPlusDisabled?: boolean;
+    expectMinusDisabled?: boolean;
+  }) {
+    const field = this.page.getByTestId(`field-${fieldTestId}`);
+    const customRadio = field.getByRole('radio', { name: 'Custom' });
+    if (!(await customRadio.isChecked())) {
+      await customRadio.check();
+    }
+    const clickIfEnabled = async (button: Locator, times: number) => {
+      for (let i = 0; i < times; i++) {
+        if (!(await button.isEnabled())) break;
+        await button.click();
+      }
+    };
+
+    const plusButton = this.awardCreationForm.plusButton;
+    // verify and click Plus (only if provided)
+    if (plusClicks > 0) {
+      (await this.verifier.verifyTheElementIsVisible(plusButton),
+        { timeout: TIMEOUTS.MEDIUM, assertionMessage: `Day(s) text should be visible on page` });
+      await clickIfEnabled(plusButton, plusClicks);
+    }
+    // verify and click Minus (only if provided)
+    if (minusClicks > 0) {
+      const minusButton = this.awardCreationForm.minusButton;
+      (await this.verifier.verifyTheElementIsVisible(minusButton),
+        { timeout: TIMEOUTS.MEDIUM, assertionMessage: `Day(s) text should be visible on page` });
+      await clickIfEnabled(minusButton, minusClicks);
+      if (expectMinusDisabled) {
+        await expect(minusButton).toBeDisabled();
+      }
+    }
+    if (expectPlusDisabled) {
+      await expect(plusButton).toBeDisabled();
+    }
+    if (expectedValue !== undefined) {
+      const rangeValueInput = this.awardCreationForm.rangeValueInput;
+      await expect(rangeValueInput).toHaveValue(expectedValue.toString());
+    }
+  }
+
+  /**
+   * Validate the min/max constraints for the custom range.
+   * Covers manual checks:
+   * - Try setting 0 (should stay at 1 and minus disabled)
+   * - Try setting 1 (minimum allowed)
+   * - Try setting 27 (maximum allowed)
+   * - Try setting 28 (should stay at 27 and plus disabled)
+   */
+  async validateCustomRangeBounds(fieldTestId: string): Promise<void> {
+    await test.step(`Validating custom range bounds for ${fieldTestId}`, async () => {
+      const plusButton = this.awardCreationForm.plusButton;
+      const minusButton = this.awardCreationForm.minusButton;
+      const rangeValueInput = this.awardCreationForm.rangeValueInput;
+      const readValue = async (): Promise<number> => {
+        const valueText = await rangeValueInput.inputValue();
+        return Number.parseInt(valueText, 10);
+      };
+
+      // Drive down to the minimum and assert lower bound (0/1 checks)
+      for (let i = 0; i < 5; i++) {
+        const current = await readValue();
+        if (current <= 1) break;
+        await minusButton.click();
+      }
+      await expect(rangeValueInput).toHaveValue('1');
+      await expect(minusButton).toBeDisabled();
+
+      // Increment up to the max and assert upper bound (27/28 checks)
+      for (let i = 0; i < 30; i++) {
+        const current = await readValue();
+        if (current >= 27) break;
+        await plusButton.click();
+      }
+      await expect(rangeValueInput).toHaveValue('27');
+      await expect(plusButton).toBeDisabled();
+    });
   }
 }

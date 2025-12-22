@@ -8,7 +8,7 @@ import { tagTest, TestGroupType, TestPriority } from '@/src/core';
 
 test.describe('gifting options page exchange rate validation', () => {
   test(
-    '[RC-4180] Validate exchange rate option on Gifting option page when FF is enabled',
+    'RC-4180 Validate exchange rate option on Gifting option page when FF is enabled',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_GIFTING_OPTIONS, TestPriority.P0],
     },
@@ -105,7 +105,7 @@ test.describe('gifting options page exchange rate validation', () => {
   );
 
   test(
-    '[RC-4267] Validate exchange rate option on Gifting option page when FF is disabled',
+    'RC-4267 Validate exchange rate option on Gifting option page when FF is disabled',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_GIFTING_OPTIONS, TestPriority.P0],
     },
