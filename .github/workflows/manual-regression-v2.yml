@@ -1,0 +1,97 @@
+# ============================================================================
+# MANUAL REGRESSION TESTS
+# ============================================================================
+#
+# PURPOSE:
+#   Run regression tests manually on any environment.
+#
+# CALLS:
+#   regression-unified-template.yml with trigger_type=manual
+#
+# ============================================================================
+
+name: Manual Regression (v2)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
+          - 'reward'
+          - 'reward-settings'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'form-designer'
+          - 'comms-planner'
+
+      workers:
+        description: 'Parallel workers'
+        required: false
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        default: false
+        type: boolean
+
+      git_ref:
+        description: 'Git branch (empty = current)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  regression:
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      environment: ${{ inputs.environment }}
+      trigger_type: manual
+      slack_prefix: Manual Regression
+      git_ref: ${{ inputs.git_ref || github.ref_name }}
+      modules: ${{ inputs.module == 'all' && '' || format('["{0}"]', inputs.module) }}
+      is_browserstack: ${{ inputs.is_browserstack }}
+      workers: ${{ inputs.workers }}
+    secrets: inherit
