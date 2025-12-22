@@ -74,7 +74,8 @@ on:
       is_browserstack:
         description: 'Enable BrowserStack'
         required: false
-        default: true
+        # TEMPORARILY DISABLED: Preserving quota for QA release testing
+        default: false
         type: boolean
 
 jobs:
@@ -86,6 +87,6 @@ jobs:
       slack_prefix: UAT Release Regression
       git_ref: ''
       modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
-      # BrowserStack disabled by default (SDK not in main/release branches)
-      is_browserstack: ${{ github.event_name == 'schedule' && false || inputs.is_browserstack }}
+      # TEMPORARILY DISABLED: Preserving quota for QA release testing
+      is_browserstack: ${{ inputs.is_browserstack || false }}
     secrets: inherit

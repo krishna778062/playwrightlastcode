@@ -135,6 +135,14 @@ on:
         type: number
         default: 200
 
+      release_tag:
+        description: |
+          Release tag for BrowserStack tracking (e.g., 25.01-qa.1).
+          If empty, uses git_ref or 'untagged' as fallback.
+        required: false
+        type: string
+        default: ''
+
 # ============================================================================
 # PERMISSIONS
 # ============================================================================
@@ -464,6 +472,10 @@ jobs:
       CI_BRANCH: ${{ github.ref_name }}
       BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
       BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      # Release tag for tracking (fallback to git ref or 'untagged' if empty)
+      RELEASE_TAG: ${{ inputs.release_tag || needs.determine-config.outputs.checkout_ref || 'untagged' }}
+      # Trigger type for BrowserStack tagging
+      TRIGGER_TYPE: ${{ inputs.trigger_type }}
 
     # ========================================================================
     # EXECUTION STEPS
@@ -552,7 +564,63 @@ jobs:
           sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
       # ────────────────────────────────────────────────────────────────────
-      # STEP 8: RUN TESTS
+      # STEP 8: GENERATE BROWSERSTACK BUILD NAME
+      # Purpose: Create descriptive build name for BrowserStack tracking
+      # Format: "{Type}-{Tag/Branch}-{Module}-{Env}"
+      # Examples:
+      #   - Release-25.01-Rewards-QA (for release regression)
+      #   - Daily-develop-Chat-test (for daily regression)
+      #   - Healthcheck-Platforms-prodUS (for prod healthcheck)
+      # ────────────────────────────────────────────────────────────────────
+      - name: Generate BrowserStack build name
+        run: |
+          TRIGGER="${{ inputs.trigger_type }}"
+          TAG="${RELEASE_TAG}"
+          MODULE="${MODULE_NAME}"
+          ENV="${TEST_ENV}"
+          BRANCH="${CI_BRANCH}"
+
+          # Capitalize first letter of module for cleaner display
+          MODULE_CAP="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
+
+          # Generate build name based on trigger type
+          case "$TRIGGER" in
+            "daily_cron")
+              # Daily regression: Daily-{branch}-{Module}-{env}
+              BUILD_NAME="Daily-${BRANCH}-${MODULE_CAP}-${ENV}"
+              ;;
+            "qa_release")
+              # QA release: Release-{tag}-{Module}-QA
+              BUILD_NAME="Release-${TAG}-${MODULE_CAP}-QA"
+              ;;
+            "uat_release")
+              # UAT release: Release-{tag}-{Module}-UAT
+              BUILD_NAME="Release-${TAG}-${MODULE_CAP}-UAT"
+              ;;
+            "prod_healthcheck")
+              # Prod healthcheck: Healthcheck-{Module}-{env}
+              BUILD_NAME="Healthcheck-${MODULE_CAP}-${ENV}"
+              ;;
+            "manual")
+              # Manual: Manual-{tag/branch}-{Module}-{env}
+              BUILD_NAME="Manual-${TAG}-${MODULE_CAP}-${ENV}"
+              ;;
+            *)
+              BUILD_NAME="${TRIGGER}-${TAG}-${MODULE_CAP}-${ENV}"
+              ;;
+          esac
+
+          echo "=========================================="
+          echo "BROWSERSTACK BUILD NAME"
+          echo "=========================================="
+          echo "📛 $BUILD_NAME"
+          echo "=========================================="
+
+          # Export for browserstack.yml to use
+          echo "BROWSERSTACK_BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 9: RUN TESTS
       # Purpose: Execute Playwright tests for the current module
       #
       # Module-Specific Handling:

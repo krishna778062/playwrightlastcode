@@ -74,6 +74,7 @@ on:
       is_browserstack:
         description: 'Enable BrowserStack'
         required: false
+        # TEMPORARILY DISABLED: Preserving quota for QA release testing
         default: false
         type: boolean
 
