@@ -91,7 +91,7 @@ jobs:
       trigger_type: manual
       slack_prefix: Manual Regression
       git_ref: ${{ inputs.git_ref || github.ref_name }}
-      modules: ${{ inputs.module == 'all' && '' || format('["{0}"]', inputs.module) }}
+      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
       is_browserstack: ${{ inputs.is_browserstack }}
       workers: ${{ inputs.workers }}
     secrets: inherit

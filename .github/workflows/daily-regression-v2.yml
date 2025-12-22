@@ -81,8 +81,8 @@ jobs:
       trigger_type: daily_cron
       slack_prefix: Daily Regression
       git_ref: ${{ github.event_name == 'schedule' && '' || github.ref_name }}
-      # Empty for 'all', otherwise single module as JSON array
-      modules: ${{ inputs.module == 'all' && '' || format('["{0}"]', inputs.module) }}
+      # Empty for 'all' (use template default), otherwise single module as JSON array
+      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
       # Daily runs from develop branch where BrowserStack SDK exists
       is_browserstack: ${{ github.event_name == 'schedule' && true || inputs.is_browserstack }}
     secrets: inherit

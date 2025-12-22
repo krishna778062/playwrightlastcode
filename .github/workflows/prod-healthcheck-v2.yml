@@ -78,7 +78,8 @@ jobs:
       slack_prefix: Prod Healthcheck
       git_ref: ''
       # Scheduled: all modules, Manual: user choice
-      modules: ${{ github.event_name == 'schedule' && '' || (inputs.module == 'all' && '' || format('["{0}"]', inputs.module)) }}
+      # Scheduled: all modules, Manual: user choice
+      modules: ${{ github.event_name == 'schedule' && '' || (inputs.module != 'all' && format('["{0}"]', inputs.module) || '') }}
       is_browserstack: ${{ inputs.is_browserstack || false }}
       timeout_minutes: 120
     secrets: inherit
