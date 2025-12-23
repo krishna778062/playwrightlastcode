@@ -63,7 +63,7 @@ test.describe(
     });
 
     test(
-      'in Zeus Verify Sort by options should show shared posts accordingly - Recent Activity',
+      'in Zeus Verify Sort by options should show shared posts accordingly - Recent Activity CONT-26729',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26729'],
       },
