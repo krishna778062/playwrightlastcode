@@ -119,6 +119,10 @@ jobs:
         run: |
           export NODE_TLS_REJECT_UNAUTHORIZED=0
 
+          # For integrations, the folder is 'integrations' but module names are like 'integrations-primary'
+          # envLoader uses MODULE_NAME to find env files, so we need to set it to the folder name
+          export MODULE_NAME=integrations
+
           # Determine config file path
           MODULE="${{ inputs.module }}"
           case "$MODULE" in
@@ -129,6 +133,10 @@ jobs:
               CONFIG_FILE="src/modules/integrations/playwright.${MODULE}.config.ts"
               ;;
           esac
+
+          echo "📦 Module: $MODULE"
+          echo "📁 MODULE_NAME for env: $MODULE_NAME"
+          echo "📄 Config: $CONFIG_FILE"
 
           if [ "${{ inputs.is_browserstack }}" = "true" ]; then
             echo "🔬 Running with BrowserStack..."
