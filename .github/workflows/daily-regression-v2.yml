@@ -70,7 +70,8 @@ on:
       is_browserstack:
         description: 'Enable BrowserStack'
         required: false
-        default: true
+        # TEMPORARILY DISABLED: Preserving quota for QA release testing
+        default: false
         type: boolean
 
 jobs:
@@ -81,8 +82,8 @@ jobs:
       trigger_type: daily_cron
       slack_prefix: Daily Regression
       git_ref: ${{ github.event_name == 'schedule' && '' || github.ref_name }}
-      # Empty for 'all' (use template default), otherwise single module as JSON array
-      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
-      # Daily runs from develop branch where BrowserStack SDK exists
-      is_browserstack: ${{ github.event_name == 'schedule' && true || inputs.is_browserstack }}
+      # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
+      modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
+      # TEMPORARILY DISABLED: Preserving quota for QA release testing
+      is_browserstack: ${{ inputs.is_browserstack || false }}
     secrets: inherit

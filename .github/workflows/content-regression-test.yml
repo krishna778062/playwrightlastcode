@@ -230,11 +230,12 @@ jobs:
           export MODULE_NAME="${{ inputs.module_name || 'content' }}"
 
           # Determine run command based on BrowserStack toggle
-          # For scheduled runs, always use BrowserStack (default: true)
+          # TEMPORARILY DISABLED: Preserving quota for QA release testing
+          # For scheduled runs, BrowserStack is disabled to conserve quota
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
-          if [ "${{ github.event_name }}" = "schedule" ]; then
-            IS_BROWSERSTACK="true"
-          fi
+          # if [ "${{ github.event_name }}" = "schedule" ]; then
+          #   IS_BROWSERSTACK="true"
+          # fi
 
           if [ "$IS_BROWSERSTACK" = "true" ]; then
             echo "🔬 Running with BrowserStack Test Observability..."
