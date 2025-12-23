@@ -94,5 +94,5 @@ jobs:
       # BrowserStack enabled by default for this workflow
       is_browserstack: ${{ inputs.is_browserstack }}
       # Release tag for BrowserStack tracking (required for this workflow)
-      release_tag: ${{ inputs.release_tag }}t
+      release_tag: ${{ inputs.release_tag }}
     secrets: inherit
