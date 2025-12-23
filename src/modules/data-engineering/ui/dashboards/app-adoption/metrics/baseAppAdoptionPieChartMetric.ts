@@ -8,13 +8,12 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
  * Base class for app adoption dashboard pie chart metrics.
  *
  * This class provides enhanced hover functionality for pie chart segments
- * using JavaScript-based event dispatching to handle complex chart interactions.
+ * using mouse.move with exact coordinates to handle tooltip display.
  *
  * The enhanced hover method:
- * - Uses JavaScript to find the segment closest to the label
- * - Dispatches mouse events directly on the segment element
- * - Includes fallback logic for index-based matching
- * - Handles edge cases where standard hover might fail
+ * - Uses mouse.move to exact center coordinates of the label
+ * - Includes retry logic if tooltip doesn't appear
+ * - Waits for element stability before moving mouse
  */
 export abstract class BaseAppAdoptionPieChartMetric extends PieChartComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator, metricTitle: string) {
@@ -23,13 +22,45 @@ export abstract class BaseAppAdoptionPieChartMetric extends PieChartComponent {
 
   /**
    * Enhanced hover over the segment label with the given label
-   * Uses dispatchEvent to trigger mouseover as SVG elements intercept pointer events
+   * Uses mouse.move to exact center coordinates of the label to trigger tooltip
    * @param label - The label of the segment to hover over
+   * @param maxRetries - Maximum number of retry attempts (default: 3)
    */
-  async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
+  async hoverOverSegmentLabelWithLabelAs(label: string, maxRetries = 3): Promise<void> {
     const chartLabel = this.getChartLabelLocatorWithLabelAs(label);
-    // Use dispatchEvent to trigger mouseover directly, bypassing SVG interception
-    await chartLabel.dispatchEvent('mouseover');
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Scroll into view and wait for element to be stable
+        await chartLabel.scrollIntoViewIfNeeded();
+        await this.page.waitForTimeout(500);
+
+        // Get bounding box and move mouse to center coordinates
+        const boundingBox = await chartLabel.boundingBox();
+        if (boundingBox) {
+          const centerX = boundingBox.x + boundingBox.width / 2;
+          const centerY = boundingBox.y + boundingBox.height / 2;
+          await this.page.mouse.move(centerX, centerY);
+        }
+
+        // Wait for tooltip to appear
+        await this.page.waitForTimeout(2000);
+        await this.toolTipContainer.waitFor({ state: 'visible', timeout: 3000 });
+        return; // Tooltip appeared, exit successfully
+      } catch {
+        if (attempt === maxRetries) {
+          // On last attempt, try one more move and continue
+          const box = await chartLabel.boundingBox();
+          if (box) {
+            await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+            await this.page.waitForTimeout(2000);
+          }
+          return;
+        }
+        // Wait before retry
+        await this.page.waitForTimeout(1000);
+      }
+    }
   }
 
   /**
