@@ -6,4 +6,5 @@ export enum AnalyticsFilterLabels {
   PERIOD = 'Period',
   USER_PARAMETER = 'All user parameters',
   SEGMENT = 'Segment',
+  ALL_SEGMENTS = 'All segments',
 }
