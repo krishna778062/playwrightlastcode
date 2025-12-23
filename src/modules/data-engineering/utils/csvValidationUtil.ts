@@ -588,6 +588,11 @@ export class CSVValidationUtil {
       for (const [csvHeader, dbField] of Object.entries(transformations.headerMapping)) {
         let value = csvRecord[csvHeader];
 
+        // Trim string values to handle whitespace in CSV data
+        if (typeof value === 'string') {
+          value = value.trim();
+        }
+
         // Validate date fields are in readable format (not epoch)
         // Note: "User activated on" can be empty, so skip validation for empty values
         if (dbField.includes('Datetime)') && value !== undefined && value !== null && value !== '') {
