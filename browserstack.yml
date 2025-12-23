@@ -19,7 +19,7 @@ accessKey: ${BROWSERSTACK_ACCESS_KEY}
 #   - Manual: "Manual-25.01-Rewards-qa"
 #
 buildName: ${BROWSERSTACK_BUILD_NAME}
-projectName: Central-UI-Automation
+projectName: ${MODULE_NAME}
 buildIdentifier: '#${BUILD_NUMBER}'
 sessionName: '${MODULE_NAME} - ${TEST_ENV}'
 CUSTOM_TAG_1: ${RELEASE_TAG}
