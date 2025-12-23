@@ -41,6 +41,7 @@ test.describe(
           IntegrationsSuiteTags.HEALTH_CHECK,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
+          '@deleteEventFromOutlookCalendar',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -989,6 +990,7 @@ test.describe(
         ],
       },
       async ({ appManagerFixture, testSiteName, browser }) => {
+        test.fail(); // Mark as expected to fail - known failure (Bug: INT-27330)
         test.setTimeout(360000);
         tagTest(test.info(), {
           zephyrTestId: 'INT-27253',

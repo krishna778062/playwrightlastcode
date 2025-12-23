@@ -43,14 +43,13 @@ CMD="cross-env MODULE_NAME=$MODULE_NAME"
 
 # Add environment if provided
 if [ -n "$ENV_NAME" ]; then
+    CMD="$CMD TEST_ENV=$ENV_NAME"
+    echo "Using environment: $ENV_NAME"
+    
+    # Optionally load .env file if it exists (for additional env vars)
     ENV_FILE="src/modules/$MODULE_NAME/env/$ENV_NAME.env"
     if [ -f "$ENV_FILE" ]; then
-        CMD="$CMD TEST_ENV=$ENV_NAME"
-        echo "Using environment: $ENV_NAME ($ENV_FILE)"
-    else
-        echo "Warning: Environment file not found: $ENV_FILE"
-        echo "Available environments in src/modules/$MODULE_NAME/env/:"
-        ls src/modules/$MODULE_NAME/env/ 2>/dev/null || echo "  No env directory found"
+        echo "Loading env file: $ENV_FILE"
     fi
 fi
 

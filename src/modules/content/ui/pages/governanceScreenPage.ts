@@ -12,11 +12,16 @@ export interface IGovernanceScreenPageActions {
   enableContentSubmissions: (message: string) => Promise<void>;
   clickOnTimelineFeedEnabled: () => Promise<void>;
   clickOnTimelineFeedDisabled: () => Promise<void>;
+  selectContentValidationPeriodTime: (time: string) => Promise<void>;
   updateTheCustomFeedPlaceholder: (placeholder: string) => Promise<void>;
   makePlaceholderDefault: () => Promise<void>;
 }
 
-export interface IGovernanceScreenPageAssertions {}
+export interface IGovernanceScreenPageAssertions {
+  verifyFeedPlaceholderSettingIsVisible: () => Promise<void>;
+  verifyFeedPlaceholderSettingIsNotVisible: () => Promise<void>;
+  verifyFeedPlaceholderPositionedBelowTimelineFeed: () => Promise<void>;
+}
 
 export class GovernanceScreenPage extends BasePage implements IGovernanceScreenPageActions {
   // Governance locators (moved from GovernanceComponent)
@@ -29,9 +34,12 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
   readonly timelineFeedEnabled: Locator;
   readonly successToastMessage: (message: string) => Locator;
   readonly clickOnContentSubmissions: Locator;
+  readonly clickOnSave: Locator;
+  readonly clickOnContentValidationPeriodTime: Locator;
   readonly clickOnCustomFeedPlaceholder: Locator;
   readonly customFeedPlaceholderInput: Locator;
   readonly makePlaceholderDefaultButton: Locator;
+  readonly feedPlaceholderHeading: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.GOVERNANCE_SCREEN);
@@ -45,9 +53,12 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.timelineAndFeed = page.getByRole('heading', { name: 'Timeline & feed' });
     this.successToastMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
     this.clickOnContentSubmissions = this.page.locator('#contentSubmissions');
+    this.clickOnSave = this.page.getByRole('button', { name: 'Save' });
+    this.clickOnContentValidationPeriodTime = page.locator('#autoGovValidationPeriod');
     this.clickOnCustomFeedPlaceholder = page.getByRole('radio', { name: 'Custom' });
     this.customFeedPlaceholderInput = this.page.locator('#customFeedPlaceholderText');
     this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
+    this.feedPlaceholderHeading = page.getByRole('heading', { name: 'Feed placeholder' });
   }
 
   get actions(): IGovernanceScreenPageActions {
@@ -56,6 +67,47 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
 
   get assertions(): IGovernanceScreenPageAssertions {
     return this;
+  }
+
+  async verifyFeedPlaceholderSettingIsVisible(): Promise<void> {
+    await test.step('Verify Feed placeholder setting section is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder setting section should be visible',
+      });
+    });
+  }
+
+  async verifyFeedPlaceholderSettingIsNotVisible(): Promise<void> {
+    await test.step('Verify Feed placeholder setting section is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder setting section should not be visible',
+      });
+    });
+  }
+
+  async verifyFeedPlaceholderPositionedBelowTimelineFeed(): Promise<void> {
+    await test.step('Verify Feed placeholder is positioned below Timeline & Feed heading', async () => {
+      // Verify both elements are visible
+      await this.verifier.verifyTheElementIsVisible(this.timelineAndFeed, {
+        assertionMessage: 'Timeline & Feed heading should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {
+        assertionMessage: 'Feed placeholder heading should be visible',
+      });
+
+      // Verify positioning: Feed placeholder should appear after Timeline & Feed in DOM
+      const timelineAndFeedBox = await this.timelineAndFeed.boundingBox();
+      const feedPlaceholderBox = await this.feedPlaceholderHeading.boundingBox();
+
+      if (timelineAndFeedBox && feedPlaceholderBox) {
+        // Check if Feed placeholder is positioned below Timeline & Feed (higher Y coordinate)
+        if (feedPlaceholderBox.y < timelineAndFeedBox.y) {
+          throw new Error(
+            'Feed placeholder heading should be positioned below Timeline & Feed heading, but it appears above'
+          );
+        }
+      }
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -105,6 +157,14 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
       await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message, {
         stepInfo: 'Verify the changes confirmation toast message is visible',
       });
+    });
+  }
+
+  async selectContentValidationPeriodTime(time: string): Promise<void> {
+    await test.step('Clicking on content validation period time', async () => {
+      await this.clickOnElement(this.clickOnContentValidationPeriodTime);
+      await this.clickOnContentValidationPeriodTime.selectOption(time);
+      await this.clickOnElement(this.clickOnSave);
     });
   }
 

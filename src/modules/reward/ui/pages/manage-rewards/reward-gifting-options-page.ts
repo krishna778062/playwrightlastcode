@@ -4,7 +4,7 @@ import Error from 'es-errors';
 
 import { BasePage } from '@core/pages/basePage';
 
-import { PAGE_ENDPOINTS } from '@/src/core';
+import { PAGE_ENDPOINTS, TIMEOUTS } from '@/src/core';
 
 export class RewardGiftingOptionsPage extends BasePage {
   private giftingOptionsContainer: Locator;
@@ -16,7 +16,7 @@ export class RewardGiftingOptionsPage extends BasePage {
   readonly giftingOptionsInputBox: Locator;
   private giftingOptionsInputError: Locator;
   private giftingOptionsInputNote: Locator;
-  private giftingOptionsSave: Locator;
+  readonly giftingOptionsSave: Locator;
   readonly exchangeRateSelectDropdown: Locator;
 
   constructor(page: Page) {
@@ -57,20 +57,33 @@ export class RewardGiftingOptionsPage extends BasePage {
   }
 
   async enterTheAmountAndValidateNoError(amount: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsInputBox);
+    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsInputBox, {
+      timeout: TIMEOUTS.VERY_SHORT,
+      assertionMessage: 'Gifting options input box is visible',
+    });
     await this.fillInElement(this.giftingOptionsInputBox, String(amount), {
       stepInfo: 'Filling gifting options input',
       force: true,
     });
-    await this.clickOnElement(this.giftingOptionsInputNote, { stepInfo: 'Clicking to trigger validation' });
-    await this.verifier.verifyTheElementIsNotVisible(this.giftingOptionsInputError);
-    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsSave);
-    await this.verifier.verifyTheElementIsEnabled(this.giftingOptionsSave);
+    await this.clickOnElement(this.giftingOptionsInputNote, {
+      timeout: TIMEOUTS.VERY_SHORT,
+      stepInfo: 'Clicking to trigger validation',
+    });
+    await this.verifier.verifyTheElementIsNotVisible(this.giftingOptionsInputError, {
+      timeout: TIMEOUTS.VERY_SHORT,
+      assertionMessage: 'Gifting options input box error is not visible',
+    });
+    await this.verifier.verifyTheElementIsEnabled(this.giftingOptionsSave, {
+      timeout: TIMEOUTS.VERY_SHORT,
+      assertionMessage: 'Gifting options Save button is not enabled',
+    });
   }
 
   async clickOnSaveButton(): Promise<void> {
-    await this.verifier.verifyTheElementIsEnabled(this.giftingOptionsSave);
-    await this.clickOnElement(this.giftingOptionsSave, { stepInfo: 'Clicking on Save button' });
+    await this.clickOnElement(this.giftingOptionsSave, {
+      timeout: TIMEOUTS.VERY_SHORT,
+      stepInfo: 'Clicking on Save button',
+    });
   }
 
   async getTheExistingValueInGiftingOptions(): Promise<string> {
@@ -152,8 +165,10 @@ export class RewardGiftingOptionsPage extends BasePage {
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsInputBox);
-    return Promise.resolve(undefined);
+    await this.verifier.verifyTheElementIsVisible(this.giftingOptionsInputBox, {
+      timeout: TIMEOUTS.MEDIUM,
+      assertionMessage: 'Verifying Reward Gifting Options page is loaded',
+    });
   }
 
   /**

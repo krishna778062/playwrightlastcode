@@ -14,7 +14,7 @@ initializeRecognitionConfig('primary');
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'recognition', 'tests', 'ui-tests'),
-  testIgnore: '**/only-peer-to-peer/**',
+  testIgnore: '**/peer2peer-only/**',
   workers: process.env.CI ? 3 : 5,
   timeout: 180_000,
   expect: {

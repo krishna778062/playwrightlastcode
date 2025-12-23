@@ -7,6 +7,11 @@ import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { SURVEY_QUESTION_BANK } from '@/src/modules/employee-listening/test-data/surveyQuestions';
 import { getAlternativeAudienceCheckbox, getExactAudienceCheckbox } from '@/src/modules/employee-listening/utils/polls';
 
+type QuestionBankSearchItem = {
+  question: string;
+  type?: 'scale' | 'multiple-choice' | 'free-text' | 'all';
+};
+
 export class SurveyCreationPage extends BasePage {
   readonly manageFeaturesMenuItem: Locator;
   readonly surveysButton: Locator;
@@ -81,6 +86,8 @@ export class SurveyCreationPage extends BasePage {
   readonly deleteFourthAnswerButton: Locator;
   readonly previewDialog: Locator;
   readonly duplicateOption: Locator;
+  readonly copyLink: Locator;
+  readonly editSurvey: Locator;
   readonly completeOption: Locator;
   readonly completeButton: Locator;
   readonly resetButton: Locator;
@@ -99,6 +106,8 @@ export class SurveyCreationPage extends BasePage {
   readonly browseQuestionBankButtonAlt3: Locator;
   readonly browseQuestionBankButtonAlt4: Locator;
   readonly browseQuestionBankButtonAlt5: Locator;
+  readonly pausedTag: Locator;
+  readonly resumedTag: Locator;
   readonly completedTagAlt1: Locator;
   readonly completedTagAlt2: Locator;
   readonly completedTagAlt3: Locator;
@@ -115,6 +124,7 @@ export class SurveyCreationPage extends BasePage {
   readonly notScheduledText: Locator;
   readonly participationWindowText: Locator;
   readonly freeTextQuestionText: Locator;
+  readonly saveButton: Locator;
 
   readonly previewSectionLocators: ((section: string) => Locator)[] = [
     (section: string) => this.previewDialog.getByText(section, { exact: true }),
@@ -329,12 +339,16 @@ export class SurveyCreationPage extends BasePage {
     this.deleteFourthAnswerButton = this.page.getByRole('button', { name: 'delete First question Fourth' });
     this.previewDialog = this.page.getByRole('dialog');
     this.duplicateOption = this.page.getByRole('menuitem', { name: 'Duplicate' });
+    this.copyLink = this.page.getByText('Copy link to survey');
+    this.editSurvey = this.page.getByRole('menuitem', { name: 'Edit' });
     this.completeOption = this.page.getByRole('menuitem', { name: 'Complete' });
     this.completeButton = this.page.getByRole('button', { name: 'Complete' });
     this.resetButton = this.page.getByRole('button', { name: 'Reset' });
     this.typeFilter = this.page.getByTestId('type-filter').or(this.page.locator('[data-testid*="type"]'));
     this.statusFilter = this.page.getByTestId('status-filter').or(this.page.locator('[data-testid*="status"]'));
     this.completedTag = this.page.getByText('Completed').or(this.page.locator('[data-testid*="completed"]'));
+    this.pausedTag = this.page.getByText('Paused', { exact: true }).first();
+    this.resumedTag = this.page.getByText('Active', { exact: true }).first();
     this.notYetRadio = this.page.getByRole('radio', { name: 'Not yet' });
     this.addNewRecipientsText = this.page.getByText('Add new recipients while');
     this.configurationDetailsContainer = this.page.locator(
@@ -355,15 +369,15 @@ export class SurveyCreationPage extends BasePage {
         .or(this.page.getByRole('button', { name: 'Create your own' }).nth(sectionNumber - 1));
     this.searchSurveysTextbox = this.page.getByRole('textbox', { name: 'Search surveys' });
     this.browseQuestionBankButtonAlt1 = this.page.getByRole('button', { name: /browse question bank/i });
-    this.browseQuestionBankButtonAlt2 = this.page.getByText('Browse question bank', { exact: false });
+    this.browseQuestionBankButtonAlt2 = this.page.locator('[aria-label*="Browse question bank"]');
     this.browseQuestionBankButtonAlt3 = this.page.locator('button:has-text("Browse question bank")');
     this.browseQuestionBankButtonAlt4 = this.page.locator('[data-testid*="browse-question-bank"]');
     this.browseQuestionBankButtonAlt5 = this.page.getByRole('button').filter({ hasText: /browse question/i });
-    this.completedTagAlt1 = this.page.locator(
+    this.completedTagAlt1 = this.page.getByText('Completed', { exact: true }).first();
+    this.completedTagAlt2 = this.page.locator(
       '[data-testid*="completed"], [data-status="completed"], [class*="completed"]'
     );
-    this.completedTagAlt2 = this.page.locator('td, div, span').filter({ hasText: 'Completed' });
-    this.completedTagAlt3 = this.page.locator('tr, .survey-row, .list-item').filter({ hasText: 'Completed' });
+    this.completedTagAlt3 = this.page.locator('td, div, span').filter({ hasText: 'Completed' });
     this.previewNextSectionButtons = [
       this.previewDialog.getByRole('button', { name: /next section/i }),
       this.previewDialog.getByRole('button', { name: /next/i }),
@@ -395,6 +409,7 @@ export class SurveyCreationPage extends BasePage {
     this.notScheduledText = this.page.getByText('Not scheduled yet');
     this.participationWindowText = this.page.getByText('days');
     this.freeTextQuestionText = this.page.getByText('What could have been improved');
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -754,6 +769,10 @@ export class SurveyCreationPage extends BasePage {
       await this.clickOnElement(this.scheduleSurveyButton, {
         stepInfo: 'Click Schedule Survey button',
       });
+      await this.verifier.verifyTheElementIsVisible(this.surveyScheduledMessage, {
+        assertionMessage: 'Survey scheduled message should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -804,6 +823,22 @@ export class SurveyCreationPage extends BasePage {
     await test.step('Click Duplicate option', async () => {
       await this.clickOnElement(this.duplicateOption, {
         stepInfo: 'Click Duplicate option',
+      });
+    });
+  }
+
+  async copySurveyLink(): Promise<void> {
+    await test.step('Click Copy Survey Link option', async () => {
+      await this.clickOnElement(this.copyLink, {
+        stepInfo: 'Copy Survey Link option',
+      });
+    });
+  }
+
+  async editSurveymethod(): Promise<void> {
+    await test.step('Click Edit Survey option', async () => {
+      await this.clickOnElement(this.editSurvey, {
+        stepInfo: 'Copy Edit  option',
       });
     });
   }
@@ -924,6 +959,24 @@ export class SurveyCreationPage extends BasePage {
       if (!completedTagFound) {
         throw new Error('Could not find "Completed" tag/status for the survey after completion');
       }
+    });
+  }
+
+  async verifyPausedTag(): Promise<void> {
+    await test.step('Verify Paused tag is visible after survey pause', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pausedTag, {
+        assertionMessage: 'Paused tag should be visible after survey pause',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyResumedTag(): Promise<void> {
+    await test.step('Verify Active tag is visible after survey resume', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.resumedTag, {
+        assertionMessage: 'Active tag should be visible after survey resume',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -1621,5 +1674,267 @@ export class SurveyCreationPage extends BasePage {
     await this.clickAllPurposeSurvey();
     await this.clickCreateButton();
     await this.enterSurveyName(surveyName);
+  }
+
+  async selectCustomAnswerScale() {
+    const customAnswerScale = this.page.getByRole('radio', { name: /Custom/i });
+    await customAnswerScale.waitFor({ state: 'visible' });
+    await customAnswerScale.check();
+  }
+
+  async selectQualityAnswerScale() {
+    const qualityAnswerScale = this.page.getByRole('radio', { name: /Quality/i });
+    await qualityAnswerScale.waitFor({ state: 'visible' });
+    await qualityAnswerScale.check();
+  }
+
+  async validateQuestionsOnPreview(expectedQuestions: string[]) {
+    for (const question of expectedQuestions) {
+      await this.page.getByText(question, { exact: false }).waitFor({ state: 'visible' });
+    }
+  }
+
+  async captureSurveyIdAfterSchedule(): Promise<string | undefined> {
+    const [scheduleRequest] = await Promise.all([
+      this.page.waitForRequest(
+        (request: any) => request.url().includes('/sentiment-ai/v1/surveys/') && request.method() === 'PUT'
+      ),
+      this.clickScheduleSurveyButton(),
+    ]);
+    const match = /\/sentiment-ai\/v1\/surveys\/([a-f0-9-]+)/.exec(scheduleRequest.url());
+    return match ? match[1] : undefined;
+  }
+
+  async cleanupSurveyById(surveyId: string, surveyManagementService: any): Promise<void> {
+    if (!surveyId) return;
+    try {
+      await surveyManagementService.deleteSurvey(surveyId);
+      console.log(`Cleaned up survey: ${surveyId}`);
+    } catch (error) {
+      console.warn(`Failed to cleanup survey:`, error);
+    }
+  }
+
+  async createAndScheduleSurvey(surveyName: string, audienceNames: string[]): Promise<string | undefined> {
+    await this.createBasicSurveySetup(surveyName);
+    await this.selectAudiences(audienceNames);
+    await this.selectDefaultIntroAndThanks();
+    await this.selectDefaultFormAddress();
+    await this.selectSendDate();
+    await this.clickConfigureSurveyNextButton();
+    await this.clickAddQuestionNextButton();
+    const surveyId = await this.captureSurveyIdAfterSchedule();
+    await this.verifySurveyScheduledMessage();
+    return surveyId;
+  }
+
+  async verifySaveButtonOnPreviewConfirm(): Promise<void> {
+    await test.step('Verify Save button is visible on preview and confirm screen', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
+        assertionMessage:
+          'Save button should be visible on preview and confirm screen when "not yet" option is selected',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async addQuestionsFromBankWithSearch(questions: QuestionBankSearchItem[]): Promise<void> {
+    await test.step(`Add ${questions.length} question(s) from bank using search`, async () => {
+      for (let i = 0; i < questions.length; i++) {
+        const { question, type = 'all' } = questions[i];
+        await this.addSingleQuestionFromBank(question, type, i + 1);
+      }
+    });
+  }
+
+  private async addSingleQuestionFromBank(
+    question: string,
+    type: 'scale' | 'multiple-choice' | 'free-text' | 'all',
+    questionNumber: number
+  ): Promise<void> {
+    await this.clickOnElement(this.page.getByRole('button', { name: 'Browse question bank' }), {
+      stepInfo: `Click Browse question bank button for question ${questionNumber}`,
+    });
+
+    await this.navigateToQuestionTypeTab(type);
+    await this.searchAndSelectQuestion(question);
+  }
+
+  private async navigateToQuestionTypeTab(type: 'scale' | 'multiple-choice' | 'free-text' | 'all'): Promise<void> {
+    if (type === 'multiple-choice') {
+      await this.clickTabIfVisible('multiple-choice');
+    } else if (type === 'free-text') {
+      await this.clickTabIfVisible('free-text');
+    }
+  }
+
+  private async clickTabIfVisible(tabType: 'multiple-choice' | 'free-text'): Promise<void> {
+    if (tabType === 'multiple-choice') {
+      const multipleChoiceTab = this.page
+        .locator('div')
+        .filter({ hasText: /^Multiple choice$/ })
+        .nth(1);
+      const isTabVisible = await multipleChoiceTab.isVisible({ timeout: TIMEOUTS.SHORT });
+      if (isTabVisible) {
+        try {
+          await this.clickOnElement(multipleChoiceTab, {
+            stepInfo: 'Click Multiple choice tab',
+            timeout: TIMEOUTS.SHORT,
+          });
+        } catch (error) {
+          console.warn('Multiple choice tab click failed, might already be selected:', error);
+        }
+      }
+    } else if (tabType === 'free-text') {
+      const freeTextTab = this.page.getByText('Free text');
+      const isTabVisible = await freeTextTab.isVisible({ timeout: TIMEOUTS.SHORT });
+      if (isTabVisible) {
+        try {
+          await this.clickOnElement(freeTextTab, {
+            stepInfo: 'Click Free text tab',
+            timeout: TIMEOUTS.SHORT,
+          });
+        } catch (error) {
+          console.warn('Free text tab click failed, might already be selected:', error);
+        }
+      }
+    }
+  }
+
+  private async searchAndSelectQuestion(question: string): Promise<void> {
+    const searchTextbox = this.page.getByRole('textbox', { name: 'search' });
+    await this.verifier.verifyTheElementIsVisible(searchTextbox, {
+      assertionMessage: 'Search textbox should be visible in question bank',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await this.clickOnElement(searchTextbox, {
+      stepInfo: 'Click on search textbox',
+    });
+    await searchTextbox.fill('');
+    await this.fillInElement(searchTextbox, question, {
+      stepInfo: `Search for question: "${question}"`,
+    });
+    await searchTextbox.press('Enter');
+    await this.page.waitForTimeout(TIMEOUTS.SHORT);
+    const firstCheckbox = this.page.getByRole('checkbox').first();
+    await this.verifier.verifyTheElementIsVisible(firstCheckbox, {
+      assertionMessage: `First checkbox for "${question}" should be visible after search`,
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await this.clickOnElement(firstCheckbox, {
+      stepInfo: `Select question: "${question}"`,
+    });
+
+    await this.clickDoneButton();
+    await this.page.waitForTimeout(TIMEOUTS.SHORT);
+  }
+
+  async addQuestionFromBankWithSearch(questionText: string): Promise<void> {
+    await this.addQuestionsFromBankWithSearch([{ question: questionText, type: 'all' }]);
+  }
+
+  async addScaleQuestionFromBankWithSearch(): Promise<void> {
+    const scaleQuestion = SURVEY_QUESTION_BANK.SCALE[0].question;
+    await this.addQuestionsFromBankWithSearch([{ question: scaleQuestion, type: 'scale' }]);
+  }
+
+  async addMultipleChoiceQuestionFromBankWithSearch(): Promise<void> {
+    const mcqQuestion = SURVEY_QUESTION_BANK.MCQ[0].question;
+    await this.addQuestionsFromBankWithSearch([{ question: mcqQuestion, type: 'multiple-choice' }]);
+  }
+
+  async addFreeTextQuestionFromBankWithSearch(): Promise<void> {
+    const freeTextQuestion = SURVEY_QUESTION_BANK.FREE_TEXT[0].question;
+    await this.addQuestionsFromBankWithSearch([{ question: freeTextQuestion, type: 'free-text' }]);
+  }
+
+  static getQuestionBankQuestions(
+    type: 'scale' | 'multiple-choice' | 'free-text' | 'mixed',
+    count: number = 1
+  ): { question: string; type: 'scale' | 'multiple-choice' | 'free-text' }[] {
+    const questions: { question: string; type: 'scale' | 'multiple-choice' | 'free-text' }[] = [];
+
+    if (type === 'mixed') {
+      const scaleQuestions = SURVEY_QUESTION_BANK.SCALE.slice(0, 3).map(q => ({
+        question: q.question,
+        type: 'scale' as const,
+      }));
+      const mcqQuestions = SURVEY_QUESTION_BANK.MCQ.slice(0, 3).map(q => ({
+        question: q.question,
+        type: 'multiple-choice' as const,
+      }));
+      const freeTextQuestions = SURVEY_QUESTION_BANK.FREE_TEXT.slice(0, 3).map(q => ({
+        question: q.question,
+        type: 'free-text' as const,
+      }));
+
+      questions.push(...scaleQuestions, ...mcqQuestions, ...freeTextQuestions);
+      return questions;
+    }
+
+    switch (type) {
+      case 'scale':
+        return SURVEY_QUESTION_BANK.SCALE.slice(0, count).map(q => ({
+          question: q.question,
+          type: 'scale' as const,
+        }));
+      case 'multiple-choice':
+        return SURVEY_QUESTION_BANK.MCQ.slice(0, count).map(q => ({
+          question: q.question,
+          type: 'multiple-choice' as const,
+        }));
+      case 'free-text':
+        return SURVEY_QUESTION_BANK.FREE_TEXT.slice(0, count).map(q => ({
+          question: q.question,
+          type: 'free-text' as const,
+        }));
+      default:
+        return [];
+    }
+  }
+
+  async addScaleQuestionFromBank(questionIndex: number): Promise<void> {
+    if (questionIndex < 0 || questionIndex >= SURVEY_QUESTION_BANK.SCALE.length) {
+      throw new Error(
+        `Invalid SCALE question index: ${questionIndex}. Available range: 0-${SURVEY_QUESTION_BANK.SCALE.length - 1}`
+      );
+    }
+
+    await this.addQuestionsFromBankWithSearch([
+      {
+        question: SURVEY_QUESTION_BANK.SCALE[questionIndex].question,
+        type: 'scale',
+      },
+    ]);
+  }
+
+  async addMCQQuestionFromBank(questionIndex: number): Promise<void> {
+    if (questionIndex < 0 || questionIndex >= SURVEY_QUESTION_BANK.MCQ.length) {
+      throw new Error(
+        `Invalid MCQ question index: ${questionIndex}. Available range: 0-${SURVEY_QUESTION_BANK.MCQ.length - 1}`
+      );
+    }
+
+    await this.addQuestionsFromBankWithSearch([
+      {
+        question: SURVEY_QUESTION_BANK.MCQ[questionIndex].question,
+        type: 'multiple-choice',
+      },
+    ]);
+  }
+
+  async addFreeTextQuestionFromBank(questionIndex: number): Promise<void> {
+    if (questionIndex < 0 || questionIndex >= SURVEY_QUESTION_BANK.FREE_TEXT.length) {
+      throw new Error(
+        `Invalid FREE_TEXT question index: ${questionIndex}. Available range: 0-${SURVEY_QUESTION_BANK.FREE_TEXT.length - 1}`
+      );
+    }
+
+    await this.addQuestionsFromBankWithSearch([
+      {
+        question: SURVEY_QUESTION_BANK.FREE_TEXT[questionIndex].question,
+        type: 'free-text',
+      },
+    ]);
   }
 }

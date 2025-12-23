@@ -1,0 +1,49 @@
+name: QA Release Regression Tests
+
+on:
+  schedule:
+    # Run every alternate day (Mon, Wed, Fri) at 7:30 AM UTC (1:00 PM IST)
+    - cron: '30 7 * * 1,3,5'
+  workflow_dispatch:
+
+jobs:
+  check-stage:
+    runs-on: [kubernetes]
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      checkout_ref: ${{ steps.check.outputs.checkout_ref }}
+    steps:
+      - name: Determine checkout ref for QA regression tests
+        id: check
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+        run: |
+          STAGE=${CURRENT_STAGE:-qa}
+          echo "Current stage: $STAGE"
+
+          if [ "$STAGE" == "production" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "checkout_ref=main" >> $GITHUB_OUTPUT
+            echo "✅ Production stage - will test from main"
+
+          elif [ "$STAGE" == "qa" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "checkout_ref=release" >> $GITHUB_OUTPUT
+            echo "✅ QA stage - will test from release branch"
+
+          else
+            # UAT stage - skip QA cron (can still be triggered manually)
+            echo "should_run=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping QA regression (current stage: $STAGE)"
+          fi
+
+  regression:
+    needs: check-stage
+    if: needs.check-stage.outputs.should_run == 'true'
+    uses: ./.github/workflows/regression-template.yml
+    with:
+      environment: qa
+      git_ref: ${{ needs.check-stage.outputs.checkout_ref }}
+      slack_prefix: QA Regression
+      is_browserstack: false
+    secrets: inherit

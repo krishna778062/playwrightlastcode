@@ -4,6 +4,7 @@ import { Page, test } from '@playwright/test';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { SnowflakeHelper } from '../../../helpers';
 import { AppAdoptionDashboardQueryHelper } from '../../../helpers/appAdaptionQueryHelper';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
@@ -12,6 +13,7 @@ import { AppAdoptionDashboard } from '../../../ui/dashboards';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupAppAdoptionDashboardForTest,
@@ -48,11 +50,11 @@ test.describe.fixme(
         testEnvironment = await setupAppAdoptionDashboardForTest(browser, UserRole.APP_MANAGER);
 
         testFiltersConfig = {
-          tenantCode: process.env.ORG_ID!,
+          tenantCode: getDataEngineeringConfigFromCache().orgId,
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
-          departments: ['test', 'QA'],
-          locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-          companyName: ['Simpplr'],
+          departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
+          locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };
 

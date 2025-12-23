@@ -6,6 +6,12 @@ export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
     IMAGE_ADDED_TO_ATTACHMENTS: 'Image added to attachments',
     SHARED_POST_SUCCESSFULLY: 'Shared post successfully',
+    CONTENT_UNPUBLISHED: 'Unpublished content successfully',
+    ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY: 'Added tile to dashboard successfully',
+    REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
+    ADDED_NEW_VERSION: 'Added new version successfully',
+    DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -13,6 +19,7 @@ export const FEED_TEST_DATA = {
     FAVICON: 'favicon.png',
   },
   POST_TEXT: {
+    APPROPRIATE_POST_TEXT: `This is a test post with appropriate content`,
     RECOGNITION_MESSAGE: `Automated Test Recognition Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     INITIAL: `Automated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED: `Updated Test Post ${faker.company.name()} - ${faker.commerce.productName()}`,
@@ -24,8 +31,10 @@ export const FEED_TEST_DATA = {
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
-    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content`,
+    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
     EDITED_POST_TEXT: `This is a test post with appropriate content`,
+    INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
+    REPORT_REASON: 'This content violates community guidelines',
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -71,5 +80,20 @@ export const FEED_TEST_DATA = {
   PLACEHOLDER_TEXT: {
     WITH_RECOGNITION: 'Share your thoughts, recognize your colleagues, or ask a question',
     WITHOUT_RECOGNITION: 'Share your thoughts or questions',
+  },
+  EVENT_SMART_FEED: {
+    EVENT_LOCATION: 'GGN',
+    TIMEZONE_ID_ASIA_KOLKATA: 328,
+  },
+  BLANK_FEED_PAYLOAD: {
+    textJson:
+      '{"type":"doc","content":[{"type":"paragraph","attrs":{"className":"","data-sw-sid":null},"content":[{"type":"text","text":""}]}]}',
+    textHtml: '<p></p>',
+    scope: 'public',
+    siteId: null,
+    listOfAttachedFiles: [],
+    ignoreToxic: false,
+    type: 'post',
+    variant: 'standard',
   },
 } as const;

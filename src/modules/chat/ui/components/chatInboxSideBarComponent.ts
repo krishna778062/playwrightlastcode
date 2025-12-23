@@ -22,6 +22,7 @@ export class ChatInboxSideBarComponent extends BaseComponent {
   readonly openRadioButton: Locator;
   readonly announcementRadioButton: Locator;
   readonly groupSearchResult: Locator;
+  readonly groupSearchResult1: Locator;
   readonly leftSideSearchbox: Locator;
 
   //locators
@@ -64,6 +65,7 @@ export class ChatInboxSideBarComponent extends BaseComponent {
       .filter({ hasText: /^all-companyall-companyall-company1all-companyShow more$/ })
       .getByRole('paragraph')
       .nth(3);
+    this.groupSearchResult1 = this.page.locator("//p[text()='all-company']").first();
   }
 
   // --- Actions ---
@@ -106,11 +108,19 @@ export class ChatInboxSideBarComponent extends BaseComponent {
   async searchAndSelectGroup(Name: string): Promise<void> {
     await this.clickOnElement(this.leftSideSearchbox);
     await this.fillInElement(this.leftSideSearchbox, Name);
-    await this.verifier.verifyTheElementIsVisible(this.groupSearchResult, {
-      assertionMessage: `expecting user ${Name} selection dropdown options to be visible to start direct message`,
-      timeout: 20_000,
-    });
-    await this.clickOnElement(this.groupSearchResult, { stepInfo: 'Clicking on group search result' });
+    if (await this.verifier.isTheElementVisible(this.groupSearchResult)) {
+      await this.verifier.verifyTheElementIsVisible(this.groupSearchResult, {
+        assertionMessage: `expecting user ${Name} selection dropdown options to be visible to start direct message`,
+        timeout: 20_000,
+      });
+      await this.clickOnElement(this.groupSearchResult, { stepInfo: 'Clicking on group search result' });
+    } else {
+      await this.verifier.verifyTheElementIsVisible(this.groupSearchResult1, {
+        assertionMessage: `expecting user ${Name} selection dropdown options to be visible to start direct message`,
+        timeout: 20_000,
+      });
+      await this.clickOnElement(this.groupSearchResult1, { stepInfo: 'Clicking on group search result' });
+    }
   }
 
   /**

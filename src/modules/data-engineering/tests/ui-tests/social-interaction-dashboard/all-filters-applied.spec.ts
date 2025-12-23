@@ -1,5 +1,6 @@
 import { PeriodFilterTimeRange } from '@data-engineering/constants/periodFilterTimeRange';
 import { TestCaseType } from '@data-engineering/constants/testCaseType';
+import { TEST_FILTER_VALUES } from '@data-engineering/constants/testFilterValues';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -11,6 +12,7 @@ import { SnowflakeHelper, SocialInteractionDashboardQueryHelper } from '../../..
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSocialInteractionDashboardForTest,
@@ -46,11 +48,11 @@ test.describe(
       testEnvironment = await setupSocialInteractionDashboardForTest(browser, UserRole.APP_MANAGER);
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.LAST_90_DAYS,
-        segments: ['New segment DUCK DB'],
-        departments: ['New department DUCK DB'],
-        locations: ['New city DUCK DB, New state DUCK DB, New country DUCK DB'],
+        segments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.SEGMENTS],
+        departments: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.DEPARTMENTS],
+        locations: [...TEST_FILTER_VALUES.SOCIAL_INTERACTION.LOCATIONS],
       };
 
       const { analyticsFiltersComponent } = testEnvironment.socialInteractionDashboard;

@@ -210,10 +210,14 @@ export const searchTestFixtures = test.extend<
 
       await use({ siteName: publicSite.siteName, siteId: publicSite.siteId });
 
-      // Note: Cleanup is handled by the siteManagementHelper fixture
-      console.log(
-        `🧹 Public site cleanup will be handled by siteManagementHelper fixture for site: ${publicSite.siteName} with ID: ${publicSite.siteId}`
-      );
+      // Cleanup: Explicitly deactivate the site
+      console.log(`🧹 Starting cleanup for site: ${publicSite.siteName} (${publicSite.siteId})`);
+      try {
+        const response = await siteManagementHelper.siteManagementService.deactivateSite(publicSite.siteId);
+        console.log(`✅ Deactivation response:`, JSON.stringify(response));
+      } catch (error) {
+        console.warn(`❌ Failed to deactivate site ${publicSite.siteName}:`, error);
+      }
     },
     { scope: 'worker' },
   ],

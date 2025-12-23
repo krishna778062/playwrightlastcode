@@ -20,6 +20,26 @@ export function loadEnvVariablesForGivenModule(envName: Environments, moduleName
     return;
   }
 
+  // Frontline module uses frontlineConfig.ts instead of .env files
+  if (moduleName === Modules.FRONTLINE) {
+    log.info(`Skipping env file loading for frontline module (uses frontlineConfig.ts instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
+  // Data Engineering module uses dataEngineeringConfig.ts and snowflakeConfig.ts instead of .env files
+  if (moduleName === Modules.DATA_ENGINEERING) {
+    log.info(`Skipping env file loading for data-engineering module (uses config files instead).`, {
+      module: 'envLoader',
+      envName,
+      moduleName,
+    });
+    return;
+  }
+
   // Resolve paths relative to project root
   const envPath = path.resolve(PROJECT_ROOT, `src/modules/${moduleName}/env/${envName}.env`);
   const googleCalendarSecretsPath = path.resolve(

@@ -8,10 +8,12 @@ import {
   EventCreationPayload,
   TopicListResponse,
 } from '@core/types/contentManagement.types';
+import { log } from '@core/utils/logger';
 
 import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { IContentManagementServices } from '@/src/modules/content/apis/interfaces/IContentManagementServices';
+import { CarouselItemResponse } from '@/src/modules/content/apis/types/carouselItemResponse';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
 
 const defaultBaseContentPayload = {
@@ -169,6 +171,94 @@ export class ContentManagementService implements IContentManagementServices {
   }
 
   /**
+   * Gets list of page categories for a given site with their page counts
+   * @param siteId - The site ID
+   * @param options - Optional parameters (size, sortBy)
+   * @returns Promise with list of page categories including pageCount
+   */
+  async getPageCategoriesList(siteId: string, options: { size?: number; sortBy?: string } = {}): Promise<any> {
+    return await test.step('Getting page categories list', async () => {
+      const requestData = {
+        size: options.size ?? 16,
+        sortBy: options.sortBy ?? 'createdNewest',
+      };
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.category,
+        {
+          data: requestData,
+        }
+      );
+      return await response.json();
+    });
+  }
+  async updateContentDetails(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    return await test.step('Updating content details via API PUT request', async () => {
+      const contentResponse = await this.httpClient.get(API_ENDPOINTS.content.delete(siteId, contentId), {});
+      const contentResponseBody = await contentResponse.json();
+      const contentItem = (contentResponseBody.result || contentResponseBody) as any;
+
+      if (!contentItem?.id) {
+        throw new Error(`Content with ID ${contentId} not found`);
+      }
+
+      const formattedPublishAt = new Date(publishAt).toISOString();
+      const authoredById =
+        (contentItem.authoredBy as any)?.peopleId || (contentItem.authoredBy as any)?.id || contentItem.authoredBy;
+      const categoryId = contentItem.category?.id || contentItem.category?.categoryId;
+      const contentSubType = contentItem.contentSubType;
+      const bodyString =
+        typeof contentItem.body === 'string' ? contentItem.body : JSON.stringify(contentItem.body || '');
+
+      if (!authoredById || !categoryId || !contentSubType) {
+        throw new Error(
+          `Missing required fields: authoredBy=${!!authoredById}, category.id=${!!categoryId}, contentSubType=${!!contentSubType}`
+        );
+      }
+
+      const updatePayload: any = {
+        authoredBy: authoredById,
+        contentSubType: contentSubType,
+        listOfFiles: contentItem.listOfFiles || [],
+        publishAt: formattedPublishAt,
+        body: bodyString,
+        imgCaption: contentItem.imgCaption || '',
+        publishingStatus: contentItem.isScheduled ? 'scheduled' : 'immediate',
+        listOfInlineImages: contentItem.listOfInlineImages || [],
+        listOfInlineVideos: contentItem.listOfInlineVideos || [],
+        summary: contentItem.summary || null,
+        bodyHtml: contentItem.bodyHtml || '',
+        imgLayout: contentItem.imgLayout || 'small',
+        isMaximumWidth: contentItem.isMaximumWidth || false,
+        isQuestionAnswerEnabled:
+          contentItem.isQuestionAnswerEnabled !== undefined ? contentItem.isQuestionAnswerEnabled : true,
+        title: contentItem.title || '',
+        isFeedEnabled: contentItem.isFeedEnabled !== undefined ? contentItem.isFeedEnabled : true,
+        listOfTopics: contentItem.listOfTopics || [],
+        category: { id: categoryId, name: contentItem.category?.name || 'Uncategorized' },
+        manualTransEnabled: contentItem.manualTransEnabled || false,
+        contentType: contentItem.type || contentItem.contentType || 'page',
+        isRestricted: contentItem.isRestricted || false,
+        language: contentItem.language || 'en-US',
+      };
+
+      // Only include optional fields if they have values (avoid sending null/undefined/read-only fields)
+      // readTimeInMin, publishTo, and targetAudience are likely read-only or not allowed in updates
+      // so we exclude them to avoid "Additional properties" errors
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.updateDetails(siteId, contentId), {
+        data: updatePayload,
+      });
+
+      if (!response.ok()) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(
+          `Failed to update content details. Status: ${response.status()}, Response: ${JSON.stringify(errorBody)}`
+        );
+      }
+    });
+  }
+
+  /**
    * Publishes new page content to a site.
    * @param siteId - The site ID.
    * @param overrides - Page content overrides.
@@ -179,6 +269,8 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
+        contentSubType: 'news',
+        contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,
           ...overrides.category,
@@ -227,6 +319,69 @@ export class ContentManagementService implements IContentManagementServices {
   }
 
   /**
+   * Saves a new draft page content to a site.
+   * @param siteId - The site ID.
+   * @param overrides - Page content overrides.
+   * @returns The created draft page's ID.
+   */
+  async saveDraftPageContent(siteId: string, overrides: Partial<ReturnType<typeof defaultPageContentPayload>> = {}) {
+    return await test.step('Saving draft page content via API post request', async () => {
+      const payload = {
+        ...defaultPageContentPayload(),
+        ...overrides,
+        category: {
+          ...defaultPageContentPayload().category,
+          ...overrides.category,
+        },
+      };
+      const response = await this.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.saveDraft,
+        {
+          data: {
+            contentSubType: payload.contentSubType,
+            listOfFiles: payload.listOfFiles,
+            publishAt: payload.publishAt,
+            body: payload.body,
+            imgCaption: payload.imgCaption,
+            publishingStatus: payload.publishingStatus,
+            bodyHtml: payload.bodyHtml,
+            imgLayout: payload.imgLayout,
+            title: payload.title,
+            language: payload.language,
+            isFeedEnabled: payload.isFeedEnabled,
+            listOfTopics: payload.listOfTopics,
+            category: {
+              id: payload.category.id,
+              name: payload.category.name,
+            },
+            contentType: payload.contentType,
+            isNewTiptap: payload.isNewTiptap,
+            ...(payload.publishAt && { publishAt: payload.publishAt }),
+            ...(payload.publishTo && { publishTo: payload.publishTo }),
+            ...(payload.listOfInlineVideos && { listOfInlineVideos: payload.listOfInlineVideos }),
+            ...(payload.targetAudience && { targetAudience: payload.targetAudience }),
+            ...((overrides as any).isQuestionAnswerEnabled !== undefined && {
+              isQuestionAnswerEnabled: (overrides as any).isQuestionAnswerEnabled,
+            }),
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Draft page creation failed. Response: ${JSON.stringify(json)}`);
+      }
+      return {
+        pageId: json.result.id,
+        authorName: json.result.authoredBy?.name,
+        publishAt: json.result.publishAt,
+        publishTo: json.result.publishTo,
+        isScheduled: json.result.isScheduled,
+      };
+    });
+  }
+
+  /**
    * Publishes new event content to a site.
    * @param siteId - The site ID.
    * @param overrides - Event content overrides.
@@ -238,7 +393,7 @@ export class ContentManagementService implements IContentManagementServices {
         ...defaultEventContentPayload,
         ...overrides,
       };
-      console.log('event payload: ', payload);
+      log.debug('event payload', { payload });
       const response = await this.httpClient.post(
         API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
         {
@@ -268,7 +423,7 @@ export class ContentManagementService implements IContentManagementServices {
         }
       );
       const json = await response.json();
-      console.log('event JSON Response:', JSON.stringify(json, null, 2));
+      log.debug('event JSON Response', { response: JSON.stringify(json, null, 2) });
       if (json.status !== 'success' || !json.result?.id) {
         throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
       }
@@ -284,6 +439,34 @@ export class ContentManagementService implements IContentManagementServices {
     });
   }
 
+  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
+    return await test.step('Adding content into home carousel via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.addHomeCarouselItem, {
+        data: {
+          siteId: null,
+          itemType: 'content',
+          item: {
+            id: contentId,
+          },
+        },
+      });
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
+    });
+  }
+  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
+    return await test.step('Adding site carousel item via API post request', async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.site.addSiteCarouselItem(siteId), {
+        data: {
+          siteId: siteId,
+          itemType: 'content',
+          item: {
+            id: contentId,
+          },
+        },
+      });
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
+    });
+  }
   async makeContentMustRead(
     contentId: string,
     options: {
@@ -301,7 +484,7 @@ export class ContentManagementService implements IContentManagementServices {
           duration: options.duration || MustReadDuration.NINETY_DAYS,
         },
       });
-      return await this.httpClient.parseResponse<any>(response);
+      return await this.httpClient.parseResponse<CarouselItemResponse>(response);
     });
   }
 
@@ -422,7 +605,7 @@ export class ContentManagementService implements IContentManagementServices {
         throw new Error(`Topic deletion failed. Response: ${JSON.stringify(json)}`);
       }
 
-      console.log(`Topics deleted successfully: ${topicIds.join(', ')}`);
+      log.debug(`Topics deleted successfully: ${topicIds.join(', ')}`);
     });
   }
 
@@ -463,12 +646,19 @@ export class ContentManagementService implements IContentManagementServices {
     } = {}
   ) {
     return await test.step('Getting content list ', async () => {
-      const requestData = {
+      const requestData: {
+        size: number;
+        status?: string;
+        sortBy: string;
+        contribution: string;
+        filter: string;
+        siteId?: string;
+      } = {
         size: options.size || 16,
-        status: options.status || 'published',
         sortBy: options.sortBy || 'publishedNewest',
         contribution: options.contribution || 'all',
         filter: options.filter || 'managing',
+        ...(options.status && { status: options.status }), // Only include status if explicitly provided
         ...(options.siteId && { siteId: options.siteId }),
       };
 
@@ -509,6 +699,45 @@ export class ContentManagementService implements IContentManagementServices {
         data: requestData,
       });
       return await this.httpClient.parseResponse<ContentListResponse>(response);
+    });
+  }
+
+  /**
+   * Creates a page template
+   * @param templateData - Template creation payload
+   * @returns Promise with the template creation response
+   */
+  async createTemplate(templateData: {
+    siteId: string;
+    name: string;
+    title: string;
+    subType: string;
+    language: string;
+    category: { id: string; name: string };
+    body: {
+      type: string;
+      content: Array<{
+        type: string;
+        attrs?: Record<string, any>;
+        content?: Array<{ type: string; text?: string; [key: string]: any }>;
+        [key: string]: any;
+      }>;
+    };
+    imgLayout?: string;
+    listOfTopics?: Array<{ id: string; name: string }>;
+  }): Promise<any> {
+    return await test.step(`Creating page template: ${templateData.name}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.content.createTemplate, {
+        data: templateData,
+      });
+      const json = await response.json();
+      if (json.status !== 'success') {
+        throw new Error(
+          `Failed to create template. Status: ${json.status}, Message: ${json.message || 'Unknown error'}`
+        );
+      }
+      log.debug(`Successfully created template: ${templateData.name} with ID: ${json.result?.id || 'unknown'}`);
+      return json;
     });
   }
 }

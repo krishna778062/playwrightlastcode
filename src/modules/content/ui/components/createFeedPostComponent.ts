@@ -32,6 +32,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
+  clickPostWithoutWaitingForResponse(): Promise<void>;
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   editPostWithTopicAndUserName: (params: {
@@ -42,12 +43,14 @@ export interface ICreateFeedPostActions {
   }) => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
+  uploadFilesToReply: (files: string[], postText: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
   clickPostButton: () => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  clickReplyUpdateButton: (postText: string) => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
   searchForFileInLibrary: (fileName: string) => Promise<void>;
@@ -67,10 +70,12 @@ export interface ICreateFeedPostActions {
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyPostButtonDisabled: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
@@ -154,7 +159,7 @@ export class CreateFeedPostComponent
     this.page.locator('span').filter({ hasText: expectedPlaceholder });
   // Box file browsing section
   readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
-  readonly filePickerDialog = this.page.locator('[role="dialog"]');
+  readonly filePickerDialog = this.page.getByRole('dialog', { name: 'File manager' });
   readonly filePickerTabs = this.page.locator('[role="tab"]');
   readonly boxBreadcrumb = this.page.locator('.Breadcrumb--mediaManager, .Breadcrumb');
   readonly boxFolderLocator = (folderName: string) =>
@@ -347,12 +352,53 @@ export class CreateFeedPostComponent
         );
         responsePromises.push(responsePromise);
       }
-      await this.fileUploadInput.setInputFiles(filePaths);
+      const fileUploadInputCount = await this.fileUploadInput.count();
+      if (fileUploadInputCount > 1) {
+        await this.fileUploadInput.nth(1).setInputFiles(filePaths);
+      } else {
+        await this.fileUploadInput.setInputFiles(filePaths);
+      }
+
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       /*
           If files are more than 10, verify the count of attached files is 10
           because atmax 10 files are uploaded else verify the count of attached files is the number of files uploaded
       */
+      if (filePaths.length > 10) {
+        await expect(this.attachedFiles).toHaveCount(10);
+      } else {
+        await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      }
+
+      // Wait for all upload requests to complete
+      await Promise.all(responsePromises);
+    });
+  }
+
+  /**
+   * Uploads files to a reply editor for a specific post
+   * @param filePaths - Array of file paths to upload
+   * @param postText - The text of the post to which the reply belongs (used for context, not for scoping)
+   */
+  async uploadFilesToReply(filePaths: string[], postText: string): Promise<void> {
+    await test.step('Upload files to reply editor', async () => {
+      // Setup request promises for upload requests
+      const responsePromises = [];
+      for (let i = 0; i < filePaths.length; i++) {
+        const responsePromise = this.page.waitForResponse(
+          response =>
+            response.request().url().includes('X-Amz-SignedHeaders=host') &&
+            response.request().method() === 'PUT' &&
+            response.status() === 200,
+          { timeout: 35000 }
+        );
+        responsePromises.push(responsePromise);
+      }
+
+      const fileUploadInput = this.page.locator("input[type='file']").last();
+
+      await fileUploadInput.setInputFiles(filePaths);
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       if (filePaths.length > 10) {
         await expect(this.attachedFiles).toHaveCount(10);
       } else {
@@ -397,6 +443,19 @@ export class CreateFeedPostComponent
   async clickPostButton(): Promise<void> {
     await test.step('Click post button', async () => {
       await this.clickOnElement(this.postButton);
+      await this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        { timeout: 20_000 }
+      );
+    });
+  }
+
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click post button without waiting for response', async () => {
+      await this.clickOnElement(this.postButton);
     });
   }
 
@@ -440,12 +499,26 @@ export class CreateFeedPostComponent
     });
   }
 
+  async clickReplyUpdateButton(): Promise<void> {
+    await test.step('Click update button in reply editor', async () => {
+      const updateButton = this.updateButton.last();
+      await this.clickOnElement(updateButton);
+    });
+  }
+
   /**
    * Verifies that the post editor is visible
    */
   async verifyEditorVisible(): Promise<void> {
     await test.step('Verify editor is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedEditor);
+    });
+  }
+
+  async verifyReplyEditorVisible(): Promise<void> {
+    await test.step('Verify reply editor is visible', async () => {
+      const editorLocator = this.feedEditor.last();
+      await this.verifier.verifyTheElementIsVisible(editorLocator);
     });
   }
 
@@ -522,6 +595,31 @@ export class CreateFeedPostComponent
     await test.step(`Adding topic mention: #${topicName}`, async () => {
       await this.typeInElement(this.feedEditor, ` #${topicName}`);
       await this.clickOnElement(this.addtopicfromList(topicName));
+    });
+  }
+
+  async removeSiteMention(siteName: string): Promise<void> {
+    await test.step(`Removing site mention: @${siteName}`, async () => {
+      // Find the site mention node in the editor
+      // Site mentions are rendered as spans with data-type="site" and data-label containing the site name
+      const siteMentionNode = this.feedEditor
+        .locator('span[data-type="site"]')
+        .filter({ hasText: new RegExp(siteName) })
+        .first();
+
+      // Check if the mention exists
+      const isVisible = await siteMentionNode.isVisible().catch(() => false);
+
+      if (isVisible) {
+        // Click on the mention to select it, then delete
+        await this.clickOnElement(siteMentionNode);
+        // Press Backspace or Delete to remove the mention
+        await this.feedEditor.press('Backspace');
+        // Sometimes we need to press it twice or use Delete
+        await this.feedEditor.press('Delete');
+      } else {
+        console.log(`Site mention @${siteName} not found in editor, skipping removal`);
+      }
     });
   }
 
@@ -807,6 +905,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Verifies that the Post button is disabled
+   */
+  async verifyPostButtonDisabled(): Promise<void> {
+    await test.step('Verify Post button is disabled', async () => {
+      await expect(this.postButton).toBeDisabled();
+    });
+  }
+
   async addFileToPost(filePath: string): Promise<void> {
     await test.step(`Add file to post: ${filePath}`, async () => {
       await this.fileUploadInput.first().setInputFiles([filePath]);
@@ -1020,6 +1127,7 @@ export class CreateFeedPostComponent
 
       await this.verifier.verifyTheElementIsVisible(folderNameDiv, {
         assertionMessage: `Box folder "${folderName}" should be visible`,
+        timeout: TIMEOUTS.VERY_SHORT,
       });
 
       // Click on the folder name div
@@ -1036,10 +1144,12 @@ export class CreateFeedPostComponent
         await this.verifier
           .verifyTheElementIsVisible(this.boxTableRows.first(), {
             assertionMessage: 'Folder contents table should be visible after clicking folder',
+            timeout: TIMEOUTS.VERY_SHORT,
           })
           .catch(async () => {
             await this.verifier.verifyTheElementIsVisible(this.boxBreadcrumb, {
               assertionMessage: 'Folder breadcrumb should be visible after clicking folder',
+              timeout: TIMEOUTS.VERY_SHORT,
             });
           });
       }
@@ -1050,48 +1160,27 @@ export class CreateFeedPostComponent
    * Selects a file from Box
    * @param fileName - Name of the file to select (empty string to select first available file)
    */
-  async selectBoxFile(fileName: string): Promise<void> {
+  async selectBoxFile(fileName?: string): Promise<void> {
     await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
       if (fileName) {
-        // Find file in table by name
-        const fileRow = this.page.locator('table tbody tr').filter({ hasText: fileName });
-        await this.verifier.verifyTheElementIsVisible(fileRow, {
-          assertionMessage: `Box file "${fileName}" should be visible`,
-        });
-        // Click on the checkbox in the first column
-        const checkbox = fileRow.locator('td').first().locator('input[type="checkbox"]');
+        const checkbox = this.getFileCheckboxLocator(fileName);
         await this.verifier.verifyTheElementIsVisible(checkbox, {
           assertionMessage: `Checkbox for file "${fileName}" should be visible`,
         });
-        await this.clickOnElement(checkbox);
+
+        // Check if checkbox is already selected
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          // Click the checkbox using JavaScript to ensure it works
+          await checkbox.check();
+        }
       } else {
-        // Select first available file (not a folder)
-        // Wait for table to load after folder navigation
-        await this.verifier.verifyTheElementIsVisible(this.boxTableRows.first(), {
-          assertionMessage: 'At least one table row should be available',
+        const file = this.filePickerDialog.getByRole('checkbox', { name: '.pdf' }).first();
+        await this.verifier.verifyTheElementIsVisible(file, {
+          assertionMessage: `Box file ".pdf" should be visible`,
+          timeout: TIMEOUTS.VERY_SHORT,
         });
-
-        // Find the first row that has a checkbox (files and folders both have checkboxes, but we want files)
-        // Files typically don't have the folder icon or folder-related classes
-        const folderIconLocator = this.page.locator(
-          'div[class*="folder"], div[class*="Folder"], i[class*="folder"], i[class*="Folder"]'
-        );
-        const fileRow = this.boxTableRows.filter({ hasNot: folderIconLocator }).first();
-
-        // If no file found with that filter, just use the first row
-        const rowToUse = (await fileRow.count()) > 0 ? fileRow : this.boxTableRows.first();
-
-        // Click on the checkbox in the first column
-        const checkbox = rowToUse.locator('td').first().locator('input[type="checkbox"]');
-        await this.verifier.verifyTheElementIsVisible(checkbox, {
-          assertionMessage: 'Checkbox for file should be visible',
-        });
-        await this.clickOnElement(checkbox);
-
-        // Verify selection registered - checkbox should be checked
-        await this.verifier.verifyTheElementIsVisible(checkbox, {
-          assertionMessage: 'Checkbox should remain visible after selection',
-        });
+        await file.check();
       }
     });
   }

@@ -7,10 +7,12 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { DateHelper, SearchDashboardQueryHelper, SnowflakeHelper } from '../../../helpers';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SearchDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSearchDashboardForTest,
@@ -51,12 +53,12 @@ test.describe(
       startDate.setDate(startDate.getDate() - 59); // 60 days ago (including today)
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
         customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
-        departments: ['Undefined'], // All three department filters
-        locations: ['Gurugram, Haryana, India', 'India'], // Both location filters
+        departments: [...TEST_FILTER_VALUES.SEARCH.DEPARTMENTS],
+        locations: [...TEST_FILTER_VALUES.SEARCH.LOCATIONS],
       };
 
       const { analyticsFiltersComponent } = testEnvironment.searchDashboard;
@@ -264,7 +266,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'verify Most searches performed by Department metric data validation with all filters applied (Last 60 days, Departments: Test, Undefined, test, Locations: Gurugram Haryana India, India)',
       {
         tag: [

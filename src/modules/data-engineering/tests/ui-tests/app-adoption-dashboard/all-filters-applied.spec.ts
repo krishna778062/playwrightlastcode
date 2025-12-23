@@ -4,6 +4,7 @@ import { Page, test } from '@playwright/test';
 
 import { GroupByOnUserParameter } from '../../../constants/filters';
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
+import { TEST_FILTER_VALUES } from '../../../constants/testFilterValues';
 import { SnowflakeHelper } from '../../../helpers';
 import { AppAdoptionDashboardQueryHelper } from '../../../helpers/appAdaptionQueryHelper';
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
@@ -13,6 +14,7 @@ import { CSVValidationUtil } from '../../../utils/csvValidationUtil';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupAppAdoptionDashboardForTest,
@@ -26,7 +28,7 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe.fixme(
+test.describe(
   'app Adoption Dashboard - All Filters Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
@@ -49,14 +51,11 @@ test.describe.fixme(
         testEnvironment = await setupAppAdoptionDashboardForTest(browser, UserRole.APP_MANAGER);
 
         testFiltersConfig = {
-          tenantCode: process.env.ORG_ID!,
+          tenantCode: getDataEngineeringConfigFromCache().orgId,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
-          departments: ['test', 'QA'],
-          // locations: ['Baran, Rajasthan, India', 'Gurugram, Haryana, India'],
-          locations: ['Gurugram, Haryana, India'],
-
-          // userCategories: ['Adil Option1'],
-          companyName: ['Simpplr'],
+          departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
+          locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
         };
 
         const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;

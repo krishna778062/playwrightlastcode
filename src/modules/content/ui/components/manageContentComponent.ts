@@ -71,8 +71,12 @@ export class ManageContentComponent extends BaseComponent {
   readonly unpublishedTag: Locator;
   readonly checkBoxOfContent: Locator;
   readonly onboardingOption: Locator;
+  readonly validationRequiredInfoBox: Locator;
+  readonly validationViewAllButton: Locator;
+  readonly validationRequiredTag: Locator;
   readonly activateButton: Locator;
   readonly verifyTabVisibleUnderFavoritesTab: (option: TagOption) => Locator;
+  readonly selectContentByNumberOfItemsButton: (option: number) => Locator;
   constructor(page: Page) {
     super(page);
     this.baseActionUtil = new BaseActionUtil(page);
@@ -96,7 +100,7 @@ export class ManageContentComponent extends BaseComponent {
       .first();
     this.moveConfirmButton = page.getByRole('button', { name: 'Move' });
     this.siteListSelect = page.locator(`[role="listbox"]`).first();
-    this.deleteButton = page.getByText('Delete', { exact: true });
+    this.deleteButton = page.getByText('Delete', { exact: true }).first();
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.selectAllButton = page.locator('[type="checkbox"]').first();
     this.validateButton = page.getByText('Validate', { exact: true });
@@ -151,11 +155,19 @@ export class ManageContentComponent extends BaseComponent {
       .locator('div')
       .filter({ hasText: /^Unpublished$/ })
       .first();
+    this.validationRequiredTag = page
+      .locator('div')
+      .filter({ hasText: /^Validation required$/ })
+      .first();
+
     this.addToCampaignOption = page.getByText('Add to campaign', { exact: true });
+    this.validationViewAllButton = page.getByRole('button', { name: 'View all' });
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
     this.checkBoxOfContent = page.locator('[type="checkbox"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
+    this.validationRequiredInfoBox = page.locator('.InfoBox').first();
+    this.selectContentByNumberOfItemsButton = (option: number) => page.locator('[type="checkbox"]').nth(option);
     this.verifyTabVisibleUnderFavoritesTab = (option: TagOption) => page.getByText(option).first();
   }
   getPageName(pageName: string): Locator {
@@ -274,10 +286,31 @@ export class ManageContentComponent extends BaseComponent {
       await this.clickOnElement(this.actionDropdown);
     });
   }
+  async selectUnpublishButtonFromBulkActions(): Promise<void> {
+    await test.step(`Selecting the unpublish button from bulk actions`, async () => {
+      await this.clickOnElement(this.unpublishButton);
+    });
+  }
 
   async selectUnpublishButton(): Promise<void> {
     await test.step(`Selecting the unpublish button`, async () => {
       await this.clickOnElement(this.unpublishButton);
+    });
+  }
+
+  async clickOnUnpublishButtonFromDropDown(): Promise<void> {
+    await test.step(`Clicking on the unpublish button from drop down`, async () => {
+      const publishResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.unpublishButton, { delay: 2_000 }),
+        response =>
+          response.url().includes(PAGE_ENDPOINTS.MANAGE_CONTENT_APPLY_API) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 60_000,
+        }
+      );
+      return publishResponse;
     });
   }
   async clickOnApply(): Promise<void> {
@@ -295,7 +328,7 @@ export class ManageContentComponent extends BaseComponent {
           response.request().method() === 'POST' &&
           response.status() === 200,
         {
-          timeout: 20_000,
+          timeout: 60_000,
         }
       );
       return publishResponse;
@@ -387,7 +420,17 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectMoveConfirmButton(): Promise<void> {
     await test.step(`Selecting the move confirm button`, async () => {
-      await this.clickOnElement(this.moveConfirmButton);
+      const moveResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.moveConfirmButton),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.move) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      return moveResponse;
     });
   }
 
@@ -406,6 +449,13 @@ export class ManageContentComponent extends BaseComponent {
   async selectSelectAllButton(): Promise<void> {
     await test.step(`Selecting the select all button`, async () => {
       await this.clickOnElement(this.selectAllButton);
+    });
+  }
+  async selectContentByNumberOfItems(_numberOfItems: number): Promise<void> {
+    await test.step(`Selecting the content by number of items`, async () => {
+      for (let i = 1; i <= _numberOfItems; i++) {
+        await this.clickOnElement(this.selectContentByNumberOfItemsButton(i));
+      }
     });
   }
 
@@ -434,6 +484,18 @@ export class ManageContentComponent extends BaseComponent {
   async clickOnOnboardingOption(): Promise<void> {
     await test.step(`Clicking on the onboarding option`, async () => {
       await this.clickOnElement(this.onboardingOption);
+    });
+  }
+  async verifyValidationRequiredIsVisible(): Promise<void> {
+    await test.step('Verifying the validation required is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.validationRequiredInfoBox, {
+        assertionMessage: 'Validation required info box should be visible',
+      });
+    });
+  }
+  async clickOnValidationViewAllButton(): Promise<void> {
+    await test.step('Clicking on the validation view all button', async () => {
+      await this.clickOnElement(this.validationViewAllButton);
     });
   }
 
@@ -535,13 +597,9 @@ export class ManageContentComponent extends BaseComponent {
     await test.step('Verifying the site name', async () => {
       // Get the site name
       const siteName = await this.siteName.innerText();
-      console.log(siteName);
-      console.log(this.siteSearchBarOptionText);
 
       // Check if site name matches the selected option
-      if (this.siteSearchBarOptionText.trim() === siteName.trim()) {
-        console.log('Site name is matching');
-      } else {
+      if (this.siteSearchBarOptionText.trim() !== siteName.trim()) {
         throw new Error(`Site name is not matching. Expected: ${this.siteSearchBarOptionText}, Found: ${siteName}`);
       }
     });
@@ -573,12 +631,9 @@ export class ManageContentComponent extends BaseComponent {
     await test.step(`Verifying ManageContentListItem count is ${expectedCount}`, async () => {
       await this.waitForManageContentListItems();
       const actualCount = await this.manageContentListItems.count();
-      console.log(`Actual count: ${actualCount}`);
-      console.log(`Expected count: ${expectedCount}`);
       if (actualCount < expectedCount) {
         throw new Error(`Expected at least ${expectedCount} ManageContentListItem elements, but found ${actualCount}`);
       }
-      console.log(`✅ Successfully verified ${actualCount} ManageContentListItem elements`);
     });
   }
 
@@ -604,11 +659,6 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async selectCreateNewestPublishedOptionByText(): Promise<void> {
-    await test.step('Selecting the create newest published option by text', async () => {
-      await this.sortByButton.selectOption({ label: 'Published date (newest first)' });
-    });
-  }
   async selectCreateOldestPublishedOptionByText(): Promise<void> {
     await test.step('Selecting the create oldest published option by text', async () => {
       await this.sortByButton.selectOption({ label: 'Published date (oldest first)' });
@@ -635,7 +685,30 @@ export class ManageContentComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdownOptions)) {
         await this.clickOnElement(this.pageCategorySelectorDropdownOptions);
       } else {
-        console.log('Page category selector dropdown options is not visible skipping');
+      }
+    });
+  }
+
+  /**
+   * Selects a specific page category by name from the dropdown
+   * @param categoryName - The name of the page category to select
+   */
+  async selectPageCategoryByName(categoryName: string): Promise<void> {
+    await test.step(`Selecting page category: ${categoryName}`, async () => {
+      // Click on the page category dropdown
+      if (await this.verifier.isTheElementVisible(this.pageCategorySelectorDropdown)) {
+        await this.clickOnElement(this.pageCategorySelectorDropdown);
+        // Wait for dropdown options to appear
+        await this.page.waitForTimeout(500);
+        // Select the category by name
+        const categoryOption = this.page.getByRole('option', { name: categoryName, exact: true }).first();
+        if (await this.verifier.isTheElementVisible(categoryOption)) {
+          await this.clickOnElement(categoryOption);
+        } else {
+          throw new Error(`Page category "${categoryName}" not found in dropdown`);
+        }
+      } else {
+        throw new Error('Page category selector dropdown is not visible');
       }
     });
   }
@@ -879,6 +952,8 @@ export class ManageContentComponent extends BaseComponent {
         return this.scheduledTag;
       case ManageContentTags.DRAFT:
         return this.draftTag;
+      case ManageContentTags.VALIDATION_REQUIRED:
+        return this.validationRequiredTag;
       default:
         throw new Error(`Unknown tag: ${tag}`);
     }
@@ -967,8 +1042,6 @@ export class ManageContentComponent extends BaseComponent {
       if (actualCount !== expectedCount) {
         throw new Error(`Expected ${expectedCount} selected checkboxes, but found ${actualCount}`);
       }
-
-      console.log(`✓ Verified ${actualCount} checkboxes are selected`);
     });
   }
 

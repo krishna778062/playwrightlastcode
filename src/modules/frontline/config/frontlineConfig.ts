@@ -17,7 +17,7 @@
  */
 
 export type TenantKey = 'primary' | 'secondary';
-export type EnvironmentKey = 'qa' | 'uat' | 'test';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'uatEU' | 'prodUS';
 
 export const mailosaurValues: {
   mailosaurApiKey: string;
@@ -27,7 +27,7 @@ export const mailosaurValues: {
 } = {
   mailosaurApiKey: '3G0mJzdusG2e4QKWsyupr2emWMQaMZi2',
   mailosaurServerId: 'bie7v7vm',
-  mailosaurEmail: 'green@bie7v7vm.mailosaur.net',
+  mailosaurEmail: 'green+1@bie7v7vm.mailosaur.net',
   mailosaurPhone: '+12029891336',
 };
 
@@ -127,6 +127,32 @@ export const config = {
       newUxEnabled: false,
       orgId: 'ae412585-2c97-435e-b587-8da6971045bd',
     },
+    uatEU: {
+      tenantName: 'Frontline Primary UAT EU',
+      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'meenakshi.joshi@simpplr.com',
+      appManagerPassword: 'Simp@123',
+      endUserEmail: 'meenakshi.joshi+2@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '43742c24-f120-4f3a-9982-a1e7dabc3dbe',
+    },
+    prodUS: {
+      tenantName: 'Frontline Primary PROD US',
+      frontendBaseUrl: 'https://ping-automation.app.simpplr.com/',
+      apiBaseUrl: 'https://ping-automation-api.app.simpplr.com/',
+      appManagerEmail: 'rakesh.yadav@simpplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi+1@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: true,
+      orgId: '020cb3c0-14b6-4a6e-9bae-ade3b0e30f79',
+    },
   },
   secondary: {
     qa: {
@@ -176,6 +202,36 @@ export const config = {
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
+    uatEU: {
+      tenantName: 'Frontline Secondary UAT',
+      frontendBaseUrl: 'https://frontline.uat-eu.simpplr.xyz/',
+      apiBaseUrl: 'https://frontline-api.uat-eu.simpplr.xyz',
+      appManagerEmail: '1473',
+      appManagerPassword: 'Simp@123',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: 'ab6fa2d0-5015-49f3-bc88-6ddce62d7281',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
+    prodUS: {
+      tenantName: 'Frontline Secondary PROD US',
+      frontendBaseUrl: 'https://frontline-automation.app.simpplr.com',
+      apiBaseUrl: 'https://frontline-automation-api.app.simpplr.com',
+      appManagerEmail: 'rakesh.yadav@simmplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: 'd181647a-958c-4108-b2d2-913b60687da6',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
   },
   appConfig: {
     staticFolderPath: '',
@@ -188,13 +244,15 @@ export const config = {
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!['qa', 'uat', 'test'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'uatEU', 'prodUS'].includes(testEnv)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test\n` +
+        `Valid values are: qa, uat, test, uatEU, prodUS\n` +
         `Example: TEST_ENV=qa npm run test:module frontline\n` +
         `Example: TEST_ENV=uat npm run test:module frontline\n` +
-        `Example: TEST_ENV=test npm run test:module frontline\n`
+        `Example: TEST_ENV=test npm run test:module frontline\n` +
+        `Example: TEST_ENV=uatEU npm run test:module frontline\n` +
+        `Example: TEST_ENV=prodUS npm run test:module frontline\n`
     );
   }
 
