@@ -58,6 +58,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           sortBy: 'alphabetical',
           term: category,
         },
+        timeout: 30000,
       });
       const json = await response.json();
       if (!json.result?.listOfItems?.length) throw new Error('Category not found');
