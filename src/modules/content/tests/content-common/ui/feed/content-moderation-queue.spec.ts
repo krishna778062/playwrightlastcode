@@ -40,7 +40,7 @@ test.describe(
       await homeFeedPage.actions.createPost(inappropriateText);
 
       // Click Post button
-      await homeFeedPage.actions.clickPostButton();
+      await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -69,7 +69,7 @@ test.describe(
       await createFeedPostComponent.actions.createPost(inappropriateText);
 
       // Click Post button
-      await createFeedPostComponent.actions.clickPostButton();
+      await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -105,7 +105,7 @@ test.describe(
       await createFeedPostComponent.actions.createPost(inappropriateText);
 
       // Click Post button
-      await createFeedPostComponent.actions.clickPostButton();
+      await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -121,7 +121,7 @@ test.describe(
     };
 
     test(
-      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 1 (Content Manager and Manager)',
+      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 1 (Content Manager and Manager) CONT-29513',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
       },
@@ -131,6 +131,8 @@ test.describe(
             'Verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue for Content Manager and Manager roles',
           zephyrTestId: 'CONT-29513',
           storyId: 'CONT-29513',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43260',
         });
 
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
@@ -217,7 +219,7 @@ test.describe(
     );
 
     test(
-      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 2 (Member and Owner)',
+      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 2 (Member and Owner) CONT-29513',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
       },
@@ -227,6 +229,8 @@ test.describe(
             'Verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue for Member and Owner roles',
           zephyrTestId: 'CONT-29513',
           storyId: 'CONT-29513',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43260',
         });
 
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
@@ -316,7 +320,7 @@ test.describe(
     );
 
     test(
-      'verify Content Moderator can view Reported posts/comments/replies in Content Moderation queue',
+      'verify Content Moderator can view Reported posts/comments/replies in Content Moderation queue CONT-29514',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29514'],
       },

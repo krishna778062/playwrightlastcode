@@ -1175,7 +1175,6 @@ test.describe(
       }
     );
 
-    // eslint-disable-next-line playwright/no-skipped-test
     test.skip(
       'author of the Event disconnects Google Calendar and Verify Event is removed from Google Calendar for both Author and End User and Reconnect Google Calendar and Verify Event is synced back to Google Calendar for both Author and End User',
       {
@@ -1407,7 +1406,6 @@ test.describe(
   }
 );
 
-// eslint-disable-next-line playwright/no-skipped-test
 test.describe.skip(
   'google Calendar App Level Disconnect Tests',
   {
@@ -1643,7 +1641,6 @@ test.describe.skip(
   }
 );
 
-// eslint-disable-next-line playwright/no-skipped-test
 test.describe.skip(
   'google Calendar Domain Removal Tests',
   {

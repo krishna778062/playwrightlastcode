@@ -10,6 +10,7 @@ import { Page, test } from '@playwright/test';
 import { TestGroupType } from '@/src/core';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSitesDashboardForTest,
@@ -48,7 +49,7 @@ test.describe(
       const customDateRange = DateHelper.createTestCustomDateRange();
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: customDateRange.startDate,
         customEndDate: customDateRange.endDate,
@@ -185,14 +186,13 @@ test.describe(
       }
     );
 
-    test.fail(
+    test(
       'verify Most Popular sites metric data validation with custom period filter applied (Custom Date Range)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-most-popular-metric'],
       },
       async () => {
         tagTest(test.info(), {
-          isKnownFailure: true,
           description:
             'To verify the answer of Most Popular sites in Sites dashboard with custom period filter applied',
           zephyrTestId: 'DE-26383',

@@ -10,9 +10,11 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
+import { UserProfilePage } from '@/src/modules/content/ui/pages/userProfilePage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 /**
@@ -31,12 +33,6 @@ async function navigateToContentFeedAsRole(
   contentId: string,
   siteName: string
 ): Promise<{ contentPreviewPage: ContentPreviewPage; feedPage: FeedPage }> {
-  await test.step(`Search for site "${siteName}"`, async () => {
-    await navigationHelper.searchForTerm(siteName, {
-      stepInfo: `Searching for site "${siteName}"`,
-    });
-  });
-
   await test.step('Navigate to Content tab', async () => {
     const siteDashboardPage = new SiteDashboardPage(page, siteId);
     await siteDashboardPage.loadPage();
@@ -68,7 +64,7 @@ test.describe(
     let createdPostId: string;
     let siteId: string;
     let contentId: string;
-    const siteName = 'All Employees';
+    const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
     test.beforeEach(
       'Setup test environment and create feed post',
@@ -84,7 +80,7 @@ test.describe(
         siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
         contentManagerFeedPage = new FeedPage(standardUserFixture.page);
 
-        // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+        // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
         siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName, {
           accessType: SITE_TYPES.PUBLIC,
         });
@@ -119,7 +115,7 @@ test.describe(
             role: SitePermission.OWNER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
         }
 
@@ -131,7 +127,7 @@ test.describe(
             role: SitePermission.MANAGER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
         }
 
@@ -147,7 +143,7 @@ test.describe(
             role: SitePermission.CONTENT_MANAGER,
           });
         } catch (error) {
-          // Log and continue - user may already have correct role or "All Employees" has API restrictions
+          // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
           console.log(
             `Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`
           );
@@ -196,7 +192,7 @@ test.describe(
     });
 
     test(
-      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed',
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed CONT-24918',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24918'],
       },
@@ -312,7 +308,7 @@ test.describe(
     let siteFeedPostText: string;
     let siteFeedReplyText: string;
     let siteFeedSiteId: string;
-    const siteFeedSiteName = 'All Employees';
+    const siteFeedSiteName = DEFAULT_PUBLIC_SITE_NAME;
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
       // Configure app governance settings and enable timeline comment post(feed)
@@ -321,7 +317,7 @@ test.describe(
         feedMode: FEED_TEST_DATA.DEFAULT_FEED_MODE,
       });
       */
-      // Get or create "All Employees" site using getSiteIdWithName which handles both cases
+      // Get or create DEFAULT_PUBLIC_SITE_NAME site using getSiteIdWithName which handles both cases
       siteFeedSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteFeedSiteName, {
         accessType: SITE_TYPES.PUBLIC,
       });
@@ -343,7 +339,7 @@ test.describe(
           role: SitePermission.OWNER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set OWNER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -355,7 +351,7 @@ test.describe(
           role: SitePermission.MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set MANAGER role (may already be set or site has restrictions): ${error}`);
       }
 
@@ -367,13 +363,13 @@ test.describe(
           role: SitePermission.CONTENT_MANAGER,
         });
       } catch (error) {
-        // Log and continue - user may already have correct role or "All Employees" has API restrictions
+        // Log and continue - user may already have correct role or DEFAULT_PUBLIC_SITE_NAME has API restrictions
         console.log(`Note: Could not set CONTENT_MANAGER role (may already be set or site has restrictions): ${error}`);
       }
     });
 
     test(
-      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed',
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed CONT-24906',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24906'],
       },
@@ -496,6 +492,94 @@ test.describe(
 );
 
 test.describe(
+  'feed Post Like/Unlike Tests - Home Feed',
+  {
+    tag: [ContentTestSuite.FEED_STANDARD_USER],
+  },
+  () => {
+    let feedPage: FeedPage;
+    let createdPostText: string;
+    let createdReplyText: string;
+    let createdPostId: string = '';
+
+    test.beforeEach('Setup test environment and create feed post', async ({ standardUserFixture }) => {
+      // Navigate to Home → Global Feed
+      await standardUserFixture.homePage.verifyThePageIsLoaded();
+      // await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+      await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+      feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.verifyThePageIsLoaded();
+
+      // Generate unique post text with timestamp for idempotent test runs
+      const timestamp = Date.now();
+      const postText = `${FEED_TEST_DATA.POST_TEXT.INITIAL} - ${timestamp}`;
+      createdPostText = postText;
+      createdReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+      // Click "Share your thoughts or question" button
+      await feedPage.actions.clickShareThoughtsButton();
+
+      // Create a post and send it to the editor
+      const postResult = await feedPage.actions.createAndPost({ text: postText });
+      createdPostId = postResult.postId || '';
+
+      // Wait for post to be visible
+      await feedPage.assertions.waitForPostToBeVisible(postText);
+    });
+
+    test.afterEach('Cleanup created posts', async ({ standardUserFixture }) => {
+      if (createdPostId) {
+        try {
+          await standardUserFixture.feedManagementHelper.deleteFeed(createdPostId);
+        } catch (error) {
+          console.warn(`Failed to delete feed post: ${error}`);
+        }
+        createdPostId = '';
+      }
+    });
+
+    test(
+      'verify standard user is able to like and unlike Feed post and Reply on Home-Global Feed CONT-19556',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19556'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify EndUser1 is able to like and unlike Feed post and Reply on Home-Global Feed',
+          zephyrTestId: 'CONT-19556',
+          storyId: 'CONT-19556',
+        });
+
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Like the post → verify like succeeded and count incremented & visual state changed
+        await test.step('Like the feed post and verify like count incremented', async () => {
+          await feedPage.actions.likeFeedPost(createdPostText);
+          await feedPage.assertions.verifyLikeCountOnPost(createdPostText);
+        });
+
+        await feedPage.actions.unlikeFeedPost(createdPostText);
+
+        await feedPage.actions.addReplyToPost(createdReplyText, createdPostId);
+        await feedPage.assertions.verifyReplyIsVisible(createdReplyText);
+
+        // Like the reply → verify reply like count incremented and state updated
+        await test.step('Like the reply and verify like count incremented', async () => {
+          await feedPage.actions.likeFeedReply(createdReplyText);
+          await feedPage.assertions.verifyLikeCountOnReply(createdReplyText);
+        });
+
+        await feedPage.actions.unlikeFeedReply(createdReplyText);
+
+        await feedPage.actions.deletePost(createdPostText);
+        await feedPage.assertions.verifyPostIsNotVisible(createdPostText);
+      }
+    );
+  }
+);
+
+test.describe(
   'feed Post Reaction Emoji Replacement Test',
   {
     tag: [ContentTestSuite.FEED_STANDARD_USER],
@@ -535,7 +619,7 @@ test.describe(
     });
 
     test(
-      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji CONT-31817',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817'],
       },
@@ -568,7 +652,7 @@ test.describe(
     );
 
     test(
-      'verify that clicking on reaction count opens modal with users grouped by emoji',
+      'verify that clicking on reaction count opens modal with users grouped by emoji CONT-31819',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],
       },
@@ -639,18 +723,12 @@ test.describe(
         await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
         await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
-        // Refresh pages to ensure all reactions are visible
-        await Promise.all([
-          appManagerFeedPage.page.reload(),
-          siteManagerFeedPage.page.reload(),
-          standardUserFeedPage.page.reload(),
-        ]);
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-        await Promise.all([
-          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-        ]);
+        // Refresh pages to ensure all reactions are visible
+        await standardUserFeedPage.page.reload();
+
+        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
         // The user clicks on the reaction count or reactions text
         await feedPage.actions.clickReactionCountButton(createdPostText);
@@ -670,6 +748,86 @@ test.describe(
 
         // Close the modal
         await feedPage.actions.closeReactionModal();
+      }
+    );
+
+    test(
+      'verify that clicking on a username in the reaction modal navigates to profile screen CONT-31820',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31820'],
+      },
+      async ({ appManagerFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking on a username in the reaction modal navigates to profile screen',
+          zephyrTestId: 'CONT-31820',
+          storyId: 'CONT-31820',
+        });
+
+        // Get user info to retrieve peopleId for URL verification
+        const appManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+
+        // Navigate both users to global feed
+        await Promise.all([appManagerFixture.homePage.loadPage(), siteManagerFixture.homePage.loadPage()]);
+
+        await Promise.all([
+          appManagerFixture.homePage.verifyThePageIsLoaded(),
+          siteManagerFixture.homePage.verifyThePageIsLoaded(),
+        ]);
+
+        await Promise.all([
+          appManagerFixture.navigationHelper.clickOnGlobalFeed(),
+          siteManagerFixture.navigationHelper.clickOnGlobalFeed(),
+        ]);
+
+        // Create feed pages for both users
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+        const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded(), siteManagerFeedPage.verifyThePageIsLoaded()]);
+
+        await Promise.all([
+          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+        ]);
+
+        // Add reactions from both users
+        await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+
+        await siteManagerFeedPage.page.reload();
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
+        await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+
+        // Refresh to ensure all reactions are visible
+        await feedPage.page.reload();
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Given: User has opened the reaction modal
+        await feedPage.actions.clickReactionCountButton(createdPostText);
+        await feedPage.actions.verifyReactionModalIsVisible();
+
+        // Select the emoji tab containing the first user
+        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
+
+        // When: User clicks on the first username in the list
+        await feedPage.actions.clickUsernameInReactionModal(appManagerInfo.fullName);
+
+        // Then: Application should navigate to the selected user's profile screen
+        const profilePage = new UserProfilePage(feedPage.page);
+        await profilePage.verifyThePageIsLoaded();
+
+        // Verify the URL contains the user's peopleId
+        await test.step('Verify navigation to user profile page', async () => {
+          const currentUrl = feedPage.page.url();
+          const expectedPeopleId = appManagerInfo.userId;
+          console.log('expectedPeopleId -------> ', expectedPeopleId);
+          if (!currentUrl.includes(`people/${expectedPeopleId}`)) {
+            throw new Error(`Expected URL to contain "people/${expectedPeopleId}", but got: ${currentUrl}`);
+          }
+        });
       }
     );
   }

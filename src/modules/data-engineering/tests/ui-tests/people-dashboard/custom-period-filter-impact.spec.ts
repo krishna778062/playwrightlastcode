@@ -11,6 +11,7 @@ import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { DateHelper } from '../../../helpers/dateHelper';
 import { PeopleDashboard } from '../../../ui/dashboards/people/peopleDashboard';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupPeopleDashboardForTest,
@@ -38,7 +39,7 @@ test.describe(
       testEnvironment = await setupPeopleDashboardForTest(browser, UserRole.APP_MANAGER);
 
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: customDateRange.startDate,
         customEndDate: customDateRange.endDate,

@@ -6,10 +6,11 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
@@ -81,30 +82,12 @@ const commonAttachmentConfig = {
   fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
   fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
   mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
-  filePath: FileUtil.getFilePath(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    'test-data',
-    'static-files',
-    'images',
-    FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName
-  ),
+  filePath: FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname),
 };
 
 // Updated image configuration for version update
 const updatedImageConfig = {
-  filePath: FileUtil.getFilePath(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    'test-data',
-    'static-files',
-    'images',
-    FEED_TEST_DATA.UPDATED_FEED_CONTENT.fileName
-  ),
+  filePath: FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname),
 };
 
 // Test data for different feed types
@@ -280,7 +263,7 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify user can update image version on ${testData.feedType}`,
+        `Verify user can update image version on ${testData.feedType} ${testData.storyId}`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
@@ -305,7 +288,7 @@ for (const testData of feedTestData) {
           }
 
           await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
-          await appManagerFeedPage.assertions.verifyToastMessage('Added new version successfully');
+          await appManagerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_NEW_VERSION);
           await appManagerFeedPage.assertions.verifyVersionNumber('2');
           await appManagerFeedPage.actions.clickOnCloseButton();
           //referesh the page
@@ -329,7 +312,7 @@ test.describe(
     let appManagerFeedPage: FeedPage;
     let createdFeedId: string;
     let siteId: string;
-    const siteName: string = 'All Employees';
+    const siteName: string = DEFAULT_PUBLIC_SITE_NAME;
     let contentId: string;
     let pageName: string;
     let siteDashboardPage: SiteDashboardPage;
@@ -410,7 +393,7 @@ test.describe(
     });
 
     test(
-      'verify App Manager shares content without image and site image is shown in feed',
+      'verify App Manager shares content without image and site image is shown in feed CONT-36283',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36283'],
       },

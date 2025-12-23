@@ -1,0 +1,341 @@
+name: Data Engineering Automation Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_category:
+        description: 'Test category'
+        required: true
+        default: 'ui'
+        type: choice
+        options:
+          - 'ui'
+          - 'api'
+      tenant_type:
+        description: 'Tenant type'
+        required: true
+        default: 'regular'
+        type: choice
+        options:
+          - 'regular'
+          - 'abac'
+      dashboard:
+        description: 'Dashboard/Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - '@adoption'
+          - '@social-interaction'
+          - '@search'
+          - '@people'
+          - '@mobile'
+          - '@monthly-reports'
+          - '@sites'
+          - '@overview'
+          - '@on-page-analytics'
+          - '@analytics'
+      priority_filter:
+        description: 'Priority filter'
+        required: true
+        default: '@P0'
+        type: choice
+        options:
+          - '@P0'
+          - '@P1'
+          - '@P2'
+          - 'all'
+      test_type:
+        description: 'Test type'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - '@smoke'
+          - '@regression'
+          - 'all'
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'prodUS'
+      workers:
+        description: 'Parallel workers'
+        required: true
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+      feature_tags:
+        description: 'Additional feature tags (comma-separated)'
+        required: false
+        default: 'all'
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+jobs:
+  de-automation-tests:
+    timeout-minutes: 120
+    runs-on: [kubernetes]
+    env:
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
+      TEST_ENV: ${{ inputs.environment }}
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Display configuration
+        run: |
+          echo "Test Category: ${{ inputs.test_category }}"
+          echo "Tenant Type: ${{ inputs.tenant_type }}"
+          echo "Dashboard: ${{ inputs.dashboard }}"
+          echo "Priority: ${{ inputs.priority_filter }}"
+          echo "Test Type: ${{ inputs.test_type }}"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Workers: ${{ inputs.workers }}"
+          echo "Feature Tags: ${{ inputs.feature_tags }}"
+
+      - name: Determine module name
+        id: module
+        run: |
+          TEST_CATEGORY="${{ inputs.test_category }}"
+          TENANT_TYPE="${{ inputs.tenant_type }}"
+
+          if [ "$TEST_CATEGORY" = "ui" ]; then
+            MODULE_NAME="de"
+          elif [ "$TEST_CATEGORY" = "api" ] && [ "$TENANT_TYPE" = "abac" ]; then
+            MODULE_NAME="de-api-abac"
+          else
+            MODULE_NAME="de-api"
+          fi
+
+          echo "MODULE_NAME=$MODULE_NAME" >> $GITHUB_ENV
+          echo "Module: $MODULE_NAME"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick graphicsmagick
+
+      - name: Run Data Engineering tests
+        id: run-tests
+        run: |
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          DASHBOARD="${{ inputs.dashboard }}"
+          FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
+          TEST_CATEGORY="${{ inputs.test_category }}"
+          ALL_TAGS=()
+
+          # Add dashboard/test suite filter
+          if [ "$DASHBOARD" != "all" ]; then
+            ALL_TAGS+=("$DASHBOARD")
+          fi
+
+          # Add priority filter
+          [ "$PRIORITY" != "all" ] && ALL_TAGS+=("$PRIORITY")
+
+          # Add test type filter
+          [ "$TEST_TYPE" != "all" ] && ALL_TAGS+=("$TEST_TYPE")
+
+          # Add feature tags
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+          fi
+
+          echo "Tags to filter: ${ALL_TAGS[*]}"
+
+          if [ ${#ALL_TAGS[@]} -eq 0 ]; then
+            echo "Running all tests without filters"
+            npm run test:${{ env.MODULE_NAME }} -- --workers=${{ inputs.workers }}
+          else
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+            fi
+            echo "Running tests with filter: $GREP_REGEX"
+            npm run test:${{ env.MODULE_NAME }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+          fi
+
+      - name: Upload test report to GitHub artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: de-test-report-${{ env.MODULE_NAME }}-${{ inputs.environment }}
+          path: |
+            playwright-report
+            test-results
+
+      - name: Configure AWS Credentials
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
+          role-skip-session-tagging: true
+          role-duration-seconds: 1200
+
+      - name: Set timestamp
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+
+      - name: Generate HTML Report
+        if: always()
+        run: npm run generate-report:custom test-results/test-results.json
+
+      - name: Generate Tag Report
+        if: always()
+        run: npm run generate-tag-report
+
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
+
+          echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+          echo "TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
+
+      - name: Upload Regression Data to Postgres
+        if: always()
+        env:
+          DB_POOL_MAX: 3
+          DB_POOL_MIN: 1
+          DB_CONNECTION_TIMEOUT: 10000
+          DB_ACQUIRE_TIMEOUT: 60000
+          DB_IDLE_TIMEOUT: 15000
+          DB_ALLOW_EXIT_ON_IDLE: true
+          PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
+          PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
+          PG_DB_NAME: ${{ secrets.PG_DB_NAME }}
+          PG_DB_USER: ${{ secrets.PG_DB_USER }}
+          PG_DB_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+          TEAM_NAME: data-engineering
+          IS_REGRESSION: true
+        run: REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres
+
+      - name: Parse Test Results
+        if: always()
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+            PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
+
+            KNOWN_FAILED=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
+              const knownFailed = data.suites.flatMap(s =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
+                      t.status === 'unexpected' &&
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
+                    )
+                  )
+                )
+              ).length;
+              console.log(knownFailed);
+            ")
+
+            ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
+          else
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            KNOWN_FAILED=0
+            ACTUAL_FAILED=0
+          fi
+
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "KNOWN_FAILED=$KNOWN_FAILED" >> $GITHUB_ENV
+          echo "ACTUAL_FAILED=$ACTUAL_FAILED" >> $GITHUB_ENV
+
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
+            BRANCH_NAME="${{ github.ref_name }}"
+            ENVIRONMENT="${{ inputs.environment }}"
+            TEST_CATEGORY="${{ inputs.test_category }}"
+            TENANT_TYPE="${{ inputs.tenant_type }}"
+            DASHBOARD="${{ inputs.dashboard }}"
+            
+            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
+              MESSAGE="*Data Engineering Automation* - ${MODULE_NAME} (${TEST_CATEGORY}/${TENANT_TYPE}/${DASHBOARD}) by ${{ github.actor }} on ${ENVIRONMENT} - ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} passed, ${{ env.ACTUAL_FAILED }} failed, ${{ env.SKIPPED_TESTS }} skipped, ${{ env.FLAKY_TESTS }} flaky) - Known failures: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
+            else
+              MESSAGE="*Data Engineering Automation* - ${MODULE_NAME} (${TEST_CATEGORY}/${TENANT_TYPE}/${DASHBOARD}) by ${{ github.actor }} on ${ENVIRONMENT} - ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} passed, ${{ env.ACTUAL_FAILED }} failed, ${{ env.SKIPPED_TESTS }} skipped, ${{ env.FLAKY_TESTS }} flaky) | <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
+            fi
+            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
+          fi
+
+      - name: Send Failure Notification
+        if: always()
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+            if [ "$TOTAL_TESTS" -eq 0 ]; then
+              MESSAGE="*Data Engineering: No Tests Found* - ${MODULE_NAME} on ${{ inputs.environment }} found no tests matching criteria. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
+              curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
+            fi
+          else
+            MESSAGE="*Data Engineering Pipeline Failed* - ${MODULE_NAME} on ${{ inputs.environment }} could not execute. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
+            curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
+          fi

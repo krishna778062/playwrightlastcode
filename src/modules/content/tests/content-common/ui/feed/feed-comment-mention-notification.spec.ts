@@ -1,3 +1,5 @@
+import { SitePageTab } from '@content/constants/sitePageEnums';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
@@ -7,7 +9,11 @@ import { FeedManagementService } from '@/src/modules/content/apis/services/FeedM
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { FeedPostApiResponse } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
+import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -51,7 +57,7 @@ test.describe(
     });
 
     test(
-      'verify that User gets notified when it is getting mentioned in the reply of the comment of any post',
+      'verify that User gets notified when it is getting mentioned in the reply of the comment of any post CONT-30438',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30438'],
       },
@@ -104,7 +110,7 @@ test.describe(
     );
 
     test(
-      'verify that User gets notified when it is getting mentioned in the reply of the comment of any content',
+      'verify that User gets notified when it is getting mentioned in the reply of the comment of any content CONT-30411',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30411'],
       },
@@ -183,6 +189,189 @@ test.describe(
         const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
         await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+      }
+    );
+
+    test(
+      'verify that users can add mentions and topics in Site Feed replies with inline image and notification validation CONT-19554',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19554'],
+      },
+      async ({ appManagerFixture, standardUserFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify that users can add mentions in Site Feed replies and notification appears',
+          zephyrTestId: 'CONT-19554',
+          storyId: 'CONT-19554',
+        });
+
+        let replyText: string = '';
+
+        // Get DEFAULT_PUBLIC_SITE_NAME site ID
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        // Phase 1: EndUser Creates Site Feed Post on DEFAULT_PUBLIC_SITE_NAME site
+        // Navigate to site dashboard
+        const siteDashboard = new SiteDashboardPage(standardUserFixture.page, siteId);
+        await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteDashboard.verifyThePageIsLoaded();
+
+        // Click on Feed link to navigate to site feed
+        await siteDashboard.actions.clickOnFeedLink();
+
+        // Create FeedPage instance for site feed operations
+        const feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Click "Share your thoughts or questions" button to open editor
+        await feedPage.actions.clickShareThoughtsButton();
+
+        // Create site feed post
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        createdPostText = feedTestData.text;
+
+        const postResult = await feedPage.actions.createAndPost({
+          text: createdPostText,
+        });
+        createdPostId = postResult.postId || '';
+
+        // Verify post creation
+        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Phase 2: EndUser Creates Reply with Mention
+        // Open reply editor
+        await feedPage.actions.openReplyEditorForPost(createdPostText);
+
+        // Generate reply text
+        const baseReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+        replyText = baseReplyText;
+
+        // Access CreateFeedPostComponent for reply operations
+        const createFeedPostComponent = feedPage['createFeedPostComponent'];
+        const listFeedComponent = feedPage['listFeedComponent'];
+
+        // Create reply text with mention using CreateFeedPostComponent methods
+        await createFeedPostComponent.createPost(baseReplyText);
+        await createFeedPostComponent.addUserNameMention(siteManagerInfo.fullName);
+
+        // Submit reply using ListFeedComponent method (handles API response internally)
+        await listFeedComponent.submitReplyAndGetResponse();
+
+        // Update replyText to include mention for verification
+        replyText = `${baseReplyText} @${siteManagerInfo.fullName}`;
+
+        // Verify reply is visible
+        await feedPage.assertions.verifyReplyIsVisible(replyText);
+
+        // Phase 3: Site Manager Validates Notification
+        // Navigate to site dashboard as Site Manager
+        const siteManagerDashboard = new SiteDashboardPage(siteManagerFixture.page, siteId);
+        await siteManagerDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteManagerDashboard.verifyThePageIsLoaded();
+
+        // Open notifications
+        const notificationComponent = await siteManagerFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'Site Manager clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+        // Verify mention notification exists
+        const shortReplyText = replyText.length > 25 ? replyText.substring(0, 25) : replyText;
+        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${shortReplyText}`;
+        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+      }
+    );
+
+    test(
+      'verify that User able to add mention and topic in Site feed post CONT-19553',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19553'],
+      },
+      async ({ appManagerFixture, standardUserFixture, appManagerApiContext }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that User gets notified when mentioned in Site Feed post with attachment and can navigate to view inline image',
+          zephyrTestId: 'CONT-19553',
+          storyId: 'CONT-19553',
+        });
+
+        // Get appManager user info for notification message
+        const identityManagementHelper = new IdentityManagementHelper(
+          appManagerApiContext,
+          getContentConfigFromCache().tenant.apiBaseUrl
+        );
+        const appManagerData = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
+        const appManagerFullName = appManagerData.fullName;
+
+        // Get DEFAULT_PUBLIC_SITE_NAME site ID
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        // Phase 1: Admin Creates Site Feed Post with Mention + Attachment
+        const siteDashboard = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
+        await siteDashboard.verifyThePageIsLoaded();
+        await siteDashboard.actions.clickOnFeedLink();
+
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+        await adminFeedPage.actions.clickShareThoughtsButton();
+
+        // Generate feed test data
+        const feedTestData = TestDataGenerator.generateFeed({
+          scope: 'site',
+          siteId: siteId,
+          withAttachment: false,
+          waitForSearchIndex: false,
+        });
+        createdPostText = feedTestData.text;
+
+        // Access CreateFeedPostComponent for mention and attachment operations
+        const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+        // Create post with text
+        await createFeedPostComponent.createPost(createdPostText);
+
+        // Add user mention
+        await createFeedPostComponent.addUserNameMention(endUserInfo.fullName);
+
+        // Submit post
+        const postResult = await createFeedPostComponent.createFeedPost();
+        const feedResponseBody = (await postResult.json()) as FeedPostApiResponse;
+        createdPostId = feedResponseBody.result.feedId;
+
+        // Verify post creation with mention and inline image
+        await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        // Phase 2: EndUser Validates Notification
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        const notificationComponent = await standardUserFixture.navigationHelper.clickOnBellIcon({
+          stepInfo: 'EndUser clicking on bell icon to view notifications',
+        });
+        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+        // Verify notification message for mention in post
+        const expectedNotificationMessage = `${appManagerFullName} mentioned you "${createdPostText}" @${endUserInfo.fullName}`;
+        const shortExpectedNotificationMessage =
+          expectedNotificationMessage.length > 40
+            ? expectedNotificationMessage.substring(0, 25)
+            : expectedNotificationMessage;
+        await activityNotificationPage.assertions.verifyNotificationExistsForMention(shortExpectedNotificationMessage);
+
+        // Phase 3: EndUser Clicks Notification and Navigates to Post
+        await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+
+        // Wait for navigation to feed post
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+        await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+        createdPostId = '';
       }
     );
   }

@@ -13,9 +13,17 @@ export enum RecognitionFeatureTags {
   CUSTOM_NOMINATION = '@rc-custom-nomination',
 }
 
+export enum RecurringAwardsFeatureTags {
+  RECURRING_AWARD = '@recurring-award',
+  NOMINATION_RECURRING_AWARD = '@nomination-recurring-award',
+  DELEGATE_RECURRING_AWARD = '@delegate-recurring-award',
+  RECURRING_AWARD_CREATION = '@recurring-award-creation',
+}
+
 export const RecognitionTestTags = [
   ...Object.values(RecognitionSuitTags),
   ...Object.values(RecognitionFeatureTags),
+  ...Object.values(RecurringAwardsFeatureTags),
 ] as const;
 
 export default RecognitionTestTags;

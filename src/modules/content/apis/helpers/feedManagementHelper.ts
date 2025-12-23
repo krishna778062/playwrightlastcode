@@ -4,6 +4,7 @@ import { APIRequestContext, test } from '@playwright/test';
 import { FeedMode } from '@core/types/feedManagement.types';
 import { log } from '@core/utils/logger';
 
+import type { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import {
   buildFeedTextJsonAndTextHtml,
@@ -374,6 +375,51 @@ export class FeedManagementHelper {
 
       const responseBody = await response.json();
       console.log('App configuration updated with one language. Response:', JSON.stringify(responseBody, null, 2));
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Sets multiple languages in app configuration
+   * Gets current config, preserves all settings, and sets selectedLanguages to the provided array
+   * @param languageIds - Array of language IDs to set (e.g., [1, 2] for two languages)
+   * @returns Promise with the API response
+   */
+  async setMultipleLanguages(languageIds: number[]) {
+    return await test.step('Setting multiple languages in app configuration', async () => {
+      // Get current app configuration
+      const currentConfig = await this.feedManagementService.getAppConfig();
+
+      // Prepare update payload preserving all current values except selectedLanguages
+      const updatePayload = {
+        appName: currentConfig.result.appName,
+        automatedTranslationEnabled: currentConfig.result.automatedTranslationEnabled,
+        availableContentTypes: currentConfig.result.availableContentTypes,
+        addToCalendar: currentConfig.result.addToCalendar,
+        feedbackRecipients: currentConfig.result.feedbackRecipients || [],
+        enableSmsNotifications: currentConfig.result.enableSmsNotifications,
+        enablePushNotificationMobile: currentConfig.result.enablePushNotificationMobile,
+        selectedLanguages: languageIds, // Set to provided language IDs
+        orgChartEnabled: currentConfig.result.orgChartEnabled,
+        isSmartWritingEnabled: currentConfig.result.isSmartWritingEnabled,
+        isSmartAnswerEnabled: currentConfig.result.isSmartAnswerEnabled,
+        isContentAiSummaryEnabled: currentConfig.result.isContentAiSummaryEnabled,
+        isMultilingualModelEnabled: currentConfig.result.isMultilingualModelEnabled,
+        calendarOffice365Url: currentConfig.result.calendarOffice365Url || '',
+        isContentFeaturePromotionEnabled: currentConfig.result.isContentFeaturePromotionEnabled,
+        isQuestionAnswerEnabled: currentConfig.result.isQuestionAnswerEnabled,
+        isNewsletterTranslationEnabled: currentConfig.result.isNewsletterTranslationEnabled,
+      };
+
+      // Update app configuration
+      const response = await this.feedManagementService.updateAppConfig(updatePayload);
+
+      const responseBody = await response.json();
+      console.log(
+        `App configuration updated with ${languageIds.length} language(s). Response:`,
+        JSON.stringify(responseBody, null, 2)
+      );
 
       return responseBody;
     });
@@ -832,5 +878,101 @@ export class FeedManagementHelper {
       type: 'question',
       variant: 'standard',
     };
+  }
+
+  /**
+   * Uploads an image to get a signed URL and file ID
+   * @param fileName - The name of the file to upload
+   * @param size - The size of the file in bytes
+   * @param mimeType - The MIME type of the file
+   * @param options - Optional parameters (altText, fileId, siteId, contentId)
+   * @returns Promise with upload response containing fileId and uploadUrl
+   */
+  async uploadImage(
+    fileName: string,
+    size: number,
+    mimeType: string,
+    options?: {
+      altText?: string | null;
+      fileId?: string;
+      siteId?: string | null;
+      contentId?: string | null;
+    }
+  ): Promise<any> {
+    return await test.step(`Uploading image "${fileName}" via helper`, async () => {
+      return await this.feedManagementService.uploadImage(fileName, size, mimeType, options);
+    });
+  }
+
+  /**
+   * Updates a feed post
+   * @param postId - The ID of the feed post to update
+   * @param postData - The update payload (textJson, textHtml, listOfAttachedFiles, ignoreToxic)
+   * @returns Promise with FeedResult (the actual return type, despite service typing as FeedPostResponse)
+   */
+  async updateFeed(postId: string, postData: any): Promise<any> {
+    return await test.step(`Updating feed post ${postId} via helper`, async () => {
+      // Note: updatePost returns FeedResult (responseBody.result) despite being typed as FeedPostResponse
+      return await this.feedManagementService.updatePost(postId, postData);
+    });
+  }
+
+  /**
+   * Gets a site that is NOT in alertsControlSite and content that is NOT in mustReadsControlSite
+   * This is useful for testing Manage Application Must Read or Alert section functionality
+   * @param siteManagementHelper - The site management helper instance
+   * @param contentManagementHelper - The content management helper instance
+   * @returns Promise with site and content that are not in the control arrays
+   */
+  async getSiteAndContentNotInControl(siteManagementHelper: SiteManagementHelper): Promise<{
+    site: { siteId: string; name: string; access: string };
+    mustReadSite: { siteId: string; name: string; access: string };
+  }> {
+    return await test.step('Get sites not in control arrays', async () => {
+      // Get app config to check existing control arrays
+      const appConfig = await this.getAppConfig();
+      const alertsControlSiteIds = (appConfig.result.alertsControlSite || []).map(
+        (site: { siteId: string }) => site.siteId
+      );
+      const mustReadsControlSiteIds = (appConfig.result.mustReadsControlSite || []).map(
+        (site: { siteId: string }) => site.siteId
+      );
+
+      // Get list of all sites
+      const sitesResponse = await siteManagementHelper['siteManagementService'].getListOfSites({
+        size: 5000,
+        canManage: true,
+      });
+
+      // Filter for active sites that are NOT in alertsControlSite
+      const availableSitesForAlerts = sitesResponse.result.listOfItems.filter(
+        (site: { siteId: string; isActive?: boolean }) => site.isActive && !alertsControlSiteIds.includes(site.siteId)
+      );
+      // Use the first available site for alerts
+      const selectedSiteForAlerts = availableSitesForAlerts[0];
+      log.debug(`Selected site for alerts: ${selectedSiteForAlerts.name} (${selectedSiteForAlerts.siteId})`);
+
+      // Filter for active sites that are NOT in mustReadsControlSite
+      const availableSitesForMustRead = sitesResponse.result.listOfItems.filter(
+        (site: { siteId: string; isActive?: boolean }) =>
+          site.isActive && !mustReadsControlSiteIds.includes(site.siteId)
+      );
+      // Use the first available site for must read
+      const selectedSiteForMustRead = availableSitesForMustRead[0];
+      log.debug(`Selected site for must read: ${selectedSiteForMustRead.name} (${selectedSiteForMustRead.siteId})`);
+
+      return {
+        site: {
+          siteId: selectedSiteForAlerts.siteId,
+          name: selectedSiteForAlerts.name,
+          access: selectedSiteForAlerts.access,
+        },
+        mustReadSite: {
+          siteId: selectedSiteForMustRead.siteId,
+          name: selectedSiteForMustRead.name,
+          access: selectedSiteForMustRead.access,
+        },
+      };
+    });
   }
 }

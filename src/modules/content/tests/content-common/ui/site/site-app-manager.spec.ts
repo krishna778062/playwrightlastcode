@@ -26,21 +26,21 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 const SITE_TEST_DATA = [
   {
-    siteType: 'public',
+    siteType: 'Public',
     displayName: 'Public Site',
     zephyrTestId: 'CONT-10603',
     storyId: 'CONT-10603',
     description: 'Verify admin can create a public site',
   },
   {
-    siteType: 'private',
+    siteType: 'Private',
     displayName: 'Private Site',
     zephyrTestId: 'CONT-10604',
     storyId: 'CONT-10604',
     description: 'Verify admin can create a private site',
   },
   {
-    siteType: 'unlisted',
+    siteType: 'Unlisted',
     displayName: 'Unlisted Site',
     zephyrTestId: 'CONT-10605',
     storyId: 'CONT-10605',
@@ -103,7 +103,7 @@ test.describe(
 
     for (const siteData of SITE_TEST_DATA) {
       test(
-        `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
+        `Verify admin can create a ${siteData.displayName.toLowerCase()} ${siteData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -111,6 +111,7 @@ test.describe(
             TestGroupType.REGRESSION,
             ContentSuiteTags.SITE_CREATION,
             '@healthcheck',
+            `@${siteData.storyId}`,
           ],
         },
         async ({ appManagerFixture }) => {
@@ -122,7 +123,7 @@ test.describe(
 
           siteCreationPage = (await appManagerFixture.navigationHelper.openSiteCreationForm(false)) as SiteCreationPage;
 
-          // STEP 2: Generate site data using TestDataGenerator
+          //Generate site data using TestDataGenerator
           const siteCreationOptions = TestDataGenerator.generateSite(siteData.siteType);
 
           console.log(`INFO: Creating ${siteData.displayName} with options:`, siteCreationOptions);
@@ -149,7 +150,7 @@ test.describe(
       );
     }
     test(
-      `to verify the deactivate option in manage site user drop down sites`,
+      `to verify the deactivate option in manage site user drop down sites CONT-26176`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_DEACTIVATION],
       },
@@ -172,6 +173,58 @@ test.describe(
         await manageSiteSetUpPage.actions.searchForSite(siteName);
         await manageSitePage.assertions.verifyNoSitesFound(siteName);
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
+      }
+    );
+    test(
+      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member CONT-22692',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22692'],
+      },
+      async ({ appManagerApiFixture, standardUserApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'In members tab Verify unlisted sites are non-searchable for end user being a non-site member',
+          zephyrTestId: 'CONT-22692',
+          storyId: 'CONT-22692',
+        });
+
+        // Get list of unlisted sites for app manager
+        const appManagerSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'unlisted',
+          size: 1000,
+        });
+
+        // Get list of unlisted sites for standard user
+        const standardUserSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'unlisted',
+          size: 1000,
+        });
+
+        // Create a set of site IDs that standard user has access to
+        const standardUserSiteIds = new Set(
+          standardUserSitesResponse.result.listOfItems.map((site: any) => site.siteId)
+        );
+
+        // Find a site that app manager has access to but standard user doesn't
+        const appManagerSiteInfo = appManagerSitesResponse.result.listOfItems.find(
+          (site: any) => site.isActive === true && !standardUserSiteIds.has(site.siteId)
+        );
+
+        if (!appManagerSiteInfo) {
+          throw new Error('No unlisted site found where app manager has access but standard user does not have access');
+        }
+
+        const appManagerSiteName = appManagerSiteInfo.name;
+        console.log(
+          `Found site: ${appManagerSiteName} (${appManagerSiteInfo.siteId}) - App manager has access, standard user does not`
+        );
+
+        await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
+        await manageFeaturesPageForStandardUser.actions.clickOnSitesCard();
+        const manageSiteStandardUserSetUpPage = new ManageSiteSetUpPage(standardUserFixture.page, '');
+        const manageSitePageForStandardUser = new ManageSitePage(standardUserFixture.page);
+        await manageSiteStandardUserSetUpPage.actions.searchForSite(appManagerSiteName);
+        await manageSitePageForStandardUser.assertions.verifyNoSitesFound(appManagerSiteName);
       }
     );
   }

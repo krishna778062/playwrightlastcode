@@ -4,10 +4,13 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentStatus } from '@/src/modules/content/constants/contentStatus';
 import { ContentType } from '@/src/modules/content/constants/contentType';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -207,7 +210,7 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify user can add reply to ${testData.feedType} post`,
+        `Verify user can add reply to ${testData.feedType} post ${testData.storyId}`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
@@ -236,7 +239,7 @@ for (const testData of feedTestData) {
       );
 
       test(
-        `Verify user can see and click Cancel button while replying to ${testData.feedType} post`,
+        `Verify user can see and click Cancel button while replying to ${testData.feedType} post CONT-30149`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30149'],
         },
@@ -263,6 +266,251 @@ for (const testData of feedTestData) {
           await appManagerFeedPage.actions.verifyReplyEditorClosed(createdPostText);
         }
       );
+
+      // Test case for CONT-19537: Verify user able to add, edit, delete reply on Home Feed
+      if (testData.feedType === 'Home Feed') {
+        test(
+          'verify user can add, edit, delete reply on Home Feed with image attachments CONT-19537',
+          {
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19537'],
+          },
+          async ({ appManagerFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify user able to add, edit, delete reply on Home Feed',
+              zephyrTestId: 'CONT-19537',
+              storyId: 'CONT-19537',
+            });
+
+            // Get file paths for test images
+            const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+            const faviconPath = FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname);
+
+            // Generate unique reply text
+            const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+            const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED_REPLY;
+
+            // ==================== CREATE REPLY ====================
+            // Open reply editor for the post
+            await appManagerFeedPage.actions.openReplyEditorForPost(createdPostText);
+
+            // Get the createFeedPostComponent from the page (used for reply editor)
+            const createFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
+            const listFeedComponent = appManagerFeedPage['listFeedComponent'];
+
+            // Create reply text in editor
+            await createFeedPostComponent.createPost(replyText);
+
+            // Upload image1.jpg
+            await createFeedPostComponent.uploadFiles([image1Path]);
+
+            // Verify image1.jpg is attached
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            // Remove the file
+            await createFeedPostComponent.removeAttachedFile(0);
+
+            // Verify file is removed
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(0);
+
+            // Upload favicon.png
+            await createFeedPostComponent.uploadFiles([faviconPath]);
+
+            // Verify favicon.png is attached
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+            await createFeedPostComponent.assertions.verifyFileIsAttached(FEED_TEST_DATA.ATTACHMENTS.FAVICON);
+
+            // Submit reply
+            await listFeedComponent.submitReplyAndGetResponse();
+
+            // ==================== VERIFY REPLY CREATED ====================
+            // Verify reply is visible
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+            // Verify timestamp is present
+            await listFeedComponent.verifyReplyTimestamp(replyText);
+
+            // Verify reply count = 1
+            await appManagerFeedPage.assertions.verifyReplyCount(createdPostText, 1);
+
+            // ==================== EDIT REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(replyText);
+
+            // Click Edit
+            await listFeedComponent.clickReplyEditOption();
+
+            // Verify editor is visible
+            await createFeedPostComponent.assertions.verifyEditorVisible();
+
+            // // Verify image button is NOT visible (cannot add new files)
+            // await appManagerFeedPage.actions.verifyImageButtonIsNotVisible();
+
+            // Verify attached file count is still 1 (cannot remove files)
+            await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            // Update reply text
+            await createFeedPostComponent.updatePostText(updatedReplyText);
+
+            // Click Update button
+            await createFeedPostComponent.clickUpdateButton();
+
+            // Verify updated reply is visible
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(updatedReplyText);
+
+            // ==================== DELETE REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
+
+            // Click Delete option
+            await listFeedComponent.clickReplyDeleteOption();
+
+            // Confirm deletion
+            await listFeedComponent.confirmDelete();
+
+            await appManagerFeedPage.assertions.verifyReplyIsNotVisible(updatedReplyText);
+
+            await appManagerFeedPage.actions.deletePost(createdPostText);
+          }
+        );
+      }
+
+      // Test case for CONT-19548: Verify user able to add, edit, delete reply on Site Feed with file attachment
+      if (testData.feedType === 'Site Feed') {
+        test(
+          'verify user can add, edit, delete reply on Site Feed with file attachment CONT-19548',
+          {
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19548'],
+          },
+          async ({ appManagerFixture }) => {
+            tagTest(test.info(), {
+              description: 'Verify user able to add, edit, delete reply on Site Feed with file attachment',
+              zephyrTestId: 'CONT-19548',
+              storyId: 'CONT-19548',
+            });
+
+            // Create Feed Post with Attachment
+            const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+            // Click "Share your thoughts or questions" button
+            await siteDashboardPage.actions.clickShareThoughtsButton();
+
+            // Get the createFeedPostComponent from siteDashboardPage
+            const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+
+            // Get file path for sample.xlsx
+            const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
+
+            // Post the feed with attachment (createAndPost handles text and file upload internally)
+            const postResult = await createFeedPostComponent.actions.createAndPost({
+              text: initialPostText,
+              attachments: {
+                files: [documentPath],
+              },
+            });
+
+            const postWithAttachmentText = postResult.postText;
+            const postWithAttachmentId = postResult.postId || '';
+
+            // Verify post successfully created
+            await siteDashboardPage.assertions.validatePostText(postWithAttachmentText);
+
+            // Verify timestamp displayed
+            await appManagerFeedPage.getPostTimestamp(postWithAttachmentText);
+
+            // ==================== ADD REPLY WITH ATTACHMENT ====================
+            // Generate unique reply text
+            const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+            const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED_REPLY;
+
+            // Open reply editor for the post
+            await appManagerFeedPage.actions.openReplyEditorForPost(postWithAttachmentText);
+
+            // Get the createFeedPostComponent and listFeedComponent from the page (used for reply editor)
+            const replyCreateFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
+            const listFeedComponent = appManagerFeedPage['listFeedComponent'];
+
+            // Create reply text in editor
+            await replyCreateFeedPostComponent.createPost(replyText);
+
+            // Upload sample.xlsx file to reply (using reply-specific method)
+            await replyCreateFeedPostComponent.uploadFilesToReply([documentPath], postWithAttachmentText);
+
+            // Verify file is attached
+            await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
+            await replyCreateFeedPostComponent.assertions.verifyFileIsAttached(FEED_TEST_DATA.ATTACHMENTS.DOCUMENT);
+
+            // Submit reply
+            await listFeedComponent.submitReplyAndGetResponse();
+
+            // ==================== VERIFY REPLY CREATED ====================
+            // Verify reply is visible
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+            // Verify timestamp is present
+            await listFeedComponent.verifyReplyTimestamp(replyText);
+
+            // Verify reply count = 1
+            await appManagerFeedPage.assertions.verifyReplyCount(postWithAttachmentText, 1);
+
+            // ==================== EDIT REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(replyText);
+
+            // Click Edit
+            await listFeedComponent.clickReplyEditOption();
+
+            // Verify reply editor is visible (using reply-specific method)
+            await replyCreateFeedPostComponent.assertions.verifyReplyEditorVisible(postWithAttachmentText);
+
+            // Verify attached file count is still 1 (cannot remove files)
+            await replyCreateFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+            // Update reply text
+            await replyCreateFeedPostComponent.updatePostText(updatedReplyText);
+
+            // Click Update button in reply editor (using reply-specific method)
+            await replyCreateFeedPostComponent.clickReplyUpdateButton();
+
+            // Verify updated reply is visible
+            await appManagerFeedPage.assertions.verifyReplyIsVisible(updatedReplyText);
+
+            // ==================== DELETE REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
+
+            // Click Delete option
+            await listFeedComponent.clickReplyDeleteOption();
+
+            // Confirm deletion dialog
+            await listFeedComponent.confirmDelete();
+
+            // Verify reply is removed
+            await appManagerFeedPage.assertions.verifyReplyIsNotVisible(updatedReplyText);
+
+            // ==================== DELETE PARENT FEED POST ====================
+            // Open post options menu
+            await siteDashboardPage.actions.clickOnOptionsMenu(postWithAttachmentText);
+
+            // Click Delete
+            await siteDashboardPage.listFeedComponent.clickDeleteOption();
+
+            // Confirm Delete dialog "Are you sure you want to delete this post?"
+            await siteDashboardPage.listFeedComponent.confirmDelete();
+
+            // Verify feed post is removed
+            await siteDashboardPage.assertions.validatePostNotVisible(postWithAttachmentText);
+
+            // Cleanup: Delete post via API if still exists
+            if (postWithAttachmentId) {
+              try {
+                await appManagerFixture.feedManagementHelper.deleteFeed(postWithAttachmentId);
+              } catch (error) {
+                console.log('Failed to cleanup feed via API:', error);
+              }
+            }
+          }
+        );
+      }
     }
   );
 }
@@ -275,7 +523,7 @@ test.describe(
   },
   () => {
     test(
-      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post',
+      'verify user can see and click Cancel button while creating Home Feed, Site Feed, and Content Feed post CONT-30148',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30148'],
       },
@@ -345,6 +593,86 @@ test.describe(
           await contentPreviewPage.actions.clickPostCreationCancelButton();
 
           await contentPreviewPage.actions.verifyPostCreationEditorClosed();
+        });
+      }
+    );
+
+    test(
+      'verify Post button is disabled when user has not added any text on Home Feed, Site Feed and Content Feed CONT-24133',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24133'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Post button is disabled when user has not added any text on Home Feed, Site Feed and Content Feed',
+          zephyrTestId: 'CONT-24133',
+          storyId: 'CONT-24133',
+        });
+
+        const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+
+        // ==================== HOME FEED SCENARIO ====================
+        await test.step('Home Feed: Verify Post button is disabled', async () => {
+          // Navigate to Home-Global Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          // Click on "Share your thoughts or question" button
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+
+          // Verify "Post" button is disabled
+          const createFeedPostComponent = appManagerFeedPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyPostButtonDisabled();
+        });
+
+        // ==================== SITE FEED SCENARIO ====================
+        await test.step('Site Feed: Verify Post button is disabled', async () => {
+          // Get or create site
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
+          const siteId = siteInfo.siteId;
+
+          // Navigate to Site Feed
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          // Click on "Share your thoughts or question" button
+          await siteDashboardPage.actions.clickShareThoughtsButton();
+
+          // Verify "Post" button is disabled
+          const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyPostButtonDisabled();
+        });
+
+        // ==================== CONTENT FEED SCENARIO ====================
+        await test.step('Content Feed: Verify Post button is disabled', async () => {
+          // Get content details
+          const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId({
+            status: ContentStatus.PUBLISHED.toLowerCase(),
+          });
+
+          // Navigate to Content tab
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.navigateToTab(SitePageTab.ContentTab);
+
+          // Click on any content (navigate to content preview page)
+          const contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+
+          // Click on "Share your thoughts or question" button
+          await contentPreviewPage.actions.clickShareThoughtsButton();
+
+          // Verify "Post" button is disabled
+          const createFeedPostComponent = contentPreviewPage['createFeedPostComponent'];
+          await createFeedPostComponent.assertions.verifyPostButtonDisabled();
         });
       }
     );
@@ -424,7 +752,7 @@ test.describe(
     });
 
     test(
-      'verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it',
+      'verify that User gets notified for getting a reply on its comment from another user on a feedpost for both authored by it and not authored by it CONT-30407',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-30407'],
       },
@@ -472,7 +800,7 @@ test.describe(
     );
 
     test(
-      'verify User 1 receives a notification when User 2 replies to a feed post containing an attachment',
+      'verify User 1 receives a notification when User 2 replies to a feed post containing an attachment CONT-36598',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36598'],
       },
@@ -565,7 +893,7 @@ test.describe(
     let editedReplyText: string;
 
     test(
-      'verify that application should allow user to edit the comment',
+      'verify that application should allow user to edit the comment CONT-26348',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-26348'],
       },

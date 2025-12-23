@@ -6,8 +6,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 
 test.describe(
   '@FeedPost - Home Feed Maximum File Upload Limit',
@@ -45,7 +45,7 @@ test.describe(
     });
 
     test(
-      'in Zeus Verify user is able to upload Max of 10 Files on Home Feed Post',
+      'in Zeus Verify user is able to upload Max of 10 Files on Home Feed Post CONT-24132',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24132', '@Feed_Max_File_Upload_Limit'],
       },
@@ -58,72 +58,12 @@ test.describe(
 
         const postText = TestDataGenerator.generateRandomText('Feed Post with 10 Files', 3, true);
 
-        const image1Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
-        const image3Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image3.jpg'
-        );
-        const image4Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image4.jpg'
-        );
-        const image786Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image786.jpg'
-        );
-        const faviconPath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'favicon.png'
-        );
-        const ratioTextPath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          '300x300 RATIO_Text.png'
-        );
+        const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        const image3Path = FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname);
+        const image4Path = FILE_TEST_DATA.IMAGES.IMAGE4.getPath(__dirname);
+        const image786Path = FILE_TEST_DATA.IMAGES.IMAGE786.getPath(__dirname);
+        const faviconPath = FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname);
+        const ratioTextPath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
 
         const elevenFiles = [
           image1Path,
@@ -154,9 +94,10 @@ test.describe(
 
         await test.step('Attempt to drag and drop another file', async () => {
           await feedPage.actions.addFileToPost(image1Path);
-          await feedPage.actions.waitForFileToAppear();
 
           await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
+
+          await feedPage.actions.waitForFileToAppear();
 
           // Verify still only 10 files
           await feedPage.assertions.verifyAttachedFileCount(10);

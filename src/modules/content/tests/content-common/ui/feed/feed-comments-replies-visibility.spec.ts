@@ -1,12 +1,13 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { FileUtil } from '@core/utils/fileUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -72,7 +73,7 @@ test.describe(
     });
 
     test(
-      'home Dashboard Flow - Verify user can view 10 replies on Feed detail page',
+      'home Dashboard Flow - Verify user can view 10 replies on Feed detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -142,7 +143,7 @@ test.describe(
     );
 
     test(
-      'site Dashboard Flow - Verify user can view 10 replies on Feed detail page',
+      'site Dashboard Flow - Verify user can view 10 replies on Feed detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -225,7 +226,7 @@ test.describe(
     );
 
     test(
-      'content Feed Flow - Verify user can view comments on Content detail page',
+      'content Feed Flow - Verify user can view comments on Content detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -285,6 +286,7 @@ test.describe(
         // Navigate to Home feed dashboard
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.reloadPage();
         await homeFeedPage.verifyThePageIsLoaded();
 
         //  Verify feed post from content appears on home feed dashboard
@@ -316,7 +318,7 @@ test.describe(
     );
 
     test(
-      'content Comments with Unpublish - Verify comments disappear after content unpublish',
+      'content Comments with Unpublish - Verify comments disappear after content unpublish CONT-19566',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-19566'],
       },
@@ -333,22 +335,12 @@ test.describe(
         let testContentType: string = '';
         let firstCommentText: string = '';
         let secondCommentText: string = '';
-        const image1Path = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
 
-        testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         const contentListResponse =
           await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({
@@ -359,7 +351,7 @@ test.describe(
           });
 
         if (contentListResponse.result.listOfItems.length === 0) {
-          throw new Error('No published content found in "All Employees" site.');
+          throw new Error(`No published content found in "${DEFAULT_PUBLIC_SITE_NAME}" site.`);
         }
 
         const latestContent = contentListResponse.result.listOfItems[0];

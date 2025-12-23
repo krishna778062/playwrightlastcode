@@ -9,6 +9,7 @@ import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/cons
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { EditPagePage } from '@/src/modules/content/ui/pages/editPagePage';
@@ -21,6 +22,7 @@ import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeature
 import { ManageSiteSetUpPage } from '@/src/modules/content/ui/pages/manageSiteSetUpPage';
 import { SiteDetailsPage } from '@/src/modules/content/ui/pages/siteDetailsPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { SitesPage } from '@/src/modules/content/ui/pages/sitesPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
@@ -59,7 +61,7 @@ test.describe(
     });
 
     test(
-      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters',
+      'verify "Nothing to show here" should come when user searches non-existing content and on clicking x all results should come based on relevant filters CONT-25055',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25055'],
       },
@@ -84,7 +86,7 @@ test.describe(
     );
 
     test(
-      'verify Bulk actions Functionality in My Content Screen',
+      'verify Bulk actions Functionality in My Content Screen CONT-20952',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20952'],
       },
@@ -347,7 +349,7 @@ test.describe(
       }
     );
     test(
-      'to verify the site update category option in manage site user drop down sites',
+      'to verify the site update category option in manage site user drop down sites CONT-26056',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.UPDATE_CATEGORY],
       },
@@ -385,7 +387,7 @@ test.describe(
       }
     );
     test(
-      'to verify validate option in manage content',
+      'to verify validate option in manage content CONT-33591',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION, '@CONT-33591'],
       },
@@ -395,8 +397,9 @@ test.describe(
           zephyrTestId: 'CONT-33591',
           storyId: 'CONT-33591',
         });
-        // Get the "All Employees" site ID for API page creation
-        const allEmployeesSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Use test data for page name
         const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;
@@ -416,7 +419,7 @@ test.describe(
         });
 
         console.log(
-          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in All Employees site: ${allEmployeesSiteId}`
+          `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in ${DEFAULT_PUBLIC_SITE_NAME} site: ${allEmployeesSiteId}`
         );
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnContentCard();
@@ -428,7 +431,7 @@ test.describe(
         await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.searchForSite('All Employees');
+        await manageSitePage.actions.searchForSite(DEFAULT_PUBLIC_SITE_NAME);
         await manageSitePage.actions.clickOnSite();
         await siteDetailsPage.actions.clickOnContentTab();
         await siteDetailsPage.actions.typeContentInSearchBar(randomPageName);
@@ -439,7 +442,7 @@ test.describe(
     );
 
     test(
-      'zeus: Edit the validation Expired Content and Cancel',
+      'zeus: Edit the validation Expired Content and Cancel CONT-36069',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.VALIDATION_REQUIRED_BAR_STATE],
       },
@@ -474,7 +477,7 @@ test.describe(
       }
     );
     test(
-      'verify the bulk action in manage site content',
+      'verify the bulk action in manage site content CONT-23981',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23981'],
       },
@@ -531,7 +534,7 @@ test.describe(
       }
     );
     test(
-      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
+      'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site CONT-20532',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20532'],
       },
@@ -579,7 +582,7 @@ test.describe(
     );
 
     test(
-      'verify user able to move unpublished content under Content tab in Manage Site',
+      'verify user able to move unpublished content under Content tab in Manage Site CONT-20540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20540'],
       },
@@ -631,12 +634,14 @@ test.describe(
         await manageContentPage.actions.selectPageCategoryIfVisible();
         await manageContentPage.actions.selectPageCategory();
         await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.verifyToastMessageIsVisibleWithText('Moved 1 item successfully');
+        await manageContentPage.verifyToastMessageIsVisibleWithText(
+          MANAGE_CONTENT_TEST_DATA.TOAST_MESSAGES.MOVED_ITEM_SUCCESSFULLY
+        );
       }
     );
 
     test(
-      'verify user able to select all max 50 items under Content tab in Manage Content page',
+      'verify user able to select all max 50 items under Content tab in Manage Content page CONT-20541',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20541'],
       },
@@ -662,6 +667,108 @@ test.describe(
           await manageContentPage.actions.clickOnSelectAllButton();
           await manageContentPage.actions.verifyAllContentsAreSelected(17);
         }
+      }
+    );
+    test(
+      'to verify the navigation menu of recently visited site on home dashboard CONT-22482',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22482'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the navigation menu of recently visited site on home dashboard',
+          zephyrTestId: 'CONT-22482',
+          storyId: 'CONT-22482',
+        });
+        // Get list of public sites
+        const sitesResponse = await appManagerFixture.siteManagementHelper.getListOfSites({
+          filter: 'public',
+          size: 1000,
+        });
+        const activePublicSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive === true);
+
+        if (activePublicSites.length < 4) {
+          throw new Error(`Not enough active public sites found. Found: ${activePublicSites.length}, Required: 4`);
+        }
+
+        // Get 4 unique sites (use Set to ensure uniqueness by siteId)
+        const uniqueSites: any[] = [];
+        const seenSiteIds = new Set<string>();
+        for (const site of activePublicSites) {
+          if (!seenSiteIds.has(site.siteId)) {
+            uniqueSites.push(site);
+            seenSiteIds.add(site.siteId);
+            if (uniqueSites.length === 4) break;
+          }
+        }
+
+        if (uniqueSites.length < 4) {
+          throw new Error(`Not enough unique active public sites found. Found: ${uniqueSites.length}, Required: 4`);
+        }
+
+        // Perform the actions for 4 different sites
+        for (let i = 0; i < 4; i++) {
+          await test.step(`Navigate to site ${i + 1} of 4: ${uniqueSites[i].name}`, async () => {
+            const siteInfo = uniqueSites[i];
+            const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
+            await siteDashboardPage.loadPage();
+            await siteDashboardPage.verifyThePageIsLoaded();
+            const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
+            await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
+          });
+        }
+        const newHomePage = new NewHomePage(appManagerFixture.page);
+        await newHomePage.loadPage();
+        await newHomePage.verifyThePageIsLoaded();
+        await Promise.all([
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[0].name),
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[1].name),
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[2].name),
+          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[3].name),
+        ]);
+      }
+    );
+    test(
+      'verify All Sites site category takes the user to respective category screen with list of Sites CONT-26918',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26918'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify All Sites site category takes the user to respective category screen with list of Sites',
+          zephyrTestId: 'CONT-26918',
+          storyId: 'CONT-26918',
+        });
+        await manageFeaturesPage.actions.clickOnSitesCard();
+        const sitesPage = new SitesPage(appManagerFixture.page, '');
+        await sitesPage.actions.clickOnCategoryTab();
+        const categoryList = await appManagerApiFixture.siteManagementHelper.getCategoryList();
+
+        // Find a category with exactly 1 site
+        const categoryWithOneSite = categoryList.result.listOfItems.find((item: any) => item.siteCount === 1);
+
+        if (!categoryWithOneSite) {
+          throw new Error('No category found with exactly 1 site');
+        }
+
+        // Get all sites and find the site in this category
+        const sitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites();
+        const siteInCategory = sitesResponse.result.listOfItems.find(
+          (site: any) => site.category?.categoryId === categoryWithOneSite.categoryId
+        );
+
+        if (!siteInCategory) {
+          throw new Error(`No site found in category: ${categoryWithOneSite.name}`);
+        }
+
+        const siteName = siteInCategory.name;
+
+        await sitesPage.actions.selectCategoryDropDown();
+        await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
+        await sitesPage.assertions.verifySiteNameInSitesPage(siteName);
+        await sitesPage.actions.clickOnSiteName(siteName);
+        const siteDashboardPageInstance = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
+        await siteDashboardPageInstance.assertions.verifyThePageIsLoaded();
       }
     );
   }

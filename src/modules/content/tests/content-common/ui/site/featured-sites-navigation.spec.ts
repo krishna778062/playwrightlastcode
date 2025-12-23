@@ -1,9 +1,10 @@
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test } from '@content/fixtures/contentFixture';
-import { SITE_TEST_DATA } from '@content/test-data/sites-create.test-data';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
+
+import { SITE_TEST_DATA as SITE_TOAST_MESSAGES } from '@/src/modules/content/test-data/site.test-data';
 
 test.describe(
   '@featured-sites',
@@ -29,9 +30,9 @@ test.describe(
     });
 
     test(
-      'verify user can navigate to featured sites page from side nav bar and add site to featured',
+      'verify user can navigate to featured sites page from side nav bar and add site to featured CONT-20911',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20911'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -40,42 +41,43 @@ test.describe(
           storyId: 'CONT-20911',
         });
 
-        createdSite = await appManagerFixture.siteManagementHelper.createPublicSite({
-          overrides: { access: SITE_TEST_DATA[0].siteType },
-        });
-        console.log(`Created site: ${createdSite.siteName} with ID: ${createdSite.siteId}`);
+        createdSite = await appManagerFixture.siteManagementHelper.getUnFeaturedSites(1);
+        const siteName = createdSite[0].name;
+        const siteId = createdSite[0].siteId;
+
+        console.log(`Created site: ${siteName} with ID: ${siteId}`);
 
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         const featuredSitePage = await appManagerFixture.navigationHelper.clickOnFeaturedSitesTab();
         await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         // Step 1: Search and add the created site to featured
-        await featuredSitePage.actions.addSiteToFeatured(createdSite.siteName);
-        featureSites.push({ siteId: createdSite.siteId, name: createdSite.siteName });
+        await featuredSitePage.actions.addSiteToFeatured(siteName);
+        featureSites.push({ siteId: siteId, name: siteName });
         await featuredSitePage.actions.clickDoneButton();
 
         // Step 2.1: Verify success toast message appears
-        await featuredSitePage.assertions.verifyToastMessage('Added featured site');
+        await featuredSitePage.assertions.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
 
         // Step 3: Verify sites are visible in featured dropdown
-        await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSite.siteName]);
+        await featuredSitePage.assertions.verifyFeaturedSitesVisible([siteName]);
 
         // Step 4: Reload the page after adding site to featured
         await featuredSitePage.loadPage();
 
         // Step 5: Verify sites are visible in featured dropdown
-        await featuredSitePage.assertions.verifyFeaturedSitesVisible([createdSite.siteName]);
+        await featuredSitePage.assertions.verifyFeaturedSitesVisible(siteName);
 
         // Step 6: Click on the featured site and verify navigation to site dashboard
-        await featuredSitePage.actions.navigateToSiteDashboard(createdSite.siteName);
+        await featuredSitePage.actions.navigateToSiteDashboard(siteName);
 
         // Step 7: Verify user is navigated to the site dashboard
-        await featuredSitePage.assertions.verifySiteDashboardLoaded(createdSite.siteName);
+        await featuredSitePage.assertions.verifySiteDashboardLoaded(siteName);
       }
     );
 
     test(
-      'shuffling sites from feature modal list',
+      'shuffling sites from feature modal list CONT-27919',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
       },
@@ -84,17 +86,20 @@ test.describe(
           description: 'Shuffling sites from feature modal list',
           zephyrTestId: 'CONT-27919',
           storyId: 'CONT-27919',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43409',
         });
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         const featuredSitePage = await appManagerFixture.navigationHelper.clickOnFeaturedSitesTab();
-        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
 
         const unFeaturedSites: { siteId: string; name: string }[] =
           await appManagerFixture.siteManagementHelper.getUnFeaturedSites();
+        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
+
         for (const site of unFeaturedSites) {
           await featuredSitePage.actions.addSiteToFeatured(site.name);
           featureSites.push(site); // Add the entire site object to the array
-          await featuredSitePage.assertions.verifyToastMessage('Added featured site');
+          await featuredSitePage.assertions.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
           await featuredSitePage.assertions.verifyFeaturedSitesVisibleInModal(site.name);
         }
         await featuredSitePage.assertions.verifyFeaturedSitesIndex(unFeaturedSites);

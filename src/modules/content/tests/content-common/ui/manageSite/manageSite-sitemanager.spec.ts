@@ -18,7 +18,7 @@ test.describe(
     });
 
     test(
-      'verify the site activate option in manage site user drop down sites for all site types',
+      'verify the site activate option in manage site user drop down sites for all site types CONT-41476',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41476'],
       },

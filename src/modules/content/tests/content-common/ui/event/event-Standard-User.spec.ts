@@ -2,16 +2,21 @@ import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
+import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { EventCreationPage } from '@content/ui/pages/eventCreationPage';
+import { FeedPage } from '@content/ui/pages/feedPage';
+import { SiteFeedPage } from '@content/ui/pages/sitePages/siteFeedPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
+import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { getPastDate, getUpcomingDate } from '@/src/modules/content/utils/dateHelper';
 
 test.describe(
   `event Creation by Standard user  and Approval/Rejection by Application Manager`,
@@ -58,7 +63,7 @@ test.describe(
         action: 'Approve & publish',
         displayName: 'Approved by Application Manager',
         zephyrTestId: 'CONT-18537',
-        storyId: 'CONT-39210',
+        storyId: 'CONT-18537',
         description:
           'Event Content Add attach file with all the Mandatory fields by Standard user and approved by Application Manager',
         actionSuccessMessage: 'Event approved and published',
@@ -78,7 +83,7 @@ test.describe(
 
     for (const testData of EVENT_APPROVAL_TEST_DATA) {
       test(
-        `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
+        `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -118,16 +123,7 @@ test.describe(
           )) as EventCreationPage;
 
           // Generate event data using TestDataGenerator
-          const imagePath = FileUtil.getFilePath(
-            __dirname,
-            '..',
-            '..',
-            '..',
-            'test-data',
-            'static-files',
-            'images',
-            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-          );
+          const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
           const eventCreationOptions = TestDataGenerator.generateEvent(imagePath);
 
           // Create and submit the event
@@ -166,7 +162,6 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserFixture.page.reload();
           const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
@@ -186,5 +181,107 @@ test.describe(
         }
       );
     }
+
+    test(
+      'verify past events do not appear and upcoming events appear in Upcoming Events Smart Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19572'],
+      },
+      async ({ standardUserFixture, appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify, past events should not appear in the Upcoming Events Smart Feed block on Home and Site Feed, while present (upcoming) events should appear',
+          zephyrTestId: 'CONT-19572',
+          storyId: 'CONT-19572',
+        });
+
+        // Search existing site DEFAULT_PUBLIC_SITE_NAME
+        const allEmployeesSiteId =
+          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+
+        // Create an event with upcoming date (valid upcoming event)
+        eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
+          ContentType.EVENT,
+          { siteName: DEFAULT_PUBLIC_SITE_NAME }
+        )) as EventCreationPage;
+
+        const upcomingEventTitle = `Upcoming Event ${Date.now()}`;
+        const upcomingEventOptions = TestDataGenerator.generateEvent(
+          undefined,
+          getUpcomingDate(1),
+          getUpcomingDate(2),
+          {
+            title: upcomingEventTitle,
+            description: 'Test upcoming event description',
+            location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
+          }
+        );
+
+        // Publish the event
+        const { eventId: upcomingEventId, siteId: upcomingEventSiteId } =
+          await eventCreationPage.actions.createAndPublishEvent(upcomingEventOptions);
+
+        // Store for cleanup
+        publishedEventId = upcomingEventId;
+        siteIdToPublishEvent = upcomingEventSiteId;
+        manualCleanupNeeded = true;
+
+        // Check Home - Global Feed: upcoming event should appear
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const homeFeedPage = new FeedPage(standardUserFixture.page);
+        await homeFeedPage.verifyThePageIsLoaded();
+        await homeFeedPage.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
+
+        // Check Site Feed: upcoming event should appear
+        const siteFeedPage = new SiteFeedPage(standardUserFixture.page, allEmployeesSiteId);
+        await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
+        await siteFeedPage.verifyThePageIsLoaded();
+        const siteFeedPageForValidation = new FeedPage(standardUserFixture.page);
+        await siteFeedPageForValidation.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
+
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        // Create another event with past date
+        eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
+          ContentType.EVENT,
+          { siteName: DEFAULT_PUBLIC_SITE_NAME }
+        )) as EventCreationPage;
+
+        const pastEventTitle = `Past Event ${Date.now()}`;
+        const pastEventOptions = TestDataGenerator.generateEvent(undefined, getPastDate(7), getPastDate(6), {
+          title: pastEventTitle,
+          description: 'Test past event description',
+          location: FEED_TEST_DATA.EVENT_SMART_FEED.EVENT_LOCATION,
+        });
+
+        // Publish the event
+        const { eventId: pastEventId, siteId: pastEventSiteId } =
+          await eventCreationPage.actions.createAndPublishEvent(pastEventOptions);
+
+        // Update cleanup to handle both events (cleanup the last one)
+        publishedEventId = pastEventId;
+        siteIdToPublishEvent = pastEventSiteId;
+
+        // Check Home - Global Feed: past event should not appear in Upcoming Events
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await homeFeedPage.reloadPage();
+        await homeFeedPage.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+
+        // Check Site Feed: past event should not appear in Upcoming Events
+        await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
+        await siteFeedPage.verifyThePageIsLoaded();
+        await siteFeedPageForValidation.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+
+        // Delete both events
+        if (upcomingEventId && upcomingEventSiteId) {
+          try {
+            await appManagerFixture.contentManagementHelper.deleteContent(upcomingEventSiteId, upcomingEventId);
+            console.log(`Deleted upcoming event: ${upcomingEventId}`);
+          } catch (error) {
+            console.warn(`Failed to delete upcoming event ${upcomingEventId}:`, error);
+          }
+        }
+      }
+    );
   }
 );

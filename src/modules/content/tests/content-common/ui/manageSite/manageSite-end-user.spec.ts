@@ -9,6 +9,7 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SortOptionLabels } from '@/src/modules/content/constants/sortOptionLabels';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components';
 import { EditFileComponent } from '@/src/modules/content/ui/components/editFileComponent';
@@ -41,7 +42,7 @@ test.describe(
       await page.close();
     });
     test(
-      'login as Standard User where user is Site Content Manager of Public site',
+      'login as Standard User where user is Site Content Manager of Public site CONT-29063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.MANAGE_SITE, '@CONT-29063'],
       },
@@ -70,7 +71,7 @@ test.describe(
     );
 
     test(
-      'to verify the UI of Manage site content - End User',
+      'to verify the UI of Manage site content - End User CONT-23740',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -138,7 +139,7 @@ test.describe(
     );
 
     test(
-      'login as Standard User where user is Site Content Manager of Private site',
+      'login as Standard User where user is Site Content Manager of Private site CONT-29063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -213,7 +214,7 @@ test.describe(
     );
 
     test(
-      'login as Standard User where user is Site Content Manager of Unlisted site',
+      'login as Standard User where user is Site Content Manager of Unlisted site CONT-29063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-29063'],
       },
@@ -243,7 +244,7 @@ test.describe(
     );
 
     test(
-      'to verify the search content in manage site content',
+      'to verify the search content in manage site content CONT-23736',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23736'],
       },
@@ -290,6 +291,7 @@ test.describe(
         await manageContentPage.actions.clickSortByButton();
         await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         await manageContentPage.actions.clickSortByButton();
+        await newSiteDashboard.assertions.verifyThePageIsLoaded();
         const contentNames = await manageContentPage.actions.getAllContentNames();
         console.log('contentNames', contentNames);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
@@ -301,7 +303,7 @@ test.describe(
     );
 
     test(
-      'to verify the site view option in manage site user drop down site',
+      'to verify the site view option in manage site user drop down site CONT-41421',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26044'],
       },
@@ -330,7 +332,7 @@ test.describe(
       }
     );
     test(
-      'to verify the edit option on file detail page',
+      'to verify the edit option on file detail page CONT-26763',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26763'],
       },
@@ -344,16 +346,7 @@ test.describe(
         console.log('getListOfSitesResponse', getListOfSitesResponse);
         const siteId = getListOfSitesResponse.result.listOfItems[0].siteId;
         console.log('siteId', siteId);
-        const imagePath = FileUtil.getFilePath(
-          __dirname,
-          '..',
-          '..',
-          '..',
-          'test-data',
-          'static-files',
-          'images',
-          'image1.jpg'
-        );
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
         const fileSize = FileUtil.getFileSize(imagePath);
         const getSignedUploadUrlResponse =
           await standardUserApiFixture.contentManagementHelper.imageUploaderService.getSignedUploadUrl({
@@ -395,7 +388,7 @@ test.describe(
       }
     );
     test(
-      'to verify the site edit option in manage site user drop down sites',
+      'to verify the site edit option in manage site user drop down sites CONT-26503',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26503'],
       },
@@ -483,7 +476,7 @@ test.describe(
       }
     );
     test(
-      'to verify the people follow in site about members and followers tab',
+      'to verify the people follow in site about members and followers tab CONT-24063',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24063'],
       },
@@ -525,7 +518,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action from end user can deactivate the site',
+      'to verify the bulk action from end user can deactivate the site CONT-26576',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26576'],
       },
@@ -643,7 +636,7 @@ test.describe(
       }
     );
     test(
-      'to verify the bulk action from end user can activate the site',
+      'to verify the bulk action from end user can activate the site CONT-26574',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26574'],
       },
@@ -730,7 +723,7 @@ test.describe(
       }
     );
     test(
-      'to verify follow site, followers tab, and membership request functionality',
+      'to verify follow site, followers tab, and membership request functionality CONT-24062',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24062'],
       },

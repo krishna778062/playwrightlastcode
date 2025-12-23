@@ -7,6 +7,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { TileApiHelper } from '@/src/modules/content/apis/apiValidation/tileApiHelper';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 
 test.describe(
@@ -53,8 +54,8 @@ test.describe(
         });
         await tileApiHelper.validateAppGovernanceResponse(governanceResponse);
 
-        // Get site ID by name (using 'All Employees' as the default public site)
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        // Get site ID by name (using DEFAULT_PUBLIC_SITE_NAME as the default public site)
+        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Get end user info for the people tile
         const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);

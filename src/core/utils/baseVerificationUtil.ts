@@ -22,7 +22,7 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+        timeout: options?.timeout || 30_000,
       });
       return true;
     } catch (error) {
@@ -44,7 +44,25 @@ export class BaseVerificationUtil {
   ): Promise<boolean> {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
-        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+        timeout: options?.timeout || 30_000,
+      });
+      return true;
+    } catch {
+      //if we want we can take screenshot here
+      return false;
+    }
+  }
+
+  async isTheElementVisibleWithLessTimeout(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ): Promise<boolean> {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be visible`).toBeVisible({
+        timeout: options?.timeout || TIMEOUTS.VERY_SHORT,
       });
       return true;
     } catch {
@@ -67,7 +85,7 @@ export class BaseVerificationUtil {
   ) {
     try {
       await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not visible`).toBeHidden({
-        timeout: options?.timeout || TIMEOUTS.VERY_VERY_LONG,
+        timeout: options?.timeout || 30_000,
       });
     } catch (error) {
       throw new Error(
@@ -91,7 +109,9 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be enabled`).toBeEnabled();
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be enabled`).toBeEnabled({
+        timeout: options?.timeout || 30_000,
+      });
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -114,7 +134,9 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be checked`).toBeChecked();
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be checked`).toBeChecked({
+        timeout: options?.timeout || 30_000,
+      });
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -137,7 +159,9 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not checked`).not.toBeChecked();
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be not checked`).not.toBeChecked({
+        timeout: options?.timeout || 30_000,
+      });
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -160,7 +184,9 @@ export class BaseVerificationUtil {
     }
   ) {
     try {
-      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be disabled`).toBeDisabled();
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be disabled`).toBeDisabled({
+        timeout: options?.timeout || 30_000,
+      });
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -188,7 +214,9 @@ export class BaseVerificationUtil {
       await expect(
         locator,
         options?.assertionMessage ?? `expecting ${locator} to have ${expectedCount} elements`
-      ).toHaveCount(expectedCount);
+      ).toHaveCount(expectedCount, {
+        timeout: options?.timeout || 30_000,
+      });
     } catch (error) {
       throw new Error(
         options?.assertionMessage
@@ -450,6 +478,30 @@ export class BaseVerificationUtil {
     try {
       await locator.waitFor({
         state: 'hidden',
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for element to be hidden failed.\n${error}`
+      );
+    }
+  }
+
+  /**
+   * Waits for the element to be hidden
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementIsDetached(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await locator.waitFor({
+        state: 'detached',
         timeout: options?.timeout || 8_000,
       });
     } catch (error) {

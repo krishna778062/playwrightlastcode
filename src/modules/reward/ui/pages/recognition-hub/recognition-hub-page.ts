@@ -1,10 +1,15 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { RewardGiftingOptionsSetup } from '@rewards/api/services/RewardGiftingOptionsSetup';
+import { RewardsApiService } from '@rewards/api/services/RewardsApiService';
+import { DialogBox } from '@rewards-components/common/dialog-box';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RewardGiftingOptionsPage } from '@rewards-pages/manage-rewards/reward-gifting-options-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
+
+import { TIMEOUTS } from '@/src/core';
 
 export class RecognitionHubPage extends BasePage {
   readonly header: Locator;
@@ -38,6 +43,7 @@ export class RecognitionHubPage extends BasePage {
   readonly deleteRecognitionDialogBoxCancelButton: Locator;
   readonly deletedRecognitionPostNotAvailable: Locator;
   readonly deletedRecognitionPostDeletedMessage: Locator;
+  readonly recognitionFirstPost: Locator;
 
   /**
    * This is a Recognition Hub class that contains locators and methods for the Recognition Hub page.
@@ -53,6 +59,7 @@ export class RecognitionHubPage extends BasePage {
     this.deleteRecognitionDialogBoxDescriptionText = this.deleteRecognitionDialogBoxContainer.locator(
       'p[class*="Typography-module__paragraph"]'
     );
+    this.recognitionFirstPost = page.locator('.Recognition_panelInner--TcQfa');
     this.deleteRecognitionWithRevokePoints = this.deleteRecognitionDialogBoxContainer.locator('[id="revokePointsyes"]');
     this.deleteRecognitionOnly = this.deleteRecognitionDialogBoxContainer.locator('[id="revokePointsno"]');
     this.deleteRecognitionNote = this.deleteRecognitionDialogBoxContainer.locator(
@@ -105,8 +112,39 @@ export class RecognitionHubPage extends BasePage {
    * Click on the Give recognition Button
    */
   async clickOnGiveRecognition(): Promise<void> {
-    await this.giveRecognition.waitFor({ state: 'visible' });
-    await this.clickOnElement(this.giveRecognition, { stepInfo: 'Clicking on Give Recognition button' });
+    await this.clickOnElement(this.giveRecognition, {
+      timeout: TIMEOUTS.VERY_SHORT,
+      stepInfo: 'Clicking on Give Recognition button',
+    });
+  }
+
+  async giveRecognitionAndGetRecognitionId(
+    recognitionReceiver: string | number,
+    awardName: string | number,
+    points: number
+  ): Promise<string> {
+    const recognitionHub = new RecognitionHubPage(this.page);
+    await recognitionHub.clickOnGiveRecognition();
+    const giveRecognitionModal = new GiveRecognitionDialogBox(this.page);
+    await giveRecognitionModal.selectTheUserForRecognition(recognitionReceiver);
+    await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(awardName);
+    const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+    await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+    await giveRecognitionModal.giftThePoints(points);
+    const [response] = await Promise.all([
+      recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+      giveRecognitionModal.recognizeButton.click({ force: true }),
+    ]);
+    const body = await response.json();
+    if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+    const recognitionPostId = String(body.id);
+    const dialogBox = new DialogBox(this.page);
+    if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+      await dialogBox.container.waitFor({ state: 'visible' });
+      await dialogBox.skipButton.click();
+      await expect(dialogBox.container).not.toBeVisible();
+    }
+    return recognitionPostId;
   }
 
   /**
@@ -154,8 +192,6 @@ export class RecognitionHubPage extends BasePage {
       });
 
       // Navigate to the page
-      await this.page.goto(PAGE_ENDPOINTS.RECOGNITION_HUB);
-      await this.verifyThePageIsLoaded();
 
       // Wait a bit for the response to be captured
       await this.page.waitForTimeout(2000);
@@ -178,7 +214,6 @@ export class RecognitionHubPage extends BasePage {
    */
   async navigateToRecognitionHub(): Promise<void> {
     await this.page.goto('/recognition');
-    await this.page.waitForLoadState('domcontentloaded');
     await this.verifyThePageIsLoaded();
   }
 
@@ -195,12 +230,19 @@ export class RecognitionHubPage extends BasePage {
    */
   async selectUsersInTheAwardee(count: number): Promise<void> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
-    await giveRecognitionDialogBox.loadingIndicator.first().waitFor({ state: 'detached' });
+    await this.verifier.waitUntilElementIsDetached(giveRecognitionDialogBox.loadingIndicator.first(), {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      stepInfo: 'Waiting for loading indicator to disappear before selecting users',
+    });
     for (let i = 0; i < count; i++) {
-      await giveRecognitionDialogBox.recognitionRecipientsInput.waitFor({ state: 'visible' });
-      await giveRecognitionDialogBox.recognitionRecipientsInput.click();
-      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
-      await giveRecognitionDialogBox.getOption(i).click();
+      await this.clickOnElement(giveRecognitionDialogBox.recognitionRecipientsInput, {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+        stepInfo: `Clicking on Recipient Users input box`,
+      });
+      await this.clickOnElement(giveRecognitionDialogBox.getOption(i), {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+        stepInfo: `Selecting user ${i + 1} in the awardee`,
+      });
     }
   }
 
@@ -210,7 +252,7 @@ export class RecognitionHubPage extends BasePage {
   async recognitionButtonText(): Promise<string> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
     const text = await giveRecognitionDialogBox.recognizeButton.textContent();
-    return text || '';
+    return text!;
   }
 
   /**
@@ -225,7 +267,10 @@ export class RecognitionHubPage extends BasePage {
     ).toBeVisible();
     const currentState = await giveRecognitionDialogBox.giftingToggle.getAttribute('aria-checked');
     if ((shouldEnable && currentState === 'false') || (!shouldEnable && currentState === 'true')) {
-      await giveRecognitionDialogBox.giftingToggle.click();
+      await this.clickOnElement(giveRecognitionDialogBox.giftingToggle, {
+        timeout: TIMEOUTS.VERY_SHORT,
+        stepInfo: `Toggling gifting option to ${shouldEnable ? '\"enable\"' : '\"disable\"'}`,
+      });
     }
   }
 
@@ -234,7 +279,10 @@ export class RecognitionHubPage extends BasePage {
    */
   async insufficientPointErrorMessageIsDisplaying(): Promise<boolean> {
     const giveRecognitionDialogBox = new GiveRecognitionDialogBox(this.page);
-    return await this.verifier.isTheElementVisible(giveRecognitionDialogBox.insufficientPointErrorMessage);
+    return await this.verifier.isTheElementVisible(giveRecognitionDialogBox.insufficientPointErrorMessage, {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+      assertionMessage: 'Verifying insufficient point error message is visible',
+    });
   }
 
   /**
@@ -335,6 +383,20 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Click Share button on the first recognition post
+   */
+  async clickShareButtonOnFirstRecognition(): Promise<void> {
+    await test.step('Click Share button on first recognition post', async () => {
+      const recognitionPost = this.recognitionFirstPost.first();
+      const shareButton = recognitionPost.getByRole('button', { name: 'Share this recognition' });
+      await this.verifier.verifyTheElementIsVisible(shareButton, {
+        assertionMessage: 'Share button should be visible on recognition post',
+      });
+      await this.clickOnElement(shareButton, { stepInfo: 'Clicking Share button on recognition post' });
+    });
+  }
+
+  /**
    * Mock the wallet points
    */
   async mockTheWalletPoints(pointsToGive: number, pointsToSpend: number, redeemedPoint: number): Promise<void> {
@@ -347,7 +409,7 @@ export class RecognitionHubPage extends BasePage {
             gifting: {
               pendingIn: 0,
               available: pointsToGive,
-              refreshingAt: '2025-07-01T00:00:00.000Z',
+              refreshingAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
             },
             redeemable: {
               pendingIn: 0,
@@ -369,14 +431,7 @@ export class RecognitionHubPage extends BasePage {
    */
   async setupTheMultipleGiftingOptions(): Promise<number[]> {
     const input_values = [1, 2, 3, 4, 5, 6, 7];
-    const availablePoints = await this.pointsToGive.textContent();
-
-    const rewardGiftingOptions = new RewardGiftingOptionsPage(this.page);
-    await rewardGiftingOptions.loadPage();
-    await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
-
-    // const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    await rewardGiftingOptions.giftingOptionsInputBox.clear();
+    const giftingSetup = new RewardGiftingOptionsSetup();
     const rewardOption = (() => {
       const min = 8;
       const max = 100000;
@@ -387,14 +442,8 @@ export class RecognitionHubPage extends BasePage {
       return num;
     })();
     input_values.push(Number(rewardOption));
-
-    await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(input_values));
-    await rewardGiftingOptions.clickOnSaveButton();
-
-    const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
-    await manageRewardsOverviewPage.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-
-    await this.visitRecognitionHub();
+    await giftingSetup.saveGiftingOptions(this.page, input_values);
+    await this.navigateToRecognitionHub();
     return input_values;
   }
 
@@ -403,17 +452,24 @@ export class RecognitionHubPage extends BasePage {
    */
   async setupTheSingleGiftingOptions(availablePoints: any): Promise<number> {
     const rewardGiftingOptions = new RewardGiftingOptionsPage(this.page);
-    await rewardGiftingOptions.loadPage();
-    await rewardGiftingOptions.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/options');
-    const existingValue = await rewardGiftingOptions.getTheExistingValueInGiftingOptions();
-    const cleanAvailablePoints = availablePoints.replace(/[,\s]/g, '');
-    const parsedAvailablePoints = Number(cleanAvailablePoints) || 0;
-    const parsedExistingValue = Number(existingValue) || 0;
-    const maxRewardOption = Math.max(1, parsedAvailablePoints - parsedExistingValue - 1);
-    const rewardOption = maxRewardOption > 0 ? Math.floor(Math.random() * maxRewardOption) + 1 : 1;
-    await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+    await rewardGiftingOptions.loadPage({
+      stepInfo: 'Navigating to Reward Gifting Options page',
+    });
+    await rewardGiftingOptions.verifyThePageIsLoaded();
+    const parsedAvailablePoints = Number(availablePoints.replace(/[,\s]/g, '')) || 1;
+    let rewardOption: number, giftingOptionSaveButtonEnablement: boolean;
+    do {
+      rewardOption = Math.floor(Math.random() * (parsedAvailablePoints - 1 + 1)) + 1;
+      await rewardGiftingOptions.enterTheAmountAndValidateNoError(String(rewardOption));
+      giftingOptionSaveButtonEnablement = await rewardGiftingOptions.giftingOptionsSave.isEnabled({
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
+    } while (!giftingOptionSaveButtonEnablement);
     await rewardGiftingOptions.clickOnSaveButton();
-    await rewardGiftingOptions.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    await rewardGiftingOptions.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
+      timeout: TIMEOUTS.VERY_SHORT,
+      stepInfo: 'Validated the success toast message after saving gifting options',
+    });
     return rewardOption;
   }
 
@@ -422,32 +478,21 @@ export class RecognitionHubPage extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardsAndPeerGiftingForHubIfDisabled(): Promise<void> {
-    const recognitionHub = new RecognitionHubPage(this.page);
-    await this.page.goto('/recognition'); // triggers API
-    const waitForConfig = recognitionHub.page.waitForResponse(
-      res =>
-        res.url().endsWith('/recognition/v1/tenant/config') &&
-        res.request().resourceType() === 'xhr' &&
-        res.status() === 200 &&
-        res.request().method() === 'GET'
-    );
-    const apiResponse = await waitForConfig;
-    console.log('Status:', apiResponse.status(), 'URL:', apiResponse.url());
-    const body = await apiResponse.json();
-    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
-    const isRewardEnabled = body.rewardConfig?.enabled;
-    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    const rewardsApi = new RewardsApiService();
+    const rewardsData = await rewardsApi.getRewardsAsJson(this.page);
+    const isRewardEnabled = rewardsData.enabled;
+    const isPeerGiftingDisabled = rewardsData.peerGiftingEnabled;
     console.log(
       `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
     );
-    await this.verifyThePageIsLoaded();
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-      await recognitionHub.navigateToRecognitionHub();
     }
+    const recognitionHub = new RecognitionHubPage(this.page);
+    await recognitionHub.navigateToRecognitionHub();
   }
 
   /**
@@ -455,8 +500,8 @@ export class RecognitionHubPage extends BasePage {
    */
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.rewardRecognitionFirstPost, {
-      timeout: 15000,
-      assertionMessage: 'Recognition Hub page first Post should be visible',
+      timeout: TIMEOUTS.LONG,
+      assertionMessage: 'Recognition Hub page first Post is visible',
     });
   }
 
@@ -468,13 +513,15 @@ export class RecognitionHubPage extends BasePage {
     const textOfRecognitionButton = await recognitionHub.recognitionButtonText();
     const insufficientErrorMessage = await recognitionHub.insufficientPointErrorMessageIsDisplaying();
     const insufficientPointsWithRecipients = await recognitionHub.insufficientPointWithRecipientsErrorMessage();
-    expect(textOfRecognitionButton).toContain(
-      `Recognize & gift ${(Number(rewardOption) * userCount).toLocaleString()} points`
-    );
-    expect(insufficientPointsWithRecipients).toContain(
-      `${userCount} recipients = ${(Number(rewardOption) * userCount).toLocaleString()} points`
-    );
-    expect(insufficientErrorMessage).toBe(true);
+    expect(
+      textOfRecognitionButton,
+      `Recognize button text is Recognize & gift ${(Number(rewardOption) * userCount).toLocaleString()} points`
+    ).toContain(`Recognize & gift ${(Number(rewardOption) * userCount).toLocaleString()} points`);
+    expect(
+      insufficientPointsWithRecipients,
+      `Insufficient points warning: ${userCount} recipients = ${(Number(rewardOption) * userCount).toLocaleString()} points`
+    ).toContain(`${userCount} recipients = ${(Number(rewardOption) * userCount).toLocaleString()} points`);
+    expect(insufficientErrorMessage, 'Insufficient message is visible').toBe(true);
   }
 
   async deleteTheFirstRecognitionPost() {
@@ -484,6 +531,8 @@ export class RecognitionHubPage extends BasePage {
     await expect(this.deleteRecognitionDialogBoxDeleteButton).toBeEnabled();
     await this.clickOnElement(this.deleteRecognitionDialogBoxDeleteButton);
     await expect(this.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+    await this.verifyToastMessageIsVisibleWithText('Recognition deleted');
+    await this.dismissTheToastMessage();
   }
 
   /**
@@ -504,7 +553,7 @@ export class RecognitionHubPage extends BasePage {
   async verifyRecognitionPostVisible(message?: string): Promise<void> {
     await test.step(`Verify recognition post is visible with message "${message}"`, async () => {
       // Wait for recognition post to be visible
-      const recognitionPosts = this.page.locator('.Recognition_panelInner--TcQfa').first();
+      const recognitionPosts = this.recognitionFirstPost.first();
 
       await this.verifier.verifyTheElementIsVisible(recognitionPosts, {
         assertionMessage: 'Recognition post should be visible on Recognition dashboard',

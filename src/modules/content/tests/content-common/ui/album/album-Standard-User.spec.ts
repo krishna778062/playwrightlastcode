@@ -2,7 +2,6 @@ import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { ContentSuiteTags } from '@content/constants/testTags';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
-import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { AlbumCreationPage } from '@content/ui/pages/albumCreationPage';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { TestPriority } from '@core/constants/testPriority';
@@ -10,8 +9,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FileUtil } from '@/src/core/utils/fileUtil';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
@@ -80,7 +79,7 @@ test.describe(
 
     for (const testData of ALBUM_APPROVAL_TEST_DATA) {
       test(
-        `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
+        `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -118,26 +117,8 @@ test.describe(
           )) as AlbumCreationPage;
 
           // Generate album data using TestDataGenerator
-          const imagePath = FileUtil.getFilePath(
-            __dirname,
-            '..',
-            '..',
-            '..',
-            'test-data',
-            'static-files',
-            'images',
-            CONTENT_TEST_DATA.COVER_IMAGES.RATIO_300x300.fileName
-          );
-          const attachmentPath = FileUtil.getFilePath(
-            __dirname,
-            '..',
-            '..',
-            '..',
-            'test-data',
-            'static-files',
-            'excel',
-            'sample.docx'
-          );
+          const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+          const attachmentPath = FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname);
           const albumCreationOptions = TestDataGenerator.generateAlbum({
             fileName: imagePath,
             attachmentFileName: attachmentPath,
@@ -181,7 +162,6 @@ test.describe(
             testData.actionSuccessMessage
           );
 
-          await standardUserFixture.page.reload();
           const notificationMessageStandardUser = await standardUserFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard user clicking on bell icon to view notifications',
           });
