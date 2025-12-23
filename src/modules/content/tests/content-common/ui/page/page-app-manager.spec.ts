@@ -61,7 +61,7 @@ test.describe(
     });
 
     test(
-      'verify admin is able to publish a new page created with cover image from home page',
+      'verify admin is able to publish a new page created with cover image from home page CONT-11635',
       {
         tag: [
           TestPriority.P0,
@@ -108,9 +108,15 @@ test.describe(
       }
     );
     test(
-      'verify admin is able to publish a new page created with cover image from site dashboard',
+      'verify admin is able to publish a new page created with cover image from site dashboard CONT-39089',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.COVER_IMAGE,
+          ContentSuiteTags.PAGE_CREATION,
+          '@CONT-39089',
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

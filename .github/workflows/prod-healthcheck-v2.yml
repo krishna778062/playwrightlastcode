@@ -1,0 +1,86 @@
+# ============================================================================
+# PRODUCTION HEALTHCHECK
+# ============================================================================
+#
+# PURPOSE:
+#   Runs health check tests on production environments.
+#   Always uses 'main' branch (production code).
+#
+# SCHEDULE:
+#   - Runs daily at 8:00 AM UTC (1:30 PM IST)
+#
+# CALLS:
+#   regression-unified-template.yml with trigger_type=prod_healthcheck
+#
+# ============================================================================
+
+name: Production Healthcheck (v2)
+
+on:
+  schedule:
+    - cron: '0 8 * * *'
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: true
+        default: 'prodUS'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'reward'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'form-designer'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        # TEMPORARILY DISABLED: Preserving quota for QA release testing
+        default: false
+        type: boolean
+
+jobs:
+  healthcheck:
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      # Scheduled: prodUS, Manual: user choice
+      environment: ${{ inputs.environment || 'prodUS' }}
+      trigger_type: prod_healthcheck
+      slack_prefix: Prod Healthcheck
+      git_ref: ''
+      # Scheduled: all modules, Manual: user choice
+      modules: ${{ github.event_name == 'schedule' && '' || (inputs.module != 'all' && format('["{0}"]', inputs.module) || '') }}
+      # TEMPORARILY DISABLED: Preserving quota for QA release testing
+      is_browserstack: false
+      timeout_minutes: 120
+    secrets: inherit

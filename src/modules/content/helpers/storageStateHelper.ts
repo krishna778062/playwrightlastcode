@@ -55,6 +55,7 @@ export async function createAuthenticatedContextWithCache(options: StorageStateC
   // Try to get cached storage state FIRST (before creating context)
   let cachedState: any = null;
   let needsLogin = false;
+  let lockAcquired = false;
   const cacheKey = `env=${testEnv}&tenant=${encodeURIComponent(tenantOrgId)}&user=${encodeURIComponent(userEmail)}`;
 
   if (enableCache) {
@@ -84,16 +85,16 @@ export async function createAuthenticatedContextWithCache(options: StorageStateC
           );
           if (lockResponse.ok) {
             const lockData = await lockResponse.json();
-            const lockAcquired = lockData.success && !lockData.locked;
+            lockAcquired = lockData.success && !lockData.locked;
             if (lockAcquired) {
               log.info('Lock acquired, proceeding with login', { userEmail });
               needsLogin = true;
             } else {
-              log.debug('Lock held by another worker, waiting for cache (max 30s)', { userEmail });
-              // Another worker has the lock, poll until cache is ready (BEFORE creating context)
-              // Reduced wait time and faster polling for better performance
-              const maxWaitTime = 30000; // 30 seconds (reduced from 2 minutes)
-              const pollInterval = 1000; // 1 second (reduced from 5 seconds)
+              log.debug('Lock held by another worker, waiting for cache (max 10s)', { userEmail });
+              // Another worker has the lock, poll until cache is ready
+              // Short wait - login typically takes 3-8s, no point waiting longer
+              const maxWaitTime = 10000; // 10 seconds - enough for typical login
+              const pollInterval = 500; // 500ms - fast polling
               const maxAttempts = Math.floor(maxWaitTime / pollInterval);
 
               let cacheFound = false;
@@ -110,7 +111,7 @@ export async function createAuthenticatedContextWithCache(options: StorageStateC
                     cacheFound = true;
                     break;
                   }
-                } catch (pollError) {
+                } catch {
                   // If poll fails, continue trying
                   if (i === maxAttempts - 1) {
                     log.warn('Cache poll failed, proceeding with login', { userEmail });
@@ -119,7 +120,7 @@ export async function createAuthenticatedContextWithCache(options: StorageStateC
               }
 
               if (!cacheFound) {
-                log.warn('Cache not available after 30 seconds, proceeding with login', { userEmail });
+                log.warn('Cache not available after 10 seconds, proceeding with login', { userEmail });
                 needsLogin = true;
               }
             }
@@ -152,19 +153,19 @@ export async function createAuthenticatedContextWithCache(options: StorageStateC
 
   // Login only if we need to (cache miss and we acquired the lock)
   if (needsLogin && !cachedState) {
-    log.info('Starting login', { userEmail });
-    await LoginHelper.loginWithPassword(page, {
-      email: userEmail,
-      password: userPassword,
-    });
+    log.info('Starting browser login', { userEmail });
+    try {
+      await LoginHelper.loginWithPassword(page, {
+        email: userEmail,
+        password: userPassword,
+      });
 
-    // Save storage state to cache (this will release the lock) - non-blocking
-    if (enableCache) {
-      // Don't await - save in background to avoid blocking test execution
-      context
-        .storageState()
-        .then(storageState => {
-          return fetchWithTimeout(
+      // Save storage state to cache (this will release the lock)
+      // IMPORTANT: Await the save to ensure it completes before test proceeds
+      if (enableCache) {
+        try {
+          const storageState = await context.storageState();
+          const saveResponse = await fetchWithTimeout(
             `${cacheServerUrl}/save`,
             {
               method: 'POST',
@@ -176,20 +177,41 @@ export async function createAuthenticatedContextWithCache(options: StorageStateC
                 state: storageState,
               }),
             },
-            3000
+            5000 // 5s timeout for save
           );
-        })
-        .then(saveResponse => {
           if (saveResponse.ok) {
             log.info('Storage state cached', { userEmail });
           }
-        })
-        .catch(error => {
-          log.debug('Failed to save cache (non-blocking)', {
+        } catch (saveError) {
+          log.debug('Failed to save cache', {
             userEmail,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: saveError instanceof Error ? saveError.message : 'Unknown error',
           });
-        });
+        }
+      }
+    } catch (loginError) {
+      // Release lock on login failure to unblock other workers
+      if (enableCache && lockAcquired) {
+        try {
+          await fetchWithTimeout(
+            `${cacheServerUrl}/unlock`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                env: testEnv,
+                tenant: tenantOrgId,
+                user: userEmail,
+              }),
+            },
+            2000
+          );
+          log.debug('Lock released after login failure', { userEmail });
+        } catch {
+          log.debug('Failed to release lock after login failure', { userEmail });
+        }
+      }
+      throw loginError; // Re-throw to fail the test
     }
   }
 
@@ -213,6 +235,7 @@ export async function createAuthenticatedContextAndPageWithCache(
   // Try to get cached storage state FIRST (before creating context)
   let cachedState: any = null;
   let needsLogin = false;
+  let lockAcquired = false;
   const cacheKey = `env=${testEnv}&tenant=${encodeURIComponent(tenantOrgId)}&user=${encodeURIComponent(userEmail)}`;
 
   if (enableCache) {
@@ -242,16 +265,16 @@ export async function createAuthenticatedContextAndPageWithCache(
           );
           if (lockResponse.ok) {
             const lockData = await lockResponse.json();
-            const lockAcquired = lockData.success && !lockData.locked;
+            lockAcquired = lockData.success && !lockData.locked;
             if (lockAcquired) {
               log.info('Lock acquired, proceeding with login', { userEmail });
               needsLogin = true;
             } else {
-              log.debug('Lock held by another worker, waiting for cache (max 30s)', { userEmail });
-              // Another worker has the lock, poll until cache is ready (BEFORE creating context)
-              // Reduced wait time and faster polling for better performance
-              const maxWaitTime = 30000; // 30 seconds (reduced from 2 minutes)
-              const pollInterval = 1000; // 1 second (reduced from 5 seconds)
+              log.debug('Lock held by another worker, waiting for cache (max 10s)', { userEmail });
+              // Another worker has the lock, poll until cache is ready
+              // Short wait - login typically takes 3-8s, no point waiting longer
+              const maxWaitTime = 10000; // 10 seconds - enough for typical login
+              const pollInterval = 500; // 500ms - fast polling
               const maxAttempts = Math.floor(maxWaitTime / pollInterval);
 
               let cacheFound = false;
@@ -268,7 +291,7 @@ export async function createAuthenticatedContextAndPageWithCache(
                     cacheFound = true;
                     break;
                   }
-                } catch (pollError) {
+                } catch {
                   // If poll fails, continue trying
                   if (i === maxAttempts - 1) {
                     log.warn('Cache poll failed, proceeding with login', { userEmail });
@@ -277,7 +300,7 @@ export async function createAuthenticatedContextAndPageWithCache(
               }
 
               if (!cacheFound) {
-                log.warn('Cache not available after 30 seconds, proceeding with login', { userEmail });
+                log.warn('Cache not available after 10 seconds, proceeding with login', { userEmail });
                 needsLogin = true;
               }
             }
@@ -310,19 +333,19 @@ export async function createAuthenticatedContextAndPageWithCache(
 
   // Login only if we need to (cache miss and we acquired the lock)
   if (needsLogin && !cachedState) {
-    log.info('Starting login', { userEmail });
-    await LoginHelper.loginWithPassword(page, {
-      email: userEmail,
-      password: userPassword,
-    });
+    log.info('Starting browser login', { userEmail });
+    try {
+      await LoginHelper.loginWithPassword(page, {
+        email: userEmail,
+        password: userPassword,
+      });
 
-    // Save storage state to cache (this will release the lock) - non-blocking
-    if (enableCache) {
-      // Don't await - save in background to avoid blocking test execution
-      context
-        .storageState()
-        .then(storageState => {
-          return fetchWithTimeout(
+      // Save storage state to cache (this will release the lock)
+      // IMPORTANT: Await the save to ensure it completes before test proceeds
+      if (enableCache) {
+        try {
+          const storageState = await context.storageState();
+          const saveResponse = await fetchWithTimeout(
             `${cacheServerUrl}/save`,
             {
               method: 'POST',
@@ -334,20 +357,41 @@ export async function createAuthenticatedContextAndPageWithCache(
                 state: storageState,
               }),
             },
-            3000
+            5000 // 5s timeout for save
           );
-        })
-        .then(saveResponse => {
           if (saveResponse.ok) {
             log.info('Storage state cached', { userEmail });
           }
-        })
-        .catch(error => {
-          log.debug('Failed to save cache (non-blocking)', {
+        } catch (saveError) {
+          log.debug('Failed to save cache', {
             userEmail,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            error: saveError instanceof Error ? saveError.message : 'Unknown error',
           });
-        });
+        }
+      }
+    } catch (loginError) {
+      // Release lock on login failure to unblock other workers
+      if (enableCache && lockAcquired) {
+        try {
+          await fetchWithTimeout(
+            `${cacheServerUrl}/unlock`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                env: testEnv,
+                tenant: tenantOrgId,
+                user: userEmail,
+              }),
+            },
+            2000
+          );
+          log.debug('Lock released after login failure', { userEmail });
+        } catch {
+          log.debug('Failed to release lock after login failure', { userEmail });
+        }
+      }
+      throw loginError; // Re-throw to fail the test
     }
   }
 
