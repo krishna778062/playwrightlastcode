@@ -93,7 +93,8 @@ jobs:
       trigger_type: qa_release
       slack_prefix: QA Release Regression
       git_ref: ''
-      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      # Scheduled: use template defaults (empty), Manual: use selection or 'all'
+      modules: ${{ github.event_name == 'schedule' && '' || (inputs.module != 'all' && format('["{0}"]', inputs.module) || '') }}
       # BrowserStack disabled by default (SDK not in main/release branches)
       is_browserstack: ${{ github.event_name == 'schedule' && false || inputs.is_browserstack }}
       # Release tag for BrowserStack tracking

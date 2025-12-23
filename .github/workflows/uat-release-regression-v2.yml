@@ -86,7 +86,8 @@ jobs:
       trigger_type: uat_release
       slack_prefix: UAT Release Regression
       git_ref: ''
-      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      # Scheduled: use template defaults (empty), Manual: use selection or 'all'
+      modules: ${{ github.event_name == 'schedule' && '' || (inputs.module != 'all' && format('["{0}"]', inputs.module) || '') }}
       # TEMPORARILY DISABLED: Preserving quota for QA release testing
       is_browserstack: ${{ inputs.is_browserstack || false }}
     secrets: inherit
