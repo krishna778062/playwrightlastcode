@@ -638,18 +638,29 @@ jobs:
         id: run-tests
         run: |
           # ================================================================
-          # TEST EXECUTION SCRIPT (Simplified - No Filters)
+          # TEST EXECUTION SCRIPT
           # ================================================================
-          # This runs ALL tests for the module.
-          # For filtered runs (P0, smoke, etc.), use manual-regression-v2.yml
+          # - Full regression: Runs ALL tests for the module
+          # - Prod healthcheck: Runs only @healthcheck tagged tests
+          # - For other filtered runs, use manual-regression-v2.yml
           # ================================================================
 
           MODULE="${{ matrix.module }}"
           WORKERS="${{ inputs.workers }}"
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
+          TRIGGER_TYPE="${{ inputs.trigger_type }}"
 
           # Set TLS config for test environments (some use self-signed certs)
           export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+          # ────────────────────────────────────────────────────────────
+          # Determine grep filter based on trigger type
+          # ────────────────────────────────────────────────────────────
+          GREP_FILTER=""
+          if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
+            GREP_FILTER='--grep="@healthcheck"'
+            echo "🏥 Production Healthcheck: Filtering by @healthcheck tag"
+          fi
 
           echo "=========================================="
           echo "EXECUTING TESTS"
@@ -657,6 +668,8 @@ jobs:
           echo "Module: $MODULE"
           echo "Workers: $WORKERS"
           echo "BrowserStack: $IS_BROWSERSTACK"
+          echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Grep Filter: ${GREP_FILTER:-'(none - full regression)'}"
           echo ""
 
           # ────────────────────────────────────────────────────────────
@@ -672,6 +685,7 @@ jobs:
 
           # ────────────────────────────────────────────────────────────
           # Module-specific test execution
+          # Note: GREP_FILTER is applied for prod_healthcheck (@healthcheck)
           # ────────────────────────────────────────────────────────────
           case "$MODULE" in
             
@@ -682,8 +696,9 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "reward")
               echo "📦 Running Reward tests (excluding @rewards-db and P3)..."
-              $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts \
-                --grep-invert="@rewards-db|P3" \
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
                 --workers=3
               ;;
             
@@ -694,8 +709,9 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "reward-settings")
               echo "📦 Running Reward Settings tests (excluding @rewards-db and P3)..."
-              $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts \
-                --grep-invert="@rewards-db|P3" \
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
                 --workers=1
               ;;
             
@@ -705,20 +721,23 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "de")
               echo "📦 Running Data Engineering UI tests..."
-              $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "de-api")
               echo "📦 Running Data Engineering API tests..."
-              $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "de-api-abac")
               echo "📦 Running Data Engineering API ABAC tests..."
-              $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             # ──────────────────────────────────────────────────────────
@@ -727,26 +746,30 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "content")
               echo "📦 Running Content tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "content-settings")
               echo "📦 Running Content Settings tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "content-studio")
               echo "📦 Running Content Studio tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "content-abac")
               echo "📦 Running Content ABAC tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             # ──────────────────────────────────────────────────────────
@@ -754,14 +777,16 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "recognition")
               echo "📦 Running Recognition tests..."
-              $RUN_CMD --config=src/modules/recognition/playwright.recognition.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/recognition/playwright.recognition.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "privateRecognition")
               echo "📦 Running Private Recognition tests..."
-              $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             # ──────────────────────────────────────────────────────────
@@ -770,8 +795,9 @@ jobs:
             # ──────────────────────────────────────────────────────────
             *)
               echo "📦 Running $MODULE tests..."
-              $RUN_CMD --config=src/modules/$MODULE/playwright.$MODULE.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/$MODULE/playwright.$MODULE.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
           esac
 
