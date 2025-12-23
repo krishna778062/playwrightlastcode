@@ -103,6 +103,8 @@ export interface IListFeedComponentAssertions {
   verifyLikeCountOnPost: (postText: string) => Promise<void>;
   verifyLikeCountOnReply: (replyText: string) => Promise<void>;
   verifyPostIsAtTop: (postText: string) => Promise<void>;
+  verifyEditOptionVisible: (postText: string) => Promise<void>;
+  verifyEditOptionNotVisible: (postText: string) => Promise<void>;
 }
 
 export class ListFeedComponent
@@ -477,6 +479,22 @@ export class ListFeedComponent
       // Verify Delete button is not visible
       await this.verifier.verifyTheElementIsNotVisible(this.deleteButton, {
         assertionMessage: `Delete option should not be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, {
+        assertionMessage: `Edit option should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionNotVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is NOT visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should NOT be visible for post "${postText}"`,
       });
     });
   }

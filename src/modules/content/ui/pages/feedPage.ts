@@ -263,6 +263,8 @@ export interface IFeedAssertions {
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
   verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
+  verifyEditOptionVisible: (postText: string) => Promise<void>;
+  verifyEditOptionNotVisible: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -1485,6 +1487,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
     await this.listFeedComponent.verifyReplyOptionsMenuNotVisible(replyText);
+  }
+
+  async verifyEditOptionVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyEditOptionVisible(postText);
+  }
+
+  async verifyEditOptionNotVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyEditOptionNotVisible(postText);
   }
 
   async verifyTimestampFormat(postText: string): Promise<void> {

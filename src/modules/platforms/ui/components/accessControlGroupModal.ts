@@ -29,6 +29,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private featureSection: Locator;
   private targetAudienceSection: Locator;
   private backButton: Locator;
+  private browseUsersButton: Locator;
   private addUsersButton: Locator;
   private addUserDialog: Locator;
   private doneButton: Locator;
@@ -59,6 +60,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .filter({ hasText: 'Target audience' });
     this.backButton = this.acgDialog.getByRole('button', { name: 'Back' });
     this.addUsersButton = this.acgDialog.getByRole('button', { name: 'Add users' });
+    this.browseUsersButton = this.acgDialog.getByRole('button', { name: 'Browse' });
     this.addUserDialog = this.page.getByRole('dialog', { name: 'Users' });
     this.doneButton = this.addUserDialog.getByRole('button', { name: 'Done' });
   }
@@ -298,7 +300,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
 
   async isSummaryScreenAssetButtonEnabled(buttonName: string): Promise<boolean> {
     return await this.verifier.isTheElementEnabled(this.summaryScreenAssetButtons(buttonName), {
-      timeout: TIMEOUTS.SHORT,
+      timeout: TIMEOUTS.VERY_SHORT,
     });
   }
 
@@ -319,8 +321,12 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       if (isUserAlreadyAdded) {
         return false;
       }
-
-      await this.clickOnElement(this.addUsersButton);
+      const isBrowseButtonEnabled = await this.isSummaryScreenAssetButtonEnabled('Browse');
+      if (isBrowseButtonEnabled) {
+        await this.clickOnElement(this.browseUsersButton);
+      } else {
+        await this.clickOnElement(this.addUsersButton);
+      }
 
       // Search for user in the user picker
       await this.typeInElement(this.page.getByRole('combobox').first(), userName);
