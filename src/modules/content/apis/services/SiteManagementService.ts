@@ -54,8 +54,6 @@ export class SiteManagementService implements ISiteManagementOperations {
     return await test.step(`Getting category id using API: ${category}`, async () => {
       const response = await this.httpClient.post(API_ENDPOINTS.site.category, {
         data: {
-          includeSites: false,
-          isPaginated: true,
           size: 16,
           sortBy: 'alphabetical',
           term: category,
