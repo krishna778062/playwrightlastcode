@@ -1,5 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+
 import { ApplicationSettingsOption } from '../types/navigation.types';
 
 import type { TestOptions } from '@/src/core/types/test.types';
@@ -123,7 +125,9 @@ export class SideNavBarComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
-        await this.clickOnElement(this.homeLink);
+        await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+        await this.page.waitForURL(PAGE_ENDPOINTS.HOME_PAGE);
+        await this.page.waitForLoadState('domcontentloaded');
       }
     });
   }

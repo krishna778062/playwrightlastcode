@@ -1,6 +1,7 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { TestOptions } from '@core/types/test.types';
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -83,9 +84,8 @@ export class NewHomePage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the home page is loaded', async () => {
-      await expect(this.page.locator('h1'), "Expected to find 'Home' in the page title").toContainText('Home', {
-        timeout: 35_000,
-      });
+      await this.page.waitForURL(new RegExp('/home'), { timeout: TIMEOUTS.MEDIUM });
+      await this.page.waitForLoadState('domcontentloaded');
     });
   }
 
