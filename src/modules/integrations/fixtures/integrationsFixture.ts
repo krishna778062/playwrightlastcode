@@ -19,6 +19,12 @@ interface TenantConfig {
   appManagerPassword: string;
   endUserEmail?: string;
   endUserPassword?: string;
+  QA_MOBILE?: string;
+  QA_ALTERNATE?: string;
+  QA_ALTERNATE_PHONE?: string;
+  UAT_MOBILE?: string;
+  UAT_ALTERNATE?: string;
+  UAT_ALTERNATE_PHONE?: string;
 }
 
 export type Options = { tenantConfig: TenantConfig };
@@ -69,10 +75,14 @@ async function createIntegrationsUiFixture(
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  await LoginHelper.loginWithPassword(page, {
-    email: tenantConfig.appManagerEmail,
-    password: tenantConfig.appManagerPassword,
-  });
+  await LoginHelper.loginWithPassword(
+    page,
+    {
+      email: tenantConfig.appManagerEmail,
+      password: tenantConfig.appManagerPassword,
+    },
+    tenantConfig
+  );
 
   const homePage = new NewHomePage(page);
   await homePage.loadPage();
@@ -187,10 +197,14 @@ export const integrationsFixture = base.extend<
       const context = await browser.newContext();
       const page = await context.newPage();
 
-      await LoginHelper.loginWithPassword(page, {
-        email: tenantConfig.appManagerEmail,
-        password: tenantConfig.appManagerPassword,
-      });
+      await LoginHelper.loginWithPassword(
+        page,
+        {
+          email: tenantConfig.appManagerEmail,
+          password: tenantConfig.appManagerPassword,
+        },
+        tenantConfig
+      );
 
       await use(page);
       await context.close();
