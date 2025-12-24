@@ -196,10 +196,10 @@ export class NewHomePage extends BasePage {
     return this.changeLayoutComponent.selectTileLayout(layoutSign);
   }
 
-  async clickIncludeFeed(): Promise<void> {
-    return this.changeLayoutComponent.clickIncludeFeed();
+  async checkIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.checkIncludeFeed();
   }
-  
+
   async clickIncludeFeed(): Promise<void> {
     return this.homeLayoutComponent.clickIncludeFeed();
   }

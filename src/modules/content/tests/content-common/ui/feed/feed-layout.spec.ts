@@ -4,11 +4,13 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
+import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SmartFeedBlock } from '@/src/modules/content/constants/smartFeedBlocks';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
