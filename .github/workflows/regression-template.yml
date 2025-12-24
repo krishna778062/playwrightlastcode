@@ -127,6 +127,12 @@ jobs:
           elif [ "${{ matrix.module }}" = "content-abac" ]; then
             echo "Running Content ABAC tests with 3 workers..."
             $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "recognition" ]; then
+            echo "Running Recognition tests with 3 workers..."
+            $RUN_CMD --config=src/modules/recognition/playwright.recognition.config.ts --workers=3
+          elif [ "${{ matrix.module }}" = "privateRecognition" ]; then
+            echo "Running Private Recognition tests with 3 workers..."
+            $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts --workers=3
           else
             $RUN_CMD --config=src/modules/${{ matrix.module }}/playwright.${{ matrix.module }}.config.ts --workers=3
           fi

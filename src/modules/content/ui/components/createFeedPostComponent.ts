@@ -229,6 +229,11 @@ export class CreateFeedPostComponent
       // Add post content
       await this.createPost(options.text);
 
+      // Handle embed URL if provided
+      if (options.embedUrl) {
+        await this.addEmbedUrl(options.embedUrl);
+      }
+
       // Handle attachments if provided
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
@@ -499,8 +504,8 @@ export class CreateFeedPostComponent
     });
   }
 
-  async clickReplyUpdateButton(): Promise<void> {
-    await test.step('Click update button in reply editor', async () => {
+  async clickReplyUpdateButton(postText: string): Promise<void> {
+    await test.step(`Click update button in reply editor for post ${postText}`, async () => {
       const updateButton = this.updateButton.last();
       await this.clickOnElement(updateButton);
     });
