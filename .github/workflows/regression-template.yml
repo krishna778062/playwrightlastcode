@@ -19,7 +19,7 @@ on:
         description: 'Enable BrowserStack Test Observability'
         required: false
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: read
