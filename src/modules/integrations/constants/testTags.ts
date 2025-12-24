@@ -100,6 +100,7 @@ export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
   AZURE_SYNC = '@azure-sync',
+  GOOGLE_SYNC = '@google-sync',
   WORKDAY_SYNC = '@workday-sync',
   PEOPLE_TAB = '@people',
   UKG_SYNCING = '@ukg-syncing',

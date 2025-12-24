@@ -20,6 +20,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : 4,
   use: {
     actionTimeout: 15_000,
+    channel: 'chrome',
     navigationTimeout: 30_000,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
