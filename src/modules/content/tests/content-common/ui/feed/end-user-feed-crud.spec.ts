@@ -60,11 +60,11 @@ test.describe(
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ appManagerFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
       if (createdPostId) {
         try {
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
@@ -618,6 +618,208 @@ test.describe(
 
         // Verify video controls and functionalities
         await feedDetailPage.assertions.verifyVideoControls(videoPostText);
+      }
+    );
+
+    test(
+      'in Zeus Verify User is able to Share a Feed post with image and mention using "Post in HOME FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19561'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User is able to Share a Feed post with image and mention using "Post in HOME FEED" option',
+          zephyrTestId: 'CONT-19561',
+          storyId: 'CONT-19561',
+        });
+
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserFullName = standardUserInfo.fullName;
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.verifyThePageIsLoaded();
+
+        // Create Post with image1.jpg
+        await test.step('Create post with image attachment', async () => {
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+
+          // Create post with image attachment
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [imagePath],
+            },
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify global post is created
+          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+          await endUserFeedPage.assertions.verifyPostDetails(postText, 1); // 1 attachment
+        });
+
+        // Share Post with mention and "Post in Home Feed" option
+        await test.step('Share post with mention using Post in Home Feed option', async () => {
+          const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+          // Share the post with mention and "Post in Home Feed" option
+          await endUserFeedPage.actions.shareFeedPost({
+            postText: createdPostText,
+            mentionUserName: standardUserFullName,
+            shareMessage: shareMessage,
+            postIn: 'Home Feed',
+          });
+
+          // Verify success message
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        });
+
+        // Verify shared post is visible on Home Feed
+        await test.step('Verify shared post with message, mention, and inline image preview', async () => {
+          // Reload page to see the shared post
+          await endUserFeedPage.reloadPage();
+
+          // Verify shared post is visible
+          const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+          // Verify share message is displayed
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+
+          await endUserFeedPage.actions.clickInlineImagePreview(shareMessage);
+          await endUserFeedPage.assertions.verifyInlineImagePreviewVisible();
+          await endUserFeedPage.actions.closeImagePreview();
+        });
+      }
+    );
+
+    test(
+      'in Zeus, Verify User is able to share Global Feed Post with image and mention to Public Site Feed using Share button and delete it',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19562'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, Verify User is able to share Global Feed Post with image and mention to Public Site Feed using Share button and delete it',
+          zephyrTestId: 'CONT-19562',
+          storyId: 'CONT-19562',
+        });
+
+        // Get Standard User1's full name for mention
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserFullName = standardUserInfo.fullName;
+
+        const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
+        const publicSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(publicSiteName);
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+        await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+        await test.step('Create post with image attachment on Global Feed', async () => {
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [imagePath],
+            },
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify global post is created successfully
+          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+          await endUserFeedPage.assertions.verifyPostDetails(postText, 1);
+        });
+
+        await test.step('Share post to Site Feed with mention', async () => {
+          await endUserFeedPage.actions.shareFeedPost({
+            postText: createdPostText,
+            mentionUserName: standardUserFullName,
+            shareMessage: shareMessage,
+            postIn: 'Site Feed',
+          });
+
+          await endUserFeedPage.actions.enterSiteNameForShare(publicSiteName);
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          await shareComponent.actions.clickShareButton();
+
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        });
+
+        await test.step('Verify shared post with mention is visible on Global Feed', async () => {
+          await endUserFeedPage.reloadPage();
+
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+        });
+
+        await test.step('Verify shared post is visible on Site Feed', async () => {
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+        });
+
+        await test.step('Delete the post from Global Feed', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+          await endUserFeedPage.actions.deletePost(createdPostText);
+        });
+
+        await test.step('Verify deleted post is not visible on Site Feed', async () => {
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify deletion' });
+          await siteDashboardPage.reloadPage();
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
+        });
+
+        await test.step('Verify deleted post is not visible on Home Feed', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
+
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(createdPostText);
+        });
       }
     );
 
@@ -2384,6 +2586,62 @@ test.describe(
         // Click Following button in reply and verify Follow button is visible
         await endUserFeedPage.actions.clickFollowingButtonOnHover(appManagerFullName);
         await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
+      }
+    );
+
+    test(
+      'verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19560'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+          zephyrTestId: 'CONT-19560',
+          storyId: 'CONT-19560',
+        });
+
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        await feedPage.actions.clickShareThoughtsButton();
+
+        await feedPage.actions.enterFeedPostText(postText);
+
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        await feedPage.actions.uploadFiles([imagePath]);
+
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        await feedPage.actions.enterSiteNameForShare(siteName);
+
+        await feedPage.actions.clickPostButton();
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.actions.clickSiteNameOnPost(postText, siteName);
+
+        siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.assertions.verifyThePageIsLoaded();
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.actions.deletePost(postText);
       }
     );
 

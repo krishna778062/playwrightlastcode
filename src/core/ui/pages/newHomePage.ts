@@ -10,6 +10,7 @@ import { AddTileComponent } from '@/src/modules/content/ui/components/addTileCom
 import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
 import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
+import { HomeLayoutComponent } from '@/src/modules/content/ui/components/homeLayoutComponent';
 
 export interface INewHomePageActions {
   clickOnManageDashboardCarousel: (options?: { stepInfo?: string }) => Promise<void>;
@@ -45,6 +46,7 @@ export interface INewHomePageAssertions {
 
 export class NewHomePage extends BasePage {
   readonly changeLayoutComponent: ChangeLayoutComponent;
+  readonly homeLayoutComponent: HomeLayoutComponent;
   readonly footerComponent: FooterComponent;
   readonly manageDashboardCarouselButton: Locator;
   readonly editDashboardButton: Locator;
@@ -64,13 +66,14 @@ export class NewHomePage extends BasePage {
     this.editbarComponent = new EditBarComponent(page);
     this.addTileComponent = new AddTileComponent(page);
     this.carouselComponent = new CarouselComponent(page);
-    this.manageDashboardCarouselButton = page.getByRole('button', { name: 'Manage dashboard & carousel' });
+    this.manageDashboardCarouselButton = page.getByRole('button', { name: 'Manage dashboard' });
     this.editDashboardButton = page.locator('div[data-title="Edit dashboard"]');
     this.tileListComponent = (tileTitle: string) => page.getByRole('heading', { name: tileTitle });
     this.socialCampaignNameInTileList = (socialCampaignName: string) =>
       page.getByRole('button', { name: socialCampaignName }).first();
     this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
+    this.homeLayoutComponent = new HomeLayoutComponent(page);
     this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
     this.CarouseText = (text: string) => page.getByRole('link', { name: text, exact: true });
     this.recentlyVisitedSite = (siteName: string) => page.getByRole('menuitem', { name: siteName });
@@ -108,7 +111,8 @@ export class NewHomePage extends BasePage {
    */
   async clickOnManageDashboardCarousel(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Clicking on Manage dashboard & carousel', async () => {
-      await this.clickOnElement(this.manageDashboardCarouselButton);
+      await this.verifier.verifyTheElementIsVisible(this.manageDashboardCarouselButton);
+      await this.clickByInjectingJavaScript(this.manageDashboardCarouselButton);
     });
   }
 
@@ -195,9 +199,9 @@ export class NewHomePage extends BasePage {
   async clickIncludeFeed(): Promise<void> {
     return this.changeLayoutComponent.clickIncludeFeed();
   }
-
-  async checkIncludeFeed(): Promise<void> {
-    return this.changeLayoutComponent.checkIncludeFeed();
+  
+  async clickIncludeFeed(): Promise<void> {
+    return this.homeLayoutComponent.clickIncludeFeed();
   }
 
   async enterSearchCarouselInput(text: string): Promise<void> {
