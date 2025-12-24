@@ -78,8 +78,8 @@ jobs:
       trigger_type: prod_healthcheck
       slack_prefix: Prod Healthcheck
       git_ref: ''
-      # Scheduled: all modules, Manual: user choice
-      modules: ${{ github.event_name == 'schedule' && '' || (inputs.module != 'all' && format('["{0}"]', inputs.module) || '') }}
+      # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
+      modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
       # TEMPORARILY DISABLED: Preserving quota for QA release testing
       is_browserstack: false
       timeout_minutes: 120
