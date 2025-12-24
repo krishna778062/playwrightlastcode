@@ -159,6 +159,7 @@ export interface IFeedActions {
   clickViewPostLinkInShareModal(): Promise<void>;
   clickViewPostLinkInPostDetailPage(): Promise<void>;
   reloadPage(): Promise<void>;
+  addReplyToPostWithEmbedUrl(replyText: string, postId: string, embedUrl: string): Promise<void>;
   clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
   addSiteName(siteName: string): Promise<void>;
   removeSiteMention(siteName: string): Promise<void>;
@@ -173,12 +174,16 @@ export interface IFeedActions {
   clickFollowingButtonOnHover: (userName: string) => Promise<void>;
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
+  clickSiteNameOnPost: (postText: string, siteName: string) => Promise<void>;
   clickPostWithoutWaitingForResponse(): Promise<void>;
+  clickInlineImagePreview: (postText: string) => Promise<void>;
+  closeImagePreview: () => Promise<void>;
 }
 
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
+  verifyThePageIsLoaded(): Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
@@ -240,6 +245,8 @@ export interface IFeedAssertions {
   verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
   verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
+  verifyEmbedUrlPreviewIsVisible: (embedUrl: string) => Promise<void>;
+  verifyEmbedUrlPreviewIsVisibleInReply: (embedUrl: string, replyText: string) => Promise<void>;
   verifyShareButtonIsNotVisible: () => Promise<void>;
   verifyShareIconIsVisible: (postText: string) => Promise<void>;
   verifyReactionButtonIsNotVisible: () => Promise<void>;
@@ -267,6 +274,8 @@ export interface IFeedAssertions {
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
   verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
+  verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void>;
+  verifyInlineImagePreviewVisible: () => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -553,8 +562,16 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.addReplyToPost(replyText, postId);
   }
 
+  async addReplyToPostWithEmbedUrl(replyText: string, postId: string, embedUrl: string): Promise<void> {
+    await this.listFeedComponent.addReplyToPostWithEmbedUrl(replyText, postId, embedUrl);
+  }
+
   async openReplyEditorForPost(postText: string): Promise<void> {
     await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
+  async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
+    await this.listFeedComponent.clickSiteNameOnPost(postText, siteName);
   }
 
   async clickReplyOnContentComment(commentText: string): Promise<void> {
@@ -1043,6 +1060,20 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.createFeedPostComponent.verifyUpdateButtonDisabled();
   }
 
+  async verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void> {
+    await this.listFeedComponent.verifyUserNameMentionIsVisible(postText, standardUserFullName);
+  }
+
+  async verifyInlineImagePreviewVisible(): Promise<void> {
+    await this.listFeedComponent.verifyInlineImagePreviewVisible();
+  }
+  async clickInlineImagePreview(postText: string): Promise<void> {
+    await this.listFeedComponent.clickInlineImagePreview(postText);
+  }
+  async closeImagePreview(): Promise<void> {
+    await this.listFeedComponent.closeImagePreview();
+  }
+
   async openPostOptionsMenu(postText: string): Promise<void> {
     await this.createFeedPostComponent.openPostOptionsMenu(postText);
   }
@@ -1181,6 +1212,9 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
           await this.shareComponent.shareOptionDropdown.waitFor({ state: 'visible' });
           // Try to select 'public' value, if it fails, Home Feed is likely already selected
           await this.shareComponent.shareOptionDropdown.selectOption({ value: 'public' });
+
+          // Click Share button
+          await this.shareComponent.actions.clickShareButton();
         } catch {
           // If selection fails, Home Feed is likely already the default, continue
           console.log('Home Feed appears to be already selected or is the default');
@@ -1188,9 +1222,6 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
       } else {
         await this.shareComponent.selectShareOptionAsSiteFeed();
       }
-
-      // Click Share button
-      await this.shareComponent.clickShareButton();
     });
   }
 
@@ -1403,6 +1434,14 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async verifyEmbededUrlIsVisible(embedUrl: string): Promise<void> {
     await this.listFeedComponent.verifyEmbededUrlIsVisible(embedUrl);
+  }
+
+  async verifyEmbedUrlPreviewIsVisible(embedUrl: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbedUrlPreviewIsVisible(embedUrl);
+  }
+
+  async verifyEmbedUrlPreviewIsVisibleInReply(embedUrl: string, replyText: string): Promise<void> {
+    await this.listFeedComponent.verifyEmbedUrlPreviewIsVisibleInReply(embedUrl, replyText);
   }
 
   async verifyShareButtonIsNotVisible(): Promise<void> {
