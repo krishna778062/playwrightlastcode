@@ -153,6 +153,7 @@ test.describe(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
+
         await contentPreviewPage.actions.handlePromotionPageStep();
       }
     );

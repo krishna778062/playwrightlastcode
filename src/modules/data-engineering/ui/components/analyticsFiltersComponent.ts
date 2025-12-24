@@ -281,11 +281,23 @@ export class AnalyticsFiltersComponent extends BaseComponent {
 
   /**
    * Applies a Segment filter by opening the dialog and selecting the provided option.
+   * Tries both 'Segment' and 'All segments' labels to handle different dashboards.
    * @param segmentFilterOptions - The Segment filter option to select.
    */
   async applySegmentFilter(segmentFilterOptions: string[]) {
     await test.step(`Apply Segment filter: ${segmentFilterOptions.join(', ')}`, async () => {
-      await this.openFilter(AnalyticsFilterLabels.SEGMENT);
+      // Try 'Segment' label first, then 'All segments' if not found
+      const segmentFilter = this.filterGroup(AnalyticsFilterLabels.SEGMENT);
+      const allSegmentsFilter = this.filterGroup(AnalyticsFilterLabels.ALL_SEGMENTS);
+
+      if (await segmentFilter.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.openFilter(AnalyticsFilterLabels.SEGMENT);
+      } else if (await allSegmentsFilter.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.openFilter(AnalyticsFilterLabels.ALL_SEGMENTS);
+      } else {
+        throw new Error('Segment filter not found with either "Segment" or "All segments" label');
+      }
+
       for (const segment of segmentFilterOptions) {
         await this.selectFilterOptionByOptionName(segment);
       }

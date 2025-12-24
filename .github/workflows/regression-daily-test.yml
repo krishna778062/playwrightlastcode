@@ -24,5 +24,6 @@ jobs:
       # Scheduled runs use 'develop', manual runs use triggering branch
       git_ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref_name }}
       slack_prefix: Daily Regression
-      is_browserstack: true
+      # TEMPORARILY DISABLED: Preserving quota for QA release testing
+      is_browserstack: false
     secrets: inherit

@@ -103,7 +103,6 @@ export const MobileSql = {
       and i.interaction_type_code = 'IT001'
       and i.device_type_code in ('DT001', 'DT002')
       and c.content_type_code in ('CT001', 'CT002', 'CT003', 'CT004')
-      and u.status_code = 'US001'
       {locationFilter}
       {departmentFilter}
       {segmentFilter}
