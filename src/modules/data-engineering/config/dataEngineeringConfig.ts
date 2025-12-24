@@ -62,7 +62,7 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
     uat: {
       tenantName: 'Data Engineering Primary',
       frontendBaseUrl: 'https://de-auto.uat.simpplr.xyz',
-      apiBaseUrl: 'https://de-auto.uat-api.simpplr.xyz',
+      apiBaseUrl: 'https://de-auto-api.uat.simpplr.xyz',
       apiBeUrl: 'https://api-be.uat.simpplr.xyz',
       appManagerEmail: 'bharat.madaan@simpplr.com',
       appManagerPassword: 'Simpplr@123',
