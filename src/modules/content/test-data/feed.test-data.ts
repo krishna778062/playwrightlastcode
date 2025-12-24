@@ -9,6 +9,7 @@ export const FEED_TEST_DATA = {
     CONTENT_UNPUBLISHED: 'Unpublished content successfully',
     ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY: 'Added tile to dashboard successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    PUBLISHED_CONTENT: "Published page successfully - it's published",
     COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
     ADDED_NEW_VERSION: 'Added new version successfully',
     DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
