@@ -432,7 +432,7 @@ test.describe(
     test(
       'verify that user should be able to change managers from managers screen while editing them during ACG creation flow',
       {
-        tag: [TestPriority.P1, `@ABAC`, '@this-one'],
+        tag: [TestPriority.P1, `@ABAC`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
