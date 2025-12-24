@@ -51,7 +51,7 @@ test.describe(
     });
 
     test(
-      'create Album with all the fields populated from home page',
+      'create Album with all the fields populated from home page CONT-11065',
       {
         tag: [
           TestPriority.P0,

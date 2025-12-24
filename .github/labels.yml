@@ -1,0 +1,25 @@
+# PR Type Labels
+- name: hotfix
+  color: 'd73a4a'
+  description: 'Production hotfix - merged to main'
+
+- name: feature
+  color: '0e8a16'
+  description: 'New feature or enhancement'
+
+- name: release
+  color: 'fbca04'
+  description: 'Release-related change'
+
+- name: bug
+  color: 'd93f0b'
+  description: 'Bug fix'
+
+# Backport Labels (optional - for manual labeling)
+- name: backport:develop
+  color: '5319e7'
+  description: 'Sync this change to develop branch'
+
+- name: backport:release
+  color: 'f9d0c4'
+  description: 'Sync this change to release branch'

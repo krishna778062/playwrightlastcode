@@ -18,7 +18,7 @@ test.describe('favorite', () => {
 
   test.describe('favorite', () => {
     test(
-      'to verify the favourite and unfavourite files functionality',
+      'to verify the favourite and unfavourite files functionality CONT-43049',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-43049'],
       },

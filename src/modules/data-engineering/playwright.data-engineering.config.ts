@@ -9,7 +9,7 @@ const tenantConfig = getDataEngineeringConfigFromCache();
 
 import { defineConfig, devices } from '@playwright/test';
 
-import baseConfig from '../../../playwright.base.config';
+import baseConfig from './playwright.data-engineering.base.config';
 
 import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';

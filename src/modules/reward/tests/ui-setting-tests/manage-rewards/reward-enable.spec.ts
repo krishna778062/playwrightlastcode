@@ -8,7 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('enable Rewards flow', () => {
   test(
-    'validate Enable rewards flow',
+    'RC-3014 Validate Enable rewards flow',
     {
       tag: [
         TestGroupType.REGRESSION,

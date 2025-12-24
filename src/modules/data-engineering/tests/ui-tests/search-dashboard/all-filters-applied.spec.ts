@@ -57,6 +57,7 @@ test.describe(
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
         customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
+        segments: [...TEST_FILTER_VALUES.SEARCH.SEGMENTS],
         departments: [...TEST_FILTER_VALUES.SEARCH.DEPARTMENTS],
         locations: [...TEST_FILTER_VALUES.SEARCH.LOCATIONS],
       };

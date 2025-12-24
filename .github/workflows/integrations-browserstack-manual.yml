@@ -1,0 +1,201 @@
+# ============================================================================
+# INTEGRATIONS BROWSERSTACK MANUAL
+# ============================================================================
+#
+# PURPOSE:
+#   Manual workflow to run integrations tests with BrowserStack.
+#   No schedule check - can run anytime from any branch.
+#
+# USE CASE:
+#   - Test integrations modules with BrowserStack tracking
+#   - Run from any branch for testing
+#   - Generate BrowserStack reports with release tag
+#
+# ============================================================================
+
+name: Integrations BrowserStack (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., 25.01-qa.1) - for BrowserStack build name'
+        required: true
+        type: string
+
+      git_ref:
+        description: 'Git branch/ref to checkout (e.g., develop, release, feature/xyz)'
+        required: true
+        default: 'develop'
+        type: string
+
+      environment:
+        description: 'Environment'
+        required: false
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Integration module to test'
+        required: true
+        default: 'integrations-primary'
+        type: choice
+        options:
+          - 'integrations-primary'
+          - 'integrations-workday'
+          - 'integrations-azuresso'
+          - 'integrations-okta'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+jobs:
+  integrations-test:
+    timeout-minutes: 300
+    runs-on: [kubernetes-pvc]
+    env:
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
+      MODULE_NAME: ${{ inputs.module }}
+      TEST_ENV: ${{ inputs.environment }}
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ inputs.git_ref }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+      TRIGGER_TYPE: manual
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.git_ref }}
+
+      - name: Create Calendar Secrets JSON
+        run: |
+          echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chrome
+
+      - name: Generate BrowserStack build name
+        if: inputs.is_browserstack == true
+        run: |
+          MODULE="${{ inputs.module }}"
+          TAG="${{ inputs.release_tag }}"
+          ENV="${{ inputs.environment }}"
+          MODULE_CAP="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
+          BUILD_NAME="Release-${TAG}-${MODULE_CAP}-${ENV}"
+          echo "BROWSERSTACK_BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
+
+      - name: Run integrations tests
+        run: |
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+          # For integrations, the folder is 'integrations' but module names are like 'integrations-primary'
+          # envLoader uses MODULE_NAME to find env files, so we need to set it to the folder name
+          export MODULE_NAME=integrations
+
+          # Determine config file path
+          MODULE="${{ inputs.module }}"
+          case "$MODULE" in
+            "integrations-primary")
+              CONFIG_FILE="src/modules/integrations/playwright.integrations.config.ts"
+              ;;
+            *)
+              CONFIG_FILE="src/modules/integrations/playwright.${MODULE}.config.ts"
+              ;;
+          esac
+
+          echo "📦 Module: $MODULE"
+          echo "📁 MODULE_NAME for env: $MODULE_NAME"
+          echo "📄 Config: $CONFIG_FILE"
+
+          if [ "${{ inputs.is_browserstack }}" = "true" ]; then
+            echo "🔬 Running with BrowserStack..."
+            npx browserstack-node-sdk playwright test --config="$CONFIG_FILE" --workers=6
+          else
+            echo "🧪 Running locally..."
+            npm run test:${{ inputs.module }} -- --workers=6
+          fi
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ inputs.module }}-${{ inputs.environment }}
+          path: |
+            playwright-report
+            test-results
+
+      - name: Configure AWS Credentials
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
+          role-skip-session-tagging: true
+          role-duration-seconds: 1200
+
+      - name: Set timestamp
+        if: always()
+        run: echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+
+      - name: Generate Reports
+        if: always()
+        run: |
+          npm run generate-report:custom test-results/test-results.json
+          npm run generate-tag-report
+
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
+          aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
+          echo "REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+
+      - name: Parse and Send Slack Notification
+        if: always()
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+            PASSED=$(jq -r '.stats.expected' test-results/test-results.json)
+            FAILED=$(jq -r '.stats.unexpected' test-results/test-results.json)
+            SKIPPED=$(jq -r '.stats.skipped' test-results/test-results.json)
+            FLAKY=$(jq -r '.stats.flaky' test-results/test-results.json)
+            
+            MESSAGE="🧪 *Integrations BrowserStack* - \`${{ inputs.module }}\` on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`): ${TOTAL} tests (${PASSED} ✅ ${FAILED} ❌ ${SKIPPED} ⏭️ ${FLAKY} ⚠️) | <${{ env.REPORT_URL }}|📊 Report>"
+          else
+            MESSAGE="🚨 *Integrations BrowserStack Failed* - \`${{ inputs.module }}\` on \`${{ inputs.environment }}\` | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+          fi
+
+          curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"$MESSAGE\"}" $SLACK_WEBHOOK_URL
