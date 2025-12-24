@@ -52,9 +52,9 @@ test.describe.fixme(
         testFiltersConfig = {
           tenantCode: getDataEngineeringConfigFromCache().orgId,
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
+          segments: [...TEST_FILTER_VALUES.APP_ADOPTION.SEGMENTS],
           departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
           locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
-          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };
 

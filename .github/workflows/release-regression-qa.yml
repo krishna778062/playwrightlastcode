@@ -45,4 +45,5 @@ jobs:
       environment: qa
       git_ref: ${{ needs.check-stage.outputs.checkout_ref }}
       slack_prefix: QA Regression
+      is_browserstack: false
     secrets: inherit

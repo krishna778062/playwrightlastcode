@@ -4,6 +4,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
@@ -15,6 +16,7 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { ManageContentPage } from '@/src/modules/content/ui/pages/manageContentPage';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
+import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 
 test.describe('home Dashboard Tiles', () => {
   let homeDashboardPage: HomeDashboardPage;
@@ -129,7 +131,81 @@ test.describe('home Dashboard Tiles', () => {
   );
 
   test(
-    'verify private and unlisted sites on Sites tile for non-members CONT-22852',
+    'to verify app manager can reorder tiles on home dashboard',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-13605'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'to verify app manager can reorder tiles on home dashboard',
+        zephyrTestId: 'CONT-13605',
+        storyId: 'CONT-13605',
+      });
+
+      // Navigate to Home page
+      await appManagerFixture.navigationHelper.clickOnHomeButton();
+
+      // Enter edit mode
+      await homeDashboardPage.actions.clickOnEditDashboardButton();
+
+      // Generate unique tile names
+      const textTileTitle = TestDataGenerator.generateRandomString('Text Tile');
+      const sitesTileTitle = TestDataGenerator.generateRandomString('Sites Tile');
+      const textTileDescription = TestDataGenerator.generateRandomText();
+
+      // Get a site name for Sites & Category tile
+      // Using "All Employees" as it's commonly available
+      const siteName = DEFAULT_PUBLIC_SITE_NAME;
+
+      // Add Text/HTML & Links tile
+      await homeDashboardPage.actions.addTextHtmlLinksTile(textTileDescription, textTileTitle);
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+
+      // Add Sites & Category tile
+      await homeDashboardPage.actions.addSitesCategoryTile(siteName, sitesTileTitle);
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+
+      // Reorder tiles - move Sites tile before Text tile
+      await homeDashboardPage.actions.reorderTiles(sitesTileTitle, textTileTitle);
+
+      // Verify tile order (Sites should be before Text)
+      await homeDashboardPage.assertions.verifyTileOrder([textTileTitle, sitesTileTitle]);
+
+      //  Exit edit mode and refresh page
+      await homeDashboardPage.actions.clickingOnDoneButton();
+      await appManagerFixture.page.reload();
+      await homeDashboardPage.verifyThePageIsLoaded();
+      await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(textTileTitle);
+
+      // Verify tile order persists after refresh
+      await homeDashboardPage.assertions.verifyTileOrder([textTileTitle, sitesTileTitle]);
+
+      // Remove tiles via three dots menu
+      await homeDashboardPage.actions.clickOnEditDashboardButton();
+
+      // Remove Text tile
+      await homeDashboardPage.pageTileSectionComponent.clickThreeDotsOnTile(textTileTitle);
+      await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
+      await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+
+      // Remove Sites tile
+      await homeDashboardPage.pageTileSectionComponent.clickThreeDotsOnTile(sitesTileTitle);
+      await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
+      await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
+      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+
+      // Exit edit mode
+      await homeDashboardPage.actions.clickingOnDoneButton();
+
+      // Verify tiles are removed
+      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(textTileTitle);
+      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(sitesTileTitle);
+    }
+  );
+
+  test(
+    'verify private and unlisted sites on Sites tile for non-members',
     {
       tag: [
         TestPriority.P0,
@@ -168,9 +244,6 @@ test.describe('home Dashboard Tiles', () => {
       const privateSiteName = privateSiteResult.siteName;
       const unlistedSiteName = unlistedSiteResult.siteName;
 
-      console.log(`Using private site: ${privateSiteName}`);
-      console.log(`Using unlisted site: ${unlistedSiteName}`);
-
       // Navigate to Home tab
       await appManagerFixture.navigationHelper.clickOnHomeButton();
       await homeDashboardPage.verifyThePageIsLoaded();
@@ -184,7 +257,7 @@ test.describe('home Dashboard Tiles', () => {
       await homeDashboardPage.actions.clickOnSitesTab();
 
       // Enter tile name
-      const tileName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Sites Tile`;
+      const tileName = TestDataGenerator.generateRandomString('Sites Tile');
       await homeDashboardPage.actions.setSitesTileTitle(tileName);
 
       // Add private and unlisted sites to tile
