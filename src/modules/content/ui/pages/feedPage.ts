@@ -174,12 +174,14 @@ export interface IFeedActions {
   clickFollowingButtonOnHover: (userName: string) => Promise<void>;
   verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
   clickOnSideToRemoveProfilePopover(): Promise<void>;
+  clickSiteNameOnPost: (postText: string, siteName: string) => Promise<void>;
   clickPostWithoutWaitingForResponse(): Promise<void>;
 }
 
 export interface IFeedAssertions {
   // High-level verification flows
   verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
+  verifyThePageIsLoaded(): Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
   verifyPostIsNotVisible(text: string): Promise<void>;
   verifyPostIsNotFavorited: (postText: string) => Promise<void>;
@@ -562,6 +564,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async openReplyEditorForPost(postText: string): Promise<void> {
     await this.listFeedComponent.openReplyEditorForPost(postText);
+  }
+
+  async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
+    await this.listFeedComponent.clickSiteNameOnPost(postText, siteName);
   }
 
   async clickReplyOnContentComment(commentText: string): Promise<void> {
