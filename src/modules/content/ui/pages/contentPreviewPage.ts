@@ -8,6 +8,7 @@ import {
 import { PromotePageModal } from '@content/ui/components/promotePageModal';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
+import { TIMEOUTS } from '@/src/core/constants';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
@@ -56,6 +57,8 @@ export interface IContentPreviewPageActions {
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickOnFavouriteContentButton(): Promise<void>;
   hoverOnReactionButton: (postText: string) => Promise<void>;
+  deleteTheContent: () => Promise<void>;
+  skipPromotionDialogIfVisible(contentType: string): Promise<void>;
 }
 
 export interface IContentPreviewPageAssertions {
@@ -67,6 +70,7 @@ export interface IContentPreviewPageAssertions {
   verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
   verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
   verifyUnpublishedContentToastMessage: (toastMessage: string) => Promise<void>;
+  verifyPublishedContentToasteMessage: (toastMessage: string) => Promise<void>;
   verifyCommentOptionIsNotVisible: () => Promise<void>;
   verifyCommentOptionIsVisible: () => Promise<void>;
   waitForPostToBeVisible: (expectedText: string) => Promise<void>;
@@ -103,6 +107,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
   readonly unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
   readonly deleteButton = this.page.getByRole('button', { name: 'Delete' });
+  readonly confirmDeleteButton = this.page.getByRole('button', { name: 'Delete' }).last();
   readonly contentStatus = (status: string) =>
     this.page.locator('div.ContentAdminBar-status').filter({ hasText: status });
   readonly approveOrRejectButton = (action: string) => this.page.getByRole('button', { name: action });
@@ -128,6 +133,10 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly promotionEventDialog = (contentType: string) =>
+    this.page.getByRole('dialog', { name: `Promote ${contentType}` });
+  readonly skipPromotionEventDialogButton = (contentType: string) =>
+    this.promotionEventDialog(contentType).getByRole('button', { name: 'Skip this step' });
 
   // Page components
   readonly promotePageModal: PromotePageModal;
@@ -286,9 +295,37 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
       });
     });
   }
+  async verifyPublishedContentToasteMessage(toastMessage: string): Promise<void> {
+    await test.step('Verifying published content toast message', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.successMessage(toastMessage), {
+        assertionMessage: `Published content toast message "${toastMessage}" should be visible`,
+      });
+    });
+  }
   async publishingTheContent(): Promise<void> {
     await test.step('Publishing the content', async () => {
       await this.clickOnElement(this.publishButton);
+    });
+  }
+
+  async deleteTheContent(): Promise<void> {
+    await test.step('Delete the content', async () => {
+      await this.actions.clickOnOptionMenuButton();
+      await this.hoverOverElementInJavaScript(this.ellipsisButton);
+      await this.clickOnElement(this.deleteButton);
+      await this.clickOnElement(this.confirmDeleteButton);
+    });
+  }
+
+  async skipPromotionDialogIfVisible(contentType: string): Promise<void> {
+    await test.step('Skipping promotion dialog if visible', async () => {
+      const isPromotionDialogVisible = await this.verifier.isTheElementVisible(this.promotionEventDialog(contentType), {
+        timeout: TIMEOUTS.SHORT,
+      });
+      if (isPromotionDialogVisible) {
+        console.log('Promotion dialog is visible, skipping it');
+        await this.clickOnElement(this.skipPromotionEventDialogButton(contentType));
+      }
     });
   }
   async verifyCommentOptionIsVisible(): Promise<void> {
