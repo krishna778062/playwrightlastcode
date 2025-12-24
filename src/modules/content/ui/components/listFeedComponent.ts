@@ -1178,7 +1178,7 @@ export class ListFeedComponent
    */
   async clickReplyEditOption(): Promise<void> {
     await test.step('Click reply edit option', async () => {
-      await this.clickOnElement(this.editButton);
+      await this.clickByInjectingJavaScript(this.editButton);
     });
   }
 
@@ -1187,7 +1187,7 @@ export class ListFeedComponent
    */
   async clickReplyDeleteOption(): Promise<void> {
     await test.step('Click reply delete option', async () => {
-      await this.clickOnElement(this.deleteButton);
+      await this.clickByInjectingJavaScript(this.deleteButton);
     });
   }
 

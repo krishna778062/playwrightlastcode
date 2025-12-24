@@ -46,6 +46,7 @@ export class ContentManagementHelper {
    * @returns Promise with siteId and contentId
    */
   async getContentId(options?: {
+    siteId?: string;
     size?: number;
     status?: string;
     sortBy?: string;
@@ -57,7 +58,7 @@ export class ContentManagementHelper {
 
     if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
       // Filter content by site access type
-      const filteredContent = response.result.listOfItems.filter((content: any) => {
+      let filteredContent = response.result.listOfItems.filter((content: any) => {
         const site = content.site;
         const siteAccess = site.access?.toLowerCase() || '';
 
@@ -70,6 +71,10 @@ export class ContentManagementHelper {
         }
         return true; // If accessType doesn't match, return all content
       });
+
+      if (options?.siteId) {
+        filteredContent = response.result.listOfItems.filter((content: any) => content.site.siteId === options.siteId);
+      }
 
       if (filteredContent.length > 0) {
         const randomIndex = Math.floor(Math.random() * filteredContent.length);
