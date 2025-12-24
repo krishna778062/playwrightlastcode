@@ -125,6 +125,9 @@ export const SYNCING = {
   SYNC_DROPDOWN: 'syncSource',
   TEST: 'test',
   EDIT_USER: 'Edit user',
+  MOBILE_PHONE: 'Mobile phone',
+  EMPLOYEE_NUMBER: 'Employee number',
+  PHONE: 'Phone',
   PAY_CURRENCY: 'Pay Currency',
   FIRST_NAME: 'First name',
   HIRE_DATE: 'Hire date',
@@ -141,7 +144,8 @@ export const SYNCING = {
   DIVISION: 'division',
   DEPARTMENT: 'department',
   VALIDATION_QUESTION_VALUE: 'Department',
-  SELECT_ALL_FIELDS_CHECKBOX_ID: 'selectAllFields_azure_are_all_synced',
+  SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE: 'selectAllFields_azure_are_all_synced',
+  SELECT_ALL_FIELDS_CHECKBOX_ID_GOOGLE: 'selectAllFields_google_are_all_synced',
   COMMON_SYNC_FIELDS: [
     'First name',
     'Last name',
@@ -201,6 +205,15 @@ export const GOOGLE_SYNCING = {
   USER_MOBILE: '9898989898',
   USER_PHONE: '8978978978',
   USER_EMPLOYEE_NUMBER: 'E121212',
+  MAPPING_FILDS: {
+    'Company name': 'customSchemas.Employee_Information.CompanyName',
+    'Address 1': 'customSchemas.Address.Street',
+    City: 'customSchemas.Address.City',
+    'State/Province': 'customSchemas.Address.State',
+    'Zip code': 'customSchemas.Address.ZipCode',
+    Country: 'customSchemas.Employee_Information.Country',
+  },
+  NO_MAPPING_FILDS: ['First name', 'Last name', 'Job title', 'Department'],
 } as const;
 
 export const links = [
