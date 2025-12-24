@@ -98,10 +98,10 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
 
     //recognition section
-    this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
+    this.recognitionLink = page.locator('[data-testid="main-nav"] a[href="/recognition"]');
     this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
-    this.homeNavMenu = page.getByRole('menuitem', { name: 'Home' });
-    this.manageNavMenu = page.getByRole('menuitem', { name: 'Manage features Manage' });
+    this.homeNavMenu = page.locator('[data-testid="main-nav"] a[href="/home"]');
+    this.manageNavMenu = page.locator('[class*="primary-nav"] [aria-label="Manage"]');
   }
 
   /**
