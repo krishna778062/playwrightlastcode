@@ -99,7 +99,7 @@ export class ManageQRPage extends BasePage {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
     this.manageLink = page.getByRole('menuitem', { name: 'Manage features', exact: true });
-    this.qrCodesLink = page.getByRole('menuitem', { name: 'QR codes' });
+    this.qrCodesLink = page.getByTestId('main-nav').getByRole('link', { name: 'QR codes' });
     this.addQRButton = page.getByText('Add QR');
     this.appPromotionMenuOption = page.getByRole('menuitem', { name: 'App promotion' });
     this.contentMenuOption = page.getByRole('menuitem', { name: 'Content', exact: true });
