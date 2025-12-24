@@ -2590,6 +2590,62 @@ test.describe(
     );
 
     test(
+      'verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19560'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+          zephyrTestId: 'CONT-19560',
+          storyId: 'CONT-19560',
+        });
+
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        await feedPage.actions.clickShareThoughtsButton();
+
+        await feedPage.actions.enterFeedPostText(postText);
+
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        await feedPage.actions.uploadFiles([imagePath]);
+
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        await feedPage.actions.enterSiteNameForShare(siteName);
+
+        await feedPage.actions.clickPostButton();
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.actions.clickSiteNameOnPost(postText, siteName);
+
+        siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.assertions.verifyThePageIsLoaded();
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.actions.deletePost(postText);
+      }
+    );
+
+    test(
       "in Zeus verify end user able to see Copy link option on other users' post",
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19568'],
