@@ -29,7 +29,7 @@ import {
  */
 
 test.describe(
-  'app Adoption Dashboard - All Filters Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
+  'app Adoption Dashboard - All Filters Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
   },
@@ -53,9 +53,9 @@ test.describe(
         testFiltersConfig = {
           tenantCode: getDataEngineeringConfigFromCache().orgId,
           timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
-          segments: [...TEST_FILTER_VALUES.APP_ADOPTION.SEGMENTS],
           departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
           locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
         };
 
         const { analyticsFiltersComponent } = testEnvironment.appAdoptionDashboard;
