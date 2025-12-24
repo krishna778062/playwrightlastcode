@@ -1,4 +1,5 @@
 export enum RecognitionTabNames {
+  RENAMING = 'Naming',
   SPOT_AWARDS = 'Spot awards',
   MILESTONES = 'Milestones',
   RECURRING_AWARDS = 'Recurring awards',
