@@ -2569,7 +2569,7 @@ test.describe(
       }
     );
 
-    test(        
+    test(
       'verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19560'],
