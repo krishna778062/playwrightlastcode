@@ -59,6 +59,12 @@ export const FIELD_NAMES = {
   REPORT_ID: 'Report ID',
   CATEGORY: 'Category',
   SUBCATEGORY: 'Subcategory',
+  PROJECT: 'Project',
+  JQL_QUERY: 'JQL Query',
+  JIRA_SERVICE_DESK: 'Jira Service Desk portal',
+  TICKET_GROUP: 'Ticket group',
+  TICKET_TYPE: 'Ticket type',
+  SUMMARY: 'Summary',
 } as const;
 
 export const DEFAULT_SITES = {

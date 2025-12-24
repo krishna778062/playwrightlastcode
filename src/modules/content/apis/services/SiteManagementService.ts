@@ -58,6 +58,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           sortBy: 'alphabetical',
           term: category,
         },
+        timeout: 30000,
       });
       const json = await response.json();
       if (!json.result?.listOfItems?.length) throw new Error('Category not found');
@@ -219,22 +220,20 @@ export class SiteManagementService implements ISiteManagementOperations {
    * @param siteId - The id of the site to deactivate
    */
   async deactivateSite(siteId: string) {
-    return await test.step(`Deactivating site using API: ${siteId}`, async () => {
-      const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
-      log.debug('Deactivate site full URL', { url: fullUrl });
-      const response = await this.httpClient.put(API_ENDPOINTS.site.deactivate, {
-        data: {
-          ids: [siteId],
-          newStatus: 'deactivated',
-        },
-      });
-      log.debug('Deactivate site response', { status: response.status() });
-      const json = await response.json();
-      if (json.status !== 'success') {
-        throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
-      }
-      return json;
+    const fullUrl = this.baseUrl ? `${this.baseUrl}${API_ENDPOINTS.site.deactivate}` : API_ENDPOINTS.site.deactivate;
+    log.debug('Deactivate site full URL', { url: fullUrl });
+    const response = await this.httpClient.put(API_ENDPOINTS.site.deactivate, {
+      data: {
+        ids: [siteId],
+        newStatus: 'deactivated',
+      },
     });
+    log.debug('Deactivate site response', { status: response.status() });
+    const json = await response.json();
+    if (json.status !== 'success') {
+      throw new Error(`Failed to deactivate site: ${JSON.stringify(json)}`);
+    }
+    return json;
   }
 
   /**
@@ -358,6 +357,34 @@ export class SiteManagementService implements ISiteManagementOperations {
       return json;
     });
   }
+
+  /**
+   * Gets list of unfeatured sites
+   * @param options - Optional parameters for size and sortBy
+   * @returns Promise containing list of unfeatured sites
+   */
+  async getUnfeaturedSites(options?: { size?: number; sortBy?: string }): Promise<SiteListResponse> {
+    return await test.step('Getting list of unfeatured sites via API', async () => {
+      const payload = {
+        filter: 'unfeatured',
+        size: options?.size || 64,
+        sortBy: options?.sortBy || 'alphabetical',
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.site.listOfSites, {
+        data: payload,
+      });
+
+      const json = await response.json();
+
+      if (json.status !== 'success') {
+        throw new Error(`Failed to get unfeatured sites list. Status: ${json.status}`);
+      }
+
+      return json;
+    });
+  }
+
   async approveContent(siteId: string, contentId: string): Promise<void> {
     return await test.step(`Approving content: ${contentId} for site: ${siteId}`, async () => {
       // First, get the content details to get all required fields

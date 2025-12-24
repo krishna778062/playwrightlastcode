@@ -26,21 +26,21 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 const SITE_TEST_DATA = [
   {
-    siteType: 'public',
+    siteType: 'Public',
     displayName: 'Public Site',
     zephyrTestId: 'CONT-10603',
     storyId: 'CONT-10603',
     description: 'Verify admin can create a public site',
   },
   {
-    siteType: 'private',
+    siteType: 'Private',
     displayName: 'Private Site',
     zephyrTestId: 'CONT-10604',
     storyId: 'CONT-10604',
     description: 'Verify admin can create a private site',
   },
   {
-    siteType: 'unlisted',
+    siteType: 'Unlisted',
     displayName: 'Unlisted Site',
     zephyrTestId: 'CONT-10605',
     storyId: 'CONT-10605',
@@ -103,7 +103,7 @@ test.describe(
 
     for (const siteData of SITE_TEST_DATA) {
       test(
-        `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
+        `Verify admin can create a ${siteData.displayName.toLowerCase()} ${siteData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -111,6 +111,7 @@ test.describe(
             TestGroupType.REGRESSION,
             ContentSuiteTags.SITE_CREATION,
             '@healthcheck',
+            `@${siteData.storyId}`,
           ],
         },
         async ({ appManagerFixture }) => {
@@ -122,7 +123,7 @@ test.describe(
 
           siteCreationPage = (await appManagerFixture.navigationHelper.openSiteCreationForm(false)) as SiteCreationPage;
 
-          // STEP 2: Generate site data using TestDataGenerator
+          //Generate site data using TestDataGenerator
           const siteCreationOptions = TestDataGenerator.generateSite(siteData.siteType);
 
           console.log(`INFO: Creating ${siteData.displayName} with options:`, siteCreationOptions);
@@ -149,7 +150,7 @@ test.describe(
       );
     }
     test(
-      `to verify the deactivate option in manage site user drop down sites`,
+      `to verify the deactivate option in manage site user drop down sites CONT-26176`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_DEACTIVATION],
       },
@@ -175,7 +176,7 @@ test.describe(
       }
     );
     test(
-      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member',
+      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member CONT-22692',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22692'],
       },

@@ -1,18 +1,24 @@
-import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
 import path from 'path';
 
-import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '../../core/constants/paths';
+// Load data-engineering env FIRST with override to prevent base config from using wrong values
+const envName = process.env.TEST_ENV || 'qa';
+dotenv.config({
+  path: path.resolve(__dirname, `env/${envName}.env`),
+  override: true,
+});
 
-import { Environments } from '@/src/core/constants/environments';
-import { Modules } from '@/src/core/constants/modules';
+// Initialize primary tenant config before any imports that depend on it
+import { initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
+
+initializeDataEngineeringConfig('primary');
+
+import { defineConfig, devices } from '@playwright/test';
+
+import baseConfig from './playwright.data-engineering.base.config';
+
+import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
-import { loadEnvVariablesForGivenModule } from '@/src/core/utils/envLoader';
-
-loadEnvVariablesForGivenModule(
-  (process.env.TEST_ENV as Environments) || Environments.TEST,
-  process.env.MODULE_NAME || Modules.DATA_ENGINEERING
-);
 
 export default defineConfig({
   ...baseConfig,

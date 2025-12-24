@@ -9,6 +9,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 
 test.describe(
@@ -50,7 +51,7 @@ test.describe(
     });
 
     test(
-      'create Album with all the fields populated from home page',
+      'create Album with all the fields populated from home page CONT-11065',
       {
         tag: [
           TestPriority.P0,
@@ -58,6 +59,7 @@ test.describe(
           TestGroupType.REGRESSION,
           ContentSuiteTags.ALBUM_CREATION,
           '@healthcheck',
+          '@CONT-11065',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -79,7 +81,7 @@ test.describe(
         const albumCreationOptions = TestDataGenerator.generateAlbum({
           fileName: imagePath,
           attachmentFileName: attachmentPath,
-          videoUrl: 'https://youtu.be/4vLyqzOr14g',
+          videoUrl: CONTENT_TEST_DATA.DEFAULT_ALBUM_CONTENT.videoUrls[0],
           openAlbum: true,
         });
 

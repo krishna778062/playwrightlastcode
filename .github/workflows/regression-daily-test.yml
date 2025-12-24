@@ -2,15 +2,28 @@ name: Daily Regression Tests (Test Environment)
 
 on:
   schedule:
-    # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    # Run daily at 6:00 AM UTC (11:30 AM IST)
+    - cron: '0 6 * * *'
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to run tests against'
+        required: false
+        default: 'test'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
 
 jobs:
   regression:
     uses: ./.github/workflows/regression-template.yml
     with:
-      environment: test
-      git_ref: develop
+      environment: ${{ inputs.environment || 'test' }}
+      # Scheduled runs use 'develop', manual runs use triggering branch
+      git_ref: ${{ github.event_name == 'schedule' && 'develop' || github.ref_name }}
       slack_prefix: Daily Regression
+      # TEMPORARILY DISABLED: Preserving quota for QA release testing
+      is_browserstack: false
     secrets: inherit

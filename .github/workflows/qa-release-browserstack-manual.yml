@@ -1,0 +1,98 @@
+# ============================================================================
+# QA RELEASE BROWSERSTACK MANUAL
+# ============================================================================
+#
+# PURPOSE:
+#   Manual workflow to run QA release regression with BrowserStack.
+#   Allows specifying any branch/ref without depending on CURRENT_STAGE.
+#   Use this to test from feature branches before merging to release.
+#
+# USE CASE:
+#   - Test unified template from feature branch
+#   - Generate BrowserStack reports with release tag identifier
+#   - Verify BrowserStack integration before merging
+#
+# ============================================================================
+
+name: QA Release BrowserStack (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., 25.01-qa.1) - for BrowserStack build name'
+        required: true
+        type: string
+
+      git_ref:
+        description: 'Git branch/ref to checkout (e.g., fix/qa-release-bs-integration)'
+        required: true
+        default: 'release'
+        type: string
+
+      environment:
+        description: 'Environment'
+        required: false
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
+          - 'reward'
+          - 'reward-settings'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'form-designer'
+          - 'comms-planner'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  regression:
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      environment: ${{ inputs.environment }}
+      trigger_type: qa_release
+      slack_prefix: QA Release BrowserStack
+      # Use the specified git_ref directly (no auto-determination)
+      git_ref: ${{ inputs.git_ref }}
+      # Module selection
+      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      # BrowserStack enabled by default for this workflow
+      is_browserstack: ${{ inputs.is_browserstack }}
+      # Release tag for BrowserStack tracking (required for this workflow)
+      release_tag: ${{ inputs.release_tag }}
+    secrets: inherit

@@ -134,11 +134,20 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   async verifyFiltersAreVisible() {
     await test.step('Verify common filters are visible', async () => {
-      await expect(this.filterGroup('Department'), 'Department filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Location'), 'Location filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Company name'), 'Company name filter should be visible').toBeVisible();
-      await expect(this.filterGroup('People Category'), 'People Category filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Period'), 'Period filter should be visible').toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.DEPARTMENT),
+        'Department filter should be visible'
+      ).toBeVisible();
+      await expect(this.filterGroup(AnalyticsFilterLabels.LOCATION), 'Location filter should be visible').toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.COMPANY_NAME),
+        'Company name filter should be visible'
+      ).toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.PEOPLE_CATEGORY),
+        'People Category filter should be visible'
+      ).toBeVisible();
+      await expect(this.filterGroup(AnalyticsFilterLabels.PERIOD), 'Period filter should be visible').toBeVisible();
     });
   }
 
@@ -272,11 +281,23 @@ export class AnalyticsFiltersComponent extends BaseComponent {
 
   /**
    * Applies a Segment filter by opening the dialog and selecting the provided option.
+   * Tries both 'Segment' and 'All segments' labels to handle different dashboards.
    * @param segmentFilterOptions - The Segment filter option to select.
    */
   async applySegmentFilter(segmentFilterOptions: string[]) {
     await test.step(`Apply Segment filter: ${segmentFilterOptions.join(', ')}`, async () => {
-      await this.openFilter(AnalyticsFilterLabels.SEGMENT);
+      // Try 'Segment' label first, then 'All segments' if not found
+      const segmentFilter = this.filterGroup(AnalyticsFilterLabels.SEGMENT);
+      const allSegmentsFilter = this.filterGroup(AnalyticsFilterLabels.ALL_SEGMENTS);
+
+      if (await segmentFilter.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.openFilter(AnalyticsFilterLabels.SEGMENT);
+      } else if (await allSegmentsFilter.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.openFilter(AnalyticsFilterLabels.ALL_SEGMENTS);
+      } else {
+        throw new Error('Segment filter not found with either "Segment" or "All segments" label');
+      }
+
       for (const segment of segmentFilterOptions) {
         await this.selectFilterOptionByOptionName(segment);
       }

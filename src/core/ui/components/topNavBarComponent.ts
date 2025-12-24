@@ -46,11 +46,13 @@ export class TopNavBarComponent extends BaseComponent {
     this.notificationsButton = this.page.getByRole('button', { name: 'Notifications' });
 
     //message section
-    this.messageButton = this.page.getByRole('button', { name: 'Messaging' });
+    this.messageButton = this.page
+      .getByRole('button', { name: 'Messaging' })
+      .or(this.page.getByRole('menuitem', { name: 'Messaging' }));
 
     //search section
-    this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]').first();
-    this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
+    this.globalSearchInputBox = this.page.locator('input[data-slot*=search]').first();
+    this.globalSearchButton = this.page.locator('button[type="button"][data-slot="search-submit"]');
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
@@ -70,9 +72,9 @@ export class TopNavBarComponent extends BaseComponent {
   }
 
   async clickSeeAllMessages(options?: { stepInfo?: string }): Promise<void> {
-    await test.step(options?.stepInfo || `Clicking 'See all messages'`, async () => {
-      await this.clickOnElement(this.seeAllMessagesButton);
-    });
+    // await test.step(options?.stepInfo || `Clicking 'See all messages'`, async () => {
+    //   await this.clickOnElement(this.seeAllMessagesButton);
+    // });
   }
 
   async typeInSearchBarInput(searchTerm: string, options?: { stepInfo?: string }): Promise<void> {

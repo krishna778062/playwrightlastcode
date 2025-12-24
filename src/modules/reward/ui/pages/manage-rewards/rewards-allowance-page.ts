@@ -3,6 +3,8 @@ import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-all
 
 import { BasePage } from '@core/ui';
 
+import { TIMEOUTS } from '@/src/core';
+
 export class RewardsAllowancePage extends BasePage {
   // Page elements
   readonly header: Locator;
@@ -17,7 +19,7 @@ export class RewardsAllowancePage extends BasePage {
   readonly allowanceDeleteButton: Locator;
 
   // User Allowance elements
-  readonly userAllowance: Locator;
+  readonly userAllowancePanel: Locator;
   readonly userAllowanceIcon: Locator;
   readonly userAllowanceGreenTick: Locator;
   readonly userAllowanceHeading: Locator;
@@ -93,35 +95,15 @@ export class RewardsAllowancePage extends BasePage {
     this.allowanceDeleteButton = page.locator('button[aria-label*="Remove"]');
 
     // User Allowance elements
-    this.userAllowance = page.locator('div[class*="PanelActionItem_layout"]').first();
-    this.userAllowanceIcon = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .locator('i[data-testid="i-addUserMulti"]');
-    this.userAllowanceGreenTick = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .locator('div[class*="PanelActionItem_check"]');
-    this.userAllowanceHeading = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('heading', { name: 'Users allowance' });
-    this.userAllowanceDescription = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByText('Add a monthly allowance for');
-    this.addUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('link', { name: 'Add users allowance' });
-    this.editUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('link', { name: 'Edit users allowance' });
-    this.removeUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('button', { name: 'Remove users allowance' });
+    this.userAllowancePanel = page.locator('div[class*="PanelActionItem_layout"]').first();
+    this.userAllowanceIcon = this.userAllowancePanel.locator('i[data-testid="i-addUserMulti"]');
+    this.userAllowanceGreenTick = this.userAllowancePanel.locator('div[class*="PanelActionItem_check"]');
+    this.userAllowanceHeading = this.userAllowancePanel.getByRole('heading', { name: 'Users allowance' });
+    this.userAllowanceDescription = this.userAllowancePanel.getByText('Add a monthly allowance for');
+    this.addUserAllowance = this.userAllowancePanel.locator('a[aria-label="Add users allowance"]');
+    this.editUserAllowance = this.userAllowancePanel.getByRole('link', { name: 'Edit users allowance' });
+    this.removeUserAllowance = this.userAllowancePanel.getByRole('button', { name: 'Remove users allowance' });
+
     this.currencyConversionInfoIcon = page.locator('button[aria-label="Currency conversion information"]');
     this.pointAmountInput = page.locator('#pointAmount');
     this.increaseAmountButton = page.locator('[aria-label="Plus"]');
@@ -301,7 +283,10 @@ export class RewardsAllowancePage extends BasePage {
         break;
     }
 
-    await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox);
+    await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox, {
+      timeout: 30000,
+      assertionMessage: 'Delete user allowance dialog box is visible',
+    });
     await this.verifier.verifyElementHasText(dialogBoxTitleElement, dialogBoxTitle);
     await this.verifier.verifyElementHasText(dialogBoxConfirmationTextLine1, dialogBoxDescriptionLine1);
     await this.verifier.verifyElementHasText(dialogBoxConfirmationTextLine2, dialogBoxDescriptionLine2);
@@ -314,15 +299,18 @@ export class RewardsAllowancePage extends BasePage {
     const successToastBoxMessage = successToastContainer.locator('p');
     const successToastBoxIcon = successToastContainer.locator('i[data-testid="i-checkLarge"]');
     const successToastBoxClose = successToastContainer.locator('button[aria-label="Dismiss"]');
-
-    await successToastContainer.waitFor({ state: 'attached', timeout: 30000 });
-    await this.verifier.verifyTheElementIsVisible(successToastContainer);
-    await this.verifier.verifyTheElementIsVisible(successToastBoxIcon);
-    await this.verifier.verifyElementHasText(successToastBoxMessage, message);
+    await this.verifier.verifyTheElementIsVisible(successToastContainer, {
+      timeout: TIMEOUTS.SHORT,
+      assertionMessage: 'Success toast container is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(successToastBoxIcon, { timeout: TIMEOUTS.VERY_SHORT });
+    await this.verifier.verifyElementHasText(successToastBoxMessage, message, {
+      timeout: TIMEOUTS.SHORT,
+      assertionMessage: `Success toast container have ${message} message`,
+    });
     await this.clickOnElement(successToastBoxClose, {
       stepInfo: 'Closing toast message',
     });
-    await successToastContainer.waitFor({ state: 'detached', timeout: 30000 });
   }
 
   async checkTheSingleDeletion(page: Page): Promise<void> {

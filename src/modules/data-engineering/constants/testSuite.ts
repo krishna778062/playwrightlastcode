@@ -1,5 +1,6 @@
 export enum DataEngineeringTestSuite {
   ADOPTION = '@adoption',
+  OVERVIEW = '@overview',
   ANALYTICS = '@analytics',
   SOCIAL_INTERACTION = '@social-interaction',
   SEARCH = '@search',
@@ -7,5 +8,5 @@ export enum DataEngineeringTestSuite {
   MOBILE = '@mobile',
   MONTHLY_REPORTS = '@monthly-reports',
   SITES = '@sites',
-  OVERVIEW = '@overview',
+  ON_PAGE_ANALYTICS = '@on-page-analytics',
 }

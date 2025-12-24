@@ -15,7 +15,17 @@
  */
 
 export type TenantKey = 'primary' | 'azuresso' | 'workday' | 'okta';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'prodUS' | 'prodEU' | 'uatEU' | 'prodCA';
+export type EnvironmentKey =
+  | 'qa'
+  | 'uat'
+  | 'test'
+  | 'prodUS'
+  | 'prodEU'
+  | 'prodCA'
+  | 'prodAU'
+  | 'uatEU'
+  | 'uatAU'
+  | 'uatCA';
 
 // Singleton config cache - loaded once per test run (like Java properties)
 let configCache: {
@@ -48,10 +58,10 @@ export const config = {
       tenantName: 'Primary Tenant',
       frontendBaseUrl: 'https://newintegrations.qa.simpplr.xyz',
       apiBaseUrl: 'https://newintegrations-api.qa.simpplr.xyz',
-      appManagerEmail: 'neha.manhas@simpplr.com',
-      appManagerPassword: 'Simp@12345',
-      endUserEmail: 'priyanka.dubey@simpplr.com',
-      endUserPassword: 'Pass@123',
+      appManagerEmail: 'Srikant.g@simpplr.com',
+      appManagerPassword: 'Simpplr@12345',
+      endUserEmail: 'Srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
       QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
       QA_MANAGER_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
@@ -155,13 +165,30 @@ export const config = {
       frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
       apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
       appManagerEmail: 'srikant.g@simpplr.com',
-      appManagerPassword: 'Simpplr@123',
+      appManagerPassword: 'Simpplr@12345',
       endUserEmail: 'srikant.g+enduser@simpplr.com',
       endUserPassword: 'Simpplr@12345',
       QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
       QA_MANAGER_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
-      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
+    prodAU: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com',
+      apiBaseUrl: 'https://au-5-api.au.simpplr.com',
+      appManagerEmail: 'srikant.g@simpplr.com',
+      appManagerPassword: 'Simpplr@12345',
+      endUserEmail: 'srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
       QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
       QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
       IGNORE_TLS: 1,
@@ -197,6 +224,40 @@ export const config = {
       QA_MANAGER_PASSWORD: 'Simpplr@123',
       QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
       QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
+    uatAU: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
+      appManagerEmail: 'srikant.g@simpplr.com',
+      appManagerPassword: 'Simpplr@12345',
+      endUserEmail: 'srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
+      QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
+      QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
+      IGNORE_TLS: 1,
+      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+    },
+    uatCA: {
+      tenantName: 'Primary Tenant',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
+      appManagerEmail: 'srikant.g@simpplr.com',
+      appManagerPassword: 'Simpplr@12345',
+      endUserEmail: 'srikant.g+enduser@simpplr.com',
+      endUserPassword: 'Simpplr@12345',
+      QA_MANAGER_EMAIL: 'Kanika.arora@simpplr.com',
+      QA_MANAGER_PASSWORD: 'Simpplr@123',
+      QA_SYSTEM_ADMIN_USERNAME: 'Srikant.g@simpplr.com',
+      QA_SYSTEM_ADMIN_PASSWORD: 'Simpplr@12345',
       QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
       QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
       IGNORE_TLS: 1,
@@ -269,14 +330,18 @@ function getCurrentEnvironment(): EnvironmentKey {
         `  TEST_ENV=test npm run test\n` +
         `  TEST_ENV=prodUS npm run test\n` +
         `  TEST_ENV=prodEU npm run test\n` +
-        `  TEST_ENV=uatEU npm run test`
+        `  TEST_ENV=prodCA npm run test\n` +
+        `  TEST_ENV=prodAU npm run test\n` +
+        `  TEST_ENV=uatEU npm run test\n` +
+        `  TEST_ENV=uatAU npm run test\n` +
+        `  TEST_ENV=uatCA npm run test\n`
     );
   }
 
-  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'prodUS', 'prodEU', 'prodCA', 'prodAU', 'uatEU', 'uatAU', 'uatCA'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prodUS, prodEU, uatEU\n` +
+        `Valid values are: qa, uat, test, prodUS, prodEU, prodCA, prodAU, uatEU, uatAU, uatCA\n` +
         `Example: TEST_ENV=qa npm run test`
     );
   }
@@ -380,5 +445,5 @@ export function getIntegrationConfig() {
  * Helper function to get all available environments
  */
 export function getAvailableEnvironments(): EnvironmentKey[] {
-  return ['qa', 'uat', 'test', 'prodUS', 'prodEU', 'uatEU'];
+  return ['qa', 'test', 'prodUS', 'prodEU', 'prodCA', 'prodAU', 'uat', 'uatEU', 'uatAU', 'uatCA'];
 }

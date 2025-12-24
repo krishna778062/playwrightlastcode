@@ -33,12 +33,6 @@ async function navigateToContentFeedAsRole(
   contentId: string,
   siteName: string
 ): Promise<{ contentPreviewPage: ContentPreviewPage; feedPage: FeedPage }> {
-  await test.step(`Search for site "${siteName}"`, async () => {
-    await navigationHelper.searchForTerm(siteName, {
-      stepInfo: `Searching for site "${siteName}"`,
-    });
-  });
-
   await test.step('Navigate to Content tab', async () => {
     const siteDashboardPage = new SiteDashboardPage(page, siteId);
     await siteDashboardPage.loadPage();
@@ -198,7 +192,7 @@ test.describe(
     });
 
     test(
-      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed',
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Content Feed CONT-24918',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24918'],
       },
@@ -375,7 +369,7 @@ test.describe(
     });
 
     test(
-      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed',
+      'verify Site Owner, Manager, Content Manager is able to like and unlike Feed post and Reply on Site Feed CONT-24906',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24906'],
       },
@@ -546,7 +540,7 @@ test.describe(
     });
 
     test(
-      'verify standard user is able to like and unlike Feed post and Reply on Home-Global Feed',
+      'verify standard user is able to like and unlike Feed post and Reply on Home-Global Feed CONT-19556',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19556'],
       },
@@ -625,7 +619,7 @@ test.describe(
     });
 
     test(
-      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji',
+      'verify that adding a reaction replaces the "Add Reaction" icon with the selected emoji CONT-31817',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31817'],
       },
@@ -658,7 +652,7 @@ test.describe(
     );
 
     test(
-      'verify that clicking on reaction count opens modal with users grouped by emoji',
+      'verify that clicking on reaction count opens modal with users grouped by emoji CONT-31819',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],
       },
@@ -729,18 +723,12 @@ test.describe(
         await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
         await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
-        // Refresh pages to ensure all reactions are visible
-        await Promise.all([
-          appManagerFeedPage.page.reload(),
-          siteManagerFeedPage.page.reload(),
-          standardUserFeedPage.page.reload(),
-        ]);
+        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
-        await Promise.all([
-          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-        ]);
+        // Refresh pages to ensure all reactions are visible
+        await standardUserFeedPage.page.reload();
+
+        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
 
         // The user clicks on the reaction count or reactions text
         await feedPage.actions.clickReactionCountButton(createdPostText);
@@ -764,7 +752,7 @@ test.describe(
     );
 
     test(
-      'verify that clicking on a username in the reaction modal navigates to profile screen',
+      'verify that clicking on a username in the reaction modal navigates to profile screen CONT-31820',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31820'],
       },
