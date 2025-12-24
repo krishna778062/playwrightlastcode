@@ -6,6 +6,7 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
 export interface IListFeedComponentActions {
+  clickReplyImagePreview(replyText: string): Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickDeleteOption: () => Promise<void>;
   clickReportPostOption: () => Promise<void>;
@@ -264,6 +265,9 @@ export class ListFeedComponent
       .locator('xpath=./ancestor::div[3]')
       .locator("button[aria-label='Open image in lightbox']");
 
+  readonly getReplyImagePreviewLocator = (): Locator =>
+    this.page.getByTestId('replyContent').getByRole('button', { name: 'Open image in lightbox' }).first();
+
   /**
    * Gets a locator for the post options menu
    * @param postText - The text of the post to find options menu for
@@ -517,6 +521,15 @@ export class ListFeedComponent
   async clickInlineImagePreview(postText: string): Promise<void> {
     await test.step('Click on inline image preview', async () => {
       await this.clickOnElement(this.getLightboxButtonLocator(postText).first());
+    });
+  }
+
+  async clickReplyImagePreview(replyText: string): Promise<void> {
+    await test.step('Click on reply image preview', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getReplyImagePreviewLocator(), {
+        assertionMessage: 'Reply image preview should be visible',
+      });
+      await this.clickOnElement(this.getReplyImagePreviewLocator());
     });
   }
 
@@ -1621,6 +1634,19 @@ export class ListFeedComponent
       await this.waitForPostToBeVisible(postText);
       await this.verifier.verifyTheElementIsVisible(this.getShareIconLocator(postText), {
         assertionMessage: `Share icon should be visible for post/comment "${postText}"`,
+      });
+    });
+  }
+
+  async verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void> {
+    await test.step('Verify user name mention is visible on feed post', async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${standardUserFullName}` });
+      await this.verifier.verifyTheElementIsVisible(userMentionLink, {
+        assertionMessage: 'User name mention should be visible on feed post',
       });
     });
   }

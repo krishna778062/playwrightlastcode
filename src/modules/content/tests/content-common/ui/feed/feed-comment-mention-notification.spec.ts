@@ -9,6 +9,7 @@ import { FeedManagementService } from '@/src/modules/content/apis/services/FeedM
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPostApiResponse } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
@@ -281,9 +282,12 @@ test.describe(
         const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
 
         // Verify mention notification exists
-        const shortReplyText = replyText.length > 25 ? replyText.substring(0, 25) : replyText;
-        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${shortReplyText}`;
-        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+        const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
+        const shortExpectedNotificationMessage =
+          expectedNotificationMessage.length > 40
+            ? expectedNotificationMessage.substring(0, 25)
+            : expectedNotificationMessage;
+        await activityNotificationPage.assertions.verifyNotificationExists(shortExpectedNotificationMessage);
       }
     );
 
@@ -372,6 +376,220 @@ test.describe(
 
         await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         createdPostId = '';
+      }
+    );
+
+    test(
+      'verify Add Mention & Topic in Home Feed Post + Validate Notification Flow',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19551'],
+      },
+      async ({ appManagerFixture, standardUserFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to add mention and topic in Home feed post',
+          zephyrTestId: 'CONT-19551',
+          storyId: 'CONT-19551',
+        });
+
+        const appManagerData = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const appManagerFullName = appManagerData.fullName;
+
+        await test.step('Post Creation (Admin User)', async () => {
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+
+          await adminFeedPage.actions.clickShareThoughtsButton();
+
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          createdPostText = postText;
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          await createFeedPostComponent.createPost(postText);
+
+          await createFeedPostComponent.addUserNameMention(endUserInfo.fullName);
+
+          const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+          await createFeedPostComponent.uploadFiles([imagePath]);
+
+          const postResult = await createFeedPostComponent.createFeedPost();
+          const feedResponseBody = (await postResult.json()) as FeedPostApiResponse;
+          createdPostId = feedResponseBody.result.feedId;
+
+          await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+          await adminFeedPage.assertions.validatePostText(postText);
+
+          await adminFeedPage.assertions.verifyPostDetails(postText, 1);
+        });
+
+        await test.step('Notification Validation (EndUser)', async () => {
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+
+          const notificationComponent = await standardUserFixture.navigationHelper.clickOnBellIcon({
+            stepInfo: 'EndUser clicking on bell icon to view notifications',
+          });
+
+          const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+          // Verify notification "mentioned you" exists from "Application Manager1" for mentioned user Standard User1
+          const expectedNotificationMessage = `${appManagerFullName} mentioned you "${createdPostText}" @${endUserInfo.fullName}`;
+          const shortExpectedNotificationMessage =
+            expectedNotificationMessage.length > 40
+              ? expectedNotificationMessage.substring(0, 25)
+              : expectedNotificationMessage;
+          await activityNotificationPage.assertions.verifyNotificationExistsForMention(
+            shortExpectedNotificationMessage
+          );
+
+          await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+          await endUserFeedPage.assertions.validatePostText(createdPostText);
+
+          await endUserFeedPage.assertions.verifyPostDetails(createdPostText, 1);
+        });
+
+        await test.step('Post Cleanup (Admin User)', async () => {
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+          // Open Home → Global Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+          await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+          await adminFeedPage.actions.deletePost(createdPostText);
+          createdPostId = '';
+        });
+      }
+    );
+
+    test(
+      'verify user able to add mention + topic in Home Feed reply',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19552'],
+      },
+      async ({ appManagerFixture, standardUserFixture, siteManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to add mention + topic in Home Feed reply',
+          zephyrTestId: 'CONT-19552',
+          storyId: 'CONT-19552',
+        });
+
+        let replyText: string = '';
+
+        const topicList = await appManagerApiFixture.contentManagementHelper.getTopicList();
+        const availableTopics = topicList.result.listOfItems;
+        const topicName: string = availableTopics.length > 0 ? availableTopics[0].name : FEED_TEST_DATA.TOPIC_NAME;
+
+        await test.step('Phase 1: EndUser Creates Post in Home Feed', async () => {
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const feedTestData = TestDataGenerator.generateFeed({
+            scope: 'public',
+            siteId: undefined,
+            withAttachment: false,
+            waitForSearchIndex: false,
+          });
+          createdPostText = feedTestData.text;
+
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: createdPostText,
+          });
+          createdPostId = postResult.postId || '';
+          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        });
+
+        await test.step('Phase 2: EndUser Creates Reply with Mention + Topic + Image', async () => {
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+
+          await endUserFeedPage.actions.openReplyEditorForPost(createdPostText);
+
+          const baseReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+          replyText = baseReplyText;
+
+          const createFeedPostComponent = endUserFeedPage['createFeedPostComponent'];
+          const listFeedComponent = endUserFeedPage['listFeedComponent'];
+
+          await createFeedPostComponent.createPost(baseReplyText);
+          await createFeedPostComponent.addUserNameMention(siteManagerInfo.fullName);
+
+          await createFeedPostComponent.addTopicMention(topicName);
+
+          const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+          await createFeedPostComponent.uploadFiles([imagePath]);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+
+          await listFeedComponent.submitReplyAndGetResponse();
+
+          replyText = `${baseReplyText} @${siteManagerInfo.fullName} #${topicName}`;
+          await endUserFeedPage.assertions.verifyReplyIsVisible(replyText);
+        });
+
+        await test.step('Phase 3: Standard User2 (EndUser1) Validates Notification', async () => {
+          await siteManagerFixture.homePage.verifyThePageIsLoaded();
+
+          const notificationComponent = await siteManagerFixture.navigationHelper.clickOnBellIcon({
+            stepInfo: 'Standard User2 clicking on bell icon to view notifications',
+          });
+          const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+          // Verify "mentioned you" notification exists
+
+          const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
+          const shortExpectedNotificationMessage =
+            expectedNotificationMessage.length > 40
+              ? expectedNotificationMessage.substring(0, 25)
+              : expectedNotificationMessage;
+          await activityNotificationPage.assertions.verifyNotificationExists(shortExpectedNotificationMessage);
+
+          // Click notification
+          await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+
+          // Verify user can view the feed reply with the mention
+          const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+          await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await siteManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+
+          // Verify inline image in the reply
+          const listFeedComponent = siteManagerFeedPage['listFeedComponent'];
+          const replyImageLocator = listFeedComponent.getReplyBoxImageLocator(replyText);
+          await siteManagerFeedPage['verifier'].verifyTheElementIsVisible(replyImageLocator, {
+            assertionMessage: 'Inline image should be displayed in reply',
+          });
+        });
+
+        await test.step('Phase 4: Admin Deletes Post', async () => {
+          // Navigate as Admin
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+
+          // Navigate to Home → Global Feed
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+          await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+          // Delete the created post
+          await adminFeedPage.actions.deletePost(createdPostText);
+
+          createdPostId = '';
+        });
       }
     );
   }

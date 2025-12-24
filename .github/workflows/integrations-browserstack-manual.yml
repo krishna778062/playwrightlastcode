@@ -103,7 +103,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chrome
+        run: npx playwright install --with-deps
 
       - name: Generate BrowserStack build name
         if: inputs.is_browserstack == true
