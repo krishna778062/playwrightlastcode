@@ -1,7 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
-
 import { ApplicationSettingsOption } from '../types/navigation.types';
 
 import type { TestOptions } from '@/src/core/types/test.types';
@@ -61,7 +59,7 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.clickOnContentModeration = page.getByRole('menuitem', { name: 'Content Moderation' });
     this.createSection = page.getByRole('button', { name: 'Create', exact: true });
-    this.feedLink = page.getByRole('menuitem', { name: 'Feed' });
+    this.feedLink = page.getByTestId('main-nav').getByRole('link', { name: 'Feed' });
     this.homeLink = page.locator('p:text-is("Home")');
     this.sitesButton = page.getByRole('button', { name: 'Sites' });
     this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
@@ -124,11 +122,15 @@ export class SideNavBarComponent extends BaseComponent {
     await test.step('side navbar: clicking Global Feed button on side navbar', async () => {
       if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
-      } else {
-        await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
-        await this.page.waitForURL(PAGE_ENDPOINTS.HOME_PAGE);
-        await this.page.waitForLoadState('domcontentloaded');
+        return;
       }
+
+      if (await this.verifier.isTheElementVisibleWithLessTimeout(this.homeLink)) {
+        await this.clickOnElement(this.homeLink);
+        return;
+      }
+      const firstNavLink = this.page.getByTestId('main-nav').getByRole('link').first();
+      await this.clickOnElement(firstNavLink);
     });
   }
 
