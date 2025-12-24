@@ -124,7 +124,6 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
   }
   async clickingOnAddToHomeButton(): Promise<void> {
     await test.step('Click on Add to home button', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.addToHomeButton);
       await this.clickOnElement(this.addToHomeButton);
     });
   }
