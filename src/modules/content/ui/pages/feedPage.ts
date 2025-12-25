@@ -29,6 +29,9 @@ export interface IFeedActions {
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
+  createAndPostWithLimitVisibility: (options: FeedPostOptions) => Promise<FeedPostResult>;
+  editPostAndRemoveLimitVisibility: (currentText: string, newText: string) => Promise<void>;
+  toggleLimitVisibility: () => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
@@ -278,6 +281,10 @@ export interface IFeedAssertions {
   verifyEditOptionNotVisible: (postText: string) => Promise<void>;
   verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void>;
   verifyInlineImagePreviewVisible: () => Promise<void>;
+  // Limit visibility assertions
+  verifyEditorVisible: () => Promise<void>;
+  verifyPostHasLimitVisibility: (postText: string) => Promise<void>;
+  verifyPostDoesNotHaveLimitVisibility: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
@@ -389,6 +396,18 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
     await this.createFeedPostComponent.editPost(currentText, newText, embedUrl);
+  }
+
+  async createAndPostWithLimitVisibility(options: FeedPostOptions): Promise<FeedPostResult> {
+    return await this.createFeedPostComponent.createAndPostWithLimitVisibility(options);
+  }
+
+  async editPostAndRemoveLimitVisibility(currentText: string, newText: string): Promise<void> {
+    await this.createFeedPostComponent.editPostAndRemoveLimitVisibility(currentText, newText);
+  }
+
+  async toggleLimitVisibility(): Promise<void> {
+    await this.createFeedPostComponent.toggleLimitVisibility();
   }
 
   async deletePost(postText: string): Promise<void> {
@@ -1693,5 +1712,30 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickOnSideToRemoveProfilePopover(): Promise<void> {
     await this.listFeedComponent.clickOnSideToRemoveProfilePopover();
+  }
+
+  // ==================== Limit Visibility Assertion Methods ====================
+
+  /**
+   * Verifies that the feed post editor is visible
+   */
+  async verifyEditorVisible(): Promise<void> {
+    await this.createFeedPostComponent.verifyEditorVisible();
+  }
+
+  /**
+   * Verifies that a post has the limit visibility indicator
+   * @param postText - The text of the post to verify
+   */
+  async verifyPostHasLimitVisibility(postText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyPostHasLimitVisibility(postText);
+  }
+
+  /**
+   * Verifies that a post does not have the limit visibility indicator
+   * @param postText - The text of the post to verify
+   */
+  async verifyPostDoesNotHaveLimitVisibility(postText: string): Promise<void> {
+    await this.createFeedPostComponent.verifyPostDoesNotHaveLimitVisibility(postText);
   }
 }

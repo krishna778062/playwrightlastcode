@@ -6,12 +6,18 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
+export interface LimitVisibilityOptions {
+  enabled: boolean;
+  audience?: string;
+}
+
 export interface FeedPostOptions {
   text: string;
   attachments?: {
     files: string[];
   };
   embedUrl?: string;
+  limitVisibility?: LimitVisibilityOptions;
 }
 
 export interface FeedPostResult {
@@ -66,6 +72,9 @@ export interface ICreateFeedPostActions {
   clickPostCreationCancelButton: () => Promise<void>;
   verifyPostCreationEditorClosed: () => Promise<void>;
   clickRecognitionTab: () => Promise<void>;
+  toggleLimitVisibility: () => Promise<void>;
+  selectAudience: (audienceName: string) => Promise<void>;
+  editPostAndRemoveLimitVisibility: (currentText: string, newText: string) => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
@@ -77,6 +86,8 @@ export interface ICreateFeedPostAssertions {
   verifyUpdateButtonDisabled: () => Promise<void>;
   verifyPostButtonDisabled: () => Promise<void>;
   verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
+  verifyPostHasLimitVisibility: (postText: string) => Promise<void>;
+  verifyPostDoesNotHaveLimitVisibility: (postText: string) => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -89,7 +100,9 @@ export class CreateFeedPostComponent
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
-  readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly postButton = this.page
+    .locator("div[class*='PostFormShareContainer']")
+    .getByRole('button', { name: 'Post', exact: true });
   readonly cancelButton = this.page
     .locator("div[class*='PostFormShareContainer']")
     .getByRole('button', { name: 'Cancel' });
@@ -127,6 +140,19 @@ export class CreateFeedPostComponent
     .filter({ hasText: /^Delete$/ })
     .first();
   readonly updateButton = this.page.getByRole('button', { name: 'Update' });
+
+  // Limit visibility section
+  readonly limitVisibilityToggle = this.page.getByRole('switch').first();
+  readonly limitVisibilityLabel = this.page.getByRole('button', { name: 'Limited visibility' });
+  readonly audiencePickerDialog = this.page.getByRole('dialog', { name: 'Audiences' });
+  readonly audiencePickerButton = this.page.getByRole('button', { name: 'Browse' });
+  readonly audienceSearchInput = this.page.getByRole('textbox', { name: 'Search…' });
+  readonly audienceSearchButton = this.page.getByRole('button', { name: 'Search' });
+  readonly audienceDoneButton = this.page.getByRole('button', { name: 'Done' });
+  readonly audienceCancelButton = this.page.getByRole('button', { name: 'Cancel' });
+  readonly audienceConfirmButton = this.page.getByRole('button', { name: 'Confirm' });
+  readonly getAudienceOption = (audienceName: string) =>
+    this.page.getByLabel(audienceName, { exact: true }).getByRole('checkbox').first();
 
   // File upload section
   readonly fileItemNameSelector = "div[class='FileItem-name']";
@@ -185,6 +211,9 @@ export class CreateFeedPostComponent
    */
   readonly getFeedTextLocator = (text: string): Locator =>
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+
+  readonly postContainerLocator = (postText: string): Locator =>
+    this.page.locator('._postBody_eonic_8').filter({ hasText: postText }).first();
 
   /**
    * Gets a locator for the post options menu
@@ -1187,6 +1216,125 @@ export class CreateFeedPostComponent
         });
         await file.check();
       }
+    });
+  }
+
+  // ==================== Limit Visibility Methods ====================
+
+  async toggleLimitVisibility(): Promise<void> {
+    await test.step('Disable limit visibility', async () => {
+      await this.clickOnElement(this.limitVisibilityToggle);
+    });
+  }
+
+  async selectAudience(audienceName: string): Promise<void> {
+    await test.step(`Select audience: ${audienceName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audiencePickerDialog, {
+        assertionMessage: 'Audience picker modal should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.clickOnElement(this.audiencePickerButton);
+
+      const isSearchVisible = await this.verifier.isTheElementVisible(this.audienceSearchInput, {
+        timeout: TIMEOUTS.VERY_SHORT,
+      });
+
+      if (isSearchVisible) {
+        await this.fillInElement(this.audienceSearchInput, audienceName);
+        await this.clickOnElement(this.audienceSearchButton);
+      }
+
+      const audienceOption = this.getAudienceOption(audienceName);
+      await this.verifier.verifyTheElementIsVisible(audienceOption, {
+        assertionMessage: `Audience "${audienceName}" should be visible in the list`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(audienceOption);
+      await this.clickOnElement(this.audienceDoneButton);
+      await this.clickOnElement(this.audienceConfirmButton);
+    });
+  }
+
+  async verifyLimitVisibilityToggleVisible(): Promise<void> {
+    await test.step('Verify limit visibility toggle is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.limitVisibilityToggle, {
+        assertionMessage: 'Limit visibility toggle should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyPostHasLimitVisibility(postText: string): Promise<void> {
+    const postLocator = this.postContainerLocator(postText);
+    await this.verifier.verifyTheElementIsVisible(postLocator, {
+      assertionMessage: 'Post should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    const postLimitVisibilityButton = postLocator.getByRole('button', { name: 'Limited visibility' });
+    await this.verifier.verifyTheElementIsVisible(postLimitVisibilityButton, {
+      assertionMessage: 'Limited visibility button should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  async verifyPostDoesNotHaveLimitVisibility(postText: string): Promise<void> {
+    const postLocator = this.postContainerLocator(postText);
+    await this.verifier.verifyTheElementIsVisible(postLocator, {
+      assertionMessage: 'Post should be visible',
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    const postLimitVisibilityButton = postLocator.getByRole('button', { name: 'Limited visibility' });
+    await this.verifier.verifyTheElementIsNotVisible(postLimitVisibilityButton, {
+      assertionMessage: 'Limited visibility button should not be visible',
+      timeout: TIMEOUTS.VERY_SHORT,
+    });
+  }
+
+  async editPostAndRemoveLimitVisibility(currentText: string, newText: string): Promise<void> {
+    await test.step(`Edit post "${currentText}" and remove limit visibility`, async () => {
+      await this.openPostOptionsMenu(currentText);
+      await this.clickEditOption();
+      await this.verifyEditorVisible();
+
+      await this.toggleLimitVisibility();
+
+      await this.updatePostText(newText);
+
+      await this.clickUpdateButton();
+    });
+  }
+
+  async createAndPostWithLimitVisibility(options: FeedPostOptions): Promise<FeedPostResult> {
+    return await test.step(`Creating feed post with limit visibility: ${options.text}`, async () => {
+      await this.createPost(options.text);
+
+      if (options.embedUrl) {
+        await this.addEmbedUrl(options.embedUrl);
+      }
+
+      if (options.attachments) {
+        await this.uploadFiles(options.attachments.files);
+      }
+
+      if (options.limitVisibility?.audience) {
+        await this.toggleLimitVisibility();
+        await this.selectAudience(options.limitVisibility.audience);
+      }
+
+      const postResponse = await this.createFeedPost();
+
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+      const postId = feedResponseBody.result.feedId;
+      console.log('Created post with limit visibility, postId:', postId);
+
+      const attachmentCount = options.attachments ? options.attachments.files.length : 0;
+
+      return {
+        postText: options.text,
+        attachmentCount,
+        postId,
+      };
     });
   }
 }

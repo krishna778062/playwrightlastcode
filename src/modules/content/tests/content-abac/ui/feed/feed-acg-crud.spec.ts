@@ -569,6 +569,8 @@ test.describe(
           // Verify Edit option is visible for own post
           await feedPage.assertions.verifyEditOptionVisible(postText);
 
+          await feedPage.actions.openPostOptionsMenu(postText);
+
           // Edit the post
           await feedPage.actions.editPost(postText, updatedPostText);
 
@@ -1068,6 +1070,135 @@ test.describe(
 
           // Verify Edit option is NOT visible (ABAC permission revoked)
           await feedPage.assertions.verifyEditOptionNotVisible(updatedPostText);
+        });
+      }
+    );
+
+    test(
+      "verify FO can edit and remove limit visibility of End User's restricted Home Feed post",
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42183', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can edit End User\'s restricted Home Feed post and remove the limit visibility restriction',
+          zephyrTestId: 'CONT-42183',
+          storyId: 'CONT-42183',
+        });
+
+        let endUserPostText: string;
+        let endUserPostId: string = '';
+
+        // ==================== Add End User as FO of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds End User as FO of "Post In Home Feed" ACG', async () => {
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== End User creates Feed post with limit visibility ====================
+        await test.step('End User creates Feed post with Limit visibility restricted to Engineering audience', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          await feedPage.assertions.verifyFeedSectionIsVisible();
+
+          endUserPostText = TestDataGenerator.generateRandomText('ABAC Restricted Visibility Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPostWithLimitVisibility({
+            text: endUserPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          endUserPostId = postResult.postId || '';
+          createdPostId = endUserPostId;
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+          await feedPage.assertions.verifyPostHasLimitVisibility(endUserPostText);
+        });
+
+        // ==================== Remove End User as FO, Add SU as FO of "Manage Home Feed" ====================
+        await test.step('Remove End User as FO of "Post In Home Feed" and add as FO of "Manage Home Feed"', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== FO navigates to Home Feed and locates restricted post ====================
+        await test.step('FO navigates to Home Feed and locates the restricted post', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          await feedPage.assertions.waitForPostToBeVisible(endUserPostText);
+        });
+
+        // ==================== FO clicks more options menu and selects Edit ====================
+        await test.step('FO clicks on more options menu and selects Edit - Edit Feed Post form opens successfully', async () => {
+          await feedPage.actions.openPostOptionsMenu(endUserPostText);
+
+          await feedPage.actions.clickEditOption();
+
+          await feedPage.assertions.verifyEditorVisible();
+        });
+
+        // ==================== FO turns OFF limit visibility, updates content and clicks Update ====================
+        let updatedPostText: string;
+        await test.step('FO turns OFF Limit visibility toggle, updates post content and clicks Update', async () => {
+          updatedPostText = TestDataGenerator.generateRandomText('ABAC Edited Unrestricted Post', 3, true);
+
+          await feedPage.actions.toggleLimitVisibility();
+
+          await feedPage.actions.updatePostText(updatedPostText);
+
+          await feedPage.actions.clickUpdateButton();
+        });
+
+        // ==================== Verify post updated successfully with restriction removed ====================
+        await test.step('Verify post is updated successfully, limit visibility removed, and visible to default audience', async () => {
+          await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
+
+          await feedPage.assertions.verifyPostDoesNotHaveLimitVisibility(updatedPostText);
+        });
+
+        // ==================== Cleanup: Remove FO assignment ====================
+        await test.step('Cleanup: Remove End User as FO from "Manage Home Feed" ACG', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
         });
       }
     );
