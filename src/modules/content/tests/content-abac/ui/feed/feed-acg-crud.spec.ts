@@ -1,6 +1,5 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
-import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { tagTest } from '@/src/core/utils/testDecorator';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
@@ -59,10 +58,10 @@ test.describe(
         await test.step('Pre-requisite: Ensure SU is not a Manager/Admin of "Post In Home Feed" ACG', async () => {
           acgPage = new AccessControlGroupsPage(appManagerFixture.page);
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
           let operationPerformed = false;
 
@@ -105,8 +104,8 @@ test.describe(
           await featureOwnersPage.loadPage();
           await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
@@ -114,12 +113,9 @@ test.describe(
 
         // ==================== SU navigates to Home Feed and creates post ====================
         await test.step('SU navigates to Home Feed, verifies form is visible, and creates a Feed post', async () => {
-          const homePage = new NewHomePage(standardUserFixture.page);
-          await homePage.loadPage();
-          await homePage.verifyThePageIsLoaded();
-
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
           await feedPage.actions.verifyThePageIsLoaded();
 
           // Verify SU can view Feed Post creation form
@@ -141,8 +137,8 @@ test.describe(
           await featureOwnersPage.loadPage();
           await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
@@ -150,7 +146,7 @@ test.describe(
 
         // ==================== Verify SU cannot view Feed form after FO removal ====================
         await test.step('Verify SU cannot view Feed Post creation form after FO removal', async () => {
-          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.actions.reloadPageWithTimelineMode();
           await feedPage.assertions.verifyFeedSectionIsNotVisible();
         });
       }
@@ -177,8 +173,8 @@ test.describe(
           await featureOwnersPage.loadPage();
           await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           try {
@@ -191,10 +187,10 @@ test.describe(
           // Remove from Managers in ACG if present
           acgPage = new AccessControlGroupsPage(appManagerFixture.page);
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
@@ -221,8 +217,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Admins section and add user
@@ -246,7 +242,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           // Verify SU can view Feed Post creation form
           await feedPage.assertions.verifyFeedSectionIsVisible();
@@ -265,10 +261,10 @@ test.describe(
         // ==================== App Manager removes SU as Admin from ACG ====================
         await test.step('App Manager removes SU as Admin from "Post In Home Feed" ACG', async () => {
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Admins section and remove user
@@ -283,7 +279,7 @@ test.describe(
 
         // ==================== Verify SU cannot view Feed form after Admin removal ====================
         await test.step('Verify SU cannot view Feed Post creation form after Admin removal', async () => {
-          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.actions.reloadPageWithTimelineMode();
           await feedPage.assertions.verifyFeedSectionIsNotVisible();
         });
       }
@@ -308,10 +304,10 @@ test.describe(
           // Remove from Feature Owners if present
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           try {
@@ -324,10 +320,10 @@ test.describe(
           // Remove from Admins in ACG if present
           acgPage = new AccessControlGroupsPage(appManagerFixture.page);
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           const isAdminButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.ADMIN);
@@ -352,10 +348,10 @@ test.describe(
         // ==================== App Manager adds SU as Manager of ACG ====================
         await test.step('App Manager adds SU as Manager of "Post In Home Feed" ACG', async () => {
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Managers section and add user
@@ -380,7 +376,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           // Verify SU can view Feed Post creation form
           await feedPage.assertions.verifyFeedSectionIsVisible();
@@ -399,10 +395,10 @@ test.describe(
         // ==================== App Manager removes SU as Manager from ACG ====================
         await test.step('App Manager removes SU as Manager from "Post In Home Feed" ACG', async () => {
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Managers section and remove user
@@ -417,7 +413,7 @@ test.describe(
 
         // ==================== Verify SU cannot view Feed form after Manager removal ====================
         await test.step('Verify SU cannot view Feed Post creation form after Manager removal', async () => {
-          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.actions.reloadPageWithTimelineMode();
           await feedPage.assertions.verifyFeedSectionIsNotVisible();
         });
       }
@@ -443,10 +439,10 @@ test.describe(
           // Remove from Feature Owners if present
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           try {
@@ -459,10 +455,10 @@ test.describe(
           // Remove from Managers and Admins in ACG if present
           acgPage = new AccessControlGroupsPage(appManagerFixture.page);
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Remove from Managers if present
@@ -502,7 +498,7 @@ test.describe(
         await test.step('Verify SU cannot view Feed Post creation form when only in Target Audience', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.actions.reloadPageWithTimelineMode();
           await feedPage.verifyThePageIsLoadedWithTimelineMode();
 
           // SU should NOT be able to view Feed Post creation form
@@ -528,10 +524,10 @@ test.describe(
         await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
@@ -542,7 +538,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           // Verify FO can view Feed Post creation form
           await feedPage.assertions.verifyFeedSectionIsVisible();
@@ -581,10 +577,10 @@ test.describe(
         // ==================== Cleanup: Remove SU as FO ====================
         await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
@@ -643,10 +639,10 @@ test.describe(
           // Remove from Feature Owners if present
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           try {
@@ -659,10 +655,10 @@ test.describe(
           // Remove from Managers and Admins in ACG if present
           acgPage = new AccessControlGroupsPage(appManagerFixture.page);
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(MANAGE_HOME_FEED_FEATURE);
-          await acgPage.editACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(MANAGE_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Remove from Managers if present
@@ -703,7 +699,7 @@ test.describe(
           await appManagerFixture.navigationHelper.clickOnHomeButton();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-          await appManagerFeedPage.verifyThePageIsLoaded();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
 
           createdPostText = TestDataGenerator.generateRandomText('ABAC Baseline Edit Restriction Test Post', 3, true);
           await appManagerFeedPage.actions.clickShareThoughtsButton();
@@ -720,7 +716,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           // Verify the post is visible
           await feedPage.assertions.waitForPostToBeVisible(createdPostText);
@@ -751,7 +747,7 @@ test.describe(
         await test.step('App Manager creates a Feed post on Home Feed', async () => {
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-          await appManagerFeedPage.verifyThePageIsLoaded();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
 
           createdPostText = TestDataGenerator.generateRandomText('ABAC Manage Home Feed Test Post', 3, true);
           await appManagerFeedPage.actions.clickShareThoughtsButton();
@@ -767,10 +763,10 @@ test.describe(
         await test.step('App Manager adds SU as FO of "Manage Home Feed" ACG', async () => {
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
@@ -782,7 +778,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           // Verify the post is visible
           await feedPage.assertions.waitForPostToBeVisible(createdPostText);
@@ -808,10 +804,10 @@ test.describe(
         // ==================== App Manager removes SU as FO ====================
         await test.step('App Manager removes SU as FO from "Manage Home Feed" ACG', async () => {
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
@@ -819,8 +815,8 @@ test.describe(
 
         // ==================== Verify SU cannot see Edit option after FO removal ====================
         await test.step('Verify SU cannot see Edit option on Home Feed after FO removal', async () => {
-          await feedPage.reloadPageWithTimelineMode();
-          await feedPage.verifyThePageIsLoadedWithTimelineMode();
+          await feedPage.actions.reloadPageWithTimelineMode();
+          await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify the post is still visible
           await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
@@ -853,7 +849,7 @@ test.describe(
         await test.step('App Manager creates a Feed post on Home Feed', async () => {
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-          await appManagerFeedPage.verifyThePageIsLoaded();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
 
           createdPostText = TestDataGenerator.generateRandomText('ABAC Manager Manage Home Feed Test Post', 3, true);
           await appManagerFeedPage.actions.clickShareThoughtsButton();
@@ -869,10 +865,10 @@ test.describe(
         await test.step('App Manager adds SU as Manager of "Manage Home Feed" ACG', async () => {
           acgPage = new AccessControlGroupsPage(appManagerFixture.page);
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(MANAGE_HOME_FEED_FEATURE);
-          await acgPage.editACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(MANAGE_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Managers section and add user
@@ -895,7 +891,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           // Verify the post is visible
           await feedPage.assertions.waitForPostToBeVisible(createdPostText);
@@ -921,10 +917,10 @@ test.describe(
         // ==================== App Manager removes SU as Manager from ACG ====================
         await test.step('App Manager removes SU as Manager from "Manage Home Feed" ACG', async () => {
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.searchForACG(MANAGE_HOME_FEED_FEATURE);
-          await acgPage.editACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.actions.editACG(MANAGE_HOME_FEED_FEATURE);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Managers section and remove user
@@ -939,8 +935,8 @@ test.describe(
 
         // ==================== Verify SU cannot see Edit option after Manager removal ====================
         await test.step('Verify SU cannot see Edit option on Home Feed after Manager removal', async () => {
-          await feedPage.reloadPageWithTimelineMode();
-          await feedPage.verifyThePageIsLoadedWithTimelineMode();
+          await feedPage.actions.reloadPageWithTimelineMode();
+          await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify the post is still visible
           await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
@@ -1094,10 +1090,10 @@ test.describe(
         await test.step('App Manager adds End User as FO of "Post In Home Feed" ACG', async () => {
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
@@ -1108,7 +1104,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           await feedPage.assertions.verifyFeedSectionIsVisible();
 
@@ -1133,19 +1129,19 @@ test.describe(
         // ==================== Remove End User as FO, Add SU as FO of "Manage Home Feed" ====================
         await test.step('Remove End User as FO of "Post In Home Feed" and add as FO of "Manage Home Feed"', async () => {
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
 
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
@@ -1156,7 +1152,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
           await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.assertions.verifyThePageIsLoaded();
 
           await feedPage.assertions.waitForPostToBeVisible(endUserPostText);
         });
@@ -1192,10 +1188,109 @@ test.describe(
         // ==================== Cleanup: Remove FO assignment ====================
         await test.step('Cleanup: Remove End User as FO from "Manage Home Feed" ACG', async () => {
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
-          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
-          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+          await featureOwnersPage.actions.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
+
+    test(
+      "verify FO can edit End User's restricted Home Feed post and change audience from Engineering to UX team",
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42184', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can edit End User\'s restricted Home Feed post and change the audience from Engineering to UX team',
+          zephyrTestId: 'CONT-42184',
+          storyId: 'CONT-42184',
+        });
+
+        let suPostText: string;
+        let suPostId: string = '';
+
+        // ==================== Add SU as FO of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== SU creates Feed post with limit visibility to Engineering ====================
+        await test.step('SU creates Feed post with Limit visibility restricted to Engineering audience and verifies post is visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          await feedPage.assertions.verifyFeedSectionIsVisible();
+
+          suPostText = TestDataGenerator.generateRandomText('ABAC Restricted Engineering Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPostWithLimitVisibility({
+            text: suPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          suPostId = postResult.postId || '';
+          createdPostId = suPostId;
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+          await feedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== App Manager (FO of Manage Home Feed) edits post and changes audience to UX ====================
+        await test.step('App Manager navigates to Home Feed and locates the restricted post', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPage();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(suPostText);
+
+          await appManagerFeedPage.actions.openPostOptionsMenu(suPostText);
+          await appManagerFeedPage.actions.clickEditOption();
+          await appManagerFeedPage.assertions.verifyEditorVisible();
+
+          await appManagerFeedPage.actions.changeAudience('UX');
+          await appManagerFeedPage.actions.clickUpdateButton();
+
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(suPostText);
+          await appManagerFeedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== Reload SU home page and verify post is NOT visible ====================
+        await test.step('Reload SU Home Feed and verify post is NOT visible (audience changed to UX)', async () => {
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          await feedPage.assertions.verifyPostIsNotVisible(suPostText);
+        });
+
+        // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
+        await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);

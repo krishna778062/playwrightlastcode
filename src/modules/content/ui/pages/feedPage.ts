@@ -32,6 +32,7 @@ export interface IFeedActions {
   createAndPostWithLimitVisibility: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPostAndRemoveLimitVisibility: (currentText: string, newText: string) => Promise<void>;
   toggleLimitVisibility: () => Promise<void>;
+  changeAudience: (newAudienceName: string) => Promise<void>;
   deletePost: (postText: string) => Promise<void>;
   // Content creation flow
   createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
@@ -181,6 +182,7 @@ export interface IFeedActions {
   clickPostWithoutWaitingForResponse(): Promise<void>;
   clickInlineImagePreview: (postText: string) => Promise<void>;
   closeImagePreview: () => Promise<void>;
+  reloadPageWithTimelineMode(): Promise<void>;
 }
 
 export interface IFeedAssertions {
@@ -1712,6 +1714,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async clickOnSideToRemoveProfilePopover(): Promise<void> {
     await this.listFeedComponent.clickOnSideToRemoveProfilePopover();
+  }
+
+  async changeAudience(newAudienceName: string): Promise<void> {
+    await this.createFeedPostComponent.changeAudience(newAudienceName);
   }
 
   // ==================== Limit Visibility Assertion Methods ====================

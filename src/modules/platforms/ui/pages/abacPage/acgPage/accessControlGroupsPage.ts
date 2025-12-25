@@ -22,7 +22,10 @@ export enum ACGFeature {
   SURVEYS = 'Surveys',
 }
 
-export interface IAccessControlGroupsActions {}
+export interface IAccessControlGroupsActions {
+  searchForACG(acgName: string): Promise<void>;
+  editACG(acgName: string): Promise<void>;
+}
 
 export interface IAccessControlGroupsAssertions {
   verifyThePageIsLoaded(): Promise<void>;

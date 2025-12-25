@@ -8,7 +8,19 @@ import { FeatureOwnerModalComponent } from '../../../components/featureOwnerModa
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
-export interface IFeatureOwnersActions {}
+export interface IFeatureOwnersActions {
+  searchForFeature(featureName: string, expectResults?: boolean): Promise<void>;
+  clickOnButtonForFeature(
+    featureName: string,
+    optionName: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void>;
+  clickShowMore(): Promise<void>;
+  getAllFeatureNames(): Promise<string[]>;
+  verifyNoResultsFoundMessages(): Promise<void>;
+  clickOnCountButton(featureNameOrIndex: string | number): Promise<string>;
+  verifyUserCountPopupOpened(expectedCount: string): Promise<void>;
+}
 
 export interface IFeatureOwnersAssertions {
   verifyThePageIsLoaded(): Promise<void>;

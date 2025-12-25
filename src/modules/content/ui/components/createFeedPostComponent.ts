@@ -146,6 +146,7 @@ export class CreateFeedPostComponent
   readonly limitVisibilityLabel = this.page.getByRole('button', { name: 'Limited visibility' });
   readonly audiencePickerDialog = this.page.getByRole('dialog', { name: 'Audiences' });
   readonly audiencePickerButton = this.page.getByRole('button', { name: 'Browse' });
+  readonly removeAudienceButton = this.page.getByRole('button', { name: 'Remove audience' });
   readonly audienceSearchInput = this.page.getByRole('textbox', { name: 'Search…' });
   readonly audienceSearchButton = this.page.getByRole('button', { name: 'Search' });
   readonly audienceDoneButton = this.page.getByRole('button', { name: 'Done' });
@@ -1250,6 +1251,32 @@ export class CreateFeedPostComponent
         assertionMessage: `Audience "${audienceName}" should be visible in the list`,
         timeout: TIMEOUTS.MEDIUM,
       });
+      await this.clickOnElement(audienceOption);
+      await this.clickOnElement(this.audienceDoneButton);
+      await this.clickOnElement(this.audienceConfirmButton);
+    });
+  }
+
+  async changeAudience(newAudienceName: string): Promise<void> {
+    await test.step(`Change audience to: ${newAudienceName}`, async () => {
+      await this.toggleLimitVisibility();
+
+      await this.toggleLimitVisibility();
+
+      await this.clickOnElement(this.removeAudienceButton);
+
+      await this.clickOnElement(this.audiencePickerButton);
+
+      const isSearchVisible = await this.verifier.isTheElementVisible(this.audienceSearchInput, {
+        timeout: TIMEOUTS.VERY_SHORT,
+      });
+
+      if (isSearchVisible) {
+        await this.fillInElement(this.audienceSearchInput, newAudienceName);
+        await this.clickOnElement(this.audienceSearchButton);
+      }
+
+      const audienceOption = this.getAudienceOption(newAudienceName);
       await this.clickOnElement(audienceOption);
       await this.clickOnElement(this.audienceDoneButton);
       await this.clickOnElement(this.audienceConfirmButton);
