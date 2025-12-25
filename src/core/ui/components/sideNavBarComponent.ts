@@ -66,7 +66,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.clickOnManageFeature = page.locator('[aria-label="Manage"]').first();
     this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
-    this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
+    this.clickingOnHome = page.getByRole('menuitem').first();
     //analytics section
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.appAnalyticsButton = page.getByRole('menuitem', { name: 'App', exact: true });

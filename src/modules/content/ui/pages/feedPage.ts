@@ -278,8 +278,6 @@ export interface IFeedAssertions {
   verifyEditOptionNotVisible: (postText: string) => Promise<void>;
   verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void>;
   verifyInlineImagePreviewVisible: () => Promise<void>;
-  verifyEditOptionVisible: (postText: string) => Promise<void>;
-  verifyEditOptionNotVisible: (postText: string) => Promise<void>;
 }
 
 export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {

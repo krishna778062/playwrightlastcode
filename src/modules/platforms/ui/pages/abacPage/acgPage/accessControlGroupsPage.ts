@@ -22,8 +22,22 @@ export enum ACGFeature {
   SURVEYS = 'Surveys',
 }
 
+export interface IAccessControlGroupsActions {}
+
+export interface IAccessControlGroupsAssertions {
+  verifyThePageIsLoaded(): Promise<void>;
+}
+
 export class AccessControlGroupsPage extends BasePage {
   private acgDefaultStatus: string = 'Active';
+
+  get actions(): IAccessControlGroupsActions {
+    return this;
+  }
+
+  get assertions(): IAccessControlGroupsAssertions {
+    return this;
+  }
 
   readonly acgDropdownButton: Locator;
   readonly acgCreateButtonSingle: Locator;

@@ -103,7 +103,7 @@ test.describe(
         await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
           await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
           await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
@@ -120,7 +120,7 @@ test.describe(
 
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.verifyThePageIsLoaded();
+          await feedPage.actions.verifyThePageIsLoaded();
 
           // Verify SU can view Feed Post creation form
           await feedPage.assertions.verifyFeedSectionIsVisible();
@@ -139,7 +139,7 @@ test.describe(
         // ==================== App Manager removes SU as FO ====================
         await test.step('App Manager removes SU as FO from "Post In Home Feed" ACG', async () => {
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
           await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
           await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
@@ -175,7 +175,7 @@ test.describe(
           // Remove from Feature Owners if present
           featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
-          await featureOwnersPage.verifyThePageIsLoaded();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
 
           await featureOwnersPage.searchForFeature(POST_IN_HOME_FEED_FEATURE);
           await featureOwnersPage.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
@@ -219,7 +219,7 @@ test.describe(
         // ==================== App Manager adds SU as Admin of ACG ====================
         await test.step('App Manager adds SU as Admin of "Post In Home Feed" ACG', async () => {
           await acgPage.loadPage();
-          await acgPage.verifyThePageIsLoaded();
+          await acgPage.assertions.verifyThePageIsLoaded();
 
           await acgPage.searchForACG(POST_IN_HOME_FEED_FEATURE);
           await acgPage.editACG(POST_IN_HOME_FEED_FEATURE);
@@ -541,6 +541,7 @@ test.describe(
         await test.step('FO navigates to Home Feed and creates a Feed post', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
           await feedPage.verifyThePageIsLoaded();
 
           // Verify FO can view Feed Post creation form
@@ -619,6 +620,117 @@ test.describe(
         createdPostId = '';
       }
     });
+
+    test(
+      'verify SU without "Manage Home Feed" ACG role cannot edit other users\' Feed posts',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42189', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Standard User without any "Manage Home Feed" ACG role (not Admin, Manager, or FO) cannot see Edit option on other users\' Feed posts on Home Feed',
+          zephyrTestId: 'CONT-42189',
+          storyId: 'CONT-42189',
+        });
+
+        // ==================== Ensure SU is NOT a Manager/Admin/FO of "Manage Home Feed" ACG ====================
+        await test.step('Pre-requisite: Ensure SU is not a Manager/Admin/FO of "Manage Home Feed" ACG', async () => {
+          let operationPerformed = false;
+
+          // Remove from Feature Owners if present
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.verifyThePageIsLoaded();
+
+          await featureOwnersPage.searchForFeature(MANAGE_HOME_FEED_FEATURE);
+          await featureOwnersPage.clickOnButtonForFeature(MANAGE_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          try {
+            await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+          } catch {
+            // User not in FO list, close modal
+            await featureOwnersPage.featureOwnerModal.clickOnCloseButton();
+          }
+
+          // Remove from Managers and Admins in ACG if present
+          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.verifyThePageIsLoaded();
+
+          await acgPage.searchForACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.editACG(MANAGE_HOME_FEED_FEATURE);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Remove from Managers if present
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            const wasRemovedFromManagers = await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            if (wasRemovedFromManagers) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              operationPerformed = true;
+            } else {
+              await acgPage.editACGModal.clickOnBackButton();
+            }
+          }
+
+          // Remove from Admins if present
+          const isAdminButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.ADMIN);
+          if (isAdminButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Admins');
+            const wasRemovedFromAdmins = await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            if (wasRemovedFromAdmins) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              operationPerformed = true;
+            } else {
+              await acgPage.editACGModal.clickOnBackButton();
+            }
+          }
+
+          if (operationPerformed) {
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== App Manager creates a Feed post (other user's post) ====================
+        await test.step('App Manager creates a Feed post on Home Feed', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.verifyThePageIsLoaded();
+
+          createdPostText = TestDataGenerator.generateRandomText('ABAC Baseline Edit Restriction Test Post', 3, true);
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+          const postResult = await appManagerFeedPage.actions.createAndPost({
+            text: createdPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        });
+
+        // ==================== SU verifies Edit option is NOT visible on other user's post ====================
+        await test.step("SU navigates to Home Feed and verifies Edit option is NOT visible on App Manager's post", async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          // Verify the post is visible
+          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+
+          // Open options menu on App Manager's post
+          await feedPage.actions.openPostOptionsMenu(createdPostText);
+
+          // Verify Edit option is NOT visible (SU has no ABAC permission to edit other users' posts)
+          await feedPage.assertions.verifyEditOptionNotVisible(createdPostText);
+        });
+      }
+    );
 
     test(
       'verify SU who is FO of "Manage Home Feed" ACG can edit other users\' Feed posts',
