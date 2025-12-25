@@ -1,9 +1,10 @@
 name: Daily Regression Tests (Test Environment)
 
 on:
-  schedule:
-    # Run daily at 6:00 AM UTC (11:30 AM IST)
-    - cron: '0 6 * * *'
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   # Run daily at 6:00 AM UTC (11:30 AM IST)
+  #   - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       environment:
