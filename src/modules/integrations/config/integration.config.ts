@@ -44,6 +44,8 @@ interface TenantConfig {
   appManagerPassword: string;
   endUserEmail?: string;
   endUserPassword?: string;
+  TENANT_USER_ROLE_ID?: string;
+  [key: string]: any; // Allow additional properties
 }
 
 // App-level configuration (same for all tenants/environments)

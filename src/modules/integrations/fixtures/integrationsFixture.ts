@@ -7,6 +7,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { CustomIntegrationsHelper } from '@/src/modules/integrations/apis/helpers/customAppsHelper';
 import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
@@ -34,6 +35,7 @@ export interface IntegrationsApiFixture {
   siteManagementHelper: SiteManagementHelper;
   tileManagementHelper: IntegrationTileHelper;
   integrationTileHelper: IntegrationTileHelper;
+  customIntegrationsHelper: CustomIntegrationsHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -57,12 +59,14 @@ async function createIntegrationsApiFixture(
   const apiBaseUrl = tenantConfig?.apiBaseUrl || getEnvConfig().apiBaseUrl;
   const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
   const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl);
+  const customIntegrationsHelper = new CustomIntegrationsHelper(apiContext, apiBaseUrl);
 
   return {
     apiContext,
     siteManagementHelper,
     tileManagementHelper: integrationTileHelper, // Use IntegrationTileHelper for integration tests
     integrationTileHelper,
+    customIntegrationsHelper,
   };
 }
 
