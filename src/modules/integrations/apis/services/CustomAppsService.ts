@@ -42,6 +42,7 @@ export interface CustomConnectorCreatePayload {
   connectionType?: 'app' | 'user';
   authType?: 'oauth' | 'basic' | 'api-token' | 'oauth-pkce';
   authDetails?: AuthDetails;
+  logoFileId?: string;
   [key: string]: any;
 }
 

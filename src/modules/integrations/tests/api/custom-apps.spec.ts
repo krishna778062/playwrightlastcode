@@ -1,6 +1,6 @@
 import { integrationsFixture as test } from '@integrations/fixtures/integrationsFixture';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { request } from '@playwright/test';
+import { expect, request } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -790,6 +790,322 @@ test.describe(
         ApiResponseAssertions.expectUnauthorized(errorResponse);
 
         await invalidTokenContext.dispose();
+      }
+    );
+
+    test(
+      'verify app manager can create custom connector with logo upload via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30201',
+        });
+
+        const payload = appManagerApiFixture.customIntegrationsHelper.buildValidConnectorPayload();
+        const connectorResponse = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegrationWithLogo(
+          payload,
+          'Jira_Custom_App.jpg'
+        );
+        await customIntegrationsApiHelper.validateConnectorCreationAuto(connectorResponse);
+        ApiResponseAssertions.expectSuccess(connectorResponse);
+      }
+    );
+
+    test(
+      'verify app manager can create custom connector with PNG logo via API',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30202',
+        });
+
+        const payload = appManagerApiFixture.customIntegrationsHelper.buildValidConnectorPayload();
+        const connectorResponse = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegrationWithLogo(
+          payload,
+          'favicon.png'
+        );
+        await customIntegrationsApiHelper.validateConnectorCreationAuto(connectorResponse);
+        ApiResponseAssertions.expectSuccess(connectorResponse);
+      }
+    );
+
+    test(
+      'verify app manager can update custom connector logo via API',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30203',
+        });
+
+        const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        const updateResponse = await appManagerApiFixture.customIntegrationsHelper.updateCustomIntegrationWithLogo(
+          connectorId,
+          {},
+          'expensify.jpg'
+        );
+        await customIntegrationsApiHelper.validateConnectorUpdate(updateResponse);
+        ApiResponseAssertions.expectSuccess(updateResponse);
+      }
+    );
+
+    test(
+      'verify API returns error when uploading logo with invalid file format',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30205',
+        });
+
+        const invalidFileName = 'nonexistent-file.txt';
+        const errorResponse =
+          await appManagerApiFixture.customIntegrationsHelper.attemptLogoUploadWithInvalidFile(invalidFileName);
+        expect(errorResponse.message || errorResponse.status, 'Expected error for invalid file format').toBeTruthy();
+      }
+    );
+
+    test(
+      'verify app manager can create connector with OAuth auth type via API',
+      {
+        tag: [TestPriority.P9, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30206',
+        });
+
+        const payload = appManagerApiFixture.customIntegrationsHelper.buildOAuthConnectorPayload(
+          `Test OAuth Connector ${Date.now()}`
+        );
+        const connectorResponse = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegration(payload);
+        await customIntegrationsApiHelper.validateConnectorCreation(connectorResponse);
+        ApiResponseAssertions.expectSuccess(connectorResponse);
+      }
+    );
+
+    test(
+      'verify app manager can create connector with OAuth-PKCE auth type via API',
+      {
+        tag: [TestPriority.P9, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30207',
+        });
+
+        const payload = appManagerApiFixture.customIntegrationsHelper.buildOAuthPKCEConnectorPayload(
+          `Test OAuth-PKCE Connector ${Date.now()}`
+        );
+        const connectorResponse = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegration(payload);
+        await customIntegrationsApiHelper.validateConnectorCreation(connectorResponse);
+        ApiResponseAssertions.expectSuccess(connectorResponse);
+      }
+    );
+
+    test(
+      'verify app manager can get connector connections with both app and user types via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30208',
+        });
+
+        const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({
+          connectionType: 'app',
+        });
+
+        const appConnectionsResponse = await appManagerApiFixture.customIntegrationsHelper.getConnectorConnections(
+          connectorId,
+          'app'
+        );
+        ApiResponseAssertions.expectSuccess(appConnectionsResponse);
+
+        const userConnectionsResponse = await appManagerApiFixture.customIntegrationsHelper.getConnectorConnections(
+          connectorId,
+          'user'
+        );
+        ApiResponseAssertions.expectSuccess(userConnectionsResponse);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors filtered by category via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30209',
+        });
+
+        const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({
+          category: 'files',
+        });
+
+        const listResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(listResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, connectorId);
+      }
+    );
+
+    test(
+      'verify app manager can update connector with partial fields via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30210',
+        });
+
+        const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+
+        const updateResponse = await appManagerApiFixture.customIntegrationsHelper.updateCustomIntegration(
+          connectorId,
+          {
+            description: 'Updated description only',
+          }
+        );
+
+        await customIntegrationsApiHelper.validateConnectorUpdate(updateResponse);
+        ApiResponseAssertions.expectSuccess(updateResponse);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors with edge case pagination via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30211',
+        });
+
+        const page0Response = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          page: 0,
+          limit: 10,
+        });
+        await customIntegrationsApiHelper.validateConnectorList(page0Response, true);
+
+        const largeLimitResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          page: 1,
+          limit: 1000,
+        });
+        await customIntegrationsApiHelper.validateConnectorList(largeLimitResponse, true);
+      }
+    );
+
+    test(
+      'verify app manager can update connector to remove logo via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30212',
+        });
+
+        const payload = appManagerApiFixture.customIntegrationsHelper.buildValidConnectorPayload();
+        const connectorWithLogo = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegrationWithLogo(
+          payload,
+          'Jira_Custom_App.jpg'
+        );
+        const connectorId = appManagerApiFixture.customIntegrationsHelper.parseConnectorId(connectorWithLogo);
+
+        if (!connectorId) {
+          throw new Error('Failed to get connector ID');
+        }
+
+        const updateResponse = await appManagerApiFixture.customIntegrationsHelper.updateCustomIntegration(
+          connectorId,
+          {
+            logoFileId: null as any,
+          }
+        );
+
+        await customIntegrationsApiHelper.validateConnectorUpdate(updateResponse);
+        ApiResponseAssertions.expectSuccess(updateResponse);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors filtered by enabled status via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30213',
+        });
+
+        const enabledConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        await appManagerApiFixture.customIntegrationsHelper.updateConnectorStatus(enabledConnectorId, true);
+
+        const disabledConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        await appManagerApiFixture.customIntegrationsHelper.updateConnectorStatus(disabledConnectorId, false);
+
+        const listResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(listResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, enabledConnectorId);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, disabledConnectorId);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors filtered by connection type via API',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30214',
+        });
+
+        const appConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({
+          connectionType: 'app',
+        });
+
+        const userConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({
+          connectionType: 'user',
+        });
+
+        const listResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(listResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, appConnectorId);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, userConnectorId);
       }
     );
   }

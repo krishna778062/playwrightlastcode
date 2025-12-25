@@ -1,11 +1,16 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
+import { HttpClient } from '@core/api/clients/httpClient';
 import { ApiError } from '@core/api/errors/apiError';
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { log } from '@core/utils/logger';
 
 import { CustomIntegrationsService } from '../services/CustomAppsService';
 import {
+  AuthDetails,
   CustomConnectorCreatePayload,
   CustomConnectorResponse,
   CustomConnectorUpdatePayload,
@@ -15,6 +20,8 @@ export class CustomIntegrationsHelper {
   public customIntegrationsService: CustomIntegrationsService;
   public createdConnectors: string[] = [];
   private baseUrl: string;
+  private httpClient: HttpClient;
+  private readonly TEST_DATA_IMAGE_FILES_PATH = path.join(__dirname, '../../test-data/static-files/imageFiles');
 
   constructor(
     readonly apiRequestContext: APIRequestContext,
@@ -22,6 +29,7 @@ export class CustomIntegrationsHelper {
   ) {
     this.baseUrl = baseUrl;
     this.customIntegrationsService = new CustomIntegrationsService(apiRequestContext, baseUrl);
+    this.httpClient = new HttpClient(apiRequestContext, baseUrl);
   }
 
   /**
@@ -122,6 +130,58 @@ export class CustomIntegrationsHelper {
     category: CustomConnectorCreatePayload['category']
   ): CustomConnectorCreatePayload {
     return this.buildValidConnectorPayload({ name, category });
+  }
+
+  /**
+   * Builds a connector payload with OAuth auth type
+   * @param name - Connector name
+   * @param overrides - Optional overrides for OAuth details
+   * @returns The connector payload with OAuth auth
+   */
+  buildOAuthConnectorPayload(name: string, overrides: Partial<AuthDetails> = {}): CustomConnectorCreatePayload {
+    return {
+      name,
+      description: 'Test connector with OAuth auth',
+      category: 'other',
+      connectionType: 'app',
+      authType: 'oauth',
+      authDetails: {
+        clientId: 'test-client-id',
+        clientSecret: 'test-client-secret',
+        authUrl: 'https://auth.example.com/authorize',
+        tokenUrl: 'https://auth.example.com/token',
+        baseUrl: 'https://api.example.com',
+        subAuthType: 'Auth Code',
+        codeChallengeMethod: null as any,
+        ...overrides,
+      },
+    };
+  }
+
+  /**
+   * Builds a connector payload with OAuth-PKCE auth type
+   * @param name - Connector name
+   * @param overrides - Optional overrides for OAuth-PKCE details
+   * @returns The connector payload with OAuth-PKCE auth
+   */
+  buildOAuthPKCEConnectorPayload(name: string, overrides: Partial<AuthDetails> = {}): CustomConnectorCreatePayload {
+    return {
+      name,
+      description: 'Test connector with OAuth-PKCE auth',
+      category: 'other',
+      connectionType: 'app',
+      authType: 'oauth',
+      authDetails: {
+        clientId: 'test-client-id',
+        clientSecret: 'test-client-secret',
+        authUrl: 'https://auth.example.com/authorize',
+        tokenUrl: 'https://auth.example.com/token',
+        baseUrl: 'https://api.example.com',
+        subAuthType: 'Auth Code with PKCE',
+        codeChallengeMethod: 'Plain',
+        ...overrides,
+      },
+    };
   }
 
   /**
@@ -520,6 +580,146 @@ export class CustomIntegrationsHelper {
       }
       return await this.deleteCustomIntegration(connectorId);
     });
+  }
+
+  /**
+   * Gets a signed URL for logo file upload
+   * @param fileName - The name of the file to upload
+   * @param fileSize - The size of the file in bytes
+   * @param mimeType - The MIME type of the file (e.g., 'image/jpeg', 'image/png')
+   * @returns Object with uploadUrl and fileId
+   */
+  async getSignedUploadUrlForLogo(
+    fileName: string,
+    fileSize: number,
+    mimeType: string
+  ): Promise<{
+    uploadUrl: string;
+    fileId: string;
+  }> {
+    const payload = {
+      file_name: fileName,
+      size: fileSize,
+      mime_type: mimeType,
+    };
+
+    const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
+      data: payload,
+    });
+
+    const json = await response.json();
+
+    if (!response.ok() || json.status !== 'success' || !json.result?.upload_url || !json.result?.file_id) {
+      throw new Error(`Failed to get signed upload URL for logo. Response: ${JSON.stringify(json)}`);
+    }
+
+    return {
+      uploadUrl: json.result.upload_url,
+      fileId: json.result.file_id,
+    };
+  }
+
+  /**
+   * Uploads logo file to signed URL
+   * @param uploadUrl - The signed upload URL
+   * @param filePath - The local path to the file
+   * @param fileName - The name of the file
+   * @param mimeType - The MIME type of the file
+   */
+  async uploadLogoToSignedUrl(uploadUrl: string, filePath: string, fileName: string, mimeType: string): Promise<void> {
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Logo file not found at path: ${filePath}`);
+    }
+
+    const fileBuffer = fs.readFileSync(filePath);
+    const headers = {
+      'Content-Type': mimeType,
+      'Content-Disposition': `attachment; filename=${fileName}`,
+    };
+
+    const response = await this.apiRequestContext.put(uploadUrl, {
+      headers,
+      data: fileBuffer,
+    });
+
+    if (!response.ok()) {
+      const errorText = await response.text();
+      throw new Error(`Logo upload to signed URL failed. Status: ${response.status()}, Error: ${errorText}`);
+    }
+  }
+
+  /**
+   * Uploads logo file and returns fileId
+   * @param fileName - The name of the file from test-data/static-files/imageFiles directory
+   * @returns The fileId of the uploaded logo
+   */
+  async uploadLogoAndGetFileId(fileName: string): Promise<string> {
+    const filePath = path.join(this.TEST_DATA_IMAGE_FILES_PATH, fileName);
+
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Logo file not found: ${filePath}`);
+    }
+
+    const fileSize = fs.statSync(filePath).size;
+    const fileExtension = path.extname(fileName).toLowerCase();
+    const mimeType = fileExtension === '.png' ? 'image/png' : 'image/jpeg';
+
+    const { uploadUrl, fileId } = await this.getSignedUploadUrlForLogo(fileName, fileSize, mimeType);
+    await this.uploadLogoToSignedUrl(uploadUrl, filePath, fileName, mimeType);
+
+    return fileId;
+  }
+
+  /**
+   * Creates a connector with logo upload
+   * @param payload - The connector creation payload
+   * @param logoFileName - Optional logo file name from test-data directory
+   * @returns The parsed connector response
+   */
+  async createCustomIntegrationWithLogo(
+    payload: CustomConnectorCreatePayload,
+    logoFileName?: string
+  ): Promise<CustomConnectorResponse> {
+    if (logoFileName) {
+      const logoFileId = await this.uploadLogoAndGetFileId(logoFileName);
+      payload.logoFileId = logoFileId;
+    }
+
+    return this.createCustomIntegration(payload);
+  }
+
+  /**
+   * Updates a connector with new logo
+   * @param connectorId - The connector ID
+   * @param payload - The update payload
+   * @param logoFileName - Optional logo file name from test-data directory
+   * @returns The parsed connector response
+   */
+  async updateCustomIntegrationWithLogo(
+    connectorId: string,
+    payload: CustomConnectorUpdatePayload,
+    logoFileName?: string
+  ): Promise<CustomConnectorResponse> {
+    if (logoFileName) {
+      const logoFileId = await this.uploadLogoAndGetFileId(logoFileName);
+      payload.logoFileId = logoFileId;
+    }
+
+    return this.updateCustomIntegration(connectorId, payload);
+  }
+
+  /**
+   * Attempts to upload logo with invalid file (for negative testing)
+   * Returns error response instead of throwing
+   * @param fileName - The invalid logo file name
+   * @returns Error response object with status and error details
+   */
+  async attemptLogoUploadWithInvalidFile(fileName: string): Promise<any> {
+    try {
+      return await this.uploadLogoAndGetFileId(fileName);
+    } catch (error: any) {
+      return this.extractErrorResponse(error);
+    }
   }
 
   /**
