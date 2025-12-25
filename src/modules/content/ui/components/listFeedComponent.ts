@@ -6,6 +6,7 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
 export interface IListFeedComponentActions {
+  clickReplyImagePreview(replyText: string): Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickDeleteOption: () => Promise<void>;
   clickReportPostOption: () => Promise<void>;
@@ -146,6 +147,8 @@ export class ListFeedComponent
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly embedUrlLocator: (embedUrl: string) => Locator;
+  readonly replyEmbedUrlPreviewLocator: (embedUrl: string) => Locator;
+  readonly embedUrlPreviewLocator: Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
@@ -264,6 +267,9 @@ export class ListFeedComponent
       .locator('xpath=./ancestor::div[3]')
       .locator("button[aria-label='Open image in lightbox']");
 
+  readonly getReplyImagePreviewLocator = (): Locator =>
+    this.page.getByTestId('replyContent').getByRole('button', { name: 'Open image in lightbox' }).first();
+
   /**
    * Gets a locator for the post options menu
    * @param postText - The text of the post to find options menu for
@@ -330,6 +336,9 @@ export class ListFeedComponent
       .filter({ hasText: `${userName}View in org chart` })
       .first();
 
+  readonly siteNameLocator = (postText: string, siteName: string): Locator =>
+    this.page.getByRole('link', { name: siteName }).first();
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -361,6 +370,9 @@ export class ListFeedComponent
     this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
     this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
+    this.replyEmbedUrlPreviewLocator = (embedUrl: string): Locator =>
+      this.replyContainer.getByTestId('replyContent').locator('iframe');
+    this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
 
@@ -530,6 +542,15 @@ export class ListFeedComponent
     });
   }
 
+  async clickReplyImagePreview(replyText: string): Promise<void> {
+    await test.step('Click on reply image preview', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getReplyImagePreviewLocator(), {
+        assertionMessage: 'Reply image preview should be visible',
+      });
+      await this.clickOnElement(this.getReplyImagePreviewLocator());
+    });
+  }
+
   /**
    * Closes the image preview lightbox
    */
@@ -648,6 +669,15 @@ export class ListFeedComponent
       await this.clickOnElement(this.infoIcon);
 
       await fileApiPromise;
+    });
+  }
+
+  async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
+    await test.step(`Click site name on post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(postText, siteName), {
+        assertionMessage: `Site name "${postText}" should be visible on post`,
+      });
+      await this.clickOnElement(this.siteNameLocator(postText, siteName));
     });
   }
 
@@ -807,6 +837,79 @@ export class ListFeedComponent
     });
   }
 
+  async addEmbedUrlToReply(embedUrl: string): Promise<void> {
+    if (embedUrl) {
+      await test.step(`Adding embedded URL to reply: ${embedUrl}`, async () => {
+        await this.typeInElement(this.replyEditor, ` ${embedUrl}`);
+      });
+    }
+  }
+
+  /**
+   * Adds a reply to a post with embedded URL
+   * @param replyText - The text content for the reply
+   * @param postId - The ID of the post to reply to
+   * @param embedUrl - The URL to embed in the reply
+   * @param mentionUserName - Optional user name to mention
+   * @returns Promise<string> - The reply text
+   */
+  async addReplyToPostWithEmbedUrl(
+    replyText: string,
+    postId: string,
+    embedUrl: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    await test.step(`Add reply to post with embedded URL`, async () => {
+      // Click reply button
+      const replyApiPromise = this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200
+      );
+
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
+
+      await replyApiPromise;
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+
+      // Enter reply text
+      await this.fillInElement(this.replyEditor, replyText);
+
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      }
+
+      // Add embedded URL
+      await this.addEmbedUrlToReply(embedUrl);
+
+      // Submit reply
+      await this.clickOnReplyButton(postId);
+    });
+    return replyText;
+  }
+
+  async verifyEmbedUrlPreviewIsVisible(embedUrl: string): Promise<void> {
+    await test.step(`Verify embed URL preview is visible: ${embedUrl}`, async () => {
+      const embedUrlPreviewLocator = this.embedUrlPreviewLocator;
+      await this.verifier.verifyTheElementIsVisible(embedUrlPreviewLocator, {
+        assertionMessage: `Embed URL preview should be visible for embed URL "${embedUrl}"`,
+      });
+    });
+  }
+
+  async verifyEmbedUrlPreviewIsVisibleInReply(embedUrl: string, replyText: string): Promise<void> {
+    await test.step(`Verify embed URL preview is visible in reply: ${embedUrl}`, async () => {
+      const embedUrlPreviewLocator = this.replyEmbedUrlPreviewLocator(embedUrl);
+      await this.verifier.verifyTheElementIsVisible(embedUrlPreviewLocator, {
+        assertionMessage: `Embed URL preview should be visible in reply "${replyText}"`,
+      });
+    });
+  }
   /**
    * Verifies that a reply is visible under a specific post
    * @param postText - The text of the original post
@@ -1553,6 +1656,19 @@ export class ListFeedComponent
       await this.waitForPostToBeVisible(postText);
       await this.verifier.verifyTheElementIsVisible(this.getShareIconLocator(postText), {
         assertionMessage: `Share icon should be visible for post/comment "${postText}"`,
+      });
+    });
+  }
+
+  async verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void> {
+    await test.step('Verify user name mention is visible on feed post', async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${standardUserFullName}` });
+      await this.verifier.verifyTheElementIsVisible(userMentionLink, {
+        assertionMessage: 'User name mention should be visible on feed post',
       });
     });
   }

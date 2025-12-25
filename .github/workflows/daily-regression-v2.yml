@@ -18,8 +18,9 @@
 name: Daily Regression (v2)
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   - cron: '0 6 * * *'
 
   workflow_dispatch:
     inputs:

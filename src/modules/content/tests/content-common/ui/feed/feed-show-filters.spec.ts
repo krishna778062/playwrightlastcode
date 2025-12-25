@@ -3,11 +3,18 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
+import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { ContentType } from '@/src/modules/content/constants/contentType';
+import { PageContentType } from '@/src/modules/content/constants/pageContentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
 test.describe(
   '@FeedPost - Show Filters Display Correct Shared Feed Posts',
@@ -480,21 +487,330 @@ test.describe(
         }
       }
     );
+  }
+);
 
-    // Enhanced cleanup for all tests (runs after each test including the new CONT-29442 and CONT-29446 tests)
+test.describe(
+  '@CONT-19575 - Recently Published Smart Block - Deactivated Site',
+  {
+    tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19575'],
+  },
+  () => {
+    let albumContentId: string | null = null;
+    let allEmployeesSiteId: string | null = null;
+    let albumTitle: string | null = null;
+
     test.afterEach(async ({ appManagerApiFixture }) => {
-      // Cleanup created content from CONT-29442 tests
-      if (testData.contents && testData.contents.length > 0) {
-        const fixture = appManagerApiFixture;
-        for (const content of testData.contents) {
-          try {
-            await fixture.contentManagementHelper.deleteContent(content.siteId, content.contentId);
-          } catch (error) {
-            console.warn(`Failed to delete content ${content.contentId}:`, error);
-          }
+      // Reactivate site first
+      if (allEmployeesSiteId) {
+        try {
+          await appManagerApiFixture.siteManagementHelper.activateSite(allEmployeesSiteId);
+        } catch (error) {
+          console.warn(`Failed to reactivate site ${allEmployeesSiteId}:`, error);
         }
-        testData.contents = [];
       }
+      // Delete content
+      if (allEmployeesSiteId && albumContentId) {
+        try {
+          await appManagerApiFixture.contentManagementHelper.deleteContent(allEmployeesSiteId, albumContentId);
+        } catch (error) {
+          console.warn(`Failed to delete album ${albumContentId}:`, error);
+        }
+      }
+      // Reset variables
+      albumContentId = null;
+      albumTitle = null;
+    });
+
+    test('verify content from deactivated site is not visible', async ({
+      standardUserFixture,
+      appManagerApiFixture,
+    }) => {
+      tagTest(test.info(), {
+        description:
+          'Verify content from a deactivated site is not shown on Recently Published block on Home & Site Feed',
+        zephyrTestId: 'CONT-19575',
+        storyId: 'CONT-19575',
+      });
+
+      // Get site ID
+      allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+
+      // Generate album name using TestDataGenerator pattern
+      const albumName = TestDataGenerator.generateAlbum({ fileName: FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname) });
+
+      // Create album as Admin (appManagerApiFixture) so it's published
+      await test.step('As Admin: Create album', async () => {
+        const albumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
+          siteId: allEmployeesSiteId!,
+          imageName: 'beach.jpg',
+          options: {
+            albumName: albumName.title,
+            contentDescription: albumName.description,
+          },
+        });
+        albumContentId = albumInfo.contentId;
+        albumTitle = albumInfo.albumName;
+      });
+
+      // Single FeedPage instance for all validations
+      const feedPage = new FeedPage(standardUserFixture.page);
+
+      await test.step('Verify album is visible in Recently Published block', async () => {
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.reloadPage();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(albumTitle!);
+      });
+
+      await test.step('As Admin: Deactivate site', async () => {
+        await appManagerApiFixture.siteManagementHelper.deactivateSite(allEmployeesSiteId!);
+      });
+
+      await test.step('Verify album is NOT visible after site deactivation', async () => {
+        await feedPage.reloadPage();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(albumTitle!);
+      });
+    });
+  }
+);
+
+test.describe(
+  '@CONT-19574 - Recently Published Smart Block',
+  {
+    tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19574'],
+  },
+  () => {
+    let pageContentId: string | null = null;
+    let allEmployeesSiteId: string | null = null;
+    let pageTitle: string | null = null;
+
+    test.afterEach(async ({ appManagerApiFixture }) => {
+      if (allEmployeesSiteId && pageContentId) {
+        try {
+          await appManagerApiFixture.contentManagementHelper.deleteContent(allEmployeesSiteId, pageContentId);
+          console.log(`Deleted page ${pageContentId} during cleanup`);
+        } catch (error) {
+          console.warn(`Failed to delete page ${pageContentId} during cleanup:`, error);
+        }
+      }
+      pageContentId = null;
+      pageTitle = null;
+    });
+
+    test('verify published, unpublished and deleted content visibility on Home and Site Feed', async ({
+      standardUserFixture,
+      appManagerApiFixture,
+      appManagerFixture,
+    }) => {
+      tagTest(test.info(), {
+        description:
+          'In Zeus verify published, unpublished and deleted contents on Recently Published block on Home and Site Feed',
+        zephyrTestId: 'CONT-19574',
+        storyId: 'CONT-19574',
+      });
+
+      // Get site ID
+      allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+
+      // Generate page data using TestDataGenerator
+      const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+      const pageData = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
+
+      // Create page via API as Admin (published by default)
+      await test.step('As Admin: Create page via API', async () => {
+        const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: allEmployeesSiteId!,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+          options: {
+            pageName: pageData.title,
+            contentDescription: pageData.description,
+          },
+        });
+        pageContentId = pageInfo.contentId;
+        pageTitle = pageInfo.pageName;
+      });
+
+      // Single FeedPage instance for all feed validations
+      const feedPage = new FeedPage(standardUserFixture.page);
+      const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId!);
+
+      // ContentPreviewPage for unpublish/republish actions (using appManagerFixture for admin actions)
+      const contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        allEmployeesSiteId!,
+        pageContentId!,
+        ContentType.PAGE.toLowerCase()
+      );
+
+      await test.step('Verify page is visible in Home Feed Recently Published block', async () => {
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.reloadPage();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
+      });
+
+      await test.step('Verify page is visible in Site Feed Recently Published block', async () => {
+        await siteDashboardPage.loadPage();
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
+      });
+
+      await test.step('As Admin: Unpublish content from option menu', async () => {
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.actions.skipPromotionDialogIfVisible('page');
+        await contentPreviewPage.actions.clickOnOptionMenuButton();
+        await contentPreviewPage.actions.unpublishingTheContent();
+        await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+          FEED_TEST_DATA.TOAST_MESSAGES.CONTENT_UNPUBLISHED
+        );
+      });
+
+      await test.step('Verify unpublished content is not visible in Home Feed', async () => {
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.reloadPage();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(pageTitle!);
+      });
+
+      await test.step('As Admin: Republish content from option menu', async () => {
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.actions.publishingTheContent();
+        await contentPreviewPage.assertions.verifyPublishedContentToasteMessage(
+          FEED_TEST_DATA.TOAST_MESSAGES.PUBLISHED_CONTENT
+        );
+      });
+
+      await test.step('Verify content is visible again in Home Feed after republish', async () => {
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.reloadPage();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
+      });
+    });
+  }
+);
+
+test.describe(
+  '@CONT-19571 - Upcoming Events Smart Block',
+  {
+    tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19571'],
+  },
+  () => {
+    test('verify published, unpublished and deleted events visibility on Home and Site Feed', async ({
+      standardUserFixture,
+      appManagerApiFixture,
+      appManagerFixture,
+    }) => {
+      tagTest(test.info(), {
+        description:
+          'In Zeus verify published, unpublished and deleted events on Upcoming Events block on Home and Site Feed',
+        zephyrTestId: 'CONT-19571',
+        storyId: 'CONT-19571',
+      });
+
+      // Get site ID
+      const allEmployeesSiteId =
+        await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+
+      // Generate event data with TestDataGenerator
+      const eventData = TestDataGenerator.generateEvent();
+
+      // Create event as Admin via API (published by default)
+      const eventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
+        siteId: allEmployeesSiteId,
+        contentInfo: { contentType: 'event' },
+        options: {
+          eventName: eventData.title,
+          contentDescription: eventData.description,
+          location: eventData.location,
+        },
+      });
+      const eventContentId = eventInfo.contentId;
+      const eventTitle = eventInfo.eventName;
+
+      // Single FeedPage instance for all feed validations
+      const feedPage = new FeedPage(standardUserFixture.page);
+
+      // ContentPreviewPage for unpublish/republish/delete actions (using appManagerFixture for admin actions)
+      const contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        allEmployeesSiteId,
+        eventContentId,
+        ContentType.EVENT.toLowerCase()
+      );
+
+      // Navigate to Home Feed once, verify event is visible
+      await test.step('Verify event is visible in Home Feed upcoming events block', async () => {
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
+      });
+
+      // Unpublish event and verify
+      await test.step('As Admin: Unpublish event and verify not visible', async () => {
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.actions.skipPromotionDialogIfVisible('event');
+        await contentPreviewPage.actions.clickOnOptionMenuButton();
+        await contentPreviewPage.actions.unpublishingTheContent();
+        await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+          FEED_TEST_DATA.TOAST_MESSAGES.CONTENT_UNPUBLISHED
+        );
+
+        // Verify unpublished event is NOT visible
+        await feedPage.reloadPage();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
+      });
+
+      // Republish event and verify
+      await test.step('As Admin: Republish event and verify visible', async () => {
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.actions.publishingTheContent();
+
+        // Verify republished event is visible
+        await feedPage.reloadPage();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
+      });
+
+      // Delete event and verify
+      await test.step('As Admin: Delete event and verify not visible', async () => {
+        await contentPreviewPage.loadPage();
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.actions.deleteTheContent();
+
+        // Verify deleted event is NOT visible
+        await feedPage.reloadPage();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.actions.clickOnShowOption('all');
+        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
+      });
     });
   }
 );
