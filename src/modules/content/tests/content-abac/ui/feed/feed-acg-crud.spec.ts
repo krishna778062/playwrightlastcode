@@ -1518,5 +1518,124 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify SU can edit only their own Feed Posts (with Limited Visibility) on Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42188', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            "ABAC: Verify Standard User can edit their own Feed post with Limited Visibility but cannot edit other users' restricted posts",
+          zephyrTestId: 'CONT-42188',
+          storyId: 'CONT-42188',
+        });
+
+        let appManagerPostText: string;
+        let suPostText: string;
+
+        // ==================== Add SU as FO of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== App Manager creates a Feed post WITH Limited Visibility ====================
+        await test.step('App Manager creates a Feed post with Limited Visibility on Home Feed', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPage();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          appManagerPostText = TestDataGenerator.generateRandomText('App Manager Restricted Post', 3, true);
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await appManagerFeedPage.actions.createAndPostWithLimitVisibility({
+            text: appManagerPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(postResult.postText);
+          await appManagerFeedPage.assertions.verifyPostHasLimitVisibility(appManagerPostText);
+        });
+
+        // ==================== SU creates their own Feed post WITH Limited Visibility ====================
+        await test.step('SU creates their own Feed post with Limited Visibility (Engineering audience)', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          suPostText = TestDataGenerator.generateRandomText('SU Own Restricted Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPostWithLimitVisibility({
+            text: suPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+          await feedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== SU verifies Edit option IS visible on own restricted post ====================
+        await test.step('SU verifies Edit option is visible on their own restricted post', async () => {
+          await feedPage.actions.openPostOptionsMenu(suPostText);
+          await feedPage.assertions.verifyEditOptionVisible(suPostText);
+        });
+
+        // ==================== SU edits their own restricted post successfully ====================
+        let updatedSuPostText: string;
+        await test.step('SU edits their own restricted post and verifies Limited Visibility preserved', async () => {
+          updatedSuPostText = TestDataGenerator.generateRandomText('SU Edited Restricted Post', 3, true);
+
+          await feedPage.actions.openPostOptionsMenu(suPostText);
+          await feedPage.actions.editPost(suPostText, updatedSuPostText);
+
+          await feedPage.assertions.waitForPostToBeVisible(updatedSuPostText);
+          await feedPage.assertions.verifyPostHasLimitVisibility(updatedSuPostText);
+
+          await feedPage.actions.deletePost(updatedSuPostText);
+        });
+
+        // ==================== SU verifies Edit option is NOT visible on App Manager's restricted post ====================
+        await test.step("SU verifies Edit option is NOT visible on App Manager's restricted post", async () => {
+          await feedPage.reloadPage();
+          await feedPage.assertions.waitForPostToBeVisible(appManagerPostText);
+
+          await feedPage.actions.openPostOptionsMenu(appManagerPostText);
+
+          await feedPage.assertions.verifyEditOptionNotVisible(appManagerPostText);
+        });
+
+        // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
+        await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
   }
 );
