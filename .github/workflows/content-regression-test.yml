@@ -73,9 +73,10 @@ on:
         required: false
         default: false
         type: boolean
-  schedule:
-    # Run daily at 5:00 AM UTC (10:30 AM IST)
-    - cron: '0 5 * * *'
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   # Run daily at 5:00 AM UTC (10:30 AM IST)
+  #   - cron: '0 5 * * *'
 
 permissions:
   contents: read

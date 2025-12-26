@@ -32,7 +32,7 @@ export class QuickTaskPage extends BasePage {
     );
     this.titleInput = page.getByRole('textbox', { name: 'Add title' });
     this.contextInput = page.getByRole('textbox', { name: 'Add context' });
-    this.setPriorityButton = page.getByRole('button', { name: 'Set priority' });
+    this.setPriorityButton = page.getByRole('combobox', { name: 'Set priority' });
     this.highPriorityOption = page.locator('span').filter({ hasText: 'High' }).first();
     this.selectDateButton = page.getByRole('button', { name: 'Select date...' });
     this.addIndividualsCombobox = page.getByRole('combobox', { name: 'Add individuals' });
@@ -73,6 +73,7 @@ export class QuickTaskPage extends BasePage {
     await this.titleInput.fill(title);
     await this.contextInput.click();
     await this.contextInput.fill(context);
+    await this.setPriorityButton.waitFor({ state: 'visible', timeout: 15000 });
     await this.setPriorityButton.click();
     await this.highPriorityOption.click();
 
@@ -95,6 +96,7 @@ export class QuickTaskPage extends BasePage {
     await this.titleInput.fill(title);
     await this.contextInput.click();
     await this.contextInput.fill(context);
+    await this.setPriorityButton.waitFor({ state: 'visible', timeout: 15000 });
     await this.setPriorityButton.click();
     await this.highPriorityOption.click();
   }
