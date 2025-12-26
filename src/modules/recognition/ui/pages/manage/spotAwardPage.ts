@@ -26,6 +26,11 @@ export class SpotAwardPage extends BasePage {
   readonly dateFrom: Locator;
   readonly dateTo: Locator;
   readonly awardGuidance: Locator;
+  readonly timesInput: Locator;
+  readonly timesPlus: Locator;
+  readonly timesMinus: Locator;
+  readonly frequencyOption: Locator;
+  readonly createButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -45,12 +50,21 @@ export class SpotAwardPage extends BasePage {
     this.saveChangesButton = this.container.getByRole('button', { name: 'Save changes' });
     this.submitButton = this.container.getByRole('button', { name: 'Submit' });
     this.companyValuesField = this.container.locator('[data-testid*="company values"] input[type="text"]');
-    this.whoCanGiveAwardOption = this.container.locator('[id="spotAwardGiverTarget"]');
-    this.whoCanReceiveAwardOption = this.container.locator('[id="spotAwardReceiverTarget"]');
+    // this.whoCanGiveAwardOption = this.container.locator('[id="spotAwardGiverTarget"]');
+    // this.whoCanReceiveAwardOption = this.container.locator('[id="spotAwardReceiverTarget"]');
+    this.whoCanGiveAwardOption = this.container.getByTestId('field-Who can give this award').getByTestId('SelectInput');
+    this.whoCanReceiveAwardOption = this.container
+      .getByTestId('field-Who can receive this award')
+      .getByTestId('SelectInput');
     this.extraField = this.container.locator('input[id*="react-select-"]');
     this.dateFrom = this.container.getByRole('button', { name: 'Date from*' });
     this.dateTo = this.container.getByRole('button', { name: 'Date to*' });
     this.awardGuidance = this.container.getByRole('textbox', { name: 'Award guidance(optional)' });
+    this.timesInput = this.container.locator('[id="limitPerPeriod"]');
+    this.timesMinus = this.container.getByRole('button', { name: 'Minus' });
+    this.timesPlus = this.container.getByRole('button', { name: 'Plus' });
+    this.frequencyOption = this.container.getByTestId('field-Frequency').getByTestId('SelectInput');
+    this.createButton = this.container.getByRole('button', { name: 'Create', exact: true });
   }
 
   /**
@@ -330,7 +344,12 @@ export class SpotAwardPage extends BasePage {
    * @param radioName - Name of the radio button
    */
   selectHowOftenAwardGiven(radioName: 'Unlimited' | 'Limited'): Locator {
-    return this.container.getByRole('radio', { name: radioName });
+    // Scope to the "How often can this award be given" field container to avoid matching other radio buttons
+    const fieldContainer = this.container
+      .locator('*')
+      .filter({ hasText: /How often can this award be given/i })
+      .first();
+    return fieldContainer.getByRole('radio', { name: radioName, exact: true }).first();
   }
 
   /**
@@ -351,7 +370,7 @@ export class SpotAwardPage extends BasePage {
   async fillSpotAwardFormPageOne(
     awardName: string,
     awardDescription: string = 'Spot award description',
-    badgeIndex: number = 1
+    badgeIndex: number = 2
   ): Promise<void> {
     await test.step('Filling spot award form page one', async () => {
       await this.awardNameField.fill(awardName);
@@ -361,6 +380,49 @@ export class SpotAwardPage extends BasePage {
     });
   }
 
+  /**
+   * Get dropdown option locator
+   * @param optionText - Text of the option to find
+   */
+  private getDropdownOption(optionText: string): Locator {
+    return this.page
+      .locator('[role="option"], [role="menuitem"], [data-testid="SelectInput"]')
+      .filter({ hasText: optionText })
+      .first();
+  }
+
+  /**
+   * Select option from combobox (React Select or native select)
+   * @param comboboxLocator - Locator for the combobox
+   * @param optionText - Text of the option to select
+   */
+  async selectComboboxOption(comboboxLocator: Locator, optionText: string): Promise<void> {
+    await test.step(`Selecting "${optionText}" from combobox`, async () => {
+      // Try native selectOption first
+      try {
+        await comboboxLocator.selectOption({ label: optionText });
+        return;
+      } catch {
+        // If that fails, treat it as a React Select combobox
+      }
+
+      // Click to open the combobox
+      try {
+        await comboboxLocator.click();
+      } catch {
+        // Fallback: try clicking parent container if locator itself isn't clickable
+        const parent = comboboxLocator.locator('..');
+        await parent.click();
+      }
+
+      // Wait for dropdown to open and find the option
+      const optionLocator = this.getDropdownOption(optionText);
+      await expect(optionLocator, `expecting option "${optionText}" to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await optionLocator.click();
+    });
+  }
   /**
    * Fill spot award configuration
    * @param whoCanGive - Who can give the award
@@ -380,13 +442,15 @@ export class SpotAwardPage extends BasePage {
     dateFrom?: string,
     dateTo?: string,
     howOften: 'Unlimited' | 'Limited' = 'Unlimited',
-    guidance: string = 'Spot award guidance'
+    guidance: string = 'Spot award guidance',
+    timesValue: string = '5',
+    frequency: string = 'Monthly'
   ): Promise<void> {
     await test.step('Filling spot award configuration', async () => {
-      await this.whoCanGiveAwardOption.selectOption(whoCanGive);
-      await this.whoCanReceiveAwardOption.selectOption(whoCanReceive);
+      await this.selectComboboxOption(this.whoCanGiveAwardOption, whoCanGive);
+      await this.selectComboboxOption(this.whoCanReceiveAwardOption, whoCanReceive);
 
-      if (location) {
+      if (location && whoCanReceive === 'Employees in a location') {
         await this.extraField.fill(location);
         await this.extraFieldSelectOption(location).click();
       }
@@ -403,11 +467,88 @@ export class SpotAwardPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
         await this.dateCell(dateTo).click();
+      } else {
+        await expect(
+          this.selectAwardPeriod('Indefinitely'),
+          'expecting Indefinitely period to be checked'
+        ).toHaveAttribute('checked');
+      }
+      // Handle how often
+      if (howOften === 'Limited') {
+        await this.selectHowOftenAwardGiven('Limited').check();
+        await this.timesInput.fill(timesValue);
+        await expect(this.timesInput, `expecting times input to have value ${timesValue}`).toHaveValue(timesValue);
+        await this.timesPlus.click();
+        const incrementedValue = String(Number(timesValue) + 1);
+        await expect(this.timesInput, `expecting times input to have value ${incrementedValue}`).toHaveValue(
+          incrementedValue
+        );
+        await this.timesMinus.click();
+        await expect(this.timesInput, `expecting times input to have value ${timesValue}`).toHaveValue(timesValue);
+      } else {
+        await this.selectHowOftenAwardGiven('Unlimited').check();
       }
 
-      await this.selectHowOftenAwardGiven(howOften).check();
+      // Handle frequency for indefinitely + limited
+      if (awardPeriod === 'Indefinitely' && howOften === 'Limited') {
+        await this.frequencyOption.selectOption(frequency);
+      }
       await this.awardGuidance.fill(guidance);
       await this.createAndScheduleButton.click();
+    });
+  }
+
+  /**
+   * Fill complete spot award form and create award
+   * @param awardName - Name of the award
+   * @param awardDescription - Description of the award (defaults to awardName)
+   * @param badgeIndex - Index of badge to select (default: 2)
+   * @param giverType - Who can give the award
+   * @param receiverType - Who can receive the award
+   * @param location - Location if receiverType includes 'location'
+   * @param awardPeriod - Award period option ('Indefinitely' | 'During a specified period')
+   * @param howOften - How often award can be given ('Unlimited' | 'Limited')
+   * @param guidance - Award guidance text (default: 'Test Guidance')
+   * @param timesValue - Number of times for limited awards (default: '5')
+   * @param frequency - Frequency option for indefinitely + limited awards (default: 'Monthly')
+   */
+  async fillCompleteSpotAwardFormAndCreate(
+    awardName: string,
+    awardDescription: string,
+    badgeIndex: number,
+    giverType: string,
+    receiverType: string,
+    location: string,
+    awardPeriod: 'Indefinitely' | 'During a specified period',
+    howOften: 'Unlimited' | 'Limited',
+    guidance: string = 'Test Guidance',
+    timesValue: string = '5',
+    frequency: string = 'Monthly'
+  ): Promise<void> {
+    await test.step('Fill out required details', async () => {
+      // Fill page one
+      await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex);
+
+      // Wait for configuration page to load
+      await expect(this.whoCanGiveAwardOption, 'expecting who can give award option to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Handle award period
+      const from = getFormattedDate({ days: 1 }).replace(',', '');
+      const to = getFormattedDate({ days: 5 }).replace(',', '');
+      await this.fillSpotAwardConfiguration(
+        giverType,
+        receiverType,
+        location,
+        awardPeriod,
+        from,
+        to,
+        howOften,
+        guidance,
+        timesValue,
+        frequency
+      );
     });
   }
 
@@ -781,6 +922,126 @@ export class SpotAwardPage extends BasePage {
       const awardCell = this.page.locator('table tbody tr').filter({ hasText: awardName });
       const editDateCount = await awardCell.locator('td').nth(5).count();
       expect(editDateCount, 'expecting edit date count to be greater than zero').toBeGreaterThan(expectedCount);
+    });
+  }
+
+  /**
+   * Validate award name field character limit
+   * @param longText - Text that exceeds 100 characters
+   * @param validText - Text that is within 100 characters
+   */
+  async validateAwardNameFieldCharacterLimit(longText: string, validText: string): Promise<void> {
+    await test.step('Validate awards name field', async () => {
+      await expect(this.header, 'expecting header to be correct').toHaveText('Create spot award');
+      await this.awardNameField.fill(longText);
+      await this.awardNameField.blur();
+      await expect(
+        this.page.getByText('Must not exceed 100 characters'),
+        'expecting validation error to be visible'
+      ).toBeVisible();
+      await this.awardNameField.fill(validText);
+      await this.awardNameField.blur();
+      await expect(
+        this.page.getByText('Must not exceed 100 characters'),
+        'expecting validation error to not be visible'
+      ).not.toBeVisible();
+    });
+  }
+
+  /**
+   * Validate award description field character limit
+   * @param longText - Text that exceeds 500 characters
+   * @param validText - Text that is within 500 characters
+   */
+  async validateAwardDescriptionFieldCharacterLimit(longText: string, validText: string): Promise<void> {
+    await test.step('Validate awards description field', async () => {
+      await this.awardDescriptionField.fill(longText);
+      await this.awardDescriptionField.blur();
+      await expect(
+        this.page.getByText('Must not exceed 500 characters'),
+        'expecting validation error to be visible'
+      ).toBeVisible();
+      await this.awardDescriptionField.fill(validText);
+      await this.awardDescriptionField.blur();
+      await expect(
+        this.page.getByText('Must not exceed 500 characters'),
+        'expecting validation error to not be visible'
+      ).not.toBeVisible();
+    });
+  }
+
+  /**
+   * Validate award guidance field character limit
+   * @param longText - Text that exceeds 1500 characters
+   * @param validText - Text that is within 1500 characters
+   */
+  async validateAwardGuidanceFieldCharacterLimit(longText: string, validText: string): Promise<void> {
+    await test.step('Validate awards award guidance field', async () => {
+      await this.nextButton.click();
+      await this.awardGuidance.fill(longText);
+      await this.awardGuidance.blur();
+      await expect(
+        this.page.getByText('Must not exceed 1500 characters'),
+        'expecting validation error to be visible'
+      ).toBeVisible();
+      await this.awardGuidance.fill(validText);
+      await this.awardGuidance.blur();
+      await expect(
+        this.page.getByText('Must not exceed 1500 characters'),
+        'expecting validation error to not be visible'
+      ).not.toBeVisible();
+    });
+  }
+
+  /**
+   * Verify new spot award page elements are visible
+   */
+  async verifyNewSpotAwardPageElements(): Promise<void> {
+    await test.step('Clicked on New Spot awards', async () => {
+      await expect(this.container, 'expecting container to be visible').toBeVisible();
+      await expect(this.cancelButton, 'expecting cancel button to be visible').toBeVisible();
+      await expect(this.saveDraftButton, 'expecting save draft button to be visible').toBeVisible();
+      await expect(this.nextButton, 'expecting next button to be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify created award in table with menu options
+   * @param awardName - Name of the award to verify
+   */
+  async verifyCreatedAwardInTable(awardName: string): Promise<void> {
+    await test.step('Validate the created award', async () => {
+      await this.page.waitForTimeout(2000);
+      await this.verifyAwardNameInTable(awardName);
+      await this.subTabIndicator.getThreeDotsButton(awardName).click();
+      await expect(this.subTabIndicator.editMenuItem, 'expecting edit menu item to be visible').toBeVisible();
+      await expect(
+        this.subTabIndicator.deactivateMenuItem,
+        'expecting deactivate menu item to be visible'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify new spot award header and cancel button
+   */
+  async verifyNewSpotAwardHeader(): Promise<void> {
+    await test.step('Clicked on New Spot awards', async () => {
+      await expect(this.header, 'expecting header to be correct').toHaveText('Create spot award');
+      await expect(this.cancelButton, 'expecting cancel button to be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Click cancel button and verify navigation to recognition page
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   */
+  async clickCancelAndVerifyNavigation(manageRecognitionPage: any): Promise<void> {
+    await test.step('Click on cancel button and validate', async () => {
+      await this.cancelButton.click();
+      await expect(manageRecognitionPage.recognitionHeader, 'expecting recognition header to be visible').toHaveText(
+        'Recognition'
+      );
     });
   }
 }
