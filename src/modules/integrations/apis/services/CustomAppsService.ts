@@ -19,9 +19,8 @@ export interface AuthDetails {
   authUrl?: string;
   tokenUrl?: string;
   codeChallengeMethod?: string;
-  clientIdLabel?: string;
-  secretKeyLabel?: string;
   tokenRequestHeadersProvided?: boolean;
+  tokenRequestHeaders?: string;
   [key: string]: any;
 }
 
@@ -274,14 +273,12 @@ export class CustomIntegrationsService {
     return test.step(`${enabled ? 'Enabling' : 'Disabling'} custom connector: ${connectorId}`, async () => {
       const tenantConfig = getTenantConfig();
       const roleId = tenantConfig.TENANT_USER_ROLE_ID;
-
       const requestOptions: {
         data: { enabled: boolean };
         headers?: { 'x-smtip-tenant-user-role': string };
       } = {
         data: { enabled },
       };
-
       if (roleId) {
         requestOptions.headers = {
           'x-smtip-tenant-user-role': roleId.toString(),

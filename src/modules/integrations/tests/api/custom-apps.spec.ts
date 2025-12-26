@@ -35,7 +35,7 @@ test.describe(
     });
 
     test(
-      'verify app manager can create custom connector via API',
+      'verify app manager can create custom connector',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -51,7 +51,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can get custom connector by ID via API',
+      'verify app manager can get custom connector by ID',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -68,7 +68,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can update custom connector via API',
+      'verify app manager can update custom connector',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -91,7 +91,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list custom connectors via API',
+      'verify app manager can list custom connectors',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -114,7 +114,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can delete custom connector via API',
+      'verify app manager can delete custom connector',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
       },
@@ -145,7 +145,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can enable custom connector via API',
+      'verify app manager can enable custom connector',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY],
       },
@@ -165,7 +165,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can disable custom connector via API',
+      'verify app manager can disable custom connector',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY],
       },
@@ -191,7 +191,7 @@ test.describe(
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30173',
+          zephyrTestId: 'INT-30176',
         });
 
         const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
@@ -230,7 +230,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list custom connectors with pagination via API',
+      'verify app manager can list custom connectors with pagination',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -262,7 +262,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list custom connectors with different sort options via API',
+      'verify app manager can list custom connectors with different sort options',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -295,7 +295,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can search custom connectors by name via API',
+      'verify app manager can search custom connectors by name',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -319,7 +319,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list prebuilt connectors via API',
+      'verify app manager can list prebuilt connectors',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -341,7 +341,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list only custom connectors via API',
+      'verify app manager can list only custom connectors',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -363,7 +363,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can get connector connections with user type via API',
+      'verify app manager can get connector connections with user type',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -383,7 +383,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can update connector category via API',
+      'verify app manager can update connector category',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -406,7 +406,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can create connector with different auth types via API',
+      'verify app manager can create connector with different auth types',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -424,7 +424,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can create connector with different categories via API',
+      'verify app manager can create connector with different categories',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -458,7 +458,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can create connector with user connection type via API',
+      'verify app manager can create connector with user connection type',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -475,7 +475,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list connectors with default parameters via API',
+      'verify app manager can list connectors with default parameters',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -490,7 +490,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can update connector connection type via API',
+      'verify app manager can update connector connection type',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -513,7 +513,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can update connector auth type via API',
+      'verify app manager can update connector auth type',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -541,7 +541,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can update connector auth details via API',
+      'verify app manager can update connector auth details',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -568,7 +568,7 @@ test.describe(
     );
 
     test(
-      'verify app manager can list custom connectors with combined filters via API',
+      'verify app manager can list custom connectors with combined filters',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
@@ -794,13 +794,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can create custom connector with logo upload via API',
+      'verify app manager can create custom connector with logo upload',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30201',
+          zephyrTestId: 'INT-30223',
         });
 
         const payload = appManagerApiFixture.customIntegrationsHelper.buildValidConnectorPayload();
@@ -814,13 +814,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can create custom connector with PNG logo via API',
+      'verify app manager can create custom connector with PNG logo',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30202',
+          zephyrTestId: 'INT-30224',
         });
 
         const payload = appManagerApiFixture.customIntegrationsHelper.buildValidConnectorPayload();
@@ -834,13 +834,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can update custom connector logo via API',
+      'verify app manager can update custom connector logo',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30203',
+          zephyrTestId: 'INT-30225',
         });
 
         const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
@@ -861,7 +861,7 @@ test.describe(
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30205',
+          zephyrTestId: 'INT-30226',
         });
 
         const invalidFileName = 'nonexistent-file.txt';
@@ -872,51 +872,43 @@ test.describe(
     );
 
     test(
-      'verify app manager can create connector with OAuth auth type via API',
+      'verify app manager can list connectors filtered by prebuilt type',
       {
-        tag: [TestPriority.P9, TestGroupType.REGRESSION],
+        tag: [TestPriority.P3, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30206',
+          zephyrTestId: 'INT-30227',
         });
 
-        const payload = appManagerApiFixture.customIntegrationsHelper.buildOAuthConnectorPayload(
-          `Test OAuth Connector ${Date.now()}`
-        );
-        const connectorResponse = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegration(payload);
-        await customIntegrationsApiHelper.validateConnectorCreation(connectorResponse);
-        ApiResponseAssertions.expectSuccess(connectorResponse);
+        // Test filtering by prebuilt type (hybrid)
+        const prebuiltResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'hybrid',
+          sort: 'name',
+          order: 'asc',
+          page: 1,
+          limit: 50,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(prebuiltResponse);
+
+        // Verify all returned connectors are prebuilt (hybrid type)
+        if (prebuiltResponse.data && prebuiltResponse.data.length > 0) {
+          prebuiltResponse.data.forEach((connector: any) => {
+            expect(['hybrid', 'prebuilt']).toContain(connector.type);
+          });
+        }
       }
     );
 
     test(
-      'verify app manager can create connector with OAuth-PKCE auth type via API',
-      {
-        tag: [TestPriority.P9, TestGroupType.REGRESSION],
-      },
-      async ({ appManagerApiFixture }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-30207',
-        });
-
-        const payload = appManagerApiFixture.customIntegrationsHelper.buildOAuthPKCEConnectorPayload(
-          `Test OAuth-PKCE Connector ${Date.now()}`
-        );
-        const connectorResponse = await appManagerApiFixture.customIntegrationsHelper.createCustomIntegration(payload);
-        await customIntegrationsApiHelper.validateConnectorCreation(connectorResponse);
-        ApiResponseAssertions.expectSuccess(connectorResponse);
-      }
-    );
-
-    test(
-      'verify app manager can get connector connections with both app and user types via API',
+      'verify app manager can get connector connections with both app and user types',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30208',
+          zephyrTestId: 'INT-30228',
         });
 
         const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({
@@ -938,13 +930,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can list connectors filtered by category via API',
+      'verify app manager can list connectors filtered by category',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30209',
+          zephyrTestId: 'INT-30229',
         });
 
         const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({
@@ -965,13 +957,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can update connector with partial fields via API',
+      'verify app manager can update connector with partial fields',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30210',
+          zephyrTestId: 'INT-30230',
         });
 
         const connectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
@@ -989,13 +981,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can list connectors with edge case pagination via API',
+      'verify app manager can list connectors with edge case pagination',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30211',
+          zephyrTestId: 'INT-30231',
         });
 
         const page0Response = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
@@ -1015,13 +1007,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can update connector to remove logo via API',
+      'verify app manager can update connector to remove logo',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30212',
+          zephyrTestId: 'INT-30232',
         });
 
         const payload = appManagerApiFixture.customIntegrationsHelper.buildValidConnectorPayload();
@@ -1048,13 +1040,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can list connectors filtered by enabled status via API',
+      'verify app manager can list connectors filtered by enabled status',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30213',
+          zephyrTestId: 'INT-30233',
         });
 
         const enabledConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
@@ -1078,13 +1070,13 @@ test.describe(
     );
 
     test(
-      'verify app manager can list connectors filtered by connection type via API',
+      'verify app manager can list connectors filtered by connection type',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-30214',
+          zephyrTestId: 'INT-30234',
         });
 
         const appConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId({

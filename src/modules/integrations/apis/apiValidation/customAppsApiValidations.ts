@@ -27,14 +27,6 @@ export class ApiResponseAssertions {
   }
 
   /**
-   * Asserts forbidden error response (403)
-   */
-  static expectForbidden(response: any): void {
-    const hasError = response.error_code || response.errors || response.status === 403;
-    expect(hasError, 'Expected forbidden error (403)').toBeTruthy();
-  }
-
-  /**
    * Asserts validation error response (400)
    */
   static expectValidationError(response: any, expectedErrorCode?: string): void {
@@ -67,17 +59,6 @@ export class ApiResponseAssertions {
   static expectValidConnectorId(connectorId: string | undefined): void {
     expect(connectorId, 'Connector ID should exist').toBeTruthy();
     expect(typeof connectorId, 'Connector ID should be a string').toBe('string');
-  }
-
-  /**
-   * Asserts error response with specific status code
-   */
-  static expectErrorStatus(response: any, statusCode: number): void {
-    const status = typeof response.status === 'number' ? response.status : statusCode;
-    expect(
-      status === statusCode || response.error_code || response.errors,
-      `Expected error status ${statusCode}`
-    ).toBeTruthy();
   }
 }
 
@@ -220,16 +201,6 @@ export class CustomIntegrationsApiHelper {
       await this.validateConnectorIdentification(connectorResponse, expectedName);
       await this.validateConnectorMetadata(connectorResponse);
     });
-  }
-
-  /**
-   * Validates connector update with automatic name extraction
-   * @param connectorResponse - The connector update response to validate
-   */
-  async validateConnectorUpdateAuto(connectorResponse: CustomConnectorResponse): Promise<void> {
-    const connector = this.getConnectorData(connectorResponse);
-    const connectorName = connector?.name;
-    await this.validateConnectorUpdate(connectorResponse, connectorName);
   }
 
   /**

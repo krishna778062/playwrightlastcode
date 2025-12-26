@@ -120,16 +120,47 @@ export class CustomIntegrationsHelper {
   }
 
   /**
-   * Builds a connector payload for a specific category
-   * @param name - Connector name
-   * @param category - Connector category
-   * @returns The connector payload
+   * Builds OAuth auth details with common defaults
+   * @param subAuthType - OAuth sub-auth type
+   * @param codeChallengeMethod - Code challenge method (empty string for regular OAuth)
+   * @param overrides - Optional overrides
+   * @returns Auth details object
    */
-  buildConnectorPayloadForCategory(
-    name: string,
-    category: CustomConnectorCreatePayload['category']
-  ): CustomConnectorCreatePayload {
-    return this.buildValidConnectorPayload({ name, category });
+  private buildOAuthAuthDetails(
+    subAuthType: string,
+    codeChallengeMethod: string,
+    overrides: Partial<AuthDetails> = {}
+  ): AuthDetails {
+    const cleanOverrides = Object.fromEntries(
+      Object.entries(overrides).filter(([_, value]) => value !== undefined)
+    ) as Partial<AuthDetails>;
+
+    const authDetails: AuthDetails = {
+      clientId: 'test-client-id',
+      clientSecret: 'test-client-secret',
+      authUrl: 'https://auth.example.com/authorize',
+      tokenUrl: 'https://auth.example.com/token',
+      baseUrl: 'https://api.example.com',
+      subAuthType,
+      codeChallengeMethod,
+      tokenRequestHeadersProvided: false,
+      ...cleanOverrides,
+    };
+
+    // Ensure required fields are always set
+    if (!authDetails.subAuthType) {
+      authDetails.subAuthType = subAuthType;
+    }
+    if (authDetails.codeChallengeMethod === undefined || authDetails.codeChallengeMethod === '') {
+      authDetails.codeChallengeMethod = codeChallengeMethod;
+    }
+
+    // If tokenRequestHeadersProvided is true, include tokenRequestHeaders
+    if (authDetails.tokenRequestHeadersProvided === true && !authDetails.tokenRequestHeaders) {
+      authDetails.tokenRequestHeaders = 'Content-Type: application/x-www-form-urlencoded';
+    }
+
+    return authDetails;
   }
 
   /**
@@ -145,16 +176,7 @@ export class CustomIntegrationsHelper {
       category: 'other',
       connectionType: 'app',
       authType: 'oauth',
-      authDetails: {
-        clientId: 'test-client-id',
-        clientSecret: 'test-client-secret',
-        authUrl: 'https://auth.example.com/authorize',
-        tokenUrl: 'https://auth.example.com/token',
-        baseUrl: 'https://api.example.com',
-        subAuthType: 'Auth Code',
-        codeChallengeMethod: null as any,
-        ...overrides,
-      },
+      authDetails: this.buildOAuthAuthDetails('Auth Code', '', overrides),
     };
   }
 
@@ -171,27 +193,8 @@ export class CustomIntegrationsHelper {
       category: 'other',
       connectionType: 'app',
       authType: 'oauth',
-      authDetails: {
-        clientId: 'test-client-id',
-        clientSecret: 'test-client-secret',
-        authUrl: 'https://auth.example.com/authorize',
-        tokenUrl: 'https://auth.example.com/token',
-        baseUrl: 'https://api.example.com',
-        subAuthType: 'Auth Code with PKCE',
-        codeChallengeMethod: 'Plain',
-        ...overrides,
-      },
+      authDetails: this.buildOAuthAuthDetails('Auth Code with PKCE', 'Plain', overrides),
     };
-  }
-
-  /**
-   * Normalizes response to handle both APIResponse objects and parsed JSON
-   */
-  private normalizeResponse(response: any): any {
-    if (response && typeof response.json === 'function') {
-      return response;
-    }
-    return response;
   }
 
   /**
@@ -200,40 +203,8 @@ export class CustomIntegrationsHelper {
    * @returns The connector ID or undefined
    */
   parseConnectorId(response: any): string | undefined {
-    const json = this.normalizeResponse(response);
+    const json = response && typeof response.json === 'function' ? response : response;
     return json?.data?.id || json?.result?.id || json?.id;
-  }
-
-  /**
-   * Parses connector data from response
-   * @param response - The API response
-   * @returns The connector data object
-   */
-  parseConnectorData(response: any): any {
-    const json = this.normalizeResponse(response);
-    return json?.data || json?.result || json;
-  }
-
-  /**
-   * Parses list items from list response
-   * @param response - The API response
-   * @returns Array of connector items
-   */
-  parseConnectorList(response: any): any[] {
-    const json = this.normalizeResponse(response);
-    if (Array.isArray(json?.result)) {
-      return json.result;
-    }
-    if (json?.result?.listOfItems) {
-      return json.result.listOfItems;
-    }
-    if (json?.data?.listOfItems) {
-      return json.data.listOfItems;
-    }
-    if (json?.listOfItems) {
-      return json.listOfItems;
-    }
-    return [];
   }
 
   /**
@@ -422,7 +393,7 @@ export class CustomIntegrationsHelper {
    * @returns The connector name or undefined
    */
   parseConnectorName(response: any): string | undefined {
-    const json = this.normalizeResponse(response);
+    const json = response && typeof response.json === 'function' ? response : response;
     return json?.data?.name || json?.result?.name || json?.name;
   }
 
@@ -475,33 +446,6 @@ export class CustomIntegrationsHelper {
   }
 
   /**
-   * Cleans up a specific connector
-   * Handles errors gracefully to ensure cleanup completes
-   */
-  async cleanupConnector(connectorId: string): Promise<void> {
-    try {
-      await this.deleteCustomIntegration(connectorId);
-      const index = this.createdConnectors.indexOf(connectorId);
-      if (index > -1) {
-        this.createdConnectors.splice(index, 1);
-      }
-    } catch (error) {
-      log.warn(`Failed to cleanup connector ${connectorId}`, error);
-    }
-  }
-
-  /**
-   * Attempts to create connector with empty name
-   * Returns error response instead of throwing for negative testing
-   */
-  async attemptCreationWithEmptyName(): Promise<any> {
-    return this.attemptApiCall(() => {
-      const invalidPayload = this.buildInvalidConnectorPayload({ name: '' });
-      return this.createCustomIntegration(invalidPayload as CustomConnectorCreatePayload);
-    });
-  }
-
-  /**
    * Attempts to create connector with invalid base URL
    * Returns error response instead of throwing for negative testing
    */
@@ -524,20 +468,8 @@ export class CustomIntegrationsHelper {
    */
   async attemptCreationWithInvalidRedirectUri(): Promise<any> {
     return this.attemptApiCall(() => {
-      const invalidPayload = this.buildValidConnectorPayload({
-        authType: 'oauth',
-        authDetails: {
-          clientId: 'test-client-id',
-          clientSecret: 'test-client-secret',
-          redirectUri: 'not-a-valid-url',
-          authUrl: 'https://auth.example.com',
-          tokenUrl: 'https://token.example.com',
-          baseUrl: 'https://api.example.com',
-          subAuthType: 'oauth2',
-          tokenRequestHeadersProvided: false,
-          clientIdLabel: 'Client ID',
-          secretKeyLabel: 'Secret Key',
-        },
+      const invalidPayload = this.buildOAuthConnectorPayload(`Test Connector ${Date.now()}`, {
+        redirectUri: 'not-a-valid-url',
       });
       return this.createCustomIntegration(invalidPayload);
     });
@@ -737,16 +669,18 @@ export class CustomIntegrationsHelper {
     }
 
     if (error.response) {
-      return this.normalizeResponse(error.response);
+      const response = error.response && typeof error.response.json === 'function' ? error.response : error.response;
+      return response;
     }
 
-    if (error?.message?.includes('HTTP Status') || error?.message?.includes('HTTP')) {
-      const statusMatch = error.message.match(/HTTP (\d+)/) || error.message.match(/HTTP Status: (\d+)/);
-      const errorCodeMatch = error.message.match(/Error Code: ([^,]+)/);
+    // Extract from error message if it contains HTTP status info
+    if (error?.message?.includes('HTTP')) {
+      const statusMatch = error.message.match(/HTTP(?: Status)?:?\s*(\d+)/);
+      const errorCodeMatch = error.message.match(/Error Code:\s*([^,]+)/);
       return {
         status: statusMatch ? parseInt(statusMatch[1]) : 400,
-        error_code: errorCodeMatch ? errorCodeMatch[1].trim() : undefined,
-        errors: error.errors || error.response?.errors || [],
+        error_code: errorCodeMatch?.[1]?.trim(),
+        errors: error.errors || [],
         message: error.message,
       };
     }
