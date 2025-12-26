@@ -1,0 +1,786 @@
+import { expect, Locator, Page, test } from '@playwright/test';
+
+import { TIMEOUTS } from '@core/constants/timeouts';
+import { BasePage } from '@core/pages/basePage';
+import { getFormattedDate } from '@core/utils/dateUtil';
+
+import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
+
+export class SpotAwardPage extends BasePage {
+  readonly subTabIndicator: SubTabIndicator;
+  // Create/Edit form locators
+  readonly container: Locator;
+  readonly header: Locator;
+  readonly awardNameField: Locator;
+  readonly awardDescriptionField: Locator;
+  readonly cancelButton: Locator;
+  readonly saveDraftButton: Locator;
+  readonly nextButton: Locator;
+  readonly createAndScheduleButton: Locator;
+  readonly saveChangesButton: Locator;
+  readonly submitButton: Locator;
+  readonly companyValuesField: Locator;
+  readonly whoCanGiveAwardOption: Locator;
+  readonly whoCanReceiveAwardOption: Locator;
+  readonly extraField: Locator;
+  readonly dateFrom: Locator;
+  readonly dateTo: Locator;
+  readonly awardGuidance: Locator;
+
+  constructor(page: Page) {
+    super(page);
+    this.subTabIndicator = new SubTabIndicator(page);
+    // Initialize create/edit form locators
+    this.container = page.locator('[data-testid*="pageContainer"]');
+    this.header = this.container.getByRole('heading').first();
+    this.awardNameField = this.container.getByRole('textbox', { name: 'Award name*' });
+    this.awardDescriptionField = this.container.getByRole('textbox', { name: 'Award description*' });
+    this.cancelButton = this.container.getByRole('button', { name: 'Cancel' });
+    this.saveDraftButton = this.container.getByRole('button', { name: 'Save draft' });
+    this.nextButton = this.container.getByRole('button', { name: 'Next' });
+    this.createAndScheduleButton = this.container
+      .getByRole('button', { name: 'Create & schedule' })
+      .or(this.container.getByRole('button', { name: 'Create' }));
+
+    this.saveChangesButton = this.container.getByRole('button', { name: 'Save changes' });
+    this.submitButton = this.container.getByRole('button', { name: 'Submit' });
+    this.companyValuesField = this.container.locator('[data-testid*="company values"] input[type="text"]');
+    this.whoCanGiveAwardOption = this.container.locator('[id="spotAwardGiverTarget"]');
+    this.whoCanReceiveAwardOption = this.container.locator('[id="spotAwardReceiverTarget"]');
+    this.extraField = this.container.locator('input[id*="react-select-"]');
+    this.dateFrom = this.container.getByRole('button', { name: 'Date from*' });
+    this.dateTo = this.container.getByRole('button', { name: 'Date to*' });
+    this.awardGuidance = this.container.getByRole('textbox', { name: 'Award guidance(optional)' });
+  }
+
+  /**
+   * Verify that the spot award page is loaded
+   */
+  async verifyThePageIsLoaded(): Promise<void> {
+    await test.step('Verifying the spot award page is loaded', async () => {
+      const spotAwardTab = this.page.getByRole('tab', { name: 'Spot awards' });
+      await expect(spotAwardTab, 'expecting spot awards tab to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Navigate to spot awards tab
+   */
+  async navigateToSpotAwardsTab(): Promise<void> {
+    await test.step('Navigating to spot awards tab', async () => {
+      const spotAwardTab = this.page.getByRole('tab', { name: 'Spot awards' });
+      await expect(spotAwardTab, 'expecting spot awards tab to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await spotAwardTab.click();
+    });
+  }
+
+  /**
+   * Mock empty spot awards listing API
+   * This will intercept all calls to the spot awards listing endpoint and return empty results
+   * @param includeQueryParams - Whether to match query parameters in the route (default: true)
+   */
+  async mockEmptySpotAwardsListing(includeQueryParams: boolean = true): Promise<void> {
+    await test.step('Mocking empty spot awards listing API', async () => {
+      const routePattern = includeQueryParams
+        ? '**/recognition/admin/award/spot/listing*'
+        : '**/recognition/admin/award/spot/listing';
+
+      await this.page.route(routePattern, async route => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            results: [],
+          }),
+        });
+      });
+    });
+  }
+
+  /**
+   * Remove the empty spot awards listing API mock
+   * Call this method to restore the original API behavior
+   */
+  async unrouteEmptySpotAwardsListing(): Promise<void> {
+    await test.step('Removing empty spot awards listing API mock', async () => {
+      await this.page.unroute('**/recognition/admin/award/spot/listing*');
+    });
+  }
+
+  /**
+   * Verify empty state for spot awards
+   */
+  async verifyEmptyState(): Promise<void> {
+    await test.step('Verifying spot awards empty state', async () => {
+      await expect(
+        this.subTabIndicator.pageContainer.getByText('You don’t have any spot awards'),
+        'expecting empty state header to be visible'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(
+        this.subTabIndicator.pageContainer.getByText(
+          'Reward outstanding performance instantly with Spot Awards. Celebrate teamwork, innovation, and impact with tailored, meaningful recognition.'
+        ),
+        'expecting empty state description to be visible'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(
+        this.subTabIndicator.getButton('New spot award', 'link'),
+        'expecting New spot award button to be visible'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify all filter tabs are visible
+   * @param tabOptions - Array of tab names to verify
+   */
+  async verifyFilterTabs(tabOptions: string[]): Promise<void> {
+    await test.step('Verifying filter tabs for spot awards', async () => {
+      for (const tabOption of tabOptions) {
+        await expect(this.subTabIndicator.getTab(tabOption), `expecting ${tabOption} tab to be visible`).toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verify spot award table columns
+   */
+  async verifyTableColumns(): Promise<void> {
+    await test.step('Verifying spot award table columns', async () => {
+      const columns = ['Award', 'Available to', 'Times awarded', 'Status', 'Created', 'Edited'];
+      for (const column of columns) {
+        await expect(this.subTabIndicator.getCell(column), `expecting ${column} column to be visible`).toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verify three dots menu options for spot award
+   * @param awardIndex - Index of the award row (0-based)
+   */
+  async verifyThreeDotsMenuOptions(awardIndex: number): Promise<void> {
+    await test.step(`Verifying three dots menu options for award at index ${awardIndex}`, async () => {
+      const threeDotsButton = this.subTabIndicator.getThreeDotsButton(awardIndex);
+      await expect(threeDotsButton, 'expecting three dots button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await threeDotsButton.click();
+      await expect(this.subTabIndicator.editMenuItem, 'expecting edit menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.subTabIndicator.deactivateMenuItem, 'expecting deactivate menu item to be visible').toBeVisible(
+        {
+          timeout: TIMEOUTS.MEDIUM,
+        }
+      );
+    });
+  }
+
+  /**
+   * Click show more button if visible
+   * @param awardCell - Locator of the award cell
+   */
+  async clickShowMoreIfVisible(awardCell: Locator): Promise<void> {
+    await test.step('Clicking show more button if visible', async () => {
+      const showMoreButton = this.page.getByTestId('show-more-button');
+
+      // Check if award name is visible, if not, click show more button until it appears
+      let isAwardVisible = false;
+      const maxRetries = 10; // Maximum number of times to click show more button
+      let retryCount = 0;
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      while (!isAwardVisible && retryCount < maxRetries) {
+        // Check if award name is visible
+        const isVisible = await awardCell.isVisible().catch(() => false);
+
+        if (isVisible) {
+          isAwardVisible = true;
+          break;
+        }
+
+        // If award is not visible, check if show more button exists and is visible
+        try {
+          const showMoreButtonVisible = await showMoreButton.isVisible();
+
+          if (!showMoreButtonVisible) {
+            // Show more button is not available, stop trying
+            console.log('Show more button is not available. Stopping search.');
+            break;
+          }
+
+          // Click show more button and wait for new items to load
+          await showMoreButton.click();
+          await this.page.waitForTimeout(1000); // Wait for new items to load
+          retryCount++;
+        } catch {
+          // Show more button doesn't exist, stop trying
+          console.log('Show more button does not exist. Stopping search.');
+          break;
+        }
+      }
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Verify award name is visible in table
+   * @param awardName - Name of the award to verify
+   */
+  async verifyAwardNameInTable(awardName: string): Promise<void> {
+    await test.step(`Verifying award name ${awardName} in table`, async () => {
+      const awardCell = this.subTabIndicator.getCell(awardName).first();
+      await this.clickShowMoreIfVisible(awardCell);
+      await this.page.waitForTimeout(2000);
+
+      await awardCell.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(awardCell, `expecting award "${awardName}" to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify three dots menu options for award by name
+   * @param awardName - Name of the award
+   */
+  async verifyThreeDotsMenuOptionsByName(awardName: string): Promise<void> {
+    await test.step(`Verifying three dots menu options for award: ${awardName}`, async () => {
+      const threeDotsButton = this.subTabIndicator.getThreeDotsButton(awardName);
+      await threeDotsButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await threeDotsButton.click();
+      await expect(this.subTabIndicator.editMenuItem, 'expecting edit menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.subTabIndicator.deactivateMenuItem, 'expecting deactivate menu item to be visible').toBeVisible(
+        {
+          timeout: TIMEOUTS.MEDIUM,
+        }
+      );
+    });
+  }
+
+  /**
+   * Verify create spot award page UI elements
+   */
+  async verifyCreatePageUI(): Promise<void> {
+    await test.step('Verifying create spot award page UI', async () => {
+      await expect(this.header, 'expecting header to be visible').toHaveText('Create spot award');
+      await expect(this.cancelButton, 'expecting cancel button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.saveDraftButton, 'expecting save draft button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.nextButton, 'expecting next button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Get badge locator by index
+   * @param index - Index of the badge (0-based)
+   */
+  getBadge(index: number): Locator {
+    return this.container.locator('[data-testid="field-Badge"]').getByRole('radio').nth(index);
+  }
+
+  /**
+   * Get company values option locator
+   * @param option - Company value option name
+   */
+  companyValuesOption(option: string): Locator {
+    return this.container.getByRole('heading', { name: option }).first();
+  }
+
+  /**
+   * Get select award period radio button
+   * @param radioName - Name of the radio button
+   */
+  selectAwardPeriod(radioName: 'Indefinitely' | 'During a specified period'): Locator {
+    return this.container.getByRole('radio', { name: radioName });
+  }
+
+  /**
+   * Get date cell locator
+   * @param date - Date string to match (formatted like "Fri Dec 26" or just "26")
+   */
+  dateCell(date: string): Locator {
+    // Extract day number from formatted date string (e.g., "Fri Dec 26" -> "26")
+    const dayNumber = date.match(/\d+/)?.[0] || date;
+    return this.container.getByRole('gridcell', { name: dayNumber });
+  }
+
+  /**
+   * Get select how often award given radio button
+   * @param radioName - Name of the radio button
+   */
+  selectHowOftenAwardGiven(radioName: 'Unlimited' | 'Limited'): Locator {
+    return this.container.getByRole('radio', { name: radioName });
+  }
+
+  /**
+   * Get extra field select option locator
+   * @param option - Option name to select
+   */
+  extraFieldSelectOption(option: string): Locator {
+    return this.container.getByRole('menuitem', { name: option }).first();
+  }
+
+  /**
+   * Fill spot award form page one
+   * @param awardName - Name of the award
+   * @param awardDescription - Description of the award
+   * @param badgeIndex - Index of badge to select (default: 1)
+   * @param companyValue - Company value to select (default: 'Both')
+   */
+  async fillSpotAwardFormPageOne(
+    awardName: string,
+    awardDescription: string = 'Spot award description',
+    badgeIndex: number = 1
+  ): Promise<void> {
+    await test.step('Filling spot award form page one', async () => {
+      await this.awardNameField.fill(awardName);
+      await this.awardDescriptionField.fill(awardDescription);
+      await this.getBadge(badgeIndex).click();
+      await this.nextButton.click();
+    });
+  }
+
+  /**
+   * Fill spot award configuration
+   * @param whoCanGive - Who can give the award
+   * @param whoCanReceive - Who can receive the award
+   * @param location - Location if whoCanReceive is 'Employees in a location'
+   * @param awardPeriod - Award period option
+   * @param dateFrom - Start date
+   * @param dateTo - End date
+   * @param howOften - How often award can be given
+   * @param guidance - Award guidance text
+   */
+  async fillSpotAwardConfiguration(
+    whoCanGive: string,
+    whoCanReceive: string,
+    location?: string,
+    awardPeriod: 'Indefinitely' | 'During a specified period' = 'During a specified period',
+    dateFrom?: string,
+    dateTo?: string,
+    howOften: 'Unlimited' | 'Limited' = 'Unlimited',
+    guidance: string = 'Spot award guidance'
+  ): Promise<void> {
+    await test.step('Filling spot award configuration', async () => {
+      await this.whoCanGiveAwardOption.selectOption(whoCanGive);
+      await this.whoCanReceiveAwardOption.selectOption(whoCanReceive);
+
+      if (location) {
+        await this.extraField.fill(location);
+        await this.extraFieldSelectOption(location).click();
+      }
+
+      if (awardPeriod === 'During a specified period' && dateFrom && dateTo) {
+        await this.selectAwardPeriod(awardPeriod).check();
+        await this.dateFrom.click();
+        await expect(this.dateCell(dateFrom), 'expecting date from cell to be visible').toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.dateCell(dateFrom).click();
+        await this.dateTo.click();
+        await expect(this.dateCell(dateTo), 'expecting date to cell to be visible').toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.dateCell(dateTo).click();
+      }
+
+      await this.selectHowOftenAwardGiven(howOften).check();
+      await this.awardGuidance.fill(guidance);
+      await this.createAndScheduleButton.click();
+    });
+  }
+
+  /**
+   * Edit spot award name
+   * @param newAwardName - New name for the award
+   */
+  async editAwardName(newAwardName: string): Promise<void> {
+    await test.step(`Editing award name to ${newAwardName}`, async () => {
+      await this.awardNameField.fill(newAwardName);
+      await this.nextButton.click();
+      await this.saveChangesButton.click();
+    });
+  }
+
+  /**
+   * Get current award name from input field
+   */
+  async getCurrentAwardName(): Promise<string> {
+    return await this.awardNameField.inputValue();
+  }
+
+  /**
+   * Update draft spot award with dates
+   * @param dateFrom - Start date
+   * @param dateTo - End date
+   * @param howOften - How often award can be given
+   * @param guidance - Award guidance text
+   */
+  async updateDraftSpotAward(
+    dateFrom: string,
+    dateTo: string,
+    howOften: 'Unlimited' | 'Limited' = 'Unlimited',
+    guidance: string = 'Spot award guidance'
+  ): Promise<void> {
+    await test.step('Updating draft spot award', async () => {
+      await this.nextButton.click();
+      await this.selectAwardPeriod('During a specified period').check();
+      await this.dateFrom.click();
+      await expect(this.dateCell(dateFrom), 'expecting date from cell to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.dateCell(dateFrom).click();
+      await this.dateTo.click();
+      await expect(this.dateCell(dateTo), 'expecting date to cell to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.dateCell(dateTo).click();
+      await this.selectHowOftenAwardGiven(howOften).check();
+      await this.awardGuidance.fill(guidance);
+      await this.submitButton.click();
+    });
+  }
+
+  /**
+   * Verify recognition page is loaded
+   * @param expectedUrl - Expected URL to verify
+   */
+  async verifyRecognitionPageLoaded(expectedUrl: string): Promise<void> {
+    await test.step('User should be on Recognition page', async () => {
+      await expect(this.page, 'expecting page to have correct URL').toHaveURL(expectedUrl);
+      const recognitionHeader = this.page.getByRole('heading', { name: 'Recognition' }).first();
+      await expect(recognitionHeader, 'expecting recognition header to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify spot awards tab is visible
+   */
+  async verifySpotAwardsTabVisible(): Promise<void> {
+    await test.step('Validate Spot awards tab', async () => {
+      const spotAwardTab = this.page.getByRole('tab', { name: 'Spot awards' });
+      await expect(spotAwardTab, 'expecting spot awards tab to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify table columns and sort functionality
+   */
+  async verifyTableColumnsAndSort(): Promise<void> {
+    await test.step('Validate column value on dashboard for spot award', async () => {
+      await this.verifyTableColumns();
+      await this.subTabIndicator.getCell('Created').click();
+      await expect(this.subTabIndicator.getCell('').first(), 'expecting empty cell to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Edit award and verify changes
+   * @param newAwardName - New name for the award
+   */
+  async editAwardAndVerifyChanges(newAwardName: string): Promise<void> {
+    await test.step('Now click on edit option and make some edit on awards and click on update', async () => {
+      await this.subTabIndicator.editMenuItem.click();
+      await this.editAwardName(newAwardName);
+      await this.page.waitForTimeout(2000);
+      await this.verifyAwardNameInTable(newAwardName);
+    });
+  }
+
+  /**
+   * Navigate to spot awards and wait for awards to load
+   */
+  async navigateToSpotAwardsAndWaitForAwards(): Promise<void> {
+    await test.step('Navigate to spot awards', async () => {
+      await this.navigateToSpotAwardsTab();
+      await this.subTabIndicator.getThreeDotsButton(0).waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Click new spot award button, verify UI and cancel
+   */
+  async clickNewSpotAwardAndCancel(): Promise<void> {
+    await test.step('Click on New spot awards and validate UI', async () => {
+      await this.subTabIndicator.getButton('New spot award', 'link').click();
+      await this.verifyCreatePageUI();
+      await this.cancelButton.click();
+    });
+  }
+
+  /**
+   * Fill spot award configuration and verify success toast
+   * @param whoCanGive - Who can give the award
+   * @param whoCanReceive - Who can receive the award
+   * @param location - Location if whoCanReceive is 'Employees in a location'
+   * @param dateFrom - Start date
+   * @param dateTo - End date
+   */
+  async fillSpotAwardConfigurationAndVerifyToast(
+    whoCanGive: string,
+    whoCanReceive: string,
+    location: string,
+    dateFrom: string,
+    dateTo: string
+  ): Promise<void> {
+    await test.step('Fill out award configuration details', async () => {
+      await this.fillSpotAwardConfiguration(
+        whoCanGive,
+        whoCanReceive,
+        location,
+        'During a specified period',
+        dateFrom,
+        dateTo,
+        'Unlimited'
+      );
+    });
+  }
+
+  /**
+   * Verify active tab and click deactivate
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   */
+  async verifyActiveTabAndClickDeactivate(manageRecognitionPage: any): Promise<void> {
+    await test.step('Validate Active tab', async () => {
+      await manageRecognitionPage.selectTab('Active');
+      await expect(this.subTabIndicator.getTab('Active'), 'expecting Active tab to be selected').toHaveAttribute(
+        'aria-selected',
+        'true',
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+      await this.verifyThreeDotsMenuOptions(0);
+      await this.subTabIndicator.deactivateMenuItem.click();
+    });
+  }
+
+  /**
+   * Verify and confirm deactivate modal
+   * @param confirmationModal - DialogBox instance
+   * @returns Award title extracted from modal
+   */
+  async verifyAndConfirmDeactivateModal(confirmationModal: any): Promise<string> {
+    return await test.step('Validate Confirmation Modal', async () => {
+      await confirmationModal.title.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(confirmationModal.title, 'expecting modal title to be correct').toHaveText('Deactivate spot award');
+      await expect(confirmationModal.closeButton, 'expecting close button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const descriptionText = await confirmationModal.description.first().innerText();
+      // Match both straight quotes (') and curly quotes (' and ') - use capture group [1] to get text without quotes
+      const awardTitleMatch = descriptionText.match(/[''"](.+?)[''"]/);
+      const awardTitle = awardTitleMatch ? awardTitleMatch[1] : '';
+      console.log('awardTitle', awardTitle);
+      await expect(
+        confirmationModal.description.first(),
+        'expecting modal description to contain award title'
+      ).toContainText('Are you sure you want to disable', { timeout: TIMEOUTS.MEDIUM });
+      await expect(confirmationModal.cancelButton, 'expecting cancel button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button text to be correct').toHaveText(
+        'Deactivate'
+      );
+      const awardCell = this.page.locator('table tbody tr').filter({ hasText: awardTitle });
+      const awardNameCell = awardCell.locator('td').nth(0);
+      await confirmationModal.confirmButton.click();
+      return (await awardNameCell.textContent()) || '';
+    });
+  }
+
+  /**
+   * Verify inactive tab and activate award
+   * @param awardTitle - Title of the award
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param confirmationModal - DialogBox instance
+   */
+  async verifyInactiveTabAndActivateAward(
+    awardTitle: string,
+    manageRecognitionPage: any,
+    confirmationModal: any
+  ): Promise<void> {
+    await test.step('Validate Inactive tab', async () => {
+      await manageRecognitionPage.selectTab('Inactive');
+      await expect(
+        this.subTabIndicator.getCell(awardTitle),
+        'expecting award to be visible in inactive tab'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.subTabIndicator.getThreeDotsButton(awardTitle).click();
+      await expect(this.subTabIndicator.activateMenuItem, 'expecting activate menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.subTabIndicator.activateMenuItem.click();
+      await expect(confirmationModal.title, 'expecting modal title to be correct').toHaveText('Activate spot award');
+      await expect(
+        confirmationModal.description.first(),
+        'expecting modal description to contain award title'
+      ).toContainText(`Are you sure you want to activate`, { timeout: TIMEOUTS.MEDIUM });
+      await expect(confirmationModal.closeButton, 'expecting close button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.cancelButton, 'expecting cancel button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button text to be correct').toHaveText(
+        'Activate'
+      );
+      await confirmationModal.confirmButton.click();
+      await manageRecognitionPage.selectTab('Active');
+      await expect(
+        this.subTabIndicator.getCell(awardTitle).nth(0),
+        'expecting award to be visible in active tab'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify draft tab and update draft award
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @returns Award title from the draft
+   */
+  async verifyDraftTabAndUpdateAward(updateSpotAwardTitle: string): Promise<string> {
+    return await test.step('Validate Draft tab', async () => {
+      const from = getFormattedDate({ days: 1 }).replace(',', '');
+      const to = getFormattedDate({ days: 5 }).replace(',', '');
+      await this.subTabIndicator.getButton('New spot award', 'link').click();
+      await this.verifyCreatePageUI();
+      await this.fillSpotAwardFormPageOne(updateSpotAwardTitle);
+      await this.page.waitForTimeout(1000);
+      await this.fillSpotAwardConfiguration(
+        'All employees',
+        'Employees in a location',
+        'India',
+        'During a specified period',
+        from,
+        to,
+        'Unlimited'
+      );
+      await this.page.waitForTimeout(500);
+      return updateSpotAwardTitle;
+    });
+  }
+
+  /**
+   * Verify scheduled tab and deactivate/activate award
+   * @param awardTitle - Title of the award
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param confirmationModal - DialogBox instance
+   */
+  async verifyScheduledTabAndDeactivateActivateAward(
+    awardTitle: string,
+    manageRecognitionPage: any,
+    confirmationModal: any
+  ): Promise<void> {
+    await test.step('Validate Scheduled tab', async () => {
+      await manageRecognitionPage.selectTab('Scheduled');
+      await this.subTabIndicator.getCell(awardTitle).first().waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.verifyThreeDotsMenuOptionsByName(awardTitle);
+      await this.subTabIndicator.deactivateMenuItem.click();
+      await expect(confirmationModal.title, 'expecting modal title to be correct').toHaveText('Deactivate spot award');
+      await expect(
+        confirmationModal.description.first(),
+        'expecting modal description to contain disable message'
+      ).toContainText('Are you sure you want to disable', { timeout: TIMEOUTS.MEDIUM });
+      await expect(confirmationModal.closeButton, 'expecting close button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.cancelButton, 'expecting cancel button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button text to be correct').toHaveText(
+        'Deactivate'
+      );
+      await confirmationModal.confirmButton.click();
+      await manageRecognitionPage.selectTab('Inactive');
+      await expect(
+        this.subTabIndicator.getCell(awardTitle).nth(0),
+        'expecting award to be visible in inactive tab'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.subTabIndicator.getThreeDotsButton(awardTitle).click();
+      await expect(this.subTabIndicator.activateMenuItem, 'expecting activate menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.subTabIndicator.activateMenuItem.click();
+      await expect(confirmationModal.title, 'expecting modal title to be correct').toHaveText('Activate spot award');
+      await expect(
+        confirmationModal.description.first(),
+        'expecting modal description to contain activate message'
+      ).toContainText('Are you sure you want to activate', { timeout: TIMEOUTS.MEDIUM });
+      await expect(confirmationModal.closeButton, 'expecting close button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.cancelButton, 'expecting cancel button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(confirmationModal.confirmButton, 'expecting confirm button text to be correct').toHaveText(
+        'Activate & schedule'
+      );
+      await confirmationModal.confirmButton.click();
+      await manageRecognitionPage.selectTab('Scheduled');
+      await expect(
+        this.subTabIndicator.getCell(awardTitle).nth(0),
+        'expecting award to be visible in active tab'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify edit date count is greater than zero
+   * @param awardName - Award name
+   * @param expectedCount - Expected minimum count
+   */
+  async verifyEditDateCount(awardName: string, expectedCount: number = 0): Promise<void> {
+    await test.step('Verify edit date count', async () => {
+      const awardCell = this.page.locator('table tbody tr').filter({ hasText: awardName });
+      const editDateCount = await awardCell.locator('td').nth(5).count();
+      expect(editDateCount, 'expecting edit date count to be greater than zero').toBeGreaterThan(expectedCount);
+    });
+  }
+}
