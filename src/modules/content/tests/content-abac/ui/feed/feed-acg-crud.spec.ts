@@ -1637,5 +1637,57 @@ test.describe(
         });
       }
     );
+
+    test(
+      "verify FO's Feed post without Restricted Viewers is visible to all users",
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42171', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Feed post created by FO without Restricted Viewers / Limit Visibility is visible to all users and can be interacted with',
+          zephyrTestId: 'CONT-42171',
+          storyId: 'CONT-42171',
+        });
+
+        let foPostText: string;
+
+        // ==================== FO creates Feed post WITHOUT Limit Visibility ====================
+        await test.step('FO creates Feed post without Limit Visibility (default visibility to all)', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          foPostText = TestDataGenerator.generateRandomText('App Manager Unrestricted Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPost({
+            text: foPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        });
+
+        // ==================== Verify post is visible to Standard User ====================
+        await test.step("Standard User navigates to Home Feed and verifies FO's post is visible", async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          await feedPage.assertions.waitForPostToBeVisible(foPostText);
+        });
+
+        // ==================== Verify Standard User can interact with the post (like/react) ====================
+        await test.step("Standard User reacts to App Manager's unrestricted post", async () => {
+          await feedPage.actions.likeFeedPost(foPostText);
+
+          await feedPage.assertions.verifyLikeCountOnPost(foPostText);
+        });
+      }
+    );
   }
 );
