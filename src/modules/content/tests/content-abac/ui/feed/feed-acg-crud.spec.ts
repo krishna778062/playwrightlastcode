@@ -1297,5 +1297,117 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify favorited Home Feed post becomes invisible when FO changes audience from Engineering to UX',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42185', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify favorited Home Feed post becomes invisible to End User and removed from Favorites when FO changes audience from Engineering to UX',
+          zephyrTestId: 'CONT-42185',
+          storyId: 'CONT-42185',
+        });
+
+        let suPostText: string;
+        let suPostId: string = '';
+
+        // ==================== Add SU as FO of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== SU creates Feed post with limit visibility to Engineering ====================
+        await test.step('SU creates Feed post with Limit visibility restricted to Engineering audience', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          await feedPage.assertions.verifyFeedSectionIsVisible();
+
+          suPostText = TestDataGenerator.generateRandomText('ABAC Favorited Engineering Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPostWithLimitVisibility({
+            text: suPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          suPostId = postResult.postId || '';
+          createdPostId = suPostId;
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+          await feedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== SU favorites the post ====================
+        await test.step('SU favorites the post and verifies it is favorited', async () => {
+          await feedPage.actions.markPostAsFavourite();
+          await feedPage.assertions.verifyPostIsFavorited(suPostText);
+        });
+
+        // ==================== App Manager (FO of Manage Home Feed) edits post and changes audience to UX ====================
+        await test.step('App Manager edits post and changes audience from Engineering to UX', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPage();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(suPostText);
+
+          await appManagerFeedPage.actions.openPostOptionsMenu(suPostText);
+          await appManagerFeedPage.actions.clickEditOption();
+          await appManagerFeedPage.assertions.verifyEditorVisible();
+
+          await appManagerFeedPage.actions.changeAudience('UX');
+          await appManagerFeedPage.actions.clickUpdateButton();
+
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(suPostText);
+          await appManagerFeedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== Reload SU home page and verify post is NOT visible ====================
+        await test.step('Reload SU Home Feed and verify post is NOT visible (audience changed to UX)', async () => {
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          await feedPage.assertions.verifyPostIsNotVisible(suPostText);
+        });
+
+        // ==================== Filter by Favourited and verify post is NOT in list ====================
+        await test.step('SU filters by Favourited posts and verifies post is NOT in Favorites list', async () => {
+          await feedPage.actions.clickOnShowOption('favourited');
+
+          await feedPage.assertions.verifyPostIsNotVisible(suPostText);
+        });
+
+        // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
+        await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
   }
 );
