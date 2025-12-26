@@ -57,8 +57,9 @@ async function createIntegrationsApiFixture(
   tenantConfig?: TenantConfig
 ): Promise<IntegrationsApiFixture> {
   const apiBaseUrl = tenantConfig?.apiBaseUrl || getEnvConfig().apiBaseUrl;
+  const frontendBaseUrl = tenantConfig?.frontendBaseUrl || getEnvConfig().frontendBaseUrl;
   const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
-  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl);
+  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl, frontendBaseUrl);
   const customIntegrationsHelper = new CustomIntegrationsHelper(apiContext, apiBaseUrl);
 
   return {
