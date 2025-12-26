@@ -14,7 +14,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   });
 
   test(
-    '[RC-2909] Verify Category and location dropdown for the gift-cards tab',
+    'RC-2909 Verify Category and location dropdown for the gift-cards tab',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARD_STORE,
@@ -67,7 +67,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-2829] Validate the spending component for the rewards store',
+    'RC-2829 Validate the spending component for the rewards store',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -104,7 +104,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-3054] Verify if items are provided in ascending order, when user searching for rewards',
+    'RC-3054 Verify if items are provided in ascending order, when user searching for rewards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -127,7 +127,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-2976] Validate Legal terms in the footer on Rewards Page',
+    'RC-2976 Validate Legal terms in the footer on Rewards Page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -158,7 +158,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-3228] Validate corners of the Reward store images',
+    'RC-3228 Validate corners of the Reward store images',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -185,7 +185,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-2857] Validate search Rewards on reward store page',
+    'RC-2857 Validate search Rewards on reward store page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -257,7 +257,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-2833] Verify the link to rewards store',
+    'RC-2833 Verify the link to rewards store',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -279,7 +279,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-3224] Validate Country selector dropdown for the rewards store',
+    'RC-3224 Validate Country selector dropdown for the rewards store',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -335,7 +335,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-3121] Verify the country drop down when user visits rewards store for first time',
+    'RC-3121 Verify the country drop down when user visits rewards store for first time',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -362,7 +362,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-2921] Verify total count for each category on reward store page along with Reset button',
+    'RC-2921 Verify total count for each category on reward store page along with Reset button',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -417,7 +417,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    '[RC-3122] Verify default value of user location in searching rewards',
+    'RC-3122 Verify default value of user location in searching rewards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

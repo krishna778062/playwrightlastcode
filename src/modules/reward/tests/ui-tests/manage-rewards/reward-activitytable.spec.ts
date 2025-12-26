@@ -21,7 +21,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   });
 
   test(
-    '[RC-3004] Validate Rewards Activity table if there is no activity',
+    'RC-3004 Validate Rewards Activity table if there is no activity',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
@@ -144,7 +144,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3264] Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
+    'RC-3264 Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
@@ -205,7 +205,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3421] Validate Pending Recognition activity in Rewards Activity table',
+    'RC-3421 Validate Pending Recognition activity in Rewards Activity table',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0],
     },
@@ -278,7 +278,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5711] Validate show more button on Points redeemed activity table',
+    'RC-5711 Validate show more button on Points redeemed activity table',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -332,7 +332,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5712] Validate filter on Rewards activity table for points redeemed',
+    'RC-5712 Validate filter on Rewards activity table for points redeemed',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -458,7 +458,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
   tests.forEach(({ testId, testTitle }) => {
     test(
-      `[${testId}] ${testTitle}`,
+      `${testId} ${testTitle}`,
       {
         tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.HEALTHCHECK],
       },
@@ -513,7 +513,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   });
 
   test(
-    '[RC-3563] Validate removal sorting of reward name from Activity table of Points Redeemed',
+    'RC-3563 Validate removal sorting of reward name from Activity table of Points Redeemed',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
@@ -659,7 +659,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3031] Validate Rewards Overview Activity Table for points Given',
+    'RC-3031 Validate Rewards Overview Activity Table for points Given',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
@@ -754,7 +754,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-6080] Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
+    'RC-6080 Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
     },
@@ -887,7 +887,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-6082] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
+    'RC-6082 Validate the Message and URL column value in the points given CSV for the Recognition with the points',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
     },
@@ -988,7 +988,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3021] Validate Rewards Overview Activity Table for points redeemed',
+    'RC-3021 Validate Rewards Overview Activity Table for points redeemed',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

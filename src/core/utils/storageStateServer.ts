@@ -117,6 +117,27 @@ app.post<{ Body: LockBody }>('/lock', async (req: FastifyRequest<{ Body: LockBod
   }
 });
 
+// POST /unlock - Release lock without saving (used on login failure)
+app.post<{ Body: LockBody }>('/unlock', async (req: FastifyRequest<{ Body: LockBody }>, reply: FastifyReply) => {
+  try {
+    const { env, tenant, user } = req.body;
+
+    if (!env || !tenant || !user) {
+      return reply.status(400).send({ error: 'env, tenant, and user are required' });
+    }
+
+    const cacheKey = getCacheKey(env, tenant, user);
+    const hadLock = pendingLocks[cacheKey];
+    delete pendingLocks[cacheKey];
+
+    console.log(`[SERVER] 🔓 Lock RELEASED for key: ${cacheKey}${hadLock ? '' : ' (was not locked)'}`);
+    return reply.status(200).send({ success: true, wasLocked: hadLock });
+  } catch (error) {
+    console.error('Error in POST /unlock:', error);
+    return reply.status(500).send({ error: 'Internal server error' });
+  }
+});
+
 // POST /save { env, tenant, user, state }
 app.post<{ Body: SaveBody }>('/save', async (req: FastifyRequest<{ Body: SaveBody }>, reply: FastifyReply) => {
   try {

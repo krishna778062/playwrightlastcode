@@ -143,7 +143,7 @@ const config: Linter.Config[] = [
       'playwright/no-restricted-matchers': 'warn',
 
       // Auto-fixable rules (helpful but not blocking)
-      'playwright/prefer-lowercase-title': 'error',
+      'playwright/prefer-lowercase-title': 'off',
       'playwright/prefer-to-be': 'error',
       'playwright/prefer-to-contain': 'error',
       'playwright/prefer-to-have-count': 'error',

@@ -18,7 +18,7 @@ test.describe(
   },
   () => {
     test(
-      'verify user displayed in Celebration smart feed block on Home and Site Feed',
+      'verify user displayed in Celebration smart feed block on Home and Site Feed CONT-19570',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19570'],
       },

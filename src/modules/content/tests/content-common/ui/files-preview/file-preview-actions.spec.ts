@@ -52,7 +52,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
   });
 
   test(
-    `verify user is able to copy the link to this file option under More actions`,
+    `verify user is able to copy the link to this file option under More actions CONT-37467`,
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
@@ -77,7 +77,7 @@ test.describe(`Files Preview | Verify Document Actions @${ContentTestSuite.FILES
   );
 
   test(
-    `verify user is able to delete the file using the delete option under More actions`,
+    `verify user is able to delete the file using the delete option under More actions CONT-36338`,
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },

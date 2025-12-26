@@ -1,0 +1,66 @@
+name: PR Template Reminder # comment
+
+on:
+  pull_request:
+    types: [opened]
+    branches: [main]
+
+jobs:
+  remind:
+    runs-on: [kubernetes]
+    steps:
+      - name: Check if this needs backport template
+        id: check
+        run: |
+          SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+
+          # Skip reminder for release promotion (release → main)
+          if [ "$SOURCE_BRANCH" == "release" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "⏭️ This is release promotion (release → main) - no backport template needed"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "✅ This is a hotfix ($SOURCE_BRANCH → main) - checking for backport section"
+          fi
+
+      - name: Check for hotfix checkbox
+        if: steps.check.outputs.skip == 'false'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Check if Hotfix checkbox is checked
+          if echo "$PR_BODY" | grep -iE '\[x\].*\*\*Hotfix\*\*' > /dev/null; then
+            echo "✅ PR marked as Hotfix - checking backport options..."
+            
+            # Check if backport options exist
+            if ! echo "$PR_BODY" | grep -i "Backport Options" > /dev/null; then
+              echo "⚠️ Hotfix marked but no backport section"
+              gh pr comment ${{ github.event.pull_request.number }} \
+                --repo ${{ github.repository }} \
+                --body "## ⚠️ Missing Backport Section
+
+              You marked this as a **Hotfix**, but the backport options are missing.
+
+              **Please edit your PR** and add under 'Backport Options':
+              - [x] **Develop** - Sync to develop branch
+              - [ ] **Release** - Sync to release branch (if QA/UAT needs this)
+              "
+            else
+              echo "✅ Backport section found"
+            fi
+          else
+            echo "⚠️ PR to main not marked as Hotfix"
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --repo ${{ github.repository }} \
+              --body "## 💡 Reminder: Is this a Hotfix?
+
+            This PR targets \`main\` (production). If this is a hotfix:
+
+            1. **Edit your PR description**
+            2. Under **PR Type**, check: \`[x] 🚨 **Hotfix**\`
+            3. Under **Backport Options**, select where to sync
+
+            _If this is NOT a hotfix (e.g., release promotion), you can ignore this._
+            "
+          fi

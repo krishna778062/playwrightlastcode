@@ -1,7 +1,6 @@
 import { expect } from '@playwright/test';
 import https from 'https';
 import Mailosaur from 'mailosaur';
-import { Message } from 'mailosaur/lib/models';
 
 export class EmailUtils {
   readonly mailosaurClient: Mailosaur;
@@ -11,7 +10,7 @@ export class EmailUtils {
     readonly mailosaurApiKey: string,
     readonly mailosaurServerId: string
   ) {
-    if (!!process.env.MAILOSAUR_API_KEY || !process.env.MAILOSAUR_SERVER_ID) {
+    if (!mailosaurApiKey || !mailosaurServerId) {
       throw new Error('MAILOSAUR_API_KEY and MAILOSAUR_SERVER_ID must be set');
     }
     // Configure SSL at process level to handle certificate issues
@@ -68,7 +67,7 @@ export class EmailUtils {
     body?: string;
     receivedAfter?: Date;
     timeout?: number;
-  }): Promise<Message> {
+  }) {
     return this.mailosaurClient.messages.get(
       this.mailosaurServerId,
       {
@@ -86,11 +85,18 @@ export class EmailUtils {
 
   /**
    * Generate a unique email address
-   * @param prefix - The prefix for the email address
-   * @returns The unique email address
+   * @param prefix - The prefix for the email address (feature-specific, e.g., 'notificationcustomization')
+   * @param environment - Optional environment name (defaults to TEST_ENV or 'qa')
+   * @returns The unique email address in format: {prefix}.{environment}.{5digitnumber}@server.mailosaur.net
    */
-  async generateUniqueEmailAddress(prefix: string = 'test'): Promise<string> {
-    return `${prefix}.${Date.now()}@${this.mailosaurServerId}.mailosaur.net`;
+  async generateUniqueEmailAddress(prefix: string, environment?: string): Promise<string> {
+    // Get environment from parameter, TEST_ENV, or default to 'qa'
+    const env = environment || process.env.TEST_ENV || 'qa';
+
+    // Generate a 5-digit random number (10000 to 99999)
+    const randomNumber = Math.floor(Math.random() * 90000) + 10000;
+
+    return `${prefix}.${env}.${randomNumber}@${this.mailosaurServerId}.mailosaur.net`;
   }
 
   /**

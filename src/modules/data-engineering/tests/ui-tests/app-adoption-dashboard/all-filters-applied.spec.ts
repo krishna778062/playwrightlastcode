@@ -29,7 +29,7 @@ import {
  */
 
 test.describe(
-  'app Adoption Dashboard - All Filters Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
+  'app Adoption Dashboard - All Filters Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
   },

@@ -8,7 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { RecurringAwardPage } from '@/src/modules/recognition/ui/pages/manage/recurringAwardPage';
 
-test.describe('default setting for custom recurring award', () => {
+test.describe('custom recurring award default setting', () => {
   test(
     'verify default options for Quarterly award for participation window and nomination close date',
     {
@@ -86,6 +86,33 @@ test.describe('default setting for custom recurring award', () => {
       await recurringAwardPage.verifyPreSelectedValueForEffectiveFromDropdown('Monthly');
       await recurringAwardPage.selectAwardFrequency('Quarterly');
       await recurringAwardPage.verifyPreSelectedValueForEffectiveFromDropdown('Quarterly');
+    }
+  );
+
+  test(
+    'verify that past months or quarters are not displayed or selectable in the "First Award month" dropdown.',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6451',
+        storyId: 'RC-3426',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const recurringAwardPage = new RecurringAwardPage(appManagerPage);
+      await recurringAwardPage.navigateRecurringAwardPageViaEndpoint(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+      await recurringAwardPage.clickRecurringAwardNewButton();
+      await recurringAwardPage.fillRecurringAwardFormPageOne();
+      await recurringAwardPage.selectAwardFrequency('Monthly');
+      await recurringAwardPage.verifyNoPastMonthsInEffectiveFromDropdown('Monthly');
+      await recurringAwardPage.selectAwardFrequency('Quarterly');
+      await recurringAwardPage.verifyNoPastMonthsInEffectiveFromDropdown('Quarterly');
     }
   );
 });

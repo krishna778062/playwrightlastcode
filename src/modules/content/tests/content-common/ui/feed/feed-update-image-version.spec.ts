@@ -264,7 +264,7 @@ for (const testData of feedTestData) {
       });
 
       test(
-        `Verify user can update image version on ${testData.feedType}`,
+        `Verify user can update image version on ${testData.feedType} ${testData.storyId}`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION, `@${testData.storyId}`],
         },
@@ -403,7 +403,7 @@ test.describe(
     });
 
     test(
-      'verify App Manager shares content without image and site image is shown in feed',
+      'verify App Manager shares content without image and site image is shown in feed CONT-36283',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36283'],
       },
