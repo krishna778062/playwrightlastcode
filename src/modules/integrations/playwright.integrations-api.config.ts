@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
-import { PROJECT_ROOT } from '@/src/core/constants/paths';
+import { PROJECT_ROOT, TEST_RESULTS_DIR } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { getTenantConfig, initializeIntegrationConfig } from '@/src/modules/integrations/config/integration.config';
 
@@ -20,7 +20,11 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: 0,
   workers: process.env.CI ? 4 : undefined,
-  reporter: [['html', { outputFolder: 'playwright-report' }], ['list'], ['json', { outputFile: 'test-results.json' }]],
+  reporter: [
+    ['html', { outputFolder: 'playwright-report' }],
+    ['list'],
+    ['json', { outputFile: `${TEST_RESULTS_DIR}/test-results.json` }],
+  ],
   use: {
     get baseURL() {
       return getTenantConfig().apiBaseUrl;
