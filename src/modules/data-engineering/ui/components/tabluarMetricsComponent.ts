@@ -156,12 +156,13 @@ export class TabluarMetricsComponent extends BaseComponent {
    * This is order-independent and checks that all UI records exist in DB data
    * @param dbData - The database data array (all records)
    * @param dataMapper - Function to map DB data to UI format
-   * @param keyColumn - The column name to use for matching records (e.g., 'Department', 'Social platform')
+   * @param keyColumns - The column name(s) to use for matching records. Can be a single column string
+   *                     or an array of column names for composite keys (e.g., ['Product', 'Page feature', 'Page group'])
    */
   async compareUIDataWithDBRecords<T extends Record<string, any>>(
     dbData: T[],
     dataMapper: (item: T) => Record<string, string>,
-    keyColumn: string
+    keyColumns: string | string[]
   ): Promise<void> {
     await test.step(`Verify ${this.metricTitle} data is correct`, async () => {
       //check if the db data is empty then table ON UI should be empty
@@ -178,7 +179,7 @@ export class TabluarMetricsComponent extends BaseComponent {
         const mappedDbData = dbData.map(dataMapper);
         console.log('Mapped DB Data (all records):', mappedDbData);
 
-        await this.runDataComparison(uiDataObjects, mappedDbData, keyColumn);
+        await this.runDataComparison(uiDataObjects, mappedDbData, keyColumns);
       }
     });
   }
@@ -219,17 +220,41 @@ export class TabluarMetricsComponent extends BaseComponent {
   }
 
   /**
+   * Generates a composite key string from a record using the specified key columns
+   * @param record - The data record
+   * @param keyColumns - Array of column names to use as composite key
+   * @returns A string representing the composite key
+   */
+  private getCompositeKey(record: Record<string, string>, keyColumns: string[]): string {
+    return keyColumns.map(col => record[col]).join('||');
+  }
+
+  /**
+   * Generates a human-readable key identifier for logging/error messages
+   * @param record - The data record
+   * @param keyColumns - Array of column names to use as composite key
+   * @returns A human-readable string describing the key
+   */
+  private getKeyIdentifier(record: Record<string, string>, keyColumns: string[]): string {
+    return keyColumns.map(col => `${col}="${record[col]}"`).join(', ');
+  }
+
+  /**
    * Generic robust data comparison method
    * Checks that all UI records exist in DB data (order-independent)
    * @param uiData - The UI data array
    * @param dbData - The database data array (all records, not limited)
-   * @param keyColumn - The column name to use for matching records
+   * @param keyColumns - The column name(s) to use for matching records. Can be a single column string
+   *                     or an array of column names for composite keys
    */
   protected async runDataComparison(
     uiData: Record<string, string>[],
     dbData: Record<string, string>[],
-    keyColumn: string
+    keyColumns: string | string[]
   ): Promise<void> {
+    // Normalize keyColumns to always be an array
+    const keyColumnsArray = Array.isArray(keyColumns) ? keyColumns : [keyColumns];
+
     // Step 1: Verify column headers match exactly
     await test.step('Verify column headers match between UI and DB', async () => {
       const uiHeaders = Object.keys(uiData[0] || {});
@@ -240,42 +265,45 @@ export class TabluarMetricsComponent extends BaseComponent {
     // Step 2: Verify that all UI records exist in DB data
     await test.step('Verify that all UI records exist in DB data', async () => {
       for (const uiEntry of uiData) {
-        const keyValue = uiEntry[keyColumn];
-        console.log(`\nChecking if UI record exists in DB: ${keyValue}`);
+        const keyIdentifier = this.getKeyIdentifier(uiEntry, keyColumnsArray);
+        await test.step(`Verify UI record exists in DB data: ${keyIdentifier}`, async () => {
+          const uiCompositeKey = this.getCompositeKey(uiEntry, keyColumnsArray);
+          console.log(`\nChecking if UI record exists in DB: ${keyIdentifier}`);
 
-        // Find matching DB entry
-        const dbEntry = dbData.find(db => db[keyColumn] === keyValue);
+          // Find matching DB entry using composite key
+          const dbEntry = dbData.find(db => this.getCompositeKey(db, keyColumnsArray) === uiCompositeKey);
 
-        if (!dbEntry) {
-          throw new Error(`${keyValue} found in UI but not in DB data`);
-        }
+          if (!dbEntry) {
+            throw new Error(`Record with ${keyIdentifier} found in UI but not in DB data`);
+          }
 
-        console.log(`  UI:`, uiEntry);
-        console.log(`  DB:`, dbEntry);
+          console.log(`  UI:`, uiEntry);
+          console.log(`  DB:`, dbEntry);
 
-        // Compare all columns
-        const columnsToCompare = Object.keys(uiEntry).filter(col => col !== keyColumn);
-        for (const column of columnsToCompare) {
-          await test.step(`Comparing ${column} for ${keyValue}: UI=${uiEntry[column]} vs DB=${dbEntry[column]}`, async () => {
-            // Normalize values by removing % symbols if present
-            const normalizedUiValue = this.normalizeValue(uiEntry[column]);
-            const normalizedDbValue = this.normalizeValue(dbEntry[column]);
+          // Compare all columns except the key columns
+          const columnsToCompare = Object.keys(uiEntry).filter(col => !keyColumnsArray.includes(col));
+          for (const column of columnsToCompare) {
+            await test.step(`Comparing ${column} for ${keyIdentifier}: UI=${uiEntry[column]} vs DB=${dbEntry[column]}`, async () => {
+              // Normalize values by removing % symbols if present
+              const normalizedUiValue = this.normalizeValue(uiEntry[column]);
+              const normalizedDbValue = this.normalizeValue(dbEntry[column]);
 
-            // Check if this is a percentage column (contains % in original UI value)
-            const isPercentageColumn = uiEntry[column].includes('%') || dbEntry[column].includes('%');
+              // Check if this is a percentage column (contains % in original UI value)
+              const isPercentageColumn = uiEntry[column].includes('%') || dbEntry[column].includes('%');
 
-            if (isPercentageColumn) {
-              // For percentage columns, use numeric comparison with tolerance
-              const uiNumeric = parseFloat(normalizedUiValue);
-              const dbNumeric = parseFloat(normalizedDbValue);
-              expect(uiNumeric, `${keyValue} ${column} should match within tolerance`).toBeCloseTo(dbNumeric, 0);
-            } else {
-              // For non-percentage columns, use exact string comparison
-              // Subclasses can override compareColumnValue to customize comparison logic
-              await this.compareColumnValue(column, normalizedUiValue, normalizedDbValue, keyValue);
-            }
-          });
-        }
+              if (isPercentageColumn) {
+                // For percentage columns, use numeric comparison with tolerance
+                const uiNumeric = parseFloat(normalizedUiValue);
+                const dbNumeric = parseFloat(normalizedDbValue);
+                expect(uiNumeric, `${keyIdentifier} ${column} should match within tolerance`).toBeCloseTo(dbNumeric, 0);
+              } else {
+                // For non-percentage columns, use exact string comparison
+                // Subclasses can override compareColumnValue to customize comparison logic
+                await this.compareColumnValue(column, normalizedUiValue, normalizedDbValue, keyIdentifier);
+              }
+            });
+          }
+        });
       }
     });
 

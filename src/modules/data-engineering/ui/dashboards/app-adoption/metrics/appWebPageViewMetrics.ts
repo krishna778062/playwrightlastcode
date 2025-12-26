@@ -28,6 +28,11 @@ export class AppWebPageViewMetrics extends TabluarMetricsComponent {
       [AppWebPageViewsDataColumns.PERCENTAGE_CONTRIBUTION_TO_TOTAL_PAGE_VIEWS]:
         item.percentageContributionToTotalPageViews.toString(),
     });
-    await this.compareUIDataWithDBRecords(snowflakeDataArray, dataMapper, AppWebPageViewsDataColumns.WEB_PAGE_GROUP);
+    // Use composite key of Product + Page feature + Page group for unique record identification
+    await this.compareUIDataWithDBRecords(snowflakeDataArray, dataMapper, [
+      AppWebPageViewsDataColumns.WEB_PAGE_PRODUCT,
+      AppWebPageViewsDataColumns.WEB_PAGE_FEATURE,
+      AppWebPageViewsDataColumns.WEB_PAGE_GROUP,
+    ]);
   }
 }

@@ -16,6 +16,14 @@ export interface AppWebPageViewsData {
   percentageContributionToTotalPageViews: number;
 }
 
+/**
+ * Extended interface for CSV validation - includes pageTitle for granular comparison
+ * CSV exports include page_title breakdown while UI table aggregates without it
+ */
+export interface AppWebPageViewsDataForCSV extends AppWebPageViewsData {
+  pageTitle: string;
+}
+
 // Generic interface for adoption leaders data
 interface AdoptionLeadersData {
   viewCategory: string;
@@ -404,6 +412,7 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
   /**
    * Gets app web page views data from database with filters.
+   * Used for UI table validation (aggregated without page_title)
    * @param filterBy - Filter options including time period and user filters
    * @returns Promise<AppWebPageViewsData[]> - App web page views data with proper typing
    */
@@ -419,6 +428,44 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformAppWebPageViewsResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to typed AppWebPageViewsDataForCSV objects
+   * Includes pageTitle field for CSV validation
+   * @param rawResults - Raw results from database query
+   * @returns AppWebPageViewsDataForCSV[] - Properly typed and transformed data with pageTitle
+   */
+  private transformAppWebPageViewsResultsForCSV(rawResults: any[]): AppWebPageViewsDataForCSV[] {
+    return rawResults.map(result => ({
+      webPageProduct: result['Product'],
+      webPageFeature: result['Page feature'],
+      webPageGroup: result['Page group'],
+      pageTitle: result['Page title'],
+      totalPeople: Number(result['Total people']),
+      pageViewCount: Number(result['Page view count']),
+      percentageContributionToTotalPageViews: result['Percentage contribution to total page views'],
+    }));
+  }
+
+  /**
+   * Gets app web page views data from database with filters for CSV validation.
+   * This query includes page_title in GROUP BY for granular data matching CSV export.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<AppWebPageViewsDataForCSV[]> - App web page views data with pageTitle
+   */
+  async getAppWebPageViewsDataForCSVValidation({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<AppWebPageViewsDataForCSV[]> {
+    const finalQuery = await this.transformAppWebPageViewsQuery({
+      baseQuery: AdoptionSql.APP_WEB_PAGE_VIEWS_FOR_CSV,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformAppWebPageViewsResultsForCSV(rawResults);
   }
 
   /**
