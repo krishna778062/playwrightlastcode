@@ -1394,6 +1394,115 @@ test.describe(
           await feedPage.actions.clickOnShowOption('favourited');
 
           await feedPage.assertions.verifyPostIsNotVisible(suPostText);
+
+          await feedPage.actions.clickOnShowOption('all');
+        });
+
+        // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
+        await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
+
+    test(
+      'verify SU can edit only their own Feed Posts (without Limited Visibility) on Home Feed',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42187', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            "ABAC: Verify Standard User can edit their own Feed post but cannot edit other users' Feed posts on Home Feed",
+          zephyrTestId: 'CONT-42187',
+          storyId: 'CONT-42187',
+        });
+
+        let appManagerPostText: string;
+        let suPostText: string;
+        // ==================== Add SU as FO of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== App Manager creates a Feed post ====================
+        await test.step('App Manager creates a Feed post on Home Feed', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPage();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          appManagerPostText = TestDataGenerator.generateRandomText('App Manager Post for Ownership Test', 3, true);
+          await appManagerFeedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await appManagerFeedPage.actions.createAndPost({
+            text: appManagerPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        });
+
+        // ==================== SU creates their own Feed post (without Limited Visibility) ====================
+        await test.step('SU creates their own Feed post without Limited Visibility', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          suPostText = TestDataGenerator.generateRandomText('SU Own Post for Edit Test', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPost({
+            text: suPostText,
+          });
+
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        });
+
+        // ==================== SU verifies Edit option IS visible on own post ====================
+        await test.step('SU verifies Edit option is visible on their own post', async () => {
+          await feedPage.actions.openPostOptionsMenu(suPostText);
+          await feedPage.assertions.verifyEditOptionVisible(suPostText);
+        });
+
+        // ==================== SU edits their own post successfully ====================
+        let updatedSuPostText: string;
+        await test.step('SU edits their own post successfully', async () => {
+          updatedSuPostText = TestDataGenerator.generateRandomText('SU Edited Own Post', 3, true);
+
+          await feedPage.actions.openPostOptionsMenu(suPostText);
+          await feedPage.actions.editPost(suPostText, updatedSuPostText);
+
+          await feedPage.assertions.waitForPostToBeVisible(updatedSuPostText);
+
+          await feedPage.actions.deletePost(updatedSuPostText);
+        });
+
+        // ==================== SU verifies Edit option is NOT visible on App Manager's post ====================
+        await test.step("SU verifies Edit option is NOT visible on App Manager's post", async () => {
+          await feedPage.actions.reloadPage();
+          await feedPage.assertions.waitForPostToBeVisible(appManagerPostText);
+
+          await feedPage.actions.openPostOptionsMenu(appManagerPostText);
+
+          await feedPage.assertions.verifyEditOptionNotVisible(appManagerPostText);
         });
 
         // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
