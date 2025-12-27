@@ -30,7 +30,7 @@ export class ManageFeaturesPage extends BasePage {
   }
 
   async clickOnSitesCard(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Clicking on sites card', async () => {
       await this.clickOnElement(this.manageFeatureComponent.sitesCard);
     });
   }

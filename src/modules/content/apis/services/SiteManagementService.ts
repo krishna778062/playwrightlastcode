@@ -653,7 +653,9 @@ export class SiteManagementService implements ISiteManagementOperations {
       const responseBody = await response.json();
 
       if (!response.ok()) {
-        throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
+        throw new Error(
+          `Failed to get site details for ${siteId}. Status: ${response.status()} and body: ${JSON.stringify(responseBody)}`
+        );
       }
 
       return responseBody;
