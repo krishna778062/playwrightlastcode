@@ -11,6 +11,7 @@ export interface IActivityNotificationActions {
 export interface IActivityNotificationAssertions {
   verifyNotificationExistsForMention: (expectedNotificationMessage: string) => Promise<void>;
   verifyNotificationExists: (notificationText: string) => Promise<void>;
+  verifyNotificationDoesNotExist: (notificationText: string) => Promise<void>;
 }
 
 export class ActivityNotificationPage
@@ -82,6 +83,14 @@ export class ActivityNotificationPage
     await test.step(`Verify notification exists for mention: ${expectedNotificationMessage}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.notificationByMention(expectedNotificationMessage).first(), {
         assertionMessage: `Notification with text "${expectedNotificationMessage}" should be visible`,
+      });
+    });
+  }
+
+  async verifyNotificationDoesNotExist(notificationText: string): Promise<void> {
+    await test.step(`Verify notification does NOT exist: ${notificationText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.notificationByMention(notificationText).first(), {
+        assertionMessage: `Notification with text "${notificationText}" should NOT be visible`,
       });
     });
   }

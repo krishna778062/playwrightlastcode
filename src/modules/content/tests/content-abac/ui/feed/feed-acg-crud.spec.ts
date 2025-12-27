@@ -1689,5 +1689,92 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify FO can mention user outside audience in restricted post - mention shows as plain text',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42186', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify when FO mentions a user outside restricted audience, mention is rendered as plain text and mentioned user cannot see the post',
+          zephyrTestId: 'CONT-42186',
+          storyId: 'CONT-42186',
+        });
+
+        let suPostText: string;
+        let socialCampaignManagerFullName: string;
+
+        // ==================== Get Site Manager full name (user outside Engineering audience) ====================
+        await test.step('Get Site Manager full name for mention', async () => {
+          const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.socialCampaignManager.email
+          );
+          socialCampaignManagerFullName = userInfo.fullName;
+        });
+
+        // ==================== App Manager creates Feed post with limit visibility to Engineering ====================
+        await test.step('App Manager creates Feed post with Limit visibility restricted to Engineering audience', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          suPostText = TestDataGenerator.generateRandomText('ABAC Mention Outside Audience Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPostWithLimitVisibility({
+            text: suPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+          await feedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== App Manager (FO) edits post and mentions user outside audience ====================
+        let updatedPostText: string;
+        await test.step('App Manager edits post and mentions Social Campaign Manager(endUser2) (user outside Engineering audience)', async () => {
+          await feedPage.actions.openPostOptionsMenu(suPostText);
+          await feedPage.actions.clickEditOption();
+          await feedPage.assertions.verifyEditorVisible();
+
+          updatedPostText = TestDataGenerator.generateRandomText('ABAC Mention Outside Audience Updated', 3, true);
+          await feedPage.actions.updatePostText(updatedPostText);
+          await feedPage.actions.addUserNameMention(socialCampaignManagerFullName);
+          await feedPage.actions.clickUpdateButton();
+
+          await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
+        });
+
+        // ==================== Verify mention is rendered as plain text (not clickable) ====================
+        await test.step('Verify mention is rendered as plain text (not a clickable link)', async () => {
+          await feedPage.assertions.verifyMentionIsPlainText(updatedPostText, socialCampaignManagerFullName);
+        });
+
+        // ==================== Social Campaign Manager(endUser2) navigates to Home Feed - verify post is NOT visible ====================
+        await test.step('Social Campaign Manager(endUser2) navigates to Home Feed and verifies post is NOT visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.reloadPage();
+          await socialCampaignManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          await socialCampaignManagerFeedPage.assertions.verifyPostIsNotVisible(updatedPostText);
+        });
+
+        // ==================== Social Campaign Manager(endUser2) checks notifications - no mention notification ====================
+        await test.step('Social Campaign Manager(endUser2) verifies NO notification received for mention', async () => {
+          const notificationComponent = await socialCampaignManagerFixture.navigationHelper.clickOnBellIcon();
+          const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+
+          await activityNotificationPage.assertions.verifyNotificationDoesNotExist(updatedPostText);
+        });
+      }
+    );
   }
 );

@@ -1673,6 +1673,27 @@ export class ListFeedComponent
     });
   }
 
+  async verifyMentionIsPlainText(postText: string, userName: string): Promise<void> {
+    await test.step(`Verify mention @${userName} is rendered as plain text (not clickable)`, async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+
+      // Verify the mention link is NOT visible (not clickable)
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${userName}` });
+      await this.verifier.verifyTheElementIsNotVisible(userMentionLink, {
+        assertionMessage: `Mention @${userName} should NOT be a clickable link (should be plain text)`,
+      });
+
+      // Verify the mention text IS visible as plain text
+      const mentionAsPlainText = postTextLocator.getByText(`@${userName}`);
+      await this.verifier.verifyTheElementIsVisible(mentionAsPlainText, {
+        assertionMessage: `Mention @${userName} should be visible as plain text`,
+      });
+    });
+  }
+
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify reaction button is not visible on feed post', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {

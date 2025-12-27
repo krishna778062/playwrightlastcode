@@ -97,6 +97,7 @@ export interface IFeedActions {
   clickCopyLinkOption: () => Promise<void>;
   createPost: (text: string) => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
+  addUserNameMention: (userName: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
   addFileToPost: (filePath: string) => Promise<void>;
@@ -195,7 +196,6 @@ export interface IFeedAssertions {
   verifyPostIsFavorited: (postText: string) => Promise<void>;
   validatePostText: (postText: string) => Promise<void>;
   verifyImageButtonIsNotVisible: () => Promise<void>;
-  verifyPostIsNotVisible: (postText: string) => Promise<void>;
   verifyReplyIsVisible: (replyText: string) => Promise<void>;
   verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
   verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
@@ -282,6 +282,7 @@ export interface IFeedAssertions {
   verifyEditOptionVisible: (postText: string) => Promise<void>;
   verifyEditOptionNotVisible: (postText: string) => Promise<void>;
   verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void>;
+  verifyMentionIsPlainText(postText: string, userName: string): Promise<void>;
   verifyInlineImagePreviewVisible: () => Promise<void>;
   // Limit visibility assertions
   verifyEditorVisible: () => Promise<void>;
@@ -1093,6 +1094,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
     await this.listFeedComponent.verifyUserNameMentionIsVisible(postText, standardUserFullName);
   }
 
+  async verifyMentionIsPlainText(postText: string, userName: string): Promise<void> {
+    await this.listFeedComponent.verifyMentionIsPlainText(postText, userName);
+  }
+
   async verifyInlineImagePreviewVisible(): Promise<void> {
     await this.listFeedComponent.verifyInlineImagePreviewVisible();
   }
@@ -1121,6 +1126,10 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
 
   async updatePostText(text: string): Promise<void> {
     await this.createFeedPostComponent.updatePostText(text);
+  }
+
+  async addUserNameMention(userName: string): Promise<void> {
+    await this.createFeedPostComponent.addUserNameMention(userName);
   }
 
   async removeAttachedFile(index: number = 0): Promise<void> {
