@@ -205,7 +205,7 @@ for (const testData of feedTestData) {
           } else if (testData.feedType === 'Site Feed') {
             const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, resources.siteId);
             await siteDashboardPage.loadPage();
-            await siteDashboardPage.actions.clickOnFeedLink();
+            await siteDashboardPage.clickOnFeedLink();
           } else if (testData.feedType === 'Content Feed') {
             const contentPreviewPage = new ContentPreviewPage(
               appManagerFixture.page,
@@ -234,8 +234,8 @@ for (const testData of feedTestData) {
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
-          await appManagerFeedPage.actions.clickShareThoughtsButton();
-          const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+          await appManagerFeedPage.clickShareThoughtsButton();
+          const postResult = await appManagerFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: fullName,
             topicName: randomTopic.name,
@@ -247,7 +247,7 @@ for (const testData of feedTestData) {
 
           console.log('postText :   ', postText);
           // Step 2: Validate post creation
-          await appManagerFeedPage.assertions.validatePostText(postText);
+          await appManagerFeedPage.feedList.validatePostText(postText);
 
           // Step 3: Prepare for edit - get another user's name
           const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
@@ -255,7 +255,7 @@ for (const testData of feedTestData) {
           const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post');
 
           // Step 4: Edit the post
-          await appManagerFeedPage.actions.editPostWithTopicAndUserName({
+          await appManagerFeedPage.postEditor.editPostWithTopicAndUserName({
             currentText: postResult.postText,
             newText: updatedPostText,
             topicName: randomTopic.name,
@@ -263,10 +263,10 @@ for (const testData of feedTestData) {
           });
 
           // Step 5: Validate post edit
-          await appManagerFeedPage.assertions.validatePostText(updatedPostText);
+          await appManagerFeedPage.feedList.validatePostText(updatedPostText);
 
           // Step 6: Delete the post
-          await appManagerFeedPage.actions.deletePost(updatedPostText);
+          await appManagerFeedPage.deletePost(updatedPostText);
           createdPostId = '';
         }
       );

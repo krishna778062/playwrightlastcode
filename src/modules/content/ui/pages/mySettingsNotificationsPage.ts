@@ -4,34 +4,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { getNotificationUrlPath, NotificationType } from '@/src/modules/content/constants';
 
-export interface IMySettingsNotificationsActions {
-  navigateToCurrentUserNotificationSettings: (notificationType?: NotificationType) => Promise<void>;
-  clickOnFeedTab: () => Promise<void>;
-  clickOnShareYourPostCheckbox: () => Promise<void>;
-  checkShareYourPostCheckbox: () => Promise<void>;
-  uncheckShareYourPostCheckbox: () => Promise<void>;
-  clickOnSaveButton: () => Promise<void>;
-  clickOnOverwriteSettingsButton: () => Promise<void>;
-  isShareYourPostCheckboxChecked: () => Promise<boolean>;
-  waitForSaveToComplete: () => Promise<void>;
-  confirmOverwriteSettings: () => Promise<void>;
-  saveAndVerifyUnchecked: () => Promise<void>;
-  saveAndVerifyChecked: () => Promise<void>;
-  expandBrowserFeedSection: () => Promise<void>;
-}
-
-export interface IMySettingsNotificationsAssertions {
-  verifyShareYourPostCheckboxIsVisible: () => Promise<void>;
-  verifyShareYourPostCheckboxIsChecked: () => Promise<void>;
-  verifyShareYourPostCheckboxIsUnchecked: () => Promise<void>;
-  verifySaveButtonIsVisible: () => Promise<void>;
-  verifyOverwriteSettingsButtonIsVisible: () => Promise<void>;
-}
-
-export class MySettingsNotificationsPage
-  extends BasePage
-  implements IMySettingsNotificationsActions, IMySettingsNotificationsAssertions
-{
+export class MySettingsNotificationsPage extends BasePage {
   readonly browserTab: Locator;
   readonly emailNotificationsTab: Locator;
   readonly feedButton: Locator;
@@ -57,15 +30,6 @@ export class MySettingsNotificationsPage
     this.dialog = this.page.locator('[role="dialog"]').first();
     this.confirmButton = this.dialog.getByRole('button', { name: 'Confirm' });
   }
-
-  get actions(): IMySettingsNotificationsActions {
-    return this;
-  }
-
-  get assertions(): IMySettingsNotificationsAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify My Settings Notifications page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.browserTab, {
@@ -210,19 +174,19 @@ export class MySettingsNotificationsPage
 
   async saveAndVerifyUnchecked(): Promise<void> {
     await test.step('Save and verify checkbox is unchecked', async () => {
-      await this.assertions.verifySaveButtonIsVisible();
-      await this.actions.clickOnSaveButton();
-      await this.actions.waitForSaveToComplete();
-      await this.assertions.verifyShareYourPostCheckboxIsUnchecked();
+      await this.verifySaveButtonIsVisible();
+      await this.clickOnSaveButton();
+      await this.waitForSaveToComplete();
+      await this.verifyShareYourPostCheckboxIsUnchecked();
     });
   }
 
   async saveAndVerifyChecked(): Promise<void> {
     await test.step('Save and verify checkbox is checked', async () => {
-      await this.assertions.verifySaveButtonIsVisible();
-      await this.actions.clickOnSaveButton();
-      await this.actions.waitForSaveToComplete();
-      await this.assertions.verifyShareYourPostCheckboxIsChecked();
+      await this.verifySaveButtonIsVisible();
+      await this.clickOnSaveButton();
+      await this.waitForSaveToComplete();
+      await this.verifyShareYourPostCheckboxIsChecked();
     });
   }
 

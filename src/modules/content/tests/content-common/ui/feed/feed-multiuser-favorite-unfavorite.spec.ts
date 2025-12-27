@@ -136,33 +136,33 @@ test.describe(
 
           // Wait for posts to be visible on all pages in parallel
           await Promise.all([
-            appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-            standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-            siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+            appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+            standardUserFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+            siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
           ]);
 
           // Test favorite/unfavorite operations in parallel for all user roles
           await Promise.all([
             // App Manager favorite/unfavorite
             (async () => {
-              await appManagerFeedPage.actions.markPostAsFavourite();
-              await appManagerFeedPage.assertions.verifyPostIsFavorited(createdPostText);
-              await appManagerFeedPage.actions.removePostFromFavourite(createdPostText);
-              await appManagerFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+              await appManagerFeedPage.feedList.markPostAsFavourite();
+              await appManagerFeedPage.feedList.verifyPostIsFavorited(createdPostText);
+              await appManagerFeedPage.feedList.removePostFromFavourite(createdPostText);
+              await appManagerFeedPage.feedList.verifyPostIsNotFavorited(createdPostText);
             })(),
             // Standard User favorite/unfavorite
             (async () => {
-              await standardUserFeedPage.actions.markPostAsFavourite();
-              await standardUserFeedPage.assertions.verifyPostIsFavorited(createdPostText);
-              await standardUserFeedPage.actions.removePostFromFavourite(createdPostText);
-              await standardUserFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+              await standardUserFeedPage.feedList.markPostAsFavourite();
+              await standardUserFeedPage.feedList.verifyPostIsFavorited(createdPostText);
+              await standardUserFeedPage.feedList.removePostFromFavourite(createdPostText);
+              await standardUserFeedPage.feedList.verifyPostIsNotFavorited(createdPostText);
             })(),
             // Site Manager favorite/unfavorite
             (async () => {
-              await siteManagerFeedPage.actions.markPostAsFavourite();
-              await siteManagerFeedPage.assertions.verifyPostIsFavorited(createdPostText);
-              await siteManagerFeedPage.actions.removePostFromFavourite(createdPostText);
-              await siteManagerFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+              await siteManagerFeedPage.feedList.markPostAsFavourite();
+              await siteManagerFeedPage.feedList.verifyPostIsFavorited(createdPostText);
+              await siteManagerFeedPage.feedList.removePostFromFavourite(createdPostText);
+              await siteManagerFeedPage.feedList.verifyPostIsNotFavorited(createdPostText);
             })(),
           ]);
         }
@@ -304,7 +304,7 @@ test.describe(
             (async () => {
               const siteOwnerDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
               await siteOwnerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-              await siteOwnerDashboardPage.actions.clickOnFeedLink();
+              await siteOwnerDashboardPage.clickOnFeedLink();
               const feedPage = new FeedPage(appManagerFixture.page);
               await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
               return feedPage;
@@ -313,7 +313,7 @@ test.describe(
             (async () => {
               const siteManagerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, siteId);
               await siteManagerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-              await siteManagerDashboardPage.actions.clickOnFeedLink();
+              await siteManagerDashboardPage.clickOnFeedLink();
               const feedPage = new FeedPage(siteManagerFixture.page);
               await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
               return feedPage;
@@ -322,7 +322,7 @@ test.describe(
             (async () => {
               const contentManagerDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
               await contentManagerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
-              await contentManagerDashboardPage.actions.clickOnFeedLink();
+              await contentManagerDashboardPage.clickOnFeedLink();
               const feedPage = new FeedPage(standardUserFixture.page);
               await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
               return feedPage;
@@ -331,33 +331,33 @@ test.describe(
 
           // Wait for posts to be visible on all pages in parallel
           await Promise.all([
-            ownerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-            managerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-            contentFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+            ownerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+            managerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+            contentFeedPage.feedList.waitForPostToBeVisible(createdPostText),
           ]);
 
           // Test favorite/unfavorite operations in parallel for all user roles
           await Promise.all([
             // Site Owner favorite/unfavorite
             (async () => {
-              await ownerFeedPage.actions.markPostAsFavourite();
-              await ownerFeedPage.assertions.verifyPostIsFavorited(createdPostText);
-              await ownerFeedPage.actions.removePostFromFavourite(createdPostText);
-              await ownerFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+              await ownerFeedPage.feedList.markPostAsFavourite();
+              await ownerFeedPage.feedList.verifyPostIsFavorited(createdPostText);
+              await ownerFeedPage.feedList.removePostFromFavourite(createdPostText);
+              await ownerFeedPage.feedList.verifyPostIsNotFavorited(createdPostText);
             })(),
             // Site Manager favorite/unfavorite
             (async () => {
-              await managerFeedPage.actions.markPostAsFavourite();
-              await managerFeedPage.assertions.verifyPostIsFavorited(createdPostText);
-              await managerFeedPage.actions.removePostFromFavourite(createdPostText);
-              await managerFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+              await managerFeedPage.feedList.markPostAsFavourite();
+              await managerFeedPage.feedList.verifyPostIsFavorited(createdPostText);
+              await managerFeedPage.feedList.removePostFromFavourite(createdPostText);
+              await managerFeedPage.feedList.verifyPostIsNotFavorited(createdPostText);
             })(),
             // Content Manager favorite/unfavorite
             (async () => {
-              await contentFeedPage.actions.markPostAsFavourite();
-              await contentFeedPage.assertions.verifyPostIsFavorited(createdPostText);
-              await contentFeedPage.actions.removePostFromFavourite(createdPostText);
-              await contentFeedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+              await contentFeedPage.feedList.markPostAsFavourite();
+              await contentFeedPage.feedList.verifyPostIsFavorited(createdPostText);
+              await contentFeedPage.feedList.removePostFromFavourite(createdPostText);
+              await contentFeedPage.feedList.verifyPostIsNotFavorited(createdPostText);
             })(),
           ]);
         }
@@ -410,47 +410,47 @@ test.describe(
         });
 
         await test.step('Create a global post', async () => {
-          await feedPage.actions.clickShareThoughtsButton();
+          await feedPage.clickShareThoughtsButton();
 
           createdPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
 
-          await feedPage.actions.enterFeedPostText(createdPostText);
+          await feedPage.postEditor.createPost(createdPostText);
 
-          const postResult = await feedPage.actions.createAndPost({
+          const postResult = await feedPage.postEditor.createAndPost({
             text: createdPostText,
           });
 
           createdPostId = postResult.postId || '';
 
-          await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         await test.step('Get the count of feed as favorite', async () => {
-          await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+          await feedPage.feedList.verifyPostIsNotFavorited(createdPostText);
         });
 
         await test.step('Click on favourite icon on feed', async () => {
-          await feedPage.actions.markPostAsFavourite();
+          await feedPage.feedList.markPostAsFavourite();
         });
 
         await test.step('Verify the status of feed after favorite', async () => {
-          await feedPage.assertions.verifyPostIsFavorited(createdPostText);
+          await feedPage.feedList.verifyPostIsFavorited(createdPostText);
         });
 
         await test.step('Click on favourite icon on feed post to untag', async () => {
-          await feedPage.actions.removePostFromFavourite(createdPostText);
+          await feedPage.feedList.removePostFromFavourite(createdPostText);
         });
 
         await test.step('Verify the status of feed after unFavorite', async () => {
-          await feedPage.assertions.verifyPostIsNotFavorited(createdPostText);
+          await feedPage.feedList.verifyPostIsNotFavorited(createdPostText);
         });
 
         await test.step('Click on option menu three dot, click Delete, verify confirmation, and delete', async () => {
-          await feedPage.actions.deletePost(createdPostText);
+          await feedPage.deletePost(createdPostText);
         });
 
         await test.step('Verify feed post is deleted without edit', async () => {
-          await feedPage.assertions.verifyPostIsNotVisible(createdPostText);
+          await feedPage.feedList.verifyPostIsNotVisible(createdPostText);
           createdPostId = '';
           createdPostText = '';
         });

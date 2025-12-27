@@ -6,23 +6,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IFeaturedSiteActions {
-  addSiteToFeatured: (siteName: string) => Promise<void>;
-  navigateToSiteDashboard: (siteName: string) => Promise<void>;
-  clickOnAddUpdateFeaturedSiteButton: () => Promise<void>;
-  clickDoneButton: () => Promise<void>;
-  shuffleSites: () => Promise<void>;
-}
-
-export interface IFeaturedSiteAssertions {
-  verifyFeaturedSitesVisible: (siteNames: string[]) => Promise<void>;
-  verifySiteDashboardLoaded: (siteName: string) => Promise<void>;
-  verifyToastMessage: (message: string) => Promise<void>;
-  verifyFeaturedSitesVisibleInModal: (siteNames: string) => Promise<void>;
-  verifyFeaturedSitesIndex: (sites: { siteId: string; name: string }[]) => Promise<void>;
-}
-
-export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, IFeaturedSiteAssertions {
+export class FeaturedSitePage extends BasePage {
   //COMPONENTS
   private featureSiteComponent: FeatureSiteComponent;
 
@@ -51,15 +35,6 @@ export class FeaturedSitePage extends BasePage implements IFeaturedSiteActions, 
       });
     });
   }
-
-  get actions(): IFeaturedSiteActions {
-    return this;
-  }
-
-  get assertions(): IFeaturedSiteAssertions {
-    return this;
-  }
-
   private async clickOnFeaturedSite(siteName: string): Promise<void> {
     await test.step(`Click on featured site: ${siteName}`, async () => {
       await this.clickOnElement(this.featuredSiteNames(siteName));

@@ -6,27 +6,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
 
-export interface IFavoritesPageActions {
-  clickOnPeopleButton: () => Promise<void>;
-  clickOnContentButton: () => Promise<void>;
-  unfavoriteContentByName: (contentName: string) => Promise<void>;
-  clickOnFileTab: () => Promise<void>;
-  unfavoriteFileByName: (fileName: string) => Promise<void>;
-}
-
-export interface IFavoritesPageAssertions {
-  verifyPeopleNamesAreDisplayed: (peopleNames: string[]) => Promise<void>;
-  verifyContentNamesAreDisplayed: (contentNames: string[]) => Promise<void>;
-  verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
-  markAsFavoriteAndCheckRGBColor: () => Promise<void>;
-  verifyAlbumTabImageIsDisplayed: () => Promise<void>;
-  verifyEventsTabImageIsDisplayed: () => Promise<void>;
-  verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
-  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
-  verifyFileIsVisibleInFilesTab: (fileName: string) => Promise<void>;
-}
-
-export class FavoritesPage extends BasePage implements IFavoritesPageActions, IFavoritesPageAssertions {
+export class FavoritesPage extends BasePage {
   //COMPONENTS
 
   //LOCATORS
@@ -69,15 +49,6 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
     this.getFileLinkInFilesTab = (fileName: string) =>
       this.getFilesTabPanel().getByRole('link', { name: fileName }).first();
   }
-
-  get actions(): IFavoritesPageActions {
-    return this;
-  }
-
-  get assertions(): IFavoritesPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.peopleButton, {
       assertionMessage: 'People button should be visible',
@@ -220,7 +191,7 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
       });
 
       // Click the unfavorite button and wait for API call
-      const unfavoriteResponse = await this.performActionAndWaitForResponse(
+      await this.performActionAndWaitForResponse(
         () => this.clickOnElement(unfavoriteButton),
         response =>
           response.url().includes(API_ENDPOINTS.content.favourites) &&
@@ -230,14 +201,9 @@ export class FavoritesPage extends BasePage implements IFavoritesPageActions, IF
           timeout: 20_000,
         }
       );
-      await unfavoriteResponse.finished();
-      // Click the unfavorite button
-      await this.clickOnElement(unfavoriteButton);
 
-      // Wait for the content item to be removed from the list (optional verification)
-      await contentItem.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
-        // Content might still be visible but unfavorited, which is also acceptable
-        console.log(`Content "${contentName}" may still be visible after unfavoriting`);
+      await this.verifier.verifyTheElementIsNotVisible(contentItem, {
+        assertionMessage: `Content "${contentName}" should be removed from favorites list`,
       });
     });
   }

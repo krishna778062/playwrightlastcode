@@ -2,16 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
-export interface IEditTemplatePageActions {
-  editContent: (content: string) => Promise<void>;
-  clickOnUpdateButton: () => Promise<void>;
-}
-
-export interface IEditTemplatePageAssertions {
-  verifyContentHasProperCharacterCount: (characterCount: number) => Promise<void>;
-}
-
-export class EditTemplatePage extends BasePage implements IEditTemplatePageActions, IEditTemplatePageAssertions {
+export class EditTemplatePage extends BasePage {
   readonly contentEditor: Locator;
   readonly updateButton: Locator;
   constructor(page: Page) {
@@ -19,15 +10,6 @@ export class EditTemplatePage extends BasePage implements IEditTemplatePageActio
     this.contentEditor = page.getByRole('textbox', { name: 'Page content' });
     this.updateButton = page.getByRole('button', { name: 'Update' });
   }
-
-  get actions(): IEditTemplatePageActions {
-    return this;
-  }
-
-  get assertions(): IEditTemplatePageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify edit template page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.contentEditor, {

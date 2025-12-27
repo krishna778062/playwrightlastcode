@@ -40,31 +40,31 @@ test.describe(
         });
 
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+        await governanceScreenPage.clickOnTimelineFeedEnabled();
         await manageApplicationPage.loadPage();
-        await manageApplicationPage.actions.disableQuestionAndAnswerFeature();
-        await manageApplicationPage.actions.clickOnSave();
-        await manageApplicationPage.assertions.verifyToastMessage(
+        await manageApplicationPage.disableQuestionAndAnswerFeature();
+        await manageApplicationPage.clickOnSave();
+        await manageApplicationPage.verifyToastMessageIsVisibleWithText(
           SETTINGS_TEST_DATA.TOAST_MESSAGES.SAVED_CHANGES_SUCCESSFULLY
         );
         await appManagerFixture.navigationHelper.clickOnHomeButton();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickShareThoughtsButton();
-        await feedPage.assertions.verifyQuestionButtonIsNotVisible();
+        await feedPage.clickShareThoughtsButton();
+        await feedPage.verifyQuestionButtonIsNotVisible();
         await manageApplicationPage.loadPage();
-        await manageApplicationPage.actions.enableQuestionAndAnswerFeature();
-        await manageApplicationPage.actions.clickOnSave();
-        await manageApplicationPage.assertions.verifyToastMessage(
+        await manageApplicationPage.enableQuestionAndAnswerFeature();
+        await manageApplicationPage.clickOnSave();
+        await manageApplicationPage.verifyToastMessageIsVisibleWithText(
           SETTINGS_TEST_DATA.TOAST_MESSAGES.SAVED_CHANGES_SUCCESSFULLY
         );
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickShareThoughtsButton();
-        await feedPage.assertions.verifyQuestionButtonIsVisible();
+        await feedPage.clickShareThoughtsButton();
+        await feedPage.postEditor.verifyQuestionButtonIsVisible();
       }
     );
   }

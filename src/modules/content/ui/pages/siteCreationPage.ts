@@ -4,7 +4,6 @@ import { PageCreationResponse } from '@content/apis/types/pageCreationResponse';
 
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
-import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
@@ -22,28 +21,7 @@ export interface SiteCreationOptions {
   };
 }
 
-export interface ISiteCreationActions {
-  addSite(
-    options: SiteCreationOptions,
-    siteManagementHelper: SiteManagementHelper
-  ): Promise<{
-    siteDashboard: SiteDashboardPage;
-    siteId: string;
-  }>;
-
-  // UI-based methods (new)
-  fillSiteName: (siteName: string) => Promise<void>;
-  selectOrCreateCategory: (categoryName: string) => Promise<void>;
-  clickAddSiteButton: () => Promise<void>;
-  createSiteWithRandomCategory: (siteName: string, categoryName: string) => Promise<void>;
-}
-
-export interface ISiteCreationAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifySiteCreationPageLoaded: () => Promise<void>;
-}
-
-export class SiteCreationPage extends BasePage implements ISiteCreationActions, ISiteCreationAssertions {
+export class SiteCreationPage extends BasePage {
   // API-based locators (existing)
   readonly siteNameInput: Locator;
   readonly categoryDropdown: Locator;
@@ -89,14 +67,6 @@ export class SiteCreationPage extends BasePage implements ISiteCreationActions, 
     this.categoryCombobox = page.getByRole('combobox', { name: 'Category: This is a required' });
     this.addSiteButton = page.getByRole('button', { name: 'Add site' });
     this.addCategoryOption = (categoryName: string) => page.getByText(`Add ${categoryName}…`);
-  }
-
-  get actions(): ISiteCreationActions {
-    return this;
-  }
-
-  get assertions(): ISiteCreationAssertions {
-    return this;
   }
 
   /**

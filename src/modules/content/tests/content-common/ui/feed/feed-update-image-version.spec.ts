@@ -247,11 +247,11 @@ for (const testData of feedTestData) {
         } else if (testData.feedType === 'Site Feed') {
           siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.clickOnFeedLink();
         } else if (testData.feedType === 'Home Feed') {
           await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
         }
-        await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
       });
 
       test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
@@ -274,27 +274,29 @@ for (const testData of feedTestData) {
             storyId: testData.storyId,
           });
 
-          await appManagerFeedPage.assertions.verifyVersionImageIsDisplayed(originalFileId);
-          await appManagerFeedPage.actions.clickInfoIcon(originalFileId);
-          await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
-          await appManagerFeedPage.actions.clickOnInfoIconOnImage();
-          await appManagerFeedPage.actions.clickOnEditVersionButton();
-          await appManagerFeedPage.assertions.verifyVersionNumber('1');
-          const responseURL = await appManagerFeedPage.actions.uploadImage(updatedImageConfig.filePath);
+          await appManagerFeedPage.feedList.verifyVersionImageIsDisplayed(originalFileId);
+          await appManagerFeedPage.feedList.clickInfoIcon(originalFileId);
+          await appManagerFeedPage.filePreview.verifyPreviewModalIsOpened();
+          await appManagerFeedPage.filePreview.clickOnInfoIconOnImage();
+          await appManagerFeedPage.filePreview.clickOnEditVersionButton();
+          await appManagerFeedPage.filePreview.verifyVersionNumber('1');
+          const responseURL = await appManagerFeedPage.filePreview.uploadImage(updatedImageConfig.filePath);
           if (testData.feedType === 'Home Feed') {
             updatedFileId = responseURL.split('/u/o/')[1].split('?')[0];
           } else {
             updatedFileId = responseURL.split('/u/r/')[1].split('?')[0];
           }
 
-          await appManagerFeedPage.actions.clickOnUploadButton(updatedFileId);
-          await appManagerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_NEW_VERSION);
-          await appManagerFeedPage.assertions.verifyVersionNumber('2');
-          await appManagerFeedPage.actions.clickOnCloseButton();
+          await appManagerFeedPage.filePreview.clickOnUploadButton(updatedFileId);
+          await appManagerFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.ADDED_NEW_VERSION
+          );
+          await appManagerFeedPage.filePreview.verifyVersionNumber('2');
+          await appManagerFeedPage.filePreview.clickOnCloseButton();
           //referesh the page
           await appManagerFeedPage.page.reload();
-          await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-          await appManagerFeedPage.actions.verifyVersionImageIsDisplayed(updatedFileId);
+          await appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+          await appManagerFeedPage.feedList.verifyVersionImageIsDisplayed(updatedFileId);
         }
       );
     }
@@ -412,7 +414,7 @@ test.describe(
 
         // Verify that the site image is rendered as the fallback image in the feed card
         // This verifies that the image shown is the same as the site's iconImage
-        await appManagerFeedPage.assertions.verifySiteImageInFeedCard(pageName, siteId, siteImageFileId);
+        await appManagerFeedPage.feedList.verifySiteImageInFeedCard(pageName, siteId, siteImageFileId);
       }
     );
   }

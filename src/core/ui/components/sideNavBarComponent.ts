@@ -61,7 +61,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.createSection = page.getByRole('button', { name: 'Icon' });
     this.feedLink = page.locator('[href="/feed"][data-testid="main-nav-item"]');
     this.homeLink = page.locator('[href="/home"][data-testid="main-nav-item"]');
-    this.sitesButton = page.locator('[href="/sites/featured"][data-testid="main-nav-item"]');
+    this.sitesButton = page.getByRole('menuitem', { name: 'Sites' });
     this.navigateOnApplication = page.locator('[aria-label="Application settings"]');
     this.clickOnManageFeature = page.locator('[aria-label="Manage"]').first();
     this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
@@ -92,7 +92,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
     this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
     this.peopleButton = page.locator('[href="/people"][data-testid="main-nav-item"]');
-    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
+    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites' });
 
     //recognition section
     this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });

@@ -55,7 +55,7 @@ export class NewHomePage extends BasePage {
   readonly peopleButton: Locator;
   readonly carouselItemText: (text: string) => Locator;
   private carouselComponent: CarouselComponent;
-  readonly CarouseText: (text: string) => Locator;
+  readonly carouselText: (text: string) => Locator;
 
   readonly recentlyVisitedSite: (siteName: string) => Locator;
   constructor(page: Page) {
@@ -72,8 +72,8 @@ export class NewHomePage extends BasePage {
     this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.homeLayoutComponent = new HomeLayoutComponent(page);
-    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
-    this.CarouseText = (text: string) => page.getByRole('link', { name: text, exact: true });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People' });
+    this.carouselText = (text: string) => page.getByRole('link', { name: text, exact: true });
     this.recentlyVisitedSite = (siteName: string) => page.getByRole('menuitem', { name: siteName });
   }
 
@@ -168,7 +168,7 @@ export class NewHomePage extends BasePage {
   }
   async verifyContentIsNotVisibleInCarousel(contentName: string): Promise<void> {
     await test.step('Verifying content is not visible in home carousel', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.CarouseText(contentName), {
+      await this.verifier.verifyTheElementIsNotVisible(this.carouselText(contentName), {
         assertionMessage: `Content '${contentName}' should be not visible in home carousel`,
       });
     });

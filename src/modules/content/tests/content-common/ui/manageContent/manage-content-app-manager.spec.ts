@@ -76,12 +76,12 @@ test.describe(
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.writeRandomTextInSearchBar(title);
-        await manageContentPage.actions.clickSearchIcon();
-        await manageContentPage.assertions.nothingToShowHereText();
-        await manageContentPage.actions.clickXButton();
-        await manageContentPage.assertions.placeHolderTextShouldBeVisible();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.writeRandomTextInSearchBar(title);
+        await manageContentPage.manageContent.searchIcon();
+        await manageContentPage.manageContent.nothingToShowHere();
+        await manageContentPage.manageContent.clickXButton();
+        await manageContentPage.manageContent.placeHolderShouldBeVisible();
       }
     );
 
@@ -113,18 +113,18 @@ test.describe(
         }
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.selectUnpublishButtonFromBulkActions();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnPublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.selectContentByNumberOfItems(3);
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnMoveButton();
-        await manageContentPage.actions.selectMoveApplyButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.selectFirstContent();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectUnpublishButtonFromBulkActions();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectPublishButton();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.selectContentByNumberOfItems(3);
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectMoveButton();
+        await manageContentPage.manageContent.selectMoveApplyButton();
         const site = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           filter: 'private',
           sortBy: 'alphabetical',
@@ -132,18 +132,18 @@ test.describe(
         const privateSite = site.result.listOfItems.find(
           (site: any) => site.isActive === true && site.isPrivate === true
         );
-        await manageContentPage.actions.moveContentSearchBar(privateSite?.name || '');
-        await manageContentPage.actions.siteListSelecting();
-        await manageContentPage.actions.selectPageCategoryIfVisible();
-        await manageContentPage.actions.selectPageCategory();
-        await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.selectDeleteApplyButton();
-        await manageContentPage.actions.selectContentByNumberOfItems(3);
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnValidateButton();
-        await manageContentPage.actions.clickOnValidateApplyButton();
+        await manageContentPage.manageContent.moveContentSearchBar(privateSite?.name || '');
+        await manageContentPage.manageContent.siteListSelecting();
+        await manageContentPage.manageContent.selectPageCategoryIfVisible();
+        await manageContentPage.manageContent.selectPageCategory();
+        await manageContentPage.manageContent.selectMoveConfirmButton();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectDeleteButton();
+        await manageContentPage.manageContent.selectDeleteApplyButton();
+        await manageContentPage.manageContent.selectContentByNumberOfItems(3);
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectValidateButton();
+        await manageContentPage.manageContent.clickOnValidateApplyButton();
       }
     );
 
@@ -173,18 +173,18 @@ test.describe(
           }
         }
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
+        await manageContentPage.manageContent.selectUnpublishButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
       }
     );
 
@@ -214,11 +214,11 @@ test.describe(
           }
         }
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.addPublishContentFilter();
-        await manageContentPage.actions.clickOnFirstDropDownOption();
-        await manageContentPage.actions.clickDeleteOption();
-        await manageContentPage.actions.clickDeleteModalConfirmButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.addPublishContentFilter();
+        await manageContentPage.manageContent.selectFirstDropDownOption();
+        await manageContentPage.manageContent.clickDeleteOption();
+        await manageContentPage.manageContent.clickDeleteModalConfirmButton();
       }
     );
 
@@ -250,15 +250,15 @@ test.describe(
         }
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.assertions.verifyImageContainer();
-        await manageContentPage.assertions.authorNameShouldBeVisible();
-        await manageContentPage.assertions.clickOnTheAuthorName();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.verifyImageContainer();
+        await manageContentPage.manageContent.authorNameShouldBeVisible();
+        await manageContentPage.manageContent.clickOnTheAuthorName();
         await manageContentPage.load();
-        await manageContentPage.assertions.verifySiteName();
-        await manageContentPage.assertions.clickOnTheSiteName();
+        await manageContentPage.manageContent.verifySiteName();
+        await manageContentPage.manageContent.clickOnTheSiteName();
         await manageContentPage.load();
-        await manageContentPage.assertions.verifySiteStatusStamp();
+        await manageContentPage.manageContent.verifySiteStatusStamp();
       }
     );
 
@@ -289,12 +289,12 @@ test.describe(
         }
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
         const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await manageContentPage.actions.clickSiteSearchBar(publicSite?.name || '');
-        await manageContentPage.actions.selectSiteSearchBarOption();
-        await manageContentPage.assertions.verifySiteNameLink();
+        await manageContentPage.manageContent.clickSiteSearchBar(publicSite?.name || '');
+        await manageContentPage.manageContent.selectSiteSearchBarOption();
+        await manageContentPage.manageContent.verifySiteNameLink();
       }
     );
 
@@ -311,9 +311,9 @@ test.describe(
         });
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
       }
     );
     test(
@@ -329,11 +329,11 @@ test.describe(
           storyId: 'CONT-29493',
         });
         await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationScreenPage.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnDefaults();
-        await defaultScreenPage.actions.clickOnHomeFeed();
-        await homeFeedPage.actions.selectingPostsIFollow();
-        await homeFeedPage.actions.recentActivity();
+        await applicationScreenPage.clickOnApplication();
+        await manageApplicationPage.clickOnDefaults();
+        await defaultScreenPage.clickOnHomeFeed();
+        await homeFeedPage.selectingPostsIFollow();
+        await homeFeedPage.recentActivity();
 
         // Verify with standard user in parallel browser context
         await test.step('Verify home feed defaults for standard user', async () => {
@@ -341,10 +341,10 @@ test.describe(
           const standardUserFeedPage = new FeedPage(standardUserFixture.page);
           console.log('Successfully logged in as standard user');
           console.log('Verifying home feed defaults are applied for standard user');
-          await standardUserFeedPage.assertions.verifyPostsIFollow();
-          await standardUserFeedPage.assertions.verifySortByRecentActivity();
-          await standardUserFeedPage.actions.clickOnShowOption('toMe');
-          await standardUserFeedPage.actions.clickOnSortByOption('createdAt');
+          await standardUserFeedPage.feedList.verifyPostsIFollow();
+          await standardUserFeedPage.feedList.verifySortByRecentActivity();
+          await standardUserFeedPage.clickOnShowOption('toMe');
+          await standardUserFeedPage.clickOnSortByOption('createdAt');
         });
       }
     );
@@ -374,16 +374,16 @@ test.describe(
           }
         }
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.clickOnUpdateCategory();
-        await manageSitePage.actions.clickOnCancelOption();
-        await manageSitePage.actions.clickOnSite();
-        await siteDetailsPage.assertions.validatingCategory();
-        await manageSitePage.actions.clickOnSites();
-        await manageSitePage.actions.clickOnUpdateCategory();
-        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
-        await manageSitePage.actions.clickOnSite();
-        await siteDetailsPage.assertions.validatingCategoryToUncategorized();
+        await manageFeaturesPage.clickOnSitesCard();
+        await manageSitePage.clickOnUpdateCategory();
+        await manageSitePage.clickOnCancelOption();
+        await manageSitePage.clickOnSite();
+        await siteDetailsPage.validatingCategory();
+        await manageSitePage.clickOnSites();
+        await manageSitePage.clickOnUpdateCategory();
+        await manageSitePage.updatingCategoryToUncategorized('Uncategorized');
+        await manageSitePage.clickOnSite();
+        await siteDetailsPage.validatingCategoryToUncategorized();
       }
     );
     test(
@@ -422,22 +422,22 @@ test.describe(
           `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in ${DEFAULT_PUBLIC_SITE_NAME} site: ${allEmployeesSiteId}`
         );
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.writeRandomTextInSearchBar(randomPageName);
-        await manageContentPage.actions.clickSearchIcon();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.writeRandomTextInSearchBar(randomPageName);
+        await manageContentPage.manageContent.searchIcon();
         await appManagerFixture.page.reload();
-        await manageContentPage.assertions.checkValidateOptionInBulkActions();
-        await manageContentPage.actions.openContentDetailsPage();
-        await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
+        await manageContentPage.checkValidateOptionInBulkActions();
+        await manageContentPage.openContentDetailsPage();
+        await contentPreviewPage.verifyValidateOptionOnContentPreviewPage();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSitePage.actions.searchForSite(DEFAULT_PUBLIC_SITE_NAME);
-        await manageSitePage.actions.clickOnSite();
-        await siteDetailsPage.actions.clickOnContentTab();
-        await siteDetailsPage.actions.typeContentInSearchBar(randomPageName);
-        await siteDetailsPage.actions.clickSearchIcon();
-        await siteDetailsPage.actions.openContentDetailsPage();
-        await contentPreviewPage.assertions.verifyValidateOptionOnContentPreviewPage();
+        await manageFeaturesPage.clickOnSitesCard();
+        await manageSitePage.searchForSite(DEFAULT_PUBLIC_SITE_NAME);
+        await manageSitePage.clickOnSite();
+        await siteDetailsPage.clickOnContentTab();
+        await siteDetailsPage.typeContentInSearchBar(randomPageName);
+        await siteDetailsPage.clickSearchIcon();
+        await siteDetailsPage.openContentDetailsPage();
+        await contentPreviewPage.verifyValidateOptionOnContentPreviewPage();
       }
     );
 
@@ -468,12 +468,12 @@ test.describe(
         }
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickOnViewAllButton();
-        await manageContentPage.actions.verifyingValidationRequiredBarState();
-        await manageContentPage.actions.clickOnEditButton();
-        await editPage.actions.clickOnCancel();
-        await manageContentPage.actions.verifyingValidationRequiredBarState();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickOnViewAllButton();
+        await manageContentPage.manageContent.verifyingValidationRequiredBarState();
+        await manageContentPage.manageContent.clickOnEditButton();
+        await editPage.clickOnCancel();
+        await manageContentPage.manageContent.verifyingValidationRequiredBarState();
       }
     );
     test(
@@ -504,33 +504,33 @@ test.describe(
           }
         }
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnPublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        const contentNames = await manageContentPage.actions.getAllContentNames();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectFirstContent();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectUnpublishButton();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.selectSelectAllButton();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectPublishButton();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.selectSelectAllButton();
+        const contentNames = await manageContentPage.manageContent.getAllContentNames();
         console.log('contentNames', contentNames);
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.selectDeleteApplyButton();
-        await manageContentPage.assertions.searchAllContentsInGlobalSearchBar(contentNames);
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectDeleteButton();
+        await manageContentPage.manageContent.selectDeleteApplyButton();
+        await manageContentPage.manageContent.searchAllContentsInGlobalSearchBar(contentNames);
       }
     );
     test(
@@ -546,38 +546,40 @@ test.describe(
           storyId: 'CONT-20532',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageFeaturesPage.clickOnContentCard();
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
         console.log('pageInfo', pageInfo);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
-        await manageContentPage.actions.clickOnContentEditButton();
-        await manageContentPage.actions.UpdatedPageName(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
-        await manageContentPage.actions.clickOnPublishChangesButton();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await manageContentPage.manageContent.clickOnContentEditButton();
+        await manageContentPage.manageContent.UpdatedPageName(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
+        await manageContentPage.manageContent.clickOnPublishChangesButton();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.MODIFIED_NEWEST);
-        await manageContentPage.actions.verifyContentVisibleInManageSite(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.clickOnDeleteOption();
-        await manageContentPage.actions.clickDeleteModalConfirmButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.MODIFIED_NEWEST);
+        await manageContentPage.manageContent.verifyContentVisibleInManageSite(
+          MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME
+        );
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.selectUnpublishButton();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.clickOnDeleteOption();
+        await manageContentPage.manageContent.clickDeleteModalConfirmButton();
       }
     );
 
@@ -608,19 +610,19 @@ test.describe(
         }
         console.log('contentListResponse', contentListResponse);
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnMoveButton();
-        await manageContentPage.actions.selectMoveApplyButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.selectSelectAllButton();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectUnpublishButton();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.manageContent.selectFirstContent();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectMoveButton();
+        await manageContentPage.manageContent.selectMoveApplyButton();
         const site = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           filter: 'private',
           sortBy: 'alphabetical',
@@ -629,12 +631,12 @@ test.describe(
           (site: any) => site.isActive === true && site.isPrivate === true
         );
         console.log('privateSite', privateSite);
-        await manageContentPage.actions.moveContentSearchBar(privateSite?.name || '');
-        await manageContentPage.actions.siteListSelecting();
-        await manageContentPage.actions.selectPageCategoryIfVisible();
-        await manageContentPage.actions.selectPageCategory();
-        await manageContentPage.actions.clickOnMoveConfirmButton();
-        await manageContentPage.verifyToastMessageIsVisibleWithText(
+        await manageContentPage.manageContent.moveContentSearchBar(privateSite?.name || '');
+        await manageContentPage.manageContent.siteListSelecting();
+        await manageContentPage.manageContent.selectPageCategoryIfVisible();
+        await manageContentPage.manageContent.selectPageCategory();
+        await manageContentPage.manageContent.selectMoveConfirmButton();
+        await manageContentPage.manageContent.verifyToastMessageIsVisibleWithText(
           MANAGE_CONTENT_TEST_DATA.TOAST_MESSAGES.MOVED_ITEM_SUCCESSFULLY
         );
       }
@@ -663,9 +665,9 @@ test.describe(
             });
           }
           await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-          await manageFeaturesPage.actions.clickOnContentCard();
-          await manageContentPage.actions.clickOnSelectAllButton();
-          await manageContentPage.actions.verifyAllContentsAreSelected(17);
+          await manageFeaturesPage.clickOnContentCard();
+          await manageContentPage.manageContent.selectSelectAllButton();
+          await manageContentPage.manageContent.verifyAllContentsAreSelected(17);
         }
       }
     );
@@ -714,17 +716,17 @@ test.describe(
             await siteDashboardPage.loadPage();
             await siteDashboardPage.verifyThePageIsLoaded();
             const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
-            await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
+            await manageSitePageAppManagerSite.clickOnTheAboutTab();
           });
         }
         const newHomePage = new NewHomePage(appManagerFixture.page);
         await newHomePage.loadPage();
         await newHomePage.verifyThePageIsLoaded();
         await Promise.all([
-          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[0].name),
-          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[1].name),
-          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[2].name),
-          newHomePage.assertions.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[3].name),
+          newHomePage.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[0].name),
+          newHomePage.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[1].name),
+          newHomePage.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[2].name),
+          newHomePage.verifyRecentlyVisitedSiteIsDisplayed(uniqueSites[3].name),
         ]);
       }
     );
@@ -739,9 +741,9 @@ test.describe(
           zephyrTestId: 'CONT-26918',
           storyId: 'CONT-26918',
         });
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const sitesPage = new SitesPage(appManagerFixture.page, '');
-        await sitesPage.actions.clickOnCategoryTab();
+        await sitesPage.clickOnCategoryTab();
         const categoryList = await appManagerApiFixture.siteManagementHelper.getCategoryList();
 
         // Find a category with exactly 1 site
@@ -763,12 +765,12 @@ test.describe(
 
         const siteName = siteInCategory.name;
 
-        await sitesPage.actions.selectCategoryDropDown();
-        await sitesPage.actions.selectCategoryDropDownOption(categoryWithOneSite.name);
-        await sitesPage.assertions.verifySiteNameInSitesPage(siteName);
-        await sitesPage.actions.clickOnSiteName(siteName);
+        await sitesPage.selectCategoryDropDown();
+        await sitesPage.selectCategoryDropDownOption(categoryWithOneSite.name);
+        await sitesPage.verifySiteNameInSitesPage(siteName);
+        await sitesPage.clickOnSiteName(siteName);
         const siteDashboardPageInstance = new SiteDashboardPage(appManagerFixture.page, siteInCategory.siteId);
-        await siteDashboardPageInstance.assertions.verifyThePageIsLoaded();
+        await siteDashboardPageInstance.verifyThePageIsLoaded();
       }
     );
   }

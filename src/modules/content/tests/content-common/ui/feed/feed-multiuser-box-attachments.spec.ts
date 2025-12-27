@@ -33,7 +33,7 @@ test.describe(
       // Configure External Files to use Box via UI (done once for all tests)
       const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
       await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
-      await manageSitePage.actions.setExternalFilesProvider('Box files');
+      await manageSitePage.setExternalFilesProvider('Box files');
     });
 
     const testBoxAttachmentsForRole = async (
@@ -59,19 +59,19 @@ test.describe(
       // Navigate to site Feed page
       const siteDashboard = new SiteDashboardPage(userFixture.page, testSiteId);
       await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
-      await siteDashboard.actions.clickOnFeedLink();
+      await siteDashboard.clickOnFeedLink();
 
       // Create a new feed post for this role test (each role gets its own post)
       const basePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-      await siteDashboard.actions.clickShareThoughtsButton();
-      const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
+      await siteDashboard.clickShareThoughtsButton();
+      const createFeedPostComponent = siteDashboard.createFeedPostComponent;
       const postResult = await createFeedPostComponent.createAndPost({
         text: basePostText,
       });
       const basePostId = postResult.postId || '';
 
       // Wait for the newly created post to be visible
-      const listFeedComponent = siteDashboard['listFeedComponent'];
+      const listFeedComponent = siteDashboard.listFeedComponent;
       await listFeedComponent.waitForPostToBeVisible(basePostText);
 
       // Generate unique reply text for this role
@@ -108,7 +108,7 @@ test.describe(
       await createFeedPostComponent.clickAttachButton();
 
       // Verify attachments are added
-      await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+      await createFeedPostComponent.verifyAttachedFileCount(1);
 
       // Post reply
       const replyResponse = await listFeedComponent.submitReplyAndGetResponse();
@@ -129,7 +129,7 @@ test.describe(
       await listFeedComponent.clickReplyEditOption();
 
       // Verify text editor is visible
-      await createFeedPostComponent.assertions.verifyEditorVisible();
+      await createFeedPostComponent.verifyEditorVisible();
 
       // Update reply text
       await createFeedPostComponent.updatePostText(roleUpdatedReplyText);
@@ -241,7 +241,7 @@ test.describe(
 
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
         await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
-        await manageSitePage.actions.setExternalFilesProvider('Box files');
+        await manageSitePage.setExternalFilesProvider('Box files');
 
         const pageInfo = await appManagerApiFixture.contentManagementHelper.getContentId({
           siteId: siteId,
@@ -258,8 +258,8 @@ test.describe(
         await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
 
-        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
-        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.verifyCommentOptionIsVisible();
+        await contentPreviewPage.clickShareThoughtsButton();
 
         const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
         const baseCommentText = FEED_TEST_DATA.POST_TEXT.INITIAL;
@@ -268,7 +268,7 @@ test.describe(
         });
         const baseCommentId = commentResult.postId || '';
 
-        await contentPreviewPage.assertions.waitForPostToBeVisible(baseCommentText);
+        await contentPreviewPage.waitForPostToBeVisible(baseCommentText);
 
         const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
         const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED;
@@ -289,7 +289,7 @@ test.describe(
         await createFeedPostComponent.clickBoxFolder('SmokeTesting');
         await createFeedPostComponent.selectBoxFile();
         await createFeedPostComponent.clickAttachButton();
-        await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+        await createFeedPostComponent.verifyAttachedFileCount(1);
 
         const replyResponse = await listFeedComponent.submitReplyAndGetResponse();
         const replyPostId = replyResponse.feedId;
@@ -303,7 +303,7 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.assertions.waitForPostToBeVisible(baseCommentText);
+        await feedPage.feedList.waitForPostToBeVisible(baseCommentText);
 
         // ==================== EDIT REPLY ====================
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
@@ -311,7 +311,7 @@ test.describe(
 
         await listFeedComponent.openReplyOptionsMenu(replyText);
         await listFeedComponent.clickReplyEditOption();
-        await createFeedPostComponent.assertions.verifyEditorVisible();
+        await createFeedPostComponent.verifyEditorVisible();
         await createFeedPostComponent.updatePostText(updatedReplyText);
         await createFeedPostComponent.removeAttachedFile(0);
         await createFeedPostComponent.clickUpdateButton();
@@ -321,7 +321,7 @@ test.describe(
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.assertions.waitForPostToBeVisible(baseCommentText);
+        await feedPage.feedList.waitForPostToBeVisible(baseCommentText);
 
         // Cleanup
         try {

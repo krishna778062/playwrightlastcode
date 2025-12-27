@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
 
 import { FeedMode } from '@core/types/feedManagement.types';
+import { time } from 'console';
+import { TestDataGenerator } from '@/src/core';
 
 export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
@@ -32,8 +34,10 @@ export const FEED_TEST_DATA = {
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
-    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
-    EDITED_POST_TEXT: `This is a test post with appropriate content`,
+    //add random timestamp string to the post text
+    INAPPROPRIATE_POST_TEXT: `${Date.now()} - This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
+    INAPPROPRIATE_COMMENT_TEXT: `${Date.now()} - This is a test comment with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
+    EDITED_POST_TEXT: `${Date.now()} - This is a test post with appropriate content`,
     INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPORT_REASON: 'This content violates community guidelines',
   },

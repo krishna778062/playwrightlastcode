@@ -4,17 +4,7 @@ import { ActivityNotificationPage } from '../pages/activityNotificationPage';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export interface INotificationComponentActions {
-  clickOnNotification: (notificationText: string) => Promise<void>;
-  clickOnViewAllNotifications: (options?: { stepInfo?: string }) => Promise<ActivityNotificationPage>;
-}
-
-export interface INotificationComponentAssertions {}
-
-export class NotificationComponent
-  extends BaseComponent
-  implements INotificationComponentActions, INotificationComponentAssertions
-{
+export class NotificationComponent extends BaseComponent {
   readonly markAllAsReadButton: Locator;
   readonly getNotificationListItems: Locator;
   readonly viewAllNotificationsButton: Locator;
@@ -28,17 +18,7 @@ export class NotificationComponent
     this.markAllAsReadButton = this.page.getByRole('button', { name: 'Mark all as read' });
     this.getNotificationListItems = this.page.locator('[class*="Notification-body"]');
     this.viewAllNotificationsButton = this.page.getByRole('link', { name: 'View all' });
-  }
-
-  get actions(): INotificationComponentActions {
-    return this;
-  }
-
-  get assertions(): INotificationComponentAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Clicks on a specific notification
    */
   async clickOnNotification(notificationText: string): Promise<void> {

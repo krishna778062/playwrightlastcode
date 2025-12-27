@@ -3,21 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
-export interface IShareComponentActions {
-  clickShareToFeedButton: () => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
-  enterSiteName: (siteName: string) => Promise<void>;
-  clickShareButton: () => Promise<void>;
-  clickShareButtonAndGetPostId: () => Promise<string>;
-  attemptImagePaste: () => Promise<void>;
-}
-
-export interface IShareComponentAssertions {
-  verifyNoAttachmentsInShareModal: () => Promise<void>;
-  verifyShareModalIsFunctional: () => Promise<void>;
-}
-
-export class ShareComponent extends BaseComponent implements IShareComponentActions, IShareComponentAssertions {
+export class ShareComponent extends BaseComponent {
   readonly shareToFeedButton!: Locator;
   readonly shareOptionDropdown!: Locator;
   readonly shareDescriptionInput!: Locator;
@@ -36,15 +22,6 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
     this.shareOptionDropdown = page.getByLabel('Post in');
     this.enterSiteNameInput = page.locator('div:has-text("Select site") + div >> input');
   }
-
-  get actions(): IShareComponentActions {
-    return this;
-  }
-
-  get assertions(): IShareComponentAssertions {
-    return this;
-  }
-
   async clickShareToFeedButton(): Promise<void> {
     await test.step('Click Share to feed button', async () => {
       await this.clickOnElement(this.shareToFeedButton);

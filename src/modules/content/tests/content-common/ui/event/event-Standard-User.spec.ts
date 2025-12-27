@@ -128,7 +128,7 @@ test.describe(
 
           // Create and submit the event
           const { eventId, siteId, peopleId, peopleName } =
-            await eventCreationPage.actions.createAndSubmitEvent(eventCreationOptions);
+            await eventCreationPage.createAndSubmitEvent(eventCreationOptions);
 
           // Store IDs for cleanup
           publishedEventId = eventId;
@@ -136,12 +136,12 @@ test.describe(
           manualCleanupNeeded = true;
 
           // Verify content was submitted successfully
-          await contentPreviewPageStandardUser.assertions.verifyContentPublishedSuccessfully(
+          await contentPreviewPageStandardUser.verifyContentPublishedSuccessfully(
             eventCreationOptions.title,
             'Submitted event for approval'
           );
 
-          await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
+          await contentPreviewPageStandardUser.verifyContentStatus('Pending');
 
           await appManagerFixture.page.reload();
           // Handle notification and perform action (approve/reject)
@@ -150,14 +150,14 @@ test.describe(
           });
           const notificationMessage =
             peopleName + ' submitted a event for approval "' + eventCreationOptions.title + '"';
-          await notificationComponentAppManager.actions.clickOnNotification(notificationMessage);
+          await notificationComponentAppManager.clickOnNotification(notificationMessage);
 
           // Perform approve or reject action
-          await contentPreviewPageAppManager.actions.clickOnApproveOrRejectButton(testData.action);
+          await contentPreviewPageAppManager.clickOnApproveOrRejectButton(testData.action);
           if (testData.action === 'Reject') {
-            await contentPreviewPageAppManager.actions.enterRejectReason('Test reason');
+            await contentPreviewPageAppManager.enterRejectReason('Test reason');
           }
-          await contentPreviewPageAppManager.assertions.verifyContentPublishedSuccessfully(
+          await contentPreviewPageAppManager.verifyContentPublishedSuccessfully(
             eventCreationOptions.title,
             testData.actionSuccessMessage
           );
@@ -170,13 +170,13 @@ test.describe(
           );
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + eventCreationOptions.title + '"';
-          await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
+          await notificationMessageStandardUser.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {
-            await contentPreviewPageStandardUser.assertions.verifyContentIsInPublishedStatus();
+            await contentPreviewPageStandardUser.verifyContentIsInPublishedStatus();
           } else {
-            await contentPreviewPageStandardUser.assertions.verifyContentStatus('Rejected');
-            await contentPreviewPageStandardUser.assertions.verifyContentHasSubmitForApprovalButton();
+            await contentPreviewPageStandardUser.verifyContentStatus('Rejected');
+            await contentPreviewPageStandardUser.verifyContentHasSubmitForApprovalButton();
           }
         }
       );
@@ -219,7 +219,7 @@ test.describe(
 
         // Publish the event
         const { eventId: upcomingEventId, siteId: upcomingEventSiteId } =
-          await eventCreationPage.actions.createAndPublishEvent(upcomingEventOptions);
+          await eventCreationPage.createAndPublishEvent(upcomingEventOptions);
 
         // Store for cleanup
         publishedEventId = upcomingEventId;
@@ -230,14 +230,14 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const homeFeedPage = new FeedPage(standardUserFixture.page);
         await homeFeedPage.verifyThePageIsLoaded();
-        await homeFeedPage.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
+        await homeFeedPage.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
 
         // Check Site Feed: upcoming event should appear
         const siteFeedPage = new SiteFeedPage(standardUserFixture.page, allEmployeesSiteId);
         await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
         await siteFeedPage.verifyThePageIsLoaded();
         const siteFeedPageForValidation = new FeedPage(standardUserFixture.page);
-        await siteFeedPageForValidation.assertions.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
+        await siteFeedPageForValidation.verifyEventInUpcomingEventsBlock(upcomingEventTitle);
 
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
 
@@ -256,7 +256,7 @@ test.describe(
 
         // Publish the event
         const { eventId: pastEventId, siteId: pastEventSiteId } =
-          await eventCreationPage.actions.createAndPublishEvent(pastEventOptions);
+          await eventCreationPage.createAndPublishEvent(pastEventOptions);
 
         // Update cleanup to handle both events (cleanup the last one)
         publishedEventId = pastEventId;
@@ -265,12 +265,12 @@ test.describe(
         // Check Home - Global Feed: past event should not appear in Upcoming Events
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await homeFeedPage.reloadPage();
-        await homeFeedPage.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+        await homeFeedPage.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
 
         // Check Site Feed: past event should not appear in Upcoming Events
         await siteFeedPage.navigateToTab(SitePageTab.FeedTab);
         await siteFeedPage.verifyThePageIsLoaded();
-        await siteFeedPageForValidation.assertions.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
+        await siteFeedPageForValidation.verifyEventNotInUpcomingEventsBlock(pastEventTitle);
 
         // Delete both events
         if (upcomingEventId && upcomingEventSiteId) {

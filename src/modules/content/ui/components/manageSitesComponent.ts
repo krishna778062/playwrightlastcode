@@ -77,7 +77,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnTheMembersTab = page.getByRole('tab', { name: 'Members' });
     this.clickOnStartIcon = page.getByRole('button', { name: 'Favorite this user' });
     this.clickOnAlreadyStarIcon = page.getByRole('button', { name: 'Unfavorite this user' });
-    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites Favorites' });
+    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites' });
 
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);

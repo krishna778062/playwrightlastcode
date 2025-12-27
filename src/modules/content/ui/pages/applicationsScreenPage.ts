@@ -3,12 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IApplicationScreenPageActions {
-  clickOnApplication: () => Promise<void>;
-  clickOnTopics: () => Promise<void>;
-}
-
-export class ApplicationScreenPage extends BasePage implements IApplicationScreenPageActions {
+export class ApplicationScreenPage extends BasePage {
   // Application Settings locators (moved from ApplicationSettingsComponent)
   readonly applicationButton: Locator;
   readonly topicsButton: Locator;
@@ -30,10 +25,6 @@ export class ApplicationScreenPage extends BasePage implements IApplicationScree
   }
 
   // Actions
-  get actions(): IApplicationScreenPageActions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify application settings page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageHeading, {

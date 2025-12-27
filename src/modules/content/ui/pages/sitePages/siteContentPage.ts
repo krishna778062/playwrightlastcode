@@ -3,23 +3,11 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
-export interface ISiteContentActions {
-  clickPageCategory: (categoryName: string) => Promise<void>;
-  clickOnShowMoreButton: () => Promise<void>;
-}
-
-export interface ISiteContentAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyContentListLoaded: () => Promise<void>;
-  verifyShowMoreButtonIsVisible: () => Promise<void>;
-  verifyContentListAfterClickingShowMoreButton: () => Promise<void>;
-}
-
 /**
  * A Site has many pages.
  * This class is for managing the Site Content page.
  */
-export class SiteContentPage extends BaseSitePage implements ISiteContentAssertions {
+export class SiteContentPage extends BaseSitePage {
   readonly pageCategoryLink: (categoryName: string) => Locator;
   readonly contentListContainer: Locator;
   readonly showMoreButton: Locator;
@@ -34,15 +22,6 @@ export class SiteContentPage extends BaseSitePage implements ISiteContentAsserti
     this.contentListContainer = this.page.locator('div.DraggableList > div > li').first();
     this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   }
-
-  get actions(): ISiteContentActions {
-    return this;
-  }
-
-  get assertions(): ISiteContentAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site content page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');

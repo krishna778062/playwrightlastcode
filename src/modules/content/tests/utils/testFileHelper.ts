@@ -15,11 +15,14 @@ export class TestFileHelper {
 
     const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg', 'tiff'];
     const documentExtensions = ['pdf', 'doc', 'docx', 'txt', 'rtf', 'odt'];
+    const videoExtensions = ['mp4', 'mov', 'avi', 'mkv', 'webm', 'wmv', 'flv'];
 
     if (extension && imageExtensions.includes(extension)) {
       return 'images';
     } else if (extension && documentExtensions.includes(extension)) {
       return 'documents';
+    } else if (extension && videoExtensions.includes(extension)) {
+      return 'video';
     }
 
     throw new Error(`Unsupported or unknown file extension: ${extension}`);

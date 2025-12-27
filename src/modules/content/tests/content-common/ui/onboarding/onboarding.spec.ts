@@ -43,42 +43,42 @@ test.describe('onboarding', () => {
       });
 
       await test.step('Expand Browser Feed notifications section', async () => {
-        await mySettingsNotificationsPage.actions.expandBrowserFeedSection();
+        await mySettingsNotificationsPage.expandBrowserFeedSection();
       });
 
       await test.step('Verify Share your post checkbox is available', async () => {
-        await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsVisible();
+        await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsVisible();
       });
 
       await test.step('Verify Share your post checkbox is ON by default', async () => {
-        await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsChecked();
+        await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsChecked();
       });
 
       await test.step('Test check/uncheck functionality and save', async () => {
         // Check if checkbox is ON, if so uncheck it first, then check it again
-        const isChecked = await mySettingsNotificationsPage.actions.isShareYourPostCheckboxChecked();
+        const isChecked = await mySettingsNotificationsPage.isShareYourPostCheckboxChecked();
 
         if (isChecked) {
           // Uncheck the checkbox
-          await mySettingsNotificationsPage.actions.uncheckShareYourPostCheckbox();
-          await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsUnchecked();
+          await mySettingsNotificationsPage.uncheckShareYourPostCheckbox();
+          await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsUnchecked();
 
           // Save and verify unchecked
-          await mySettingsNotificationsPage.actions.saveAndVerifyUnchecked();
+          await mySettingsNotificationsPage.saveAndVerifyUnchecked();
         }
 
         // Check the checkbox again
-        await mySettingsNotificationsPage.actions.checkShareYourPostCheckbox();
-        await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsChecked();
+        await mySettingsNotificationsPage.checkShareYourPostCheckbox();
+        await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsChecked();
 
         // Save and verify checked
-        await mySettingsNotificationsPage.actions.saveAndVerifyChecked();
+        await mySettingsNotificationsPage.saveAndVerifyChecked();
       });
 
       await test.step('Verify and click on Overwrite settings button and confirm, then login as standard user', async () => {
-        await mySettingsNotificationsPage.assertions.verifyOverwriteSettingsButtonIsVisible();
-        await mySettingsNotificationsPage.actions.clickOnOverwriteSettingsButton();
-        await mySettingsNotificationsPage.actions.confirmOverwriteSettings();
+        await mySettingsNotificationsPage.verifyOverwriteSettingsButtonIsVisible();
+        await mySettingsNotificationsPage.clickOnOverwriteSettingsButton();
+        await mySettingsNotificationsPage.confirmOverwriteSettings();
 
         const standardUserTopNavBar = new TopNavBarComponent(standardUserFixture.page);
         const standardUserMySettingsPage = new MySettingsNotificationsPage(standardUserFixture.page);
@@ -89,9 +89,9 @@ test.describe('onboarding', () => {
         await standardUserProfileDropdown.clickOnMySettingsButton({
           stepInfo: 'Click on My settings for standard user',
         });
-        await standardUserMySettingsPage.actions.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
-        await standardUserMySettingsPage.actions.clickOnFeedTab();
-        await standardUserMySettingsPage.assertions.verifyShareYourPostCheckboxIsChecked();
+        await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
+        await standardUserMySettingsPage.clickOnFeedTab();
+        await standardUserMySettingsPage.verifyShareYourPostCheckboxIsChecked();
       });
     }
   );
@@ -108,25 +108,23 @@ test.describe('onboarding', () => {
         storyId: 'CONT-20883',
       });
 
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickOnAddTileButton();
-      await homeDashboardPage.actions.clickOnAddContentTileOption();
-      await homeDashboardPage.actions.clickingOnOnboardingTab();
+      await homeDashboardPage.clickOnEditDashboardButton();
+      await homeDashboardPage.clickOnAddTileButton();
+      await homeDashboardPage.clickOnAddContentTileOption();
+      await homeDashboardPage.clickingOnOnboardingTab();
 
-      const isButtonDisabled = await homeDashboardPage.actions.isAddToHomeButtonDisabled();
+      const isButtonDisabled = await homeDashboardPage.isAddToHomeButtonDisabled();
       if (!isButtonDisabled) {
-        await homeDashboardPage.actions.clickingOnAddToHomeButton();
-        await homeDashboardPage.assertions.verifyToastMessage(
-          FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY
-        );
-        await homeDashboardPage.actions.clickingOnDoneButton();
+        await homeDashboardPage.clickingOnAddToHomeButton();
+        await homeDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY);
+        await homeDashboardPage.clickingOnDoneButton();
       }
 
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickOnAddTileButton();
-      await homeDashboardPage.actions.clickOnAddContentTileOption();
-      await homeDashboardPage.actions.clickingOnOnboardingTab();
-      await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
+      await homeDashboardPage.clickOnEditDashboardButton();
+      await homeDashboardPage.clickOnAddTileButton();
+      await homeDashboardPage.clickOnAddContentTileOption();
+      await homeDashboardPage.clickingOnOnboardingTab();
+      await homeDashboardPage.verifyAddToHomeButtonIsDisabled();
     }
   );
 
@@ -148,23 +146,23 @@ test.describe('onboarding', () => {
       });
 
       await test.step('When I try to add the onboarding tile to the home dashboard again', async () => {
-        await homeDashboardPage.actions.clickOnEditDashboardButton();
-        await homeDashboardPage.actions.clickOnAddTileButton();
-        await homeDashboardPage.actions.clickOnAddContentTileOption();
-        await homeDashboardPage.actions.clickingOnOnboardingTab();
+        await homeDashboardPage.clickOnEditDashboardButton();
+        await homeDashboardPage.clickOnAddTileButton();
+        await homeDashboardPage.clickOnAddContentTileOption();
+        await homeDashboardPage.clickingOnOnboardingTab();
       });
 
       await test.step('Then I should receive a prompt in the "Add Tile Modal" and should reflect message, "This tile is already added to this dashboard. Edit dashboard to update or remove this tile."', async () => {
-        await homeDashboardPage.assertions.verifyTileAlreadyAddedMessage();
+        await homeDashboardPage.verifyTileAlreadyAddedMessage();
       });
 
       await test.step('And the option "Add to home" should be disabled', async () => {
-        await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
+        await homeDashboardPage.verifyAddToHomeButtonIsDisabled();
       });
 
       await test.step('And I should be informed that the onboarding tile is already added to the home dashboard', async () => {
-        await homeDashboardPage.actions.closeAddContentTileDialog();
-        await homeDashboardPage.actions.clickingOnDoneButton();
+        await homeDashboardPage.closeAddContentTileDialog();
+        await homeDashboardPage.clickingOnDoneButton();
       });
     }
   );

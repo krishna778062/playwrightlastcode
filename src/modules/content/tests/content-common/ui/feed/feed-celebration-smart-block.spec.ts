@@ -1,16 +1,16 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
-import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
+/**
+ * Query: Why does it say standard user? but we are using app manager fixture?
+ */
 test.describe(
   'celebration Smart Feed Block Tests',
   {
@@ -30,9 +30,8 @@ test.describe(
         });
 
         // ==================== Login as App Manager and Update DOB ====================
-        const appManagerBaseActionUtil = new BaseActionUtil(appManagerFixture.page);
-        const appManagerHomePage = new NewHomePage(appManagerFixture.page);
-        const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
+        const appManagerHomePage = appManagerFixture.homePage;
+        const appManagerNavigationHelper = appManagerFixture.navigationHelper;
 
         await appManagerHomePage.verifyThePageIsLoaded();
 
@@ -45,34 +44,34 @@ test.describe(
         }
 
         // Get app manager user name for verification
-        const appManagerUserName = await appManagerBaseActionUtil.getCurrentLoggedInUserName();
+        const appManagerUserName = await appManagerHomePage.getCurrentLoggedInUserName();
 
         // Set birth month and day (using current month and a day)
         const today = new Date();
         const birthMonth = today.getMonth() + 1;
         const birthDay = today.getDate() + 1;
 
-        await appManagerTopNavBarComponent.openViewProfile({
+        await appManagerNavigationHelper.topNavBarComponent.openViewProfile({
           stepInfo: 'Opening app manager view profile from profile icon',
         });
 
         const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
 
-        await appManagerProfileScreenPage.actions.clickEditAbout();
+        await appManagerProfileScreenPage.clickEditAbout();
 
-        await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
+        await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
 
-        await appManagerProfileScreenPage.actions.saveProfileChanges();
+        await appManagerProfileScreenPage.saveProfileChanges();
 
         // ==================== Verify Celebration Block as App Manager ====================
-        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await appManagerNavigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
 
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
 
-        await feedPage.assertions.verifyUserDisplayedInCelebrationBlock(appManagerUserName);
+        await feedPage.verifyUserDisplayedInCelebrationBlock(appManagerUserName);
 
         const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
 
@@ -80,7 +79,7 @@ test.describe(
         await siteDashboardPage.loadPage();
         await siteDashboardPage.verifyThePageIsLoaded();
 
-        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.clickOnFeedLink();
 
         const siteFeedPage = new FeedPage(appManagerFixture.page);
         await siteFeedPage.verifyThePageIsLoaded();
@@ -88,7 +87,7 @@ test.describe(
         await siteFeedPage.reloadPage();
         await siteFeedPage.verifyThePageIsLoaded();
 
-        await siteFeedPage.assertions.verifyUserDisplayedInCelebrationBlock(appManagerUserName);
+        await siteFeedPage.verifyUserDisplayedInCelebrationBlock(appManagerUserName);
       }
     );
   }

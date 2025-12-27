@@ -66,10 +66,10 @@ test.describe(
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
-        await adminFeedPage.actions.clickShareThoughtsButton();
-        const adminPostResult = await adminFeedPage.actions.createAndPost({ text: postText });
+        await adminFeedPage.clickShareThoughtsButton();
+        const adminPostResult = await adminFeedPage.postEditor.createAndPost({ text: postText });
         createdPostId = adminPostResult.postId || '';
-        await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+        await adminFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Use Site Manager's page (already logged in via fixture)
         await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -77,10 +77,10 @@ test.describe(
         await siteManagerFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts"
-        await siteManagerFeedPage.actions.clickOnShowOption('all');
+        await siteManagerFeedPage.clickOnShowOption('all');
 
         // Click Share icon for the feed post created by Admin
-        await siteManagerFeedPage.actions.shareFeedPost({
+        await siteManagerFeedPage.shareFeedPost({
           postText: postText,
           mentionUserName: adminFullName,
           shareMessage: shareMessage,
@@ -88,19 +88,19 @@ test.describe(
         });
 
         // Wait for shared post to appear
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         await adminFeedPage.reloadPage();
 
         // Select Show filter = "Posts to me"
         console.log('Select Show filter = "Posts to me"');
-        await adminFeedPage.actions.clickOnShowOption('toMe');
+        await adminFeedPage.clickOnShowOption('toMe');
 
         // Verify Admin sees:
         // - Only posts where they are mentioned
         // - Posts created by themselves
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage); // Shared post mentioning Admin
-        await adminFeedPage.assertions.waitForPostToBeVisible(postText); // Admin's own post
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage); // Shared post mentioning Admin
+        await adminFeedPage.feedList.waitForPostToBeVisible(postText); // Admin's own post
       }
     );
 
@@ -125,10 +125,10 @@ test.describe(
         await siteManagerFeedPage.verifyThePageIsLoaded();
 
         // Create a feed post
-        await siteManagerFeedPage.actions.clickShareThoughtsButton();
-        const siteManagerPostResult = await siteManagerFeedPage.actions.createAndPost({ text: postText });
+        await siteManagerFeedPage.clickShareThoughtsButton();
+        const siteManagerPostResult = await siteManagerFeedPage.postEditor.createAndPost({ text: postText });
         createdPostId = siteManagerPostResult.postId || '';
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(postText);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Use Site Owner's page (already logged in via fixture, Admin is following Site Owner)
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
@@ -136,18 +136,18 @@ test.describe(
         await siteOwnerFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts"
-        await siteOwnerFeedPage.actions.clickOnShowOption('all');
+        await siteOwnerFeedPage.clickOnShowOption('all');
 
         // Click Share on the feed post created by Site Manager
         console.log('Share the feed post created by Site Manager');
-        await siteOwnerFeedPage.actions.shareFeedPost({
+        await siteOwnerFeedPage.shareFeedPost({
           postText: postText,
           shareMessage: shareMessage,
           postIn: 'Home Feed',
         });
 
         // Wait for shared post to appear
-        await siteOwnerFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await siteOwnerFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         // Use Admin's page (already logged in via fixture)
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -156,17 +156,17 @@ test.describe(
 
         // Select Show filter = "Posts I follow"
         console.log('Select Show filter = "Posts I follow"');
-        await adminFeedPage.actions.clickOnShowOption('Posts I follow');
+        await adminFeedPage.clickOnShowOption('Posts I follow');
 
         // Verify Admin can see:
         // - Feed posts shared or created by users he follows (Site Owner)
         // - His own posts
         // - NOT Site Manager's post
         console.log('Verify Admin sees posts from followed users and own posts');
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage); // Site Owner's shared post
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage); // Site Owner's shared post
 
         // Verify Site Manager's original post is NOT visible (since Admin is not following Site Manager)
-        await adminFeedPage.assertions.verifyPostIsNotVisible(postText);
+        await adminFeedPage.feedList.verifyPostIsNotVisible(postText);
       }
     );
 
@@ -191,10 +191,10 @@ test.describe(
         await siteManagerFeedPage.verifyThePageIsLoaded();
 
         // Create a feed post
-        await siteManagerFeedPage.actions.clickShareThoughtsButton();
-        const siteManagerPostResult = await siteManagerFeedPage.actions.createAndPost({ text: postText });
+        await siteManagerFeedPage.clickShareThoughtsButton();
+        const siteManagerPostResult = await siteManagerFeedPage.postEditor.createAndPost({ text: postText });
         createdPostId = siteManagerPostResult.postId || '';
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(postText);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Use Standard User's page (already logged in via fixture, Admin is following Standard User)
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
@@ -203,17 +203,17 @@ test.describe(
 
         // Select Show filter = "All Posts"
         console.log('Select Show filter = "All Posts"');
-        await standardUserFeedPage.actions.clickOnShowOption('all');
+        await standardUserFeedPage.clickOnShowOption('all');
 
         // Click Share icon for the feed post created by Site Manager
-        await standardUserFeedPage.actions.shareFeedPost({
+        await standardUserFeedPage.shareFeedPost({
           postText: postText,
           shareMessage: shareMessage,
           postIn: 'Home Feed',
         });
 
         // Wait for shared post to appear
-        await standardUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await standardUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         // Use Admin's page (already logged in via fixture)
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
@@ -222,21 +222,21 @@ test.describe(
 
         // Select Show filter = "All Posts" to see the shared post
         console.log('Select Show filter = "All Posts" to see the shared post');
-        await adminFeedPage.actions.clickOnShowOption('all');
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await adminFeedPage.clickOnShowOption('all');
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         // Favourite the Standard User's shared feed post
         // Wait for the shared post to be visible
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage);
         // Mark the specific post as favorite by its text
-        await adminFeedPage.actions.markPostAsFavourite();
-        await adminFeedPage.assertions.verifyPostIsFavorited(shareMessage);
+        await adminFeedPage.feedList.markPostAsFavourite();
+        await adminFeedPage.feedList.verifyPostIsFavorited(shareMessage);
 
         // Select Show filter = "Favourited Posts"
-        await adminFeedPage.actions.clickOnShowOption('favourited');
+        await adminFeedPage.clickOnShowOption('favourited');
 
         // Verify Admin sees only the favourited shared post
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage);
       }
     );
 
@@ -326,11 +326,11 @@ test.describe(
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
-        await adminFeedPage.actions.clickOnShowOption('all');
+        await adminFeedPage.clickOnShowOption('all');
 
-        await adminFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await adminFeedPage.verifyRecentlyPublishedBlockIsVisible();
         for (const content of contents) {
-          await adminFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+          await adminFeedPage.verifyContentVisibleInRecentlyPublishedBlock(content.title);
         }
 
         // Verify End User (non-member) cannot see the contents
@@ -338,11 +338,11 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.verifyThePageIsLoaded();
-        await endUserFeedPage.actions.clickOnShowOption('all');
+        await endUserFeedPage.clickOnShowOption('all');
 
-        await endUserFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await endUserFeedPage.verifyRecentlyPublishedBlockIsVisible();
         for (const content of contents) {
-          await endUserFeedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(content.title);
+          await endUserFeedPage.verifyContentNotVisibleInRecentlyPublishedBlock(content.title);
         }
 
         // Make End User a member of the private site
@@ -364,11 +364,11 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const endUserMemberFeedPage = new FeedPage(standardUserFixture.page);
         await endUserMemberFeedPage.verifyThePageIsLoaded();
-        await endUserMemberFeedPage.actions.clickOnShowOption('all');
+        await endUserMemberFeedPage.clickOnShowOption('all');
 
-        await endUserMemberFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await endUserMemberFeedPage.verifyRecentlyPublishedBlockIsVisible();
         for (const content of contents) {
-          await endUserMemberFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+          await endUserMemberFeedPage.verifyContentVisibleInRecentlyPublishedBlock(content.title);
         }
         await endUserMemberFeedPage.reloadPage();
       }
@@ -441,11 +441,11 @@ test.describe(
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
-        await adminFeedPage.actions.clickOnShowOption('Posts I follow');
+        await adminFeedPage.clickOnShowOption('Posts I follow');
 
-        await adminFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await adminFeedPage.verifyRecentlyPublishedBlockIsVisible();
         for (const content of contents) {
-          await adminFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+          await adminFeedPage.verifyContentVisibleInRecentlyPublishedBlock(content.title);
         }
 
         // Verify End User (non-member) cannot see the contents (only if user is not already a member)
@@ -453,11 +453,11 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
           await endUserFeedPage.verifyThePageIsLoaded();
-          await endUserFeedPage.actions.clickOnShowOption('Posts I follow');
+          await endUserFeedPage.clickOnShowOption('Posts I follow');
 
-          await endUserFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+          await endUserFeedPage.verifyRecentlyPublishedBlockIsVisible();
           for (const content of contents) {
-            await endUserFeedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(content.title);
+            await endUserFeedPage.verifyContentNotVisibleInRecentlyPublishedBlock(content.title);
           }
         }
 
@@ -479,11 +479,11 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await endUserMemberFeedPage.reloadPage();
         await endUserMemberFeedPage.verifyThePageIsLoaded();
-        await endUserMemberFeedPage.actions.clickOnShowOption('Posts I follow');
+        await endUserMemberFeedPage.clickOnShowOption('Posts I follow');
 
-        await endUserMemberFeedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
+        await endUserMemberFeedPage.verifyRecentlyPublishedBlockIsVisible();
         for (const content of contents) {
-          await endUserMemberFeedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(content.title);
+          await endUserMemberFeedPage.verifyContentVisibleInRecentlyPublishedBlock(content.title);
         }
       }
     );
@@ -561,9 +561,9 @@ test.describe(
         await feedPage.verifyThePageIsLoaded();
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(albumTitle!);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.verifyContentVisibleInRecentlyPublishedBlock(albumTitle!);
       });
 
       await test.step('As Admin: Deactivate site', async () => {
@@ -573,9 +573,9 @@ test.describe(
       await test.step('Verify album is NOT visible after site deactivation', async () => {
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-        await feedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(albumTitle!);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.verifyContentNotVisibleInRecentlyPublishedBlock(albumTitle!);
       });
     });
   }
@@ -654,26 +654,26 @@ test.describe(
         await feedPage.verifyThePageIsLoaded();
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
       });
 
       await test.step('Verify page is visible in Site Feed Recently Published block', async () => {
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.clickOnFeedLink();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
+        await feedPage.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
       });
 
       await test.step('As Admin: Unpublish content from option menu', async () => {
         await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.skipPromotionDialogIfVisible('page');
-        await contentPreviewPage.actions.clickOnOptionMenuButton();
-        await contentPreviewPage.actions.unpublishingTheContent();
-        await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+        await contentPreviewPage.skipPromotionDialogIfVisible('page');
+        await contentPreviewPage.clickOnOptionMenuButton();
+        await contentPreviewPage.unpublishingTheContent();
+        await contentPreviewPage.verifyUnpublishedContentToastMessage(
           FEED_TEST_DATA.TOAST_MESSAGES.CONTENT_UNPUBLISHED
         );
       });
@@ -681,26 +681,24 @@ test.describe(
       await test.step('Verify unpublished content is not visible in Home Feed', async () => {
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.reloadPage();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-        await feedPage.assertions.verifyContentNotVisibleInRecentlyPublishedBlock(pageTitle!);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.verifyContentNotVisibleInRecentlyPublishedBlock(pageTitle!);
       });
 
       await test.step('As Admin: Republish content from option menu', async () => {
         await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.publishingTheContent();
-        await contentPreviewPage.assertions.verifyPublishedContentToasteMessage(
-          FEED_TEST_DATA.TOAST_MESSAGES.PUBLISHED_CONTENT
-        );
+        await contentPreviewPage.publishingTheContent();
+        await contentPreviewPage.verifyPublishedContentToasteMessage(FEED_TEST_DATA.TOAST_MESSAGES.PUBLISHED_CONTENT);
       });
 
       await test.step('Verify content is visible again in Home Feed after republish', async () => {
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.reloadPage();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-        await feedPage.assertions.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyRecentlyPublishedBlockIsVisible();
+        await feedPage.verifyContentVisibleInRecentlyPublishedBlock(pageTitle!);
       });
     });
   }
@@ -760,56 +758,56 @@ test.describe(
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await feedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
       });
 
       // Unpublish event and verify
       await test.step('As Admin: Unpublish event and verify not visible', async () => {
         await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.skipPromotionDialogIfVisible('event');
-        await contentPreviewPage.actions.clickOnOptionMenuButton();
-        await contentPreviewPage.actions.unpublishingTheContent();
-        await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+        await contentPreviewPage.skipPromotionDialogIfVisible('event');
+        await contentPreviewPage.clickOnOptionMenuButton();
+        await contentPreviewPage.unpublishingTheContent();
+        await contentPreviewPage.verifyUnpublishedContentToastMessage(
           FEED_TEST_DATA.TOAST_MESSAGES.CONTENT_UNPUBLISHED
         );
 
         // Verify unpublished event is NOT visible
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await feedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
       });
 
       // Republish event and verify
       await test.step('As Admin: Republish event and verify visible', async () => {
         await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.publishingTheContent();
+        await contentPreviewPage.publishingTheContent();
 
         // Verify republished event is visible
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await feedPage.assertions.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.verifyEventVisibleInUpcomingEventsBlock(eventTitle);
       });
 
       // Delete event and verify
       await test.step('As Admin: Delete event and verify not visible', async () => {
         await contentPreviewPage.loadPage();
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.deleteTheContent();
+        await contentPreviewPage.deleteTheContent();
 
         // Verify deleted event is NOT visible
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.actions.clickOnShowOption('all');
-        await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-        await feedPage.assertions.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
+        await feedPage.clickOnShowOption('all');
+        await feedPage.verifyUpcomingEventsBlockIsVisible();
+        await feedPage.verifyEventNotVisibleInUpcomingEventsBlock(eventTitle);
       });
     });
   }

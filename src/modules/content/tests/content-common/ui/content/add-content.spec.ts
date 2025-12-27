@@ -45,8 +45,8 @@ test.describe(
       // Verify role assignment in Manage Users page
       manageUsersPage = new ManageUsersPage(appManagerFixture.page);
       await manageUsersPage.loadPage();
-      await manageUsersPage.actions.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
-      await manageUsersPage.assertions.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
+      await manageUsersPage.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
+      await manageUsersPage.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
     });
 
     test.afterEach('Cleanup after test', async ({ appManagerFixture }) => {
@@ -85,7 +85,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -100,12 +100,12 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
 
@@ -134,7 +134,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -149,12 +149,12 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
@@ -187,7 +187,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -203,12 +203,12 @@ test.describe(
         );
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
@@ -243,7 +243,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -258,12 +258,12 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
 

@@ -38,16 +38,16 @@ test.describe('protected Authors', () => {
       );
       await appManagerFixture.homePage.verifyThePageIsLoaded();
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreen.actions.clickOnApplication();
-      await manageApplicationPage.actions.clickOnPrivileges();
-      await privilegesScreenPage.assertions.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
-      await privilegesScreenPage.assertions.verifyProtectedAuthorsAllowlistFieldBarIsVisible();
-      await privilegesScreenPage.actions.fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(loggedInUserName);
-      await privilegesScreenPage.actions.clickOnSave();
-      await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
-      await privilegesScreenPage.actions.clickOnCrossUserFromAuthorList();
-      await privilegesScreenPage.actions.clickOnSave();
-      await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+      await applicationScreen.clickOnApplication();
+      await manageApplicationPage.clickOnPrivileges();
+      await privilegesScreenPage.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
+      await privilegesScreenPage.verifyProtectedAuthorsAllowlistFieldBarIsVisible();
+      await privilegesScreenPage.fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser(loggedInUserName);
+      await privilegesScreenPage.clickOnSave();
+      await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
+      await privilegesScreenPage.clickOnCrossUserFromAuthorList();
+      await privilegesScreenPage.clickOnSave();
+      await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
       await privilegesScreenPage.reloadScreen();
     }
   );
@@ -68,16 +68,16 @@ test.describe('protected Authors', () => {
         'Get current logged-in user name'
       );
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreen.actions.clickOnApplication();
-      await manageApplicationPage.actions.clickOnPrivileges();
-      await privilegesScreenPage.assertions.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
-      await privilegesScreenPage.assertions.verifyProtectedAuthorsAllowlistFieldBarIsVisible();
-      await privilegesScreenPage.actions.fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(loggedInUserName);
-      await privilegesScreenPage.actions.clickOnSave();
-      await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
-      await privilegesScreenPage.actions.clickOnCrossAllowlistUser();
-      await privilegesScreenPage.actions.clickOnSave();
-      await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+      await applicationScreen.clickOnApplication();
+      await manageApplicationPage.clickOnPrivileges();
+      await privilegesScreenPage.verifyProtectedAuthorsAuthorsFieldBarIsVisible();
+      await privilegesScreenPage.verifyProtectedAuthorsAllowlistFieldBarIsVisible();
+      await privilegesScreenPage.fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser(loggedInUserName);
+      await privilegesScreenPage.clickOnSave();
+      await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
+      await privilegesScreenPage.clickOnCrossAllowlistUser();
+      await privilegesScreenPage.clickOnSave();
+      await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
       await privilegesScreenPage.reloadScreen();
       await privilegesScreenPage.verifyAddedUserGotRemovedFromList(loggedInUserName);
     }
