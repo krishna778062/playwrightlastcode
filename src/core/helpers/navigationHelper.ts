@@ -139,9 +139,9 @@ export class NavigationHelper {
     });
   }
 
-  async clickOnHomeButton(): Promise<void> {
+  async clickOnHomeIconButton(): Promise<void> {
     await test.step('Clicking on home button on side bar', async () => {
-      await this.sideNavBarComponent.clickingOnHome.click();
+      await this.sideNavBarComponent.clickOnHomeIcon();
     });
   }
 

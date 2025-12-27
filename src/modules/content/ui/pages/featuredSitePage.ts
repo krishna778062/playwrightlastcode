@@ -59,7 +59,9 @@ export class FeaturedSitePage extends BasePage {
    */
   async addSiteToFeatured(siteName: string): Promise<void> {
     await test.step(`Add site "${siteName}" to featured`, async () => {
+      await this.page.waitForTimeout(1000);
       await this.featureSiteComponent.searchFeaturedSite(siteName);
+      await this.page.waitForTimeout(2000);
       await this.featureSiteComponent.clickAddButton();
     });
   }

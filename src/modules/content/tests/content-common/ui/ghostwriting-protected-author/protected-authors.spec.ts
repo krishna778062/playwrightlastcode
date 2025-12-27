@@ -52,7 +52,10 @@ test.describe('protected Authors', () => {
     }
   );
 
-  test(
+  /**
+   * It shows 2 matching name with same name sonali gupta
+   */
+  test.fixme(
     'verify As an application manager, I should be able to add the users to protected authors - allow list) CONT-32769',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_ALLOWLIST],

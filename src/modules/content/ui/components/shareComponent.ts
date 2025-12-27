@@ -42,6 +42,29 @@ export class ShareComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Gets the text of the currently selected option in the share dropdown
+   * @returns Promise<string> - The text of the selected option (e.g., 'Home Feed', 'Site Feed')
+   */
+  async getSelectedShareOption(): Promise<string> {
+    return await test.step('Get selected share option', async () => {
+      const selectedOptionText = await this.shareOptionDropdown.evaluate((select: HTMLSelectElement) => {
+        return select.options[select.selectedIndex].text;
+      });
+      return selectedOptionText;
+    });
+  }
+
+  /**
+   * Gets the value attribute of the currently selected option in the share dropdown
+   * @returns Promise<string> - The value of the selected option (e.g., 'home', 'site')
+   */
+  async getSelectedShareOptionValue(): Promise<string> {
+    return await test.step('Get selected share option value', async () => {
+      return await this.shareOptionDropdown.inputValue();
+    });
+  }
+
   async clickShareButton(): Promise<void> {
     await test.step('Click Share button', async () => {
       await this.clickOnElement(this.shareButton);

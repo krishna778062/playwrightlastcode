@@ -47,7 +47,7 @@ test.describe(
         await manageApplicationPage.verifyToastMessageIsVisibleWithText(
           SETTINGS_TEST_DATA.TOAST_MESSAGES.SAVED_CHANGES_SUCCESSFULLY
         );
-        await appManagerFixture.navigationHelper.clickOnHomeButton();
+        await appManagerFixture.navigationHelper.clickOnHomeIconButton();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();

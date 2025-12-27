@@ -17,7 +17,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly rolesButton: Locator;
   readonly clickOnManageFeature: Locator;
   readonly clickOnFeedSideMenu: Locator;
-  readonly clickingOnHome: Locator;
+  readonly homeIconLocator: Locator;
   readonly favoritePeopleSection: Locator;
   //analytics section
   readonly analyticsButton: Locator;
@@ -60,13 +60,13 @@ export class SideNavBarComponent extends BaseComponent {
     this.clickOnContentModeration = page.locator('[href="/manage/content-moderation"][data-testid="main-nav-item"]');
     this.createSection = page.getByRole('button', { name: 'Icon' });
     this.feedLink = page.locator('[href="/feed"][data-testid="main-nav-item"]');
-    this.homeLink = page.locator('[href="/home"][data-testid="main-nav-item"]');
+    this.homeLink = page.locator('[href*="/home"][data-testid="main-nav-item"]');
     this.sitesButton = page.getByRole('menuitem', { name: 'Sites' });
     this.navigateOnApplication = page.locator('[aria-label="Application settings"]');
     this.clickOnManageFeature = page.locator('[aria-label="Manage"]').first();
     this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
-    this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
+    this.homeIconLocator = page.locator('.uiux-primary-nav').locator('button').first(); //home icon locator
     //analytics section
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.appAnalyticsButton = page.getByRole('menuitem', { name: 'App', exact: true });
@@ -95,9 +95,9 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites' });
 
     //recognition section
-    this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
+    this.recognitionLink = page.getByRole('link', { name: 'Recognition' });
     this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
-    this.homeNavMenu = page.getByRole('menuitem', { name: 'Home' });
+    this.homeNavMenu = page.locator("[data-testid='main-nav-item'][href*='/home']");
     this.manageNavMenu = page.getByRole('menuitem', { name: 'Manage features Manage' });
   }
 
@@ -140,9 +140,9 @@ export class SideNavBarComponent extends BaseComponent {
    * Clicks on the Home button in the side navigation
    * @param options - The options for the step
    */
-  async clickOnHome(options?: TestOptions): Promise<void> {
+  async clickOnHomeIcon(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: clicking Home button on side navbar`, async () => {
-      await this.clickOnElement(this.homeLink);
+      await this.clickOnElement(this.homeIconLocator);
     });
   }
 

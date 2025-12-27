@@ -102,18 +102,18 @@ test.describe('home Dashboard Tiles', () => {
       );
       await contentPreviewPage.unpublishingTheContent();
       await contentPreviewPage.verifyUnpublishedContentToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.UNPUBLISHED_CONTENT);
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
       await appManagerFixture.page.reload();
       await homeDashboardPage.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
       await contentPreviewPage.loadPage();
       await contentPreviewPage.publishingTheContent();
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
       await appManagerFixture.page.reload();
       await homeDashboardPage.verifyingCreatedPageIsVisibleInTile(randomPageName);
       await homeDashboardPage.openingCreatedPageInTile(randomPageName);
       // Delete the page using API
       await appManagerFixture.contentManagementHelper.deleteContent(allEmployeesSiteId, pageInfo.contentId);
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
       await appManagerFixture.page.reload();
       await homeDashboardPage.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
       await homeDashboardPage.clickOnEditDashboardButton();
@@ -141,7 +141,7 @@ test.describe('home Dashboard Tiles', () => {
       });
 
       // Navigate to Home page
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
 
       // Enter edit mode
       await homeDashboardPage.clickOnEditDashboardButton();
@@ -243,7 +243,7 @@ test.describe('home Dashboard Tiles', () => {
       const unlistedSiteName = unlistedSiteResult.siteName;
 
       // Navigate to Home tab
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.homePage.loadPage();
       await homeDashboardPage.verifyThePageIsLoaded();
 
       // Click settings → Add tile
@@ -283,11 +283,11 @@ test.describe('home Dashboard Tiles', () => {
       // Login as End User and verify
       await test.step('Verify as End User', async () => {
         // Navigate to Home tab as end user
-        await standardUserFixture.navigationHelper.clickOnHomeButton();
+        await standardUserFixture.navigationHelper.clickOnHomeIconButton();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
         const endUserHomeDashboardPage = new HomeDashboardPage(standardUserFixture.page);
-        await endUserHomeDashboardPage.verifyThePageIsLoaded();
         await endUserHomeDashboardPage.reloadPage();
-
+        await endUserHomeDashboardPage.verifyThePageIsLoaded();
         await endUserHomeDashboardPage.verifyingThePageTileSectionIsVisible(tileName);
 
         // Verify private site is visible in Sites tile

@@ -471,16 +471,14 @@ export class FeedPage extends BasePage {
       }
       console.log(`Selecting post in: ${params.postIn}`);
       if (params.postIn === 'Home Feed') {
-        try {
-          await this.share.shareOptionDropdown.waitFor({ state: 'visible' });
-          await this.share.shareOptionDropdown.selectOption({ value: 'public' });
-          await this.share.clickShareButton();
-        } catch {
-          console.log('Home Feed appears to be already selected or is the default');
+        const selectedShareOption = await this.share.getSelectedShareOption();
+        if (selectedShareOption.toLowerCase() !== 'home feed') {
+          await this.share.shareOptionDropdown.selectOption({ label: 'home feed' });
         }
       } else {
-        await this.share.selectShareOptionAsSiteFeed();
+        await this.share.shareOptionDropdown.selectOption({ label: 'site feed' });
       }
+      await this.share.clickShareButton();
     });
   }
 

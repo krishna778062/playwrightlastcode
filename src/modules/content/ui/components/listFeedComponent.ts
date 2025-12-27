@@ -557,18 +557,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
-      // Click reply button
-      //add API wait for response
-      const replyApiPromise = this.page.waitForResponse(
-        response =>
-          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200
-      );
-
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
-
-      await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
@@ -728,17 +717,7 @@ export class ListFeedComponent extends BaseComponent {
     mentionUserName?: string
   ): Promise<string> {
     await test.step(`Add reply to post with embedded URL`, async () => {
-      // Click reply button
-      const replyApiPromise = this.page.waitForResponse(
-        response =>
-          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200
-      );
-
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
-
-      await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });

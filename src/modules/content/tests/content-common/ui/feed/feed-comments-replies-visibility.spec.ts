@@ -317,6 +317,9 @@ test.describe(
       }
     );
 
+    /**
+     * Getting 400 error when user trying to create new site
+     */
     test(
       'content Comments with Unpublish - Verify comments disappear after content unpublish CONT-19566',
       {

@@ -101,6 +101,7 @@ test.describe(
           featureSites.push(site); // Add the entire site object to the array
           await featuredSitePage.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
           await featuredSitePage.verifyFeaturedSitesVisibleInModal(site.name);
+          await featuredSitePage.page.waitForTimeout(5000);
         }
         await featuredSitePage.verifyFeaturedSitesIndex(unFeaturedSites);
 

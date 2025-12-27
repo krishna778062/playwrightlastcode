@@ -57,11 +57,6 @@ export class RecognitionFormComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.selectPeerRecognitionInput, {
         assertionMessage: 'Recognition recipients input should be visible',
       });
-      // Wait for any loading indicators to disappear
-      const loadingVisible = await this.verifier.isTheElementVisible(this.loadingIndicator.first());
-      if (loadingVisible) {
-        await this.loadingIndicator.first().waitFor({ state: 'detached', timeout: 10000 });
-      }
     });
   }
 
