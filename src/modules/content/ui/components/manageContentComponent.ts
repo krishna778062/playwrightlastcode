@@ -89,7 +89,7 @@ export class ManageContentComponent extends BaseComponent {
     this.placeHolderText = page.locator(`[placeholder="Search…"]`);
     this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
-    this.actionDropdown = page.locator('#action');
+    this.actionDropdown = page.getByRole('button', { name: 'Category option' }).first();
     this.unpublishButton = page.getByText('Unpublish', { exact: true });
     this.applyButton = page.getByRole('button', { name: 'Apply' });
     this.publishButton = page.getByText('Publish', { exact: true });
@@ -997,7 +997,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async UpdatedPageName(pageName: string): Promise<void> {
+  async updatePageName(pageName: string): Promise<void> {
     await test.step('Verifying the updated page name', async () => {
       await this.pageTitleInput.fill(pageName);
     });

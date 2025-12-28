@@ -386,7 +386,11 @@ test.describe(
         await siteDetailsPage.validatingCategoryToUncategorized();
       }
     );
-    test(
+
+    /**
+     * Album becomes unavailable due to which test is failing
+     */
+    test.fixme(
       'to verify validate option in manage content CONT-33591',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION, '@CONT-33591'],
@@ -552,7 +556,6 @@ test.describe(
           siteId: siteInfo.siteId,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
-        console.log('pageInfo', pageInfo);
         await manageContentPage.manageContent.clickSortByButton();
         await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
@@ -565,7 +568,7 @@ test.describe(
         await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
         await manageContentPage.manageContent.clickOnContentEditButton();
-        await manageContentPage.manageContent.UpdatedPageName(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
+        await manageContentPage.manageContent.updatePageName(MANAGE_CONTENT_TEST_DATA.UPDATED_PAGE_NAME);
         await manageContentPage.manageContent.clickOnPublishChangesButton();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();

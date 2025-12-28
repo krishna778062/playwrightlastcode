@@ -59,7 +59,7 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.clickOnContentModeration = page.locator('[href="/manage/content-moderation"][data-testid="main-nav-item"]');
     this.createSection = page.getByRole('button', { name: 'Icon' });
-    this.feedLink = page.locator('[href="/feed"][data-testid="main-nav-item"]');
+    this.feedLink = page.locator('[href*="/feed"][data-testid="main-nav-item"]');
     this.homeLink = page.locator('[href*="/home"][data-testid="main-nav-item"]');
     this.sitesButton = page.getByRole('menuitem', { name: 'Sites' });
     this.navigateOnApplication = page.locator('[aria-label="Application settings"]');
@@ -73,7 +73,7 @@ export class SideNavBarComponent extends BaseComponent {
     this.campaignsButton = page.locator('[href="/manage/campaigns"][data-testid="main-nav-item"]');
     this.recognitionButton = page.locator('[href="/analytics/recognition/overview"][data-testid="main-nav-item"]');
     //application settings section
-    this.applicationSettings = page.locator('[aria-label="Application settings"]');
+    this.applicationSettings = page.getByRole('menuitem', { name: 'Application settings' });
     this.manageAppSetupButton = page.locator('[href="/manage/app/setup/general"][data-testid="main-nav-item"]');
     this.manageAccountButton = page.locator('[href="/manage/account"][data-testid="main-nav-item"]');
     this.manageAppsAndLinksButton = page.locator('[href="/manage/apps-and-links"][data-testid="main-nav-item"]');
@@ -105,9 +105,10 @@ export class SideNavBarComponent extends BaseComponent {
    * Clicks on the Create button in the side navigation
    * @param options - The options for the step
    */
-  async clickOnCreateButton(options?: TestOptions): Promise<void> {
-    await test.step(options?.stepInfo || `side navbar: clicking Create button on side navbar`, async () => {
-      await this.clickOnElement(this.createSection);
+  async clickOnCreateButton(): Promise<void> {
+    await this.clickOnElement(this.createSection, {
+      stepInfo: 'clicking Create button on side navbar',
+      timeout: 15_000,
     });
   }
 

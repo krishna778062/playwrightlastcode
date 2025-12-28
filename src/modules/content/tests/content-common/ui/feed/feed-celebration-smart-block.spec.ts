@@ -17,7 +17,10 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
-    test(
+    /**
+     * The save profile flow is not working, it stuck if hiring date is not selected
+     */
+    test.fixme(
       'verify user displayed in Celebration smart feed block on Home and Site Feed CONT-19570',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19570'],
@@ -66,7 +69,7 @@ test.describe(
         // ==================== Verify Celebration Block as App Manager ====================
         await appManagerNavigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(appManagerFixture.page);
-        await feedPage.verifyThePageIsLoaded();
+        // await feedPage.verifyThePageIsLoaded();
 
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();

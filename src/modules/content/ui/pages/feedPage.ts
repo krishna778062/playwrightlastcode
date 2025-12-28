@@ -63,7 +63,7 @@ export class FeedPage extends BasePage {
   readonly sortByLocator: Locator;
   readonly sortByFilter: Locator;
   readonly celebrityFeedBlocks: Locator;
-  readonly celebrationBlockUserName: (userName: string) => Locator;
+  readonly getUserCardFromCelebrationBlock: (userName: string) => Locator;
   readonly newHireFeedBlocks: Locator;
   readonly recentlyPublishedBlock: Locator;
   readonly recentlyPublishedContentItem: (contentTitle: string) => Locator;
@@ -77,6 +77,7 @@ export class FeedPage extends BasePage {
   readonly allCommentsIcon: Locator;
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
+  readonly feedPostContainer: Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -110,8 +111,10 @@ export class FeedPage extends BasePage {
     this.commentIcon = this.page.getByRole('button', { name: 'Comment' });
     this.commentOptionsMenu = this.page.locator('[data-testid="comment-options-menu"]');
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
-    this.celebrationBlockUserName = (userName: string) =>
-      this.page.locator('div').filter({ hasText: `Birthday${userName}` });
+    this.getUserCardFromCelebrationBlock = (userName: string) =>
+      this.page.locator("[class*='UserCard--withCelebrations']").filter({ hasText: `Birthday${userName}` });
+
+    this.feedPostContainer = this.page.locator("[class*='PostInner']");
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -134,6 +137,15 @@ export class FeedPage extends BasePage {
       await this.page.reload();
       await this.verifyThePageIsLoaded();
     });
+  }
+
+  /**
+   * Gets the post container locator for a given post text
+   * @param postText - The text of the post to get the container for
+   * @returns Locator for the post container
+   */
+  async getPostContainerLocator(postText: string): Promise<Locator> {
+    return this.feedPostContainer.filter({ hasText: postText }).first();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -166,13 +178,29 @@ export class FeedPage extends BasePage {
   /**
    * Verifies complete post details including timestamp, attachments, and image preview
    */
-  async verifyPostDetails(postText: string, expectedAttachmentCount: number): Promise<void> {
+  async verifyAllDataPointsForFeedPost(postText: string, expectedAttachmentCount: number): Promise<void> {
     await test.step(`Verify complete post details for: ${postText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.feedList.getPostTimestampLocator(postText));
-      await expect(this.feedList.getPostAttachmentsLocator(postText)).toHaveCount(expectedAttachmentCount);
-      await this.feedList.clickInlineImagePreview(postText);
+      //get the post by text
+      const postContainer = await this.getPostContainerLocator(postText);
+      await expect(postContainer, `post container should be visible for post: ${postText}`).toBeVisible();
+      const postHeader = postContainer.locator('[class*="_postHeader_"]');
+      //verify timestamp is visible
+      const postTimeStamp = postHeader.locator("[class*='headerInner']").locator('p').first();
+      await this.verifier.verifyTheElementIsVisible(postTimeStamp, {
+        assertionMessage: `Post timestamp should be visible for post: ${postText}`,
+      });
+      //attachments
+      const attachments = postContainer.locator('[class*="_postContent_"]').locator('li');
+      await expect(attachments, `expected attachment count should be ${expectedAttachmentCount}`).toHaveCount(
+        expectedAttachmentCount
+      );
+      //image preview
+      const imagePreviewButton = postContainer.locator("button[aria-label='Open image in lightbox']");
+      await this.clickOnElement(imagePreviewButton, { stepInfo: 'Clicking on image preview button' });
+      //verify image preview visible
       await this.feedList.verifyInlineImagePreviewVisible();
-      await this.feedList.closeImagePreview();
+      //close image preview
+      await this.clickOnElement(this.filePreview.closeButton, { stepInfo: 'Closing image preview' });
     });
   }
 
@@ -269,8 +297,8 @@ export class FeedPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(this.celebrityFeedBlocks, {
         assertionMessage: 'Celebration smart feed block should be visible',
       });
-      const userNameLink = this.celebrationBlockUserName(userName);
-      await this.verifier.verifyTheElementIsVisible(userNameLink.nth(1), {
+      const userCard = this.getUserCardFromCelebrationBlock(userName);
+      await this.verifier.verifyTheElementIsVisible(userCard, {
         assertionMessage: `User "${userName}" should be visible in Celebration smart feed block`,
       });
     });

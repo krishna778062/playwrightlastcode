@@ -15,7 +15,7 @@ export class ActivityNotificationPage extends BasePage {
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
     this.notificationItemsList = page.locator('div.Notification-body');
     this.notificationByText = (notificationText: string) =>
-      this.page.locator('a div').filter({ hasText: notificationText });
+      this.page.locator("a[class*='Notification']").filter({ hasText: notificationText });
     this.notificationByMention = (notificationText: string) =>
       this.page.getByRole('link', { name: `Notification: MENTIONS_ME_IN_POST - ${notificationText}` });
   }
@@ -50,7 +50,7 @@ export class ActivityNotificationPage extends BasePage {
    */
   async verifyNotificationExists(notificationText: string): Promise<void> {
     await test.step(`Verify notification exists: ${notificationText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).nth(1), {
+      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).last(), {
         assertionMessage: `Notification with text "${notificationText}" should be visible`,
       });
     });

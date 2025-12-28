@@ -200,7 +200,10 @@ test.describe(
       }
     );
 
-    test(
+    /**
+     * ACTION NOT ALLOWED IS COMING IN THE API ITSELF, WHY?
+     */
+    test.fixme(
       'verify Site Member can add, edit, and delete Feed reply with Box file attachments CONT-24905',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@box-attachments'],

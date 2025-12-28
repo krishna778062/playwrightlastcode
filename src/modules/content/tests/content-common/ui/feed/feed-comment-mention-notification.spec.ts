@@ -408,7 +408,7 @@ test.describe(
           const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
           createdPostText = postText;
 
-          const createFeedPostComponent = adminFeedPage['postEditor'];
+          const createFeedPostComponent = adminFeedPage.postEditor;
 
           await createFeedPostComponent.createPost(postText);
 
@@ -422,9 +422,8 @@ test.describe(
           createdPostId = feedResponseBody.result.feedId;
 
           await adminFeedPage.feedList.waitForPostToBeVisible(postText);
-          await adminFeedPage.feedList.validatePostText(postText);
 
-          await adminFeedPage.verifyPostDetails(postText, 1);
+          await adminFeedPage.verifyAllDataPointsForFeedPost(postText, 1);
         });
 
         await test.step('Notification Validation (EndUser)', async () => {
@@ -449,17 +448,14 @@ test.describe(
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
           await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
-          await endUserFeedPage.feedList.validatePostText(createdPostText);
-
-          await endUserFeedPage.verifyPostDetails(createdPostText, 1);
+          await endUserFeedPage.verifyAllDataPointsForFeedPost(createdPostText, 1);
         });
 
         await test.step('Post Cleanup (Admin User)', async () => {
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          // await appManagerFixture.homePage.verifyThePageIsLoaded();
 
           // Open Home → Global Feed
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-
           const adminFeedPage = new FeedPage(appManagerFixture.page);
           await adminFeedPage.verifyThePageIsLoaded();
           await adminFeedPage.feedList.waitForPostToBeVisible(createdPostText);

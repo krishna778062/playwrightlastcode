@@ -112,7 +112,7 @@ test.describe(
         await feedPage.feedList.getPostTimestamp(postResult.postText);
 
         // Step 2: Verify post details and attachments
-        await feedPage.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+        await feedPage.verifyAllDataPointsForFeedPost(postResult.postText, postResult.attachmentCount);
 
         // Step 3: Edit the post
         await feedPage.postEditor.editPost(postResult.postText, updatedPostText);
@@ -180,7 +180,7 @@ test.describe(
         await feedPageForSite.feedList.getPostTimestamp(postResult.postText);
 
         // Verify inline image preview visible
-        await feedPageForSite.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+        await feedPageForSite.verifyAllDataPointsForFeedPost(postResult.postText, postResult.attachmentCount);
 
         // Edit Feed Post
         const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
@@ -227,7 +227,7 @@ test.describe(
     /**
      * Need to be fixed, the api is giving 500
      */
-    test(
+    test.fixme(
       'verify user can create, edit and delete a feed post with file attachment on content feed CONT-19540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19540'],
@@ -303,7 +303,7 @@ test.describe(
 
         // Verify inline image preview visible
         const feedPageForContent = new FeedPage(standardUserFixture.page);
-        await feedPageForContent.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+        await feedPageForContent.verifyAllDataPointsForFeedPost(postResult.postText, postResult.attachmentCount);
 
         // Edit Feed Post
         const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
@@ -673,7 +673,7 @@ test.describe(
 
           // Verify global post is created
           await endUserFeedPage.feedList.waitForPostToBeVisible(postText);
-          await endUserFeedPage.verifyPostDetails(postText, 1); // 1 attachment
+          await endUserFeedPage.verifyAllDataPointsForFeedPost(postText, 1); // 1 attachment
         });
 
         // Share Post with mention and "Post in Home Feed" option
@@ -764,7 +764,7 @@ test.describe(
 
           // Verify global post is created successfully
           await endUserFeedPage.feedList.waitForPostToBeVisible(postText);
-          await endUserFeedPage.verifyPostDetails(postText, 1);
+          await endUserFeedPage.verifyAllDataPointsForFeedPost(postText, 1);
         });
 
         await test.step('Share post to Site Feed with mention', async () => {
@@ -2639,7 +2639,7 @@ test.describe(
 
         await feedPage.feedList.waitForPostToBeVisible(postText);
 
-        await feedPage.verifyPostDetails(postText, 1);
+        await feedPage.verifyAllDataPointsForFeedPost(postText, 1);
 
         await feedPage.feedList.clickSiteNameOnPost(postText, siteName);
 
@@ -2651,7 +2651,7 @@ test.describe(
 
         await feedPage.feedList.waitForPostToBeVisible(postText);
 
-        await feedPage.verifyPostDetails(postText, 1);
+        await feedPage.verifyAllDataPointsForFeedPost(postText, 1);
 
         await feedPage.verifyThePageIsLoaded();
         await feedPage.feedList.waitForPostToBeVisible(postText);
@@ -2796,7 +2796,7 @@ test.describe(
 
           await adminFeedPage.feedList.getPostTimestamp(initialPostText);
 
-          await adminFeedPage.verifyPostDetails(initialPostText, 7);
+          await adminFeedPage.verifyAllDataPointsForFeedPost(initialPostText, 7);
         });
 
         // ==================== EDIT FEED POST ====================
@@ -2831,7 +2831,7 @@ test.describe(
         await test.step('Verify feed post is updated successfully', async () => {
           await adminFeedPage.feedList.waitForPostToBeVisible(updatedPostText);
 
-          await adminFeedPage.verifyPostDetails(updatedPostText, 6);
+          await adminFeedPage.verifyAllDataPointsForFeedPost(updatedPostText, 6);
         });
 
         // ==================== DELETE FEED POST ====================

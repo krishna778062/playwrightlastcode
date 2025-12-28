@@ -285,7 +285,9 @@ export class ListFeedComponent extends BaseComponent {
     this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
     this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
     this.siteImageLocator = this.page.locator('.imageAnchor img');
-  } /**
+  }
+
+  /**
    * Gets the timestamp text for a specific post
    * @param postText - The text of the post to find timestamp for
    * @returns Promise<string> - The timestamp text content

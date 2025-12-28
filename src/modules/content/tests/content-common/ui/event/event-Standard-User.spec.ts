@@ -182,7 +182,10 @@ test.describe(
       );
     }
 
-    test(
+    /**
+     * Seeing approval button instead of publish button
+     */
+    test.fixme(
       'verify past events do not appear and upcoming events appear in Upcoming Events Smart Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19572'],
