@@ -60,7 +60,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify app manager is able to edit display content calendar tasks in Airtable apptile on Home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
@@ -87,7 +87,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify site manager is able to edit and remove a display content calendar tile on Site dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
@@ -124,7 +124,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify Airtable tile displays task records with proper content structure',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
@@ -149,7 +149,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify show more behaviour for display airtable tasks apptile on home dashboard',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
@@ -169,7 +169,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify Personalize button is visible when clicked on Show more',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE, TEST_TAGS.PERSONALIZATION],
