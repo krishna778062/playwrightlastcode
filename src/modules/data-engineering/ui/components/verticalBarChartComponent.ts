@@ -176,9 +176,23 @@ export class VerticalBarChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
-      stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
+    await test.step(`Wait for tool tip container to be visible for metric ${this.metricTitle}`, async () => {
+      await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
+        timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
+        stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
+      });
+    });
+  }
+
+  /**
+   * Verifies the tool tip container is visible
+   */
+  async waitForToolTipContainerToBeHidden(): Promise<void> {
+    await test.step(`Wait for tool tip container to be hidden for metric ${this.metricTitle}`, async () => {
+      await this.verifier.waitUntilElementIsHidden(this.toolTipContainer, {
+        timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
+        stepInfo: `Wait for tool tip container to be hidden for metric ${this.metricTitle}`,
+      });
     });
   }
 

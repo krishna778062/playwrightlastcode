@@ -616,7 +616,7 @@ export class TabluarMetricsComponent extends BaseComponent {
    * @returns The downloaded file path and filename
    */
   async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
-    return await test.step(`download data as csv`, async () => {
+    return await test.step(`download data as csv`, async stepInfo => {
       /**
        * 1. first hover over the container, it should reveal the download csv button
        * 2. click on the download csv button
@@ -631,7 +631,9 @@ export class TabluarMetricsComponent extends BaseComponent {
         });
         await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
       };
-      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file` });
+      const { filePath, fileName } = await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file` });
+      await stepInfo.attach('fileName', { body: fileName, contentType: 'text/plain' });
+      return { filePath, fileName };
     });
   }
 }

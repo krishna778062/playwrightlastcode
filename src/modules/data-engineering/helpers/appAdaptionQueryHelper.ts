@@ -1,3 +1,4 @@
+import { test } from '@playwright/test';
 import { format, parseISO } from 'date-fns';
 
 import { GroupByOnUserParameter } from '../constants/filters';
@@ -645,24 +646,31 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
    * @param rawResults - Raw results from database query
    * @returns Transformed data in UI format
    */
-  private transformAdoptionRateUserLoginResults(rawResults: any[]): AdoptionRateUserLoginData[] {
-    return rawResults.map(result => {
-      // Convert LOGIN_DATE from YYYY-MM-DD to MM/DD/YYYY format
-      const loginDate = parseISO(result.LOGIN_DATE);
-      const reportingDate = format(loginDate, 'MM/dd/yyyy');
+  private async transformAdoptionRateUserLoginResults(rawResults: any[]): Promise<AdoptionRateUserLoginData[]> {
+    return await test.step(`Transform adoption rate user login results`, async stepInfo => {
+      await stepInfo.attach('rawResults', { body: JSON.stringify(rawResults), contentType: 'application/json' });
+      const transformedResults = rawResults.map(result => {
+        // Convert LOGIN_DATE from YYYY-MM-DD to MM/DD/YYYY format
+        const loginDate = parseISO(result.LOGIN_DATE);
+        const reportingDate = format(loginDate, 'MM/dd/yyyy');
 
-      // Extract numeric value from PERCENT string (e.g., '5.714300%' -> 5.7143)
-      const percentString = result.PERCENT || '0%';
-      const percentValue = parseFloat(percentString.replace('%', ''));
+        // Extract numeric value from PERCENT string (e.g., '5.714300%' -> 5.7143)
+        const percentString = result.PERCENT || '0%';
+        const percentValue = parseFloat(percentString.replace('%', ''));
 
-      // Round to 2 decimal places and format as percentage string
-      const adoptionRate = `${Math.round(percentValue * 100) / 100}%`;
-
-      return {
-        reportingDate,
-        userLogins: Number(result.USERS_WHO_LOGGED_IN_AT_LEAST_ONCE),
-        adoptionRate,
-      };
+        // Round to 2 decimal places and format as percentage string
+        const adoptionRate = `${Math.round(percentValue * 100) / 100}%`;
+        return {
+          reportingDate,
+          userLogins: Number(result.USERS_WHO_LOGGED_IN_AT_LEAST_ONCE),
+          adoptionRate,
+        };
+      });
+      await stepInfo.attach('transformedResults', {
+        body: JSON.stringify(transformedResults),
+        contentType: 'application/json',
+      });
+      return transformedResults;
     });
   }
 
@@ -707,7 +715,7 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     });
 
     const rawResults = await this.executeQuery(finalQuery);
-    const transformedResults = this.transformAdoptionRateUserLoginResults(rawResults);
+    const transformedResults = await this.transformAdoptionRateUserLoginResults(rawResults);
     console.log(`----> The adoption rate user login data is  `, transformedResults);
     return transformedResults;
   }
