@@ -9,8 +9,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-// eslint-disable-next-line playwright/no-focused-test
-test.describe.only('Awards Creation Flow', () => {
+test.describe('Awards Creation Flow', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);

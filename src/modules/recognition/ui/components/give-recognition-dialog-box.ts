@@ -31,6 +31,8 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly clearButton: Locator;
   readonly awardDisabledWarning: Locator;
   readonly shareIcon: Locator;
+  readonly recipientToGiveAwardInput: Locator;
+  readonly messageInput: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -63,6 +65,10 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.clearButton = this.container.getByRole('button', { name: 'Clear' });
     this.awardDisabledWarning = this.container.locator('[class*="SpotAwardGuidanceAndWarningPanel"]');
     this.shareIcon = page.locator('i[data-testid="i-share"]');
+    this.recipientToGiveAwardInput = this.container.getByRole('combobox', {
+      name: 'To whom do you want to give this spot award?',
+    });
+    this.messageInput = this.container.getByTestId('tiptap-editor-v2').getByRole('paragraph');
   }
 
   /**
