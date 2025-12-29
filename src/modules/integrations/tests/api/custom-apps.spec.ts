@@ -1100,5 +1100,273 @@ test.describe(
         await customIntegrationsApiHelper.validateConnectorInList(listResponse, userConnectorId);
       }
     );
+
+    test(
+      'verify app manager can list connectors filtered by disabled status',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30235',
+        });
+
+        const disabledConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        await appManagerApiFixture.customIntegrationsHelper.updateConnectorStatus(disabledConnectorId, false);
+
+        const listResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(listResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, disabledConnectorId);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors filtered by custom type only',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30236',
+        });
+
+        const customConnectorId = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+
+        const customOnlyResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom',
+          sort: 'name',
+          order: 'asc',
+          page: 1,
+          limit: 50,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(customOnlyResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(customOnlyResponse, customConnectorId);
+      }
+    );
+
+    test(
+      'verify app manager can search connectors with no results returns empty list',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30237',
+        });
+
+        const searchResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          q: 'NonExistentConnectorName12345XYZ',
+          types: 'custom,hybrid',
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(searchResponse, true);
+        const listItems = customIntegrationsApiHelper.getListItems(searchResponse);
+        expect(listItems.length, 'Search with non-existent name should return empty list').toBe(0);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors with result count validation',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30238',
+        });
+
+        const connectorId1 = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        const connectorId2 = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const listResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(listResponse);
+        const listItems = customIntegrationsApiHelper.getListItems(listResponse);
+        expect(listItems.length, 'List should contain at least the created connectors').toBeGreaterThanOrEqual(2);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, connectorId1);
+        await customIntegrationsApiHelper.validateConnectorInList(listResponse, connectorId2);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors with pagination limit validation',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30239',
+        });
+
+        const limit5Response = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 5,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(limit5Response);
+        const listItems5 = customIntegrationsApiHelper.getListItems(limit5Response);
+        expect(listItems5.length, 'List with limit 5 should have at most 5 items').toBeLessThanOrEqual(5);
+
+        const limit10Response = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastmodified',
+          order: 'desc',
+          page: 1,
+          limit: 10,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(limit10Response);
+        const listItems10 = customIntegrationsApiHelper.getListItems(limit10Response);
+        expect(listItems10.length, 'List with limit 10 should have at most 10 items').toBeLessThanOrEqual(10);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors with combined search and type filter',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30240',
+        });
+
+        const { connectorId, connectorName } = await appManagerApiFixture.customIntegrationsHelper.createAndValidate();
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const combinedResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          q: connectorName,
+          types: 'custom',
+          sort: 'name',
+          order: 'asc',
+          page: 1,
+          limit: 50,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(combinedResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(combinedResponse, connectorId);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors sorted by date created ascending',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30241',
+        });
+
+        const connectorId1 = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const connectorId2 = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+
+        const sortedResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'datecreated',
+          order: 'asc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(sortedResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(sortedResponse, connectorId1);
+        await customIntegrationsApiHelper.validateConnectorInList(sortedResponse, connectorId2);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors sorted by date created descending',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30242',
+        });
+
+        const connectorId1 = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const connectorId2 = await appManagerApiFixture.customIntegrationsHelper.createAndGetId();
+
+        const sortedResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'datecreated',
+          order: 'desc',
+          page: 1,
+          limit: 100,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(sortedResponse);
+        await customIntegrationsApiHelper.validateConnectorInList(sortedResponse, connectorId1);
+        await customIntegrationsApiHelper.validateConnectorInList(sortedResponse, connectorId2);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors sorted by last used ascending',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30243',
+        });
+
+        const sortedResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastused',
+          order: 'asc',
+          page: 1,
+          limit: 50,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(sortedResponse);
+      }
+    );
+
+    test(
+      'verify app manager can list connectors sorted by last used descending',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-30244',
+        });
+
+        const sortedResponse = await appManagerApiFixture.customIntegrationsHelper.listCustomIntegrations({
+          types: 'custom,hybrid',
+          sort: 'lastused',
+          order: 'desc',
+          page: 1,
+          limit: 50,
+        });
+
+        await customIntegrationsApiHelper.validateConnectorList(sortedResponse);
+      }
+    );
   }
 );

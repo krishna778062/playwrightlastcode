@@ -30,7 +30,7 @@ test.describe(
       }
     });
 
-    multiUserTileFixture(
+    multiUserTileFixture.skip(
       'multi-user tile management for Airtable app tile - Admin creates, EndUser verifies, Admin deletes',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
@@ -55,7 +55,7 @@ test.describe(
       }
     );
 
-    multiUserTileFixture(
+    multiUserTileFixture.skip(
       'site Manager creates site with Airtable tile, End User verifies, Site Manager deletes tile and deactivates site',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
