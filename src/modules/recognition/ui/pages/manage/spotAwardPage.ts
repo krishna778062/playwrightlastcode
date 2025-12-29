@@ -34,7 +34,7 @@ export class SpotAwardPage extends BasePage {
   readonly frequencyOption: Locator;
   readonly createButton: Locator;
   readonly selectOptions: Locator;
-  readonly selectAwardRecipientOption: Locator;
+  readonly selectNextMonthButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -70,9 +70,7 @@ export class SpotAwardPage extends BasePage {
     this.frequencyOption = this.container.getByTestId('field-Frequency').getByTestId('SelectInput');
     this.createButton = this.container.getByRole('button', { name: 'Create', exact: true });
     this.selectOptions = this.container.getByRole('menuitem');
-    this.selectAwardRecipientOption = this.container.getByRole('combobox', {
-      name: /^Select audience…$/i,
-    });
+    this.selectNextMonthButton = this.container.getByRole('button', { name: 'Next month' });
   }
 
   /**
@@ -342,9 +340,12 @@ export class SpotAwardPage extends BasePage {
    * @param date - Date string to match (formatted like "Fri Dec 26" or just "26")
    */
   dateCell(date: string): Locator {
-    // Extract day number from formatted date string (e.g., "Fri Dec 26" -> "26")
+    // Extract day number from formatted date string (e.g., "Fri Dec 26" -> "26", "03" -> "3")
     const dayNumber = date.match(/\d+/)?.[0] || date;
-    return this.container.getByRole('gridcell', { name: dayNumber });
+    // Remove leading zeros (e.g., "03" -> "3") since calendar gridcells don't have leading zeros
+    const dayWithoutLeadingZero = String(Number(dayNumber));
+    // Use exact match to avoid matching days like 13, 23, 30, 31 that contain the same digits
+    return this.container.getByRole('gridcell', { name: dayWithoutLeadingZero, exact: true });
   }
 
   /**
@@ -366,6 +367,14 @@ export class SpotAwardPage extends BasePage {
    */
   extraFieldSelectOption(option: string): Locator {
     return this.container.getByRole('menuitem', { name: option }).first();
+  }
+
+  /**
+   * Get extra field select option by index
+   * @param index - Index of the option
+   */
+  extraFieldSelectOptionByIndex(index: number): Locator {
+    return this.selectOptions.nth(index);
   }
 
   /**
@@ -458,9 +467,17 @@ export class SpotAwardPage extends BasePage {
       await this.selectComboboxOption(this.whoCanGiveAwardOption, whoCanGive);
       await this.selectComboboxOption(this.whoCanReceiveAwardOption, whoCanReceive);
 
-      if (location && whoCanReceive === 'Employees in a location') {
-        await this.extraField.fill(location);
-        await this.extraFieldSelectOption(location).click();
+      if (whoCanReceive.includes('location')) {
+        if (location) {
+          await this.extraField.fill(location);
+          await this.extraFieldSelectOption(location).click();
+        }
+      } else if (whoCanReceive.includes('department')) {
+        await this.extraField.click();
+        await expect(this.extraFieldSelectOptionByIndex(0), 'expecting department option to be visible').toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.extraFieldSelectOptionByIndex(0).click();
       }
 
       if (awardPeriod === 'During a specified period' && dateFrom && dateTo) {
@@ -471,10 +488,24 @@ export class SpotAwardPage extends BasePage {
         });
         await this.dateCell(dateFrom).click();
         await this.dateTo.click();
-        await expect(this.dateCell(dateTo), 'expecting date to cell to be visible').toBeVisible({
-          timeout: TIMEOUTS.MEDIUM,
-        });
-        await this.dateCell(dateTo).click();
+
+        // Check if date cell is visible and enabled
+        const dateCellLocator = this.dateCell(dateTo);
+        const isVisible = await dateCellLocator.isVisible().catch(() => false);
+        const isEnabled = isVisible ? await dateCellLocator.isEnabled().catch(() => false) : false;
+
+        // If not visible or disabled, navigate to next month
+        if (!isVisible || !isEnabled) {
+          await this.selectNextMonthButton.click();
+          await this.page.waitForTimeout(1000);
+          await expect(dateCellLocator, 'expecting date to cell to be visible').toBeVisible({
+            timeout: TIMEOUTS.MEDIUM,
+          });
+          await expect(dateCellLocator, 'expecting date to cell to be enabled').toBeEnabled({
+            timeout: TIMEOUTS.MEDIUM,
+          });
+        }
+        await dateCellLocator.click();
       } else {
         await expect(
           this.selectAwardPeriod('Indefinitely'),
@@ -502,7 +533,11 @@ export class SpotAwardPage extends BasePage {
         await this.frequencyOption.selectOption(frequency);
       }
       await this.awardGuidance.fill(guidance);
-      await this.createAndScheduleButton.click();
+      if (awardPeriod === 'Indefinitely') {
+        await this.createButton.click();
+      } else {
+        await this.createAndScheduleButton.click();
+      }
     });
   }
 
@@ -526,7 +561,7 @@ export class SpotAwardPage extends BasePage {
     badgeIndex: number,
     giverType: string,
     receiverType: string,
-    location: string,
+    location: string | undefined,
     awardPeriod: 'Indefinitely' | 'During a specified period',
     howOften: 'Unlimited' | 'Limited',
     guidance: string = 'Test Guidance',
@@ -542,9 +577,14 @@ export class SpotAwardPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      // Handle award period
-      const from = getFormattedDate({ days: 1 }).replace(',', '');
-      const to = getFormattedDate({ days: 5 }).replace(',', '');
+      // Handle award period dates
+      let from: string | undefined;
+      let to: string | undefined;
+      if (awardPeriod === 'During a specified period') {
+        from = getFormattedDate({ days: 1 }).replace(',', '');
+        to = getFormattedDate({ days: 5 }).replace(',', '');
+      }
+
       await this.fillSpotAwardConfiguration(
         giverType,
         receiverType,
@@ -1027,6 +1067,15 @@ export class SpotAwardPage extends BasePage {
         this.subTabIndicator.deactivateMenuItem,
         'expecting deactivate menu item to be visible'
       ).toBeVisible();
+      await expect(this.subTabIndicator.deleteMenuItem, 'expecting delete menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.subTabIndicator.deleteMenuItem.click();
+      await this.page.waitForTimeout(500);
+      await this.subTabIndicator.deleteButton.click();
+      await expect(this.page.locator('div[role="alert"] p'), 'expecting toast alert to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -1117,7 +1166,8 @@ export class SpotAwardPage extends BasePage {
 
       if (giverType === 'Users in an audience') {
         await this.selectComboboxOption(this.whoCanGiveAwardOption, giverType);
-        await this.extraField.click();
+        await this.extraField.first().waitFor({ state: 'visible' });
+        await this.extraField.first().click();
         await this.getOption(0).click();
       } else if (options.includes(giverType)) {
         await this.whoCanGiveAwardOption.selectOption({ label: giverType });
@@ -1134,7 +1184,11 @@ export class SpotAwardPage extends BasePage {
    */
   async deleteSpotAwardAndVerifyToast(): Promise<void> {
     await test.step('Clean up - Delete created spot award', async () => {
+      await this.page.waitForTimeout(1000);
       await this.subTabIndicator.getThreeDotsButton(0).click();
+      await expect(this.subTabIndicator.deleteMenuItem, 'expecting delete menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
       await this.subTabIndicator.deleteMenuItem.click();
       await this.page.waitForTimeout(500);
       await this.subTabIndicator.deleteButton.click();
@@ -1176,5 +1230,30 @@ export class SpotAwardPage extends BasePage {
     } else {
       return this.selectOptions.nth(identifier);
     }
+  }
+
+  /**
+   * Delete spot award and verify toast message
+   */
+  async verifyAwardInTableAndDelete(awardName: string): Promise<void> {
+    await test.step('Validate the created award and delete it', async () => {
+      await this.page.waitForTimeout(2000);
+      await this.verifyAwardNameInTable(awardName);
+      await this.subTabIndicator.getThreeDotsButton(awardName).click();
+      await expect(this.subTabIndicator.editMenuItem, 'expecting edit menu item to be visible').toBeVisible();
+      await expect(
+        this.subTabIndicator.deactivateMenuItem,
+        'expecting deactivate menu item to be visible'
+      ).toBeVisible();
+      await expect(this.subTabIndicator.deleteMenuItem, 'expecting delete menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.subTabIndicator.deleteMenuItem.click();
+      await this.page.waitForTimeout(500);
+      await this.subTabIndicator.deleteButton.click();
+      await expect(this.page.locator('div[role="alert"] p'), 'expecting toast alert to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
   }
 }
