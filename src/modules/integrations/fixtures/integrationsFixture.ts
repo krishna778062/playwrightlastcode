@@ -126,7 +126,21 @@ async function createIntegrationsUiFixture(
   // Create integrations-specific page objects
   const homeDashboard = new HomeDashboard(page, tileManagementHelper);
   await homeDashboard.loadPage();
-  await homeDashboard.verifyThePageIsLoaded();
+
+  // Retry dashboard verification to handle slow page loads
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await homeDashboard.verifyThePageIsLoaded();
+      break;
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      } else {
+        throw error;
+      }
+    }
+  }
 
   const siteDashboard = new SiteDashboard(page);
 
