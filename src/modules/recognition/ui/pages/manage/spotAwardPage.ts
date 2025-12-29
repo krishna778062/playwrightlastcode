@@ -6,6 +6,8 @@ import { getFormattedDate } from '@core/utils/dateUtil';
 
 import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
 
+import { ManageRecognitionPage } from './manageRecognitionPage';
+
 export class SpotAwardPage extends BasePage {
   readonly subTabIndicator: SubTabIndicator;
   // Create/Edit form locators
@@ -31,6 +33,8 @@ export class SpotAwardPage extends BasePage {
   readonly timesMinus: Locator;
   readonly frequencyOption: Locator;
   readonly createButton: Locator;
+  readonly selectOptions: Locator;
+  readonly selectAwardRecipientOption: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -65,6 +69,10 @@ export class SpotAwardPage extends BasePage {
     this.timesPlus = this.container.getByRole('button', { name: 'Plus' });
     this.frequencyOption = this.container.getByTestId('field-Frequency').getByTestId('SelectInput');
     this.createButton = this.container.getByRole('button', { name: 'Create', exact: true });
+    this.selectOptions = this.container.getByRole('menuitem');
+    this.selectAwardRecipientOption = this.container.getByRole('combobox', {
+      name: /^Select audience…$/i,
+    });
   }
 
   /**
@@ -1043,5 +1051,130 @@ export class SpotAwardPage extends BasePage {
         'Recognition'
       );
     });
+  }
+
+  /**
+   * Create spot award with audience option
+   * @param awardName - Name of the award
+   * @param awardDescription - Description of the award
+   * @param badgeIndex - Index of badge to select
+   * @param giverType - Who can give the award (e.g., 'Users in an audience')
+   * @param receiverType - Who can receive the award
+   */
+  async createSpotAwardWithAudienceOption(
+    awardName: string,
+    awardDescription: string,
+    badgeIndex: number,
+    giverType: string,
+    receiverType: string
+  ): Promise<void> {
+    await test.step('Fill out required details with audience option', async () => {
+      await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex);
+      await this.page.waitForTimeout(500);
+      await expect(this.whoCanGiveAwardOption, 'expecting who can give award option to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const options = (await this.whoCanGiveAwardOption
+        .locator('option')
+        .allTextContents()
+        .catch(() => [])) as string[];
+      expect.soft(options, `expecting "${giverType}" to be in dropdown options`).toContain(giverType);
+      if (giverType === 'Users in an audience') {
+        await this.selectComboboxOption(this.whoCanGiveAwardOption, giverType);
+        await this.extraField.click();
+        await this.getOption(0).click();
+      } else if (options.includes(giverType)) {
+        await this.whoCanGiveAwardOption.selectOption({ label: giverType });
+      } else {
+        await this.selectComboboxOption(this.whoCanGiveAwardOption, giverType);
+      }
+      await this.selectComboboxOption(this.whoCanReceiveAwardOption, receiverType);
+      await this.createButton.click();
+    });
+  }
+
+  /**
+   * Edit spot award and select audience option
+   * @param giverType - Who can give the award (e.g., 'Users in an audience')
+   */
+  async editSpotAwardAndSelectAudienceOption(giverType: string): Promise<void> {
+    await test.step('Fill out required details with audience option', async () => {
+      await this.awardDescriptionField.waitFor({ state: 'attached' });
+      await this.getBadge(2).waitFor({ state: 'attached' });
+      await this.nextButton.scrollIntoViewIfNeeded();
+      await this.nextButton.click();
+      await this.whoCanGiveAwardOption.waitFor({ state: 'visible' });
+      await expect(this.whoCanGiveAwardOption, 'expecting who can give award option to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const options = (await this.whoCanGiveAwardOption
+        .locator('option')
+        .allTextContents()
+        .catch(() => [])) as string[];
+      expect.soft(options, `expecting "${giverType}" to be in dropdown options`).toContain(giverType);
+
+      if (giverType === 'Users in an audience') {
+        await this.selectComboboxOption(this.whoCanGiveAwardOption, giverType);
+        await this.extraField.click();
+        await this.getOption(0).click();
+      } else if (options.includes(giverType)) {
+        await this.whoCanGiveAwardOption.selectOption({ label: giverType });
+      } else {
+        await this.selectComboboxOption(this.whoCanGiveAwardOption, giverType);
+      }
+
+      await this.saveChangesButton.click();
+    });
+  }
+
+  /**
+   * Delete spot award and verify toast message
+   */
+  async deleteSpotAwardAndVerifyToast(): Promise<void> {
+    await test.step('Clean up - Delete created spot award', async () => {
+      await this.subTabIndicator.getThreeDotsButton(0).click();
+      await this.subTabIndicator.deleteMenuItem.click();
+      await this.page.waitForTimeout(500);
+      await this.subTabIndicator.deleteButton.click();
+      await expect(this.page.locator('div[role="alert"] p'), 'expecting toast alert to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Click new spot award button
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   */
+  async clickNewSpotAwardButton(manageRecognitionPage: ManageRecognitionPage): Promise<void> {
+    await test.step('Create new spot award', async () => {
+      await manageRecognitionPage.subTabIndicator.getButton('New spot award', 'link').click();
+    });
+  }
+
+  /**
+   * Click edit spot award button
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   */
+  async clickEditSpotAwardButton(manageRecognitionPage: ManageRecognitionPage): Promise<void> {
+    await test.step('Edit existing spot award', async () => {
+      await manageRecognitionPage.subTabIndicator.getThreeDotsButton(0).click();
+      await manageRecognitionPage.subTabIndicator.editMenuItem.click();
+    });
+  }
+
+  /**
+   * Get option locator by identifier (string or number)
+   * @param identifier - The identifier can be a string or a number
+   * @returns Locator for the option
+   */
+  getOption(identifier: string | number): Locator {
+    if (typeof identifier === 'string') {
+      return this.selectOptions.getByText(identifier).first();
+    } else {
+      return this.selectOptions.nth(identifier);
+    }
   }
 }

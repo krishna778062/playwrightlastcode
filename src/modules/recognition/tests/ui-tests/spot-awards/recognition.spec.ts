@@ -9,8 +9,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { GiveRecognitionDialogBox } from '@/src/modules/recognition/ui/components/recognition/give-recognition-dialog-box';
 
-// eslint-disable-next-line playwright/no-focused-test
-test.describe.only('Recognition Page Flow', () => {
+test.describe('Recognition Page Flow', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const recognitionHubPage = new RecognitionHubPage(appManagerPage);
@@ -30,6 +29,7 @@ test.describe.only('Recognition Page Flow', () => {
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: 'RC-5000',
+        storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
       const recognitionHubPage = new RecognitionHubPage(appManagerPage);
@@ -54,6 +54,7 @@ test.describe.only('Recognition Page Flow', () => {
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: 'RC-4345',
+        storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
       const recognitionHubPage = new RecognitionHubPage(appManagerPage);
@@ -75,6 +76,7 @@ test.describe.only('Recognition Page Flow', () => {
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: 'RC-4428',
+        storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
       const recognitionHubPage = new RecognitionHubPage(appManagerPage);
@@ -97,6 +99,7 @@ test.describe.only('Recognition Page Flow', () => {
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: 'RC-4462',
+        storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
       const recognitionHubPage = new RecognitionHubPage(appManagerPage);
