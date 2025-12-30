@@ -465,16 +465,39 @@ export class SpotAwardPage extends BasePage {
   ): Promise<void> {
     await test.step('Filling spot award configuration', async () => {
       await this.selectComboboxOption(this.whoCanGiveAwardOption, whoCanGive);
+
+      // Handle giver type extra field (department or location)
+      if (
+        whoCanGive.includes('Employees in a location') ||
+        whoCanGive.includes('Managers in a location') ||
+        whoCanGive.includes('Employees in a department') ||
+        whoCanGive.includes('Managers in a department')
+      ) {
+        await this.extraField.first().waitFor({ state: 'visible' });
+        await this.extraField.first().click();
+        await expect(
+          this.extraFieldSelectOptionByIndex(0),
+          'expecting giver department/location option to be visible'
+        ).toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.extraFieldSelectOptionByIndex(0).click();
+      }
+
       await this.selectComboboxOption(this.whoCanReceiveAwardOption, whoCanReceive);
 
+      // Handle receiver type extra field (department or location)
       if (whoCanReceive.includes('location')) {
         if (location) {
-          await this.extraField.fill(location);
+          await this.extraField.last().fill(location);
           await this.extraFieldSelectOption(location).click();
         }
       } else if (whoCanReceive.includes('department')) {
-        await this.extraField.click();
-        await expect(this.extraFieldSelectOptionByIndex(0), 'expecting department option to be visible').toBeVisible({
+        await this.extraField.last().click();
+        await expect(
+          this.extraFieldSelectOptionByIndex(0),
+          'expecting receiver department option to be visible'
+        ).toBeVisible({
           timeout: TIMEOUTS.MEDIUM,
         });
         await this.extraFieldSelectOptionByIndex(0).click();
