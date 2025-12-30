@@ -773,7 +773,6 @@ test.describe(
 
         // Verify tile content structure
         await homeDashboard.verifyServiceNowCreatedTicketStructure(createdTileTitle);
-        createdTileTitle = undefined;
       }
     );
     test(
