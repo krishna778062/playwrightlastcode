@@ -204,7 +204,7 @@ export class SurveyCreationPage extends BasePage {
 
   constructor(page: Page) {
     super(page, '/home');
-    this.manageFeaturesMenuItem = this.page.getByRole('menuitem', { name: 'Manage features', exact: true });
+    this.manageFeaturesMenuItem = this.page.getByRole('menuitem', { name: 'Manage' });
     this.surveysButton = this.page.getByRole('button', { name: 'Surveys' });
     this.createSurveyMenuButton = this.page.getByRole('button', { name: 'Create survey' });
     this.closeButton = this.page.getByRole('button', { name: 'Close' });

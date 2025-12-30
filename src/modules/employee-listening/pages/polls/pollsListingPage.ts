@@ -21,7 +21,7 @@ export class PollsListeningPage extends BasePage {
     super(page, PAGE_ENDPOINTS.POLLS_LISTING_PAGE);
 
     this.userModeSideNav = this.page.getByRole('menuitem', { name: 'User mode' });
-    this.manageFeatureSideNav = this.page.getByRole('menuitem', { name: 'Manage features', exact: true });
+    this.manageFeatureSideNav = this.page.getByRole('menuitem', { name: 'Manage' });
     this.pollsSideNav = this.page.getByRole('menuitem', { name: 'Polls Polls' });
     this.pageNotFoundMessage = this.page.getByRole('heading', { name: 'Page not found' });
     this.createPollButton = this.page.getByRole('button', { name: 'Create Poll' });

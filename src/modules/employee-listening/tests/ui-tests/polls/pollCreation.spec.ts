@@ -738,7 +738,6 @@ test.describe('aI Poll Creation Tests', () => {
       await aiPollCreationPage.verifyActivePollIsVisible();
       await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
       await aiPollCreationPage.verifyPresentOptionIsVisible();
-      await pollsListeningPage.page.click('body');
       await aiPollCreationPage.selectDraftPollsState();
       await aiPollCreationPage.verifyDraftPollIsVisible();
       await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
