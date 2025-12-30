@@ -1,10 +1,14 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { getFormattedDate } from '@core/utils/dateUtil';
 
+import MESSAGES from '../../../constants/messages';
 import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
+import { GiveRecognitionDialogBox } from '../../components/recognition/give-recognition-dialog-box';
+import { RecognitionHubPage } from '../recognitionHubPage';
 
 import { ManageRecognitionPage } from './manageRecognitionPage';
 
@@ -382,18 +386,21 @@ export class SpotAwardPage extends BasePage {
    * @param awardName - Name of the award
    * @param awardDescription - Description of the award
    * @param badgeIndex - Index of badge to select (default: 1)
-   * @param companyValue - Company value to select (default: 'Both')
+   * @param skipNext - Whether to skip clicking Next button (default: false)
    */
   async fillSpotAwardFormPageOne(
     awardName: string,
     awardDescription: string = 'Spot award description',
-    badgeIndex: number = 2
+    badgeIndex: number = 2,
+    skipNext: boolean = false
   ): Promise<void> {
     await test.step('Filling spot award form page one', async () => {
       await this.awardNameField.fill(awardName);
       await this.awardDescriptionField.fill(awardDescription);
       await this.getBadge(badgeIndex).click();
-      await this.nextButton.click();
+      if (!skipNext) {
+        await this.nextButton.click();
+      }
     });
   }
 
@@ -819,7 +826,6 @@ export class SpotAwardPage extends BasePage {
       // Match both straight quotes (') and curly quotes (' and ') - use capture group [1] to get text without quotes
       const awardTitleMatch = descriptionText.match(/[''"](.+?)[''"]/);
       const awardTitle = awardTitleMatch ? awardTitleMatch[1] : '';
-      console.log('awardTitle', awardTitle);
       await expect(
         confirmationModal.description.first(),
         'expecting modal description to contain award title'
@@ -1287,6 +1293,349 @@ export class SpotAwardPage extends BasePage {
       await expect(this.page.locator('div[role="alert"] p'), 'expecting toast alert to be visible').toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
+    });
+  }
+
+  /**
+   * Create a simple spot award with just page one filled
+   * @param awardName - Name of the award
+   * @param awardDescription - Description of the award
+   * @param badgeIndex - Index of badge to select
+   */
+  async createSimpleSpotAward(awardName: string, awardDescription: string, badgeIndex: number = 2): Promise<void> {
+    await test.step('Create spot award', async () => {
+      await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex);
+      await this.createButton.click();
+    });
+  }
+
+  /**
+   * Create spot award with company value
+   * @param awardName - Name of the award
+   * @param awardDescription - Description of the award
+   * @param companyValue - Company value to attach
+   * @param badgeIndex - Index of badge to select
+   */
+  async createSpotAwardWithCompanyValue(
+    awardName: string,
+    awardDescription: string,
+    companyValue: string,
+    badgeIndex: number = 2
+  ): Promise<void> {
+    await test.step('Create spot award with company value attached', async () => {
+      // Fill page one but don't click Next yet, as company values field is on page 1
+      await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex, true);
+      // Wait for company values field to be visible
+      await expect(this.companyValuesField, 'expecting company values field to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.companyValuesField.fill(companyValue);
+      await this.page.waitForTimeout(1000);
+      await this.getOption(0).click();
+      await this.page.waitForTimeout(1000);
+      // Now click Next to go to configuration page
+      await this.nextButton.click();
+      // Wait for configuration page to load
+      await expect(this.whoCanGiveAwardOption, 'expecting who can give award option to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.createButton.click();
+    });
+  }
+
+  /**
+   * Create spot award with limited times and frequency
+   * @param awardName - Name of the award
+   * @param awardDescription - Description of the award
+   * @param frequency - Frequency option (e.g., 'Monthly', 'Yearly')
+   * @param badgeIndex - Index of badge to select
+   */
+  async createSpotAwardWithLimitedTimes(
+    awardName: string,
+    awardDescription: string,
+    frequency: string = 'Monthly',
+    badgeIndex: number = 2
+  ): Promise<void> {
+    await test.step('Create spot award with limited time', async () => {
+      await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex);
+      await this.selectHowOftenAwardGiven('Limited').check();
+      await this.frequencyOption.selectOption(frequency);
+      await this.page.waitForTimeout(1000);
+      await this.frequencyOption.selectOption('Monthly');
+      await this.createButton.click();
+    });
+  }
+
+  /**
+   * Verify toast message text
+   * @param expectedMessage - Expected toast message text
+   */
+  async verifyToastMessage(expectedMessage: string): Promise<void> {
+    await test.step(`Verify toast message: ${expectedMessage}`, async () => {
+      const toastAlert = this.page.locator('div[role="alert"] p');
+      await expect(toastAlert, `expecting toast message to be "${expectedMessage}"`).toHaveText(expectedMessage, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Wait for toast message to be hidden
+   */
+  async waitForToastToHide(): Promise<void> {
+    await test.step('Wait for toast message to be hidden', async () => {
+      const toastAlert = this.page.locator('div[role="alert"] p');
+      const count = await toastAlert.count();
+      if (count > 0) {
+        await toastAlert.first().waitFor({ state: 'hidden', timeout: TIMEOUTS.MEDIUM });
+      }
+    });
+  }
+
+  /**
+   * Create spot award and verify duplicate name error
+   * @param awardName - Name of the award (duplicate)
+   * @param awardDescription - Description of the award
+   * @param badgeIndex - Index of badge to select
+   */
+  async createSpotAwardAndVerifyDuplicateError(
+    awardName: string,
+    awardDescription: string,
+    badgeIndex: number = 2
+  ): Promise<void> {
+    await test.step('Create spot award with existing award name', async () => {
+      await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex);
+      await this.createButton.click();
+      await this.verifyToastMessage('Award name already exists');
+    });
+  }
+
+  /**
+   * Complete flow: Create award, verify duplicate error, and cleanup
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param awardName - Name of the award
+   */
+  async createAwardAndVerifyDuplicateErrorFlow(
+    manageRecognitionPage: ManageRecognitionPage,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Create award, verify duplicate error, and cleanup', async () => {
+      await this.clickNewSpotAwardButton(manageRecognitionPage);
+      await this.createSimpleSpotAward(awardName, awardName);
+      await this.verifyToastMessage(MESSAGES.NEW_AWARD_CREATED);
+      await this.waitForToastToHide();
+
+      await this.clickNewSpotAwardButton(manageRecognitionPage);
+      await this.createSpotAwardAndVerifyDuplicateError(awardName, awardName);
+
+      await this.cancelButton.click();
+      await this.verifyAwardInTableAndDelete(awardName);
+    });
+  }
+
+  /**
+   * Navigate to recognition hub and open give recognition dialog
+   * @param recognitionHubPage - RecognitionHubPage instance
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async navigateToRecognitionHubAndOpenDialog(
+    recognitionHubPage: RecognitionHubPage,
+    giveRecognitionDialogBox: GiveRecognitionDialogBox
+  ): Promise<void> {
+    await test.step('Navigate to recognition hub and open give recognition dialog', async () => {
+      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await recognitionHubPage.giveRecognitionButton.click();
+      await expect(giveRecognitionDialogBox.container, 'expecting dialog container to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await giveRecognitionDialogBox.spotAwardTab.click();
+    });
+  }
+
+  /**
+   * Complete flow: Create award with company value and verify company value behavior
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param recognitionHubPage - RecognitionHubPage instance
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   * @param companyValue - Company value to attach
+   */
+  async createAwardWithCompanyValueAndVerifyFlow(
+    manageRecognitionPage: ManageRecognitionPage,
+    recognitionHubPage: RecognitionHubPage,
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string,
+    companyValue: string
+  ): Promise<void> {
+    await test.step('Create award with company value and verify behavior', async () => {
+      await this.clickNewSpotAwardButton(manageRecognitionPage);
+      await this.createSpotAwardWithCompanyValue(awardName, awardName, companyValue);
+      await this.verifyToastMessage(MESSAGES.NEW_AWARD_CREATED);
+      await this.waitForToastToHide();
+      await this.page.reload();
+
+      await this.navigateToRecognitionHubAndOpenDialog(recognitionHubPage, giveRecognitionDialogBox);
+      await giveRecognitionDialogBox.verifyCompanyValueNotPresent(companyValue);
+      await giveRecognitionDialogBox.descriptionTextArea.fill('Test Message');
+      await giveRecognitionDialogBox.selectAwardAndVerifyCompanyValue(awardName, companyValue);
+      await giveRecognitionDialogBox.clearAwardAndVerifyCompanyValueRemoved(companyValue);
+
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await this.verifyAwardInTableAndDelete(awardName);
+    });
+  }
+
+  /**
+   * Create first recognition with award (for disabled test)
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   */
+  async createFirstRecognitionWithAward(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Create a spot award Recognition 1st time', async () => {
+      await giveRecognitionDialogBox.descriptionTextArea.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.recipientsInput.click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await giveRecognitionDialogBox.descriptionTextArea.fill('Test Message');
+      await expect(giveRecognitionDialogBox.recognizeButton, 'expecting recognize button to be enabled').toBeEnabled();
+      await giveRecognitionDialogBox.recognizeButton.click();
+      await giveRecognitionDialogBox.skipButton.click();
+    });
+  }
+
+  /**
+   * Create second recognition and verify award disabled warning
+   * @param recognitionHubPage - RecognitionHubPage instance
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   */
+  async createSecondRecognitionAndVerifyDisabledWarning(
+    recognitionHubPage: RecognitionHubPage,
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Create a spot award Recognition 2nd time and get award disabled message', async () => {
+      await this.page.reload();
+      await recognitionHubPage.giveRecognitionButton.click();
+      await this.page.waitForTimeout(2000);
+      await giveRecognitionDialogBox.spotAwardTab.click();
+      await giveRecognitionDialogBox.descriptionTextArea.waitFor({ state: 'visible' });
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientsInput.click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await giveRecognitionDialogBox.verifyAwardDisabledWarning();
+    });
+  }
+
+  /**
+   * Complete flow: Create award with limited times and verify disabled behavior
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param recognitionHubPage - RecognitionHubPage instance
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   */
+  async createAwardWithLimitedTimesAndVerifyDisabledFlow(
+    manageRecognitionPage: ManageRecognitionPage,
+    recognitionHubPage: RecognitionHubPage,
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Create award with limited times and verify disabled behavior', async () => {
+      await this.clickNewSpotAwardButton(manageRecognitionPage);
+      await this.createSpotAwardWithLimitedTimes(awardName, awardName);
+      await this.verifyToastMessage(MESSAGES.NEW_AWARD_CREATED);
+      await this.waitForToastToHide();
+      await this.page.reload();
+
+      await this.navigateToRecognitionHubAndOpenDialog(recognitionHubPage, giveRecognitionDialogBox);
+      await this.createFirstRecognitionWithAward(giveRecognitionDialogBox, awardName);
+      await this.createSecondRecognitionAndVerifyDisabledWarning(
+        recognitionHubPage,
+        giveRecognitionDialogBox,
+        awardName
+      );
+
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await this.verifyAwardInTableAndDelete(awardName);
+    });
+  }
+
+  /**
+   * Complete flow: Create award, publish, share, and cleanup
+   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param recognitionHubPage - RecognitionHubPage instance
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   */
+  async createAwardPublishShareAndCleanupFlow(
+    manageRecognitionPage: ManageRecognitionPage,
+    recognitionHubPage: RecognitionHubPage,
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Create award, publish, share, and cleanup', async () => {
+      await this.clickNewSpotAwardButton(manageRecognitionPage);
+      await this.createSimpleSpotAward(awardName, awardName);
+      await this.verifyToastMessage(MESSAGES.NEW_AWARD_CREATED);
+      await this.page.reload();
+
+      await this.navigateToRecognitionHubAndOpenDialog(recognitionHubPage, giveRecognitionDialogBox);
+      await giveRecognitionDialogBox.publishSpotAward(awardName);
+      await this.verifyToastMessage('Recognition published');
+      await this.waitForToastToHide();
+
+      await giveRecognitionDialogBox.shareToFeedViaModal();
+      await this.verifyToastMessage('Recognition shared successfully');
+      await this.waitForToastToHide();
+
+      await giveRecognitionDialogBox.shareToFeedViaShareIcon();
+      await this.verifyToastMessage('Recognition shared successfully');
+
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await this.verifyAwardInTableAndDelete(awardName);
+    });
+  }
+
+  /**
+   * Complete flow: Navigate to recognition hub and verify pagination
+   * @param recognitionHubPage - RecognitionHubPage instance
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async navigateToRecognitionHubAndVerifyPagination(
+    recognitionHubPage: RecognitionHubPage,
+    giveRecognitionDialogBox: GiveRecognitionDialogBox
+  ): Promise<void> {
+    await test.step('Navigate to recognition hub and verify pagination', async () => {
+      await this.navigateToRecognitionHubAndOpenDialog(recognitionHubPage, giveRecognitionDialogBox);
+      await giveRecognitionDialogBox.verifyPagination();
+      await giveRecognitionDialogBox.verifyNoResultsForInvalidSearch('$$*^%*');
     });
   }
 }
