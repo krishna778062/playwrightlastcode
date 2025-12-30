@@ -283,7 +283,7 @@ test.describe('aI Poll Creation Tests', () => {
         storyId: 'EL-UI Automation',
       });
 
-      const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      const futureDate = new Date(2026, 0, 15); // Year, Month (0-indexed), Day
 
       await pollsListeningPage.clickCreatePollButton();
       await pollsHelper.addPoll({
