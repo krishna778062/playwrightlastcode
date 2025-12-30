@@ -19,6 +19,7 @@ export interface IAppsPageActions {
   selectAudience: () => Promise<void>;
   clickDoneButton: () => Promise<void>;
   clickAddButton: () => Promise<void>;
+  closePopup: () => Promise<void>;
   clearConnectionName: () => Promise<void>;
   navigateToIntegrationsTab: () => Promise<void>;
   navigateToAppsTab: () => Promise<void>;
@@ -28,6 +29,7 @@ export interface IAppsPageActions {
 export interface IAppsPageAssertions {
   verifyThePageIsLoaded: () => Promise<void>;
   verifyAddIntegrationButtonIsVisible: () => Promise<void>;
+  verifyAddIntegrationButtonIsNotVisible: () => Promise<void>;
   verifySearchFieldIsVisible: () => Promise<void>;
   verifyConnectionNameFieldIsVisible: () => Promise<void>;
   verifyIntegrationIsAddedSuccessfully: (connectionName: string) => Promise<void>;
@@ -35,6 +37,7 @@ export interface IAppsPageAssertions {
   verifyIntegrationStatus: (connectionName: string, expectedStatus: IntegrationStatus) => Promise<void>;
   getIntegrationStatus: (connectionName: string) => Promise<IntegrationStatus>;
   isIntegrationEnabled: (connectionName: string) => Promise<boolean>;
+  verifyAddButtonIsDisabled: () => Promise<void>;
 }
 
 export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAssertions {
@@ -70,6 +73,10 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
   readonly allowAccessButton: Locator;
   readonly serviceNowConnectServiceAccountButton: Locator;
   readonly serviceNowDisconnectServiceAccountButton: Locator;
+  readonly confluenceUrlInput: Locator;
+
+  // Popup elements
+  readonly closePopupButton: Locator;
 
   // Integration card in the list (dynamic locator)
   readonly integrationCard: (connectionName: string) => Locator;
@@ -99,6 +106,7 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
     this.serviceNowDisconnectServiceAccountButton = page.locator(
       'h2:has-text("ServiceNow") >> xpath=ancestor::div[contains(@class,"Distribute-module")]//button[contains(.,"Disconnect account")]'
     );
+    this.confluenceUrlInput = page.getByPlaceholder('Enter Atlassian Confluence URL');
 
     // Search and selection
     this.searchField = page.getByRole('textbox', { name: 'Search' });
@@ -115,6 +123,9 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
       'text=/Connection name is required|Please enter a connection name/i'
     );
     this.successToastMessage = page.locator('[role="alert"]');
+
+    // Popup elements
+    this.closePopupButton = page.getByRole('button', { name: 'Close' });
 
     // Integration card in the list - matches button with aria-label containing connection name
     // Element: <button aria-label="Servicenow Test12 - Enabled" ...>
@@ -196,6 +207,15 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
       await this.verifier.verifyTheElementIsVisible(this.addIntegrationButton, {
         timeout: 10_000,
         assertionMessage: 'Add Integration button should be visible',
+      });
+    });
+  }
+
+  async verifyAddIntegrationButtonIsNotVisible(): Promise<void> {
+    await test.step('Verify Add Integration button is not visible', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.addIntegrationButton, {
+        timeout: 10_000,
+        assertionMessage: 'Add Integration button should not be visible',
       });
     });
   }
@@ -330,6 +350,30 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
   }
 
   /**
+   * Verify add button is disabled
+   */
+  async verifyAddButtonIsDisabled(): Promise<void> {
+    await test.step('Verify add button is disabled', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.addButton, {
+        timeout: 10_000,
+        assertionMessage: 'Add button should be disabled',
+      });
+    });
+  }
+
+  /**
+   * Close the integration popup by clicking the X button
+   */
+  async closePopup(): Promise<void> {
+    await test.step('Close integration popup', async () => {
+      await this.clickOnElement(this.closePopupButton, {
+        stepInfo: 'Clicking close button to dismiss popup',
+      });
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  /**
    * Verify connection name error message is displayed
    */
   async verifyConnectionNameErrorMessage(): Promise<void> {
@@ -387,6 +431,17 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
       await this.serviceNowUrl.waitFor({ state: 'visible', timeout: 15_000 });
       await this.serviceNowUrl.fill(credentials.url);
 
+      if (await this.saveButton.isEnabled()) {
+        await this.saveButton.click();
+        await this.page.waitForLoadState('domcontentloaded');
+      }
+    });
+  }
+
+  async enterConfluenceCredentials(credentials: { site: string }): Promise<void> {
+    await test.step('Enter Confluence credentials', async () => {
+      await this.confluenceUrlInput.waitFor({ state: 'visible', timeout: 15_000 });
+      await this.confluenceUrlInput.fill(credentials.site);
       if (await this.saveButton.isEnabled()) {
         await this.saveButton.click();
         await this.page.waitForLoadState('domcontentloaded');

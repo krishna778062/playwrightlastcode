@@ -130,7 +130,7 @@ test.describe(
         });
 
         const integrationName = 'ServiceNow';
-        const connectionName = `Test_${faker.string.alphanumeric(8)}`;
+        const connectionName = `ServiceNow_${faker.string.alphanumeric(8)}`;
         await appsPage.actions.addIntegration(integrationName, connectionName);
         await appsPage.enterServiceNowCredentials({
           consumerKey: SERVICE_NOW_VALUES.CONSUMER_KEY,
@@ -139,6 +139,92 @@ test.describe(
         });
         await appsPage.connectServiceNowAccount();
         await appsPage.assertions.verifyIntegrationIsAddedSuccessfully(connectionName);
+      }
+    );
+
+    test(
+      'verify app manager can enter confluence credentials and connect to confluence',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async () => {
+        tagTest(test.info(), {
+          storyId: 'INT-XXXX',
+          description: 'verify that app manager can enter ServiceNow credentials',
+        });
+
+        const integrationName = 'Confluence';
+        const connectionName = `Confluence_${faker.string.alphanumeric(8)}`;
+        await appsPage.actions.addIntegration(integrationName, connectionName);
+        await appsPage.enterConfluenceCredentials({
+          site: 'https://confluence.simpplr.com', // TODO: Add valid confluence site
+        });
+        await appsPage.actions.navigateToAppsTab();
+        await appsPage.verifyThePageIsLoaded();
+        await appsPage.assertions.verifyIntegrationIsAddedSuccessfully(connectionName);
+      }
+    );
+
+    test(
+      'verify add integration pop up can be closed by clicking on x button',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async () => {
+        tagTest(test.info(), {
+          storyId: 'INT-XXXX',
+          description: 'verify that add integration pop up can be closed by clicking on x button',
+        });
+
+        await appsPage.actions.clickAddIntegrationButton();
+        await appsPage.assertions.verifyAddIntegrationButtonIsVisible();
+        await appsPage.actions.closePopup();
+        await appsPage.assertions.verifyAddIntegrationButtonIsNotVisible();
+      }
+    );
+
+    test(
+      'verify save button is disabled when connection name is empty',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async () => {
+        tagTest(test.info(), {
+          storyId: 'INT-XXXX',
+          description: 'verify that save button is disabled when connection name is empty',
+        });
+
+        const integrationName = 'ServiceNow';
+        const connectionName = '';
+        await appsPage.actions.clickAddIntegrationButton();
+        await appsPage.actions.searchForIntegration(integrationName);
+        await appsPage.actions.selectIntegrationFromList(integrationName);
+        await appsPage.actions.enterConnectionName(connectionName);
+        await appsPage.actions.clickBrowseButton();
+        await appsPage.actions.selectAudience();
+        await appsPage.actions.clickDoneButton();
+        await appsPage.assertions.verifyAddButtonIsDisabled();
+      }
+    );
+
+    test(
+      'verify save button is disabled when target audience is not selected',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async () => {
+        tagTest(test.info(), {
+          storyId: 'INT-XXXX',
+          description: 'verify that save button is disabled when target audience is not selected',
+        });
+
+        const integrationName = 'ServiceNow';
+        const connectionName = '';
+        await appsPage.actions.clickAddIntegrationButton();
+        await appsPage.actions.searchForIntegration(integrationName);
+        await appsPage.actions.selectIntegrationFromList(integrationName);
+        await appsPage.actions.enterConnectionName(connectionName);
+        await appsPage.assertions.verifyAddButtonIsDisabled();
       }
     );
   }
