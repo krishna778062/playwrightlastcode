@@ -491,6 +491,16 @@ export class SpotAwardPage extends BasePage {
         if (location) {
           await this.extraField.last().fill(location);
           await this.extraFieldSelectOption(location).click();
+        } else {
+          // If no specific location provided, select first option
+          await this.extraField.last().click();
+          await expect(
+            this.extraFieldSelectOptionByIndex(0),
+            'expecting receiver location option to be visible'
+          ).toBeVisible({
+            timeout: TIMEOUTS.MEDIUM,
+          });
+          await this.extraFieldSelectOptionByIndex(0).click();
         }
       } else if (whoCanReceive.includes('department')) {
         await this.extraField.last().click();
