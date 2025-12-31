@@ -1,5 +1,6 @@
 import { APIRequestContext, BrowserContext, Page, test as base } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
@@ -7,6 +8,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { CustomIntegrationsHelper } from '@/src/modules/integrations/apis/helpers/customAppsHelper';
 import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
@@ -34,6 +36,7 @@ export interface IntegrationsApiFixture {
   siteManagementHelper: SiteManagementHelper;
   tileManagementHelper: IntegrationTileHelper;
   integrationTileHelper: IntegrationTileHelper;
+  customIntegrationsHelper: CustomIntegrationsHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -49,20 +52,49 @@ export interface IntegrationsUiFixture {
 // Combined user fixture type that extends both API and UI fixtures
 export interface IntegrationsUserFixture extends IntegrationsApiFixture, IntegrationsUiFixture {}
 
+/**
+ * Helper function to perform login with retry logic
+ */
+async function loginWithRetry(
+  page: Page,
+  user: { email: string; password: string },
+  tenantConfig: TenantConfig,
+  maxRetries: number = 3
+): Promise<NewHomePage> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await LoginHelper.loginWithPassword(page, user, tenantConfig);
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await page.goto('/login', { timeout: TIMEOUTS.SHORT, waitUntil: 'domcontentloaded' }).catch(() => {});
+      }
+    }
+  }
+
+  throw new Error(`Login failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+}
+
 // Helper function to create API-only fixtures using existing API contexts
 async function createIntegrationsApiFixture(
   apiContext: APIRequestContext,
   tenantConfig?: TenantConfig
 ): Promise<IntegrationsApiFixture> {
   const apiBaseUrl = tenantConfig?.apiBaseUrl || getEnvConfig().apiBaseUrl;
+  const frontendBaseUrl = tenantConfig?.frontendBaseUrl || getEnvConfig().frontendBaseUrl;
   const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
-  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl);
+  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl, frontendBaseUrl);
+  const customIntegrationsHelper = new CustomIntegrationsHelper(apiContext, apiBaseUrl);
 
   return {
     apiContext,
     siteManagementHelper,
     tileManagementHelper: integrationTileHelper, // Use IntegrationTileHelper for integration tests
     integrationTileHelper,
+    customIntegrationsHelper,
   };
 }
 
@@ -75,7 +107,8 @@ async function createIntegrationsUiFixture(
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  await LoginHelper.loginWithPassword(
+  // Use retry logic for login to handle intermittent failures
+  await loginWithRetry(
     page,
     {
       email: tenantConfig.appManagerEmail,
@@ -93,7 +126,21 @@ async function createIntegrationsUiFixture(
   // Create integrations-specific page objects
   const homeDashboard = new HomeDashboard(page, tileManagementHelper);
   await homeDashboard.loadPage();
-  await homeDashboard.verifyThePageIsLoaded();
+
+  // Retry dashboard verification to handle slow page loads
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await homeDashboard.verifyThePageIsLoaded();
+      break;
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      } else {
+        throw error;
+      }
+    }
+  }
 
   const siteDashboard = new SiteDashboard(page);
 
@@ -130,7 +177,7 @@ export const integrationsFixture = base.extend<
   // Worker-scoped tenant config - read from project use options
   tenantConfig: [
     async ({}, use, testInfo) => {
-      const tenantConfig = (testInfo.project.use as any).tenantConfig as TenantConfig;
+      const tenantConfig = (testInfo.project.use as any).tenantConfig as TenantConfig | undefined;
       if (!tenantConfig) {
         throw new Error('tenantConfig is not defined in project use options');
       }
@@ -197,7 +244,8 @@ export const integrationsFixture = base.extend<
       const context = await browser.newContext();
       const page = await context.newPage();
 
-      await LoginHelper.loginWithPassword(
+      // Use retry logic for login to handle intermittent failures
+      await loginWithRetry(
         page,
         {
           email: tenantConfig.appManagerEmail,
