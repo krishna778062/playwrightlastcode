@@ -191,12 +191,20 @@ export class ManageQRPage extends BasePage {
   }
 
   async clickOnManage() {
+    await this.verifier.waitUntilElementIsVisible(this.manageLink, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Wait for Manage features menu to be visible',
+    });
     await this.clickOnElement(this.manageLink, {
       stepInfo: 'Click on Manage features menu',
     });
   }
 
   async clickOnQRCodesMenu() {
+    await this.verifier.waitUntilElementIsVisible(this.qrCodesLink, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Wait for QR codes menu to be visible',
+    });
     await this.clickOnElement(this.qrCodesLink, {
       stepInfo: 'Click on QR codes menu',
     });
