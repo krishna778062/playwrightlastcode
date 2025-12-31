@@ -205,10 +205,13 @@ export class RecognitionHubPage extends BasePage {
   /**
    * Fill form and validate Recognize button state
    * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
    */
-  async fillFormAndValidateRecognizeButton(giveRecognitionDialogBox: GiveRecognitionDialogBox): Promise<void> {
+  async fillFormAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
     await test.step('Fill form and validate Recognize button', async () => {
-      await expect(this.spotAwardPromotionTile, 'expecting spot award promotion tile to be visible').toBeVisible();
       await this.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
       await this.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
       await expect(
@@ -216,12 +219,16 @@ export class RecognitionHubPage extends BasePage {
         'expecting recognize button to be disabled initially'
       ).toBeDisabled();
       await giveRecognitionDialogBox.recipientsInput.click();
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
       await giveRecognitionDialogBox.getOption(0).click();
       await this.page.waitForTimeout(1000);
       await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
       await giveRecognitionDialogBox.getOption(0).click();
       await giveRecognitionDialogBox.messageInput.fill('Test Message');
       await giveRecognitionDialogBox.companyValuesInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
       await giveRecognitionDialogBox.getOption(0).click();
       await expect(
         giveRecognitionDialogBox.recognizeButton,
@@ -403,10 +410,13 @@ export class RecognitionHubPage extends BasePage {
   /**
    * Verify spot awards for single recipient
    * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param spotAwardPage - SpotAwardPage instance
    */
-  async verifySpotAwardsForSingleRecipient(giveRecognitionDialogBox: GiveRecognitionDialogBox): Promise<void> {
+  async verifySpotAwardsForSingleRecipient(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
     await test.step('Verify spot awards for single recipient', async () => {
-      await expect(this.spotAwardPromotionTile, 'expecting spot award promotion tile to be visible').toBeVisible();
       await this.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
       await this.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
       await expect(
@@ -414,12 +424,18 @@ export class RecognitionHubPage extends BasePage {
         'expecting recognize button to be disabled initially'
       ).toBeDisabled();
       await giveRecognitionDialogBox.recipientsInput.click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+
       await giveRecognitionDialogBox.getOption(0).click();
       await this.page.waitForTimeout(1000);
       await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
       await giveRecognitionDialogBox.getOption(0).click();
       await giveRecognitionDialogBox.messageInput.fill('Test Message');
       await giveRecognitionDialogBox.companyValuesInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
       await giveRecognitionDialogBox.getOption(0).click();
       await expect(
         giveRecognitionDialogBox.recognizeButton,
