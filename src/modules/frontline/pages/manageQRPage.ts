@@ -98,7 +98,7 @@ export class ManageQRPage extends BasePage {
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
-    this.manageLink = page.getByRole('menuitem', { name: 'Manage' });
+    this.manageLink = page.getByRole('menuitem', { name: 'Manage', exact: true });
     this.qrCodesLink = page.getByRole('link', { name: 'QR codes' });
     this.addQRButton = page.getByText('Add QR');
     this.appPromotionMenuOption = page.getByRole('menuitem', { name: 'App promotion' });
@@ -193,10 +193,10 @@ export class ManageQRPage extends BasePage {
   async clickOnManage() {
     await this.verifier.waitUntilElementIsVisible(this.manageLink, {
       timeout: TIMEOUTS.SHORT,
-      stepInfo: 'Wait for Manage features menu to be visible',
+      stepInfo: 'Wait for Manage menu to be visible',
     });
     await this.clickOnElement(this.manageLink, {
-      stepInfo: 'Click on Manage features menu',
+      stepInfo: 'Click on Manage menu',
     });
   }
 
