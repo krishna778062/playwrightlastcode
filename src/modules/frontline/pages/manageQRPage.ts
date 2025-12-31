@@ -1285,14 +1285,18 @@ export class ManageQRPage extends BasePage {
     const downloadIcon = qrRow.locator(this.downloadIcon);
 
     await this.verifier.waitUntilElementIsVisible(downloadIcon, {
-      timeout: 10000,
+      timeout: TIMEOUTS.SHORT,
       stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
     });
 
-    const result = await this.downloadFileWithCleanup(() => this.clickByInjectingJavaScript(downloadIcon), {
-      stepInfo: `Download QR from table for "${qrName}"`,
-      cleanup: false,
-    });
+    const result = await this.downloadFileWithCleanup(
+      () => this.clickOnElement(downloadIcon, { stepInfo: `Click download icon for QR: ${qrName}`, force: true }),
+      {
+        stepInfo: `Download QR from table for "${qrName}"`,
+        cleanup: false,
+        timeout: TIMEOUTS.MEDIUM,
+      }
+    );
 
     return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
   }
