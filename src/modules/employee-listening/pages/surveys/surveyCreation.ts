@@ -125,6 +125,8 @@ export class SurveyCreationPage extends BasePage {
   readonly participationWindowText: Locator;
   readonly freeTextQuestionText: Locator;
   readonly saveButton: Locator;
+  readonly searchSurveyField: Locator;
+  readonly searchIcon: Locator;
 
   readonly previewSectionLocators: ((section: string) => Locator)[] = [
     (section: string) => this.previewDialog.getByText(section, { exact: true }),
@@ -204,8 +206,8 @@ export class SurveyCreationPage extends BasePage {
 
   constructor(page: Page) {
     super(page, '/home');
-    this.manageFeaturesMenuItem = this.page.getByRole('menuitem', { name: 'Manage features', exact: true });
-    this.surveysButton = this.page.getByRole('button', { name: 'Surveys' });
+    this.manageFeaturesMenuItem = this.page.getByRole('menuitem', { name: 'Manage' });
+    this.surveysButton = this.page.getByTestId('main-nav').getByRole('link', { name: 'Surveys' });
     this.createSurveyMenuButton = this.page.getByRole('button', { name: 'Create survey' });
     this.closeButton = this.page.getByRole('button', { name: 'Close' });
     this.createSurveyButton = this.page.getByRole('button', { name: 'Create Survey' });
@@ -410,6 +412,8 @@ export class SurveyCreationPage extends BasePage {
     this.participationWindowText = this.page.getByText('days');
     this.freeTextQuestionText = this.page.getByText('What could have been improved');
     this.saveButton = this.page.getByRole('button', { name: 'Save' });
+    this.searchSurveyField = this.page.getByRole('textbox', { name: 'Search surveys' });
+    this.searchIcon = this.page.getByTestId('pageContainer-page').getByRole('button', { name: 'Search' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -1629,7 +1633,14 @@ export class SurveyCreationPage extends BasePage {
   }
 
   async searchSurveyByName(surveyName: string): Promise<void> {
-    await this.page.getByRole('textbox', { name: 'Search surveys' }).fill(surveyName);
+    await this.fillInElement(this.searchSurveyField, surveyName, {
+      stepInfo: `Search survey name: ${surveyName}`,
+    });
+    await this.clickOnElement(this.searchIcon, {
+      stepInfo: `Click search icon`,
+      timeout: TIMEOUTS.DEFAULT,
+    });
+    await this.page.waitForTimeout(TIMEOUTS.DEFAULT);
   }
 
   async addScaleQuestionFromData(index: number, scaleType: string): Promise<void> {
