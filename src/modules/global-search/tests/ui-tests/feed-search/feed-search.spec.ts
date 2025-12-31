@@ -1,6 +1,7 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { FEED_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/feed-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
@@ -34,6 +35,13 @@ test.describe(
       currentFeedId = feedResponse.result.feedId;
       currentFeedName = feedResponse.feedName;
       currentAuthorName = feedResponse.result.authoredBy?.name;
+
+      /** Wait for the feed to appear in search API before performing UI search */
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: appManagerFixture.feedManagementHelper.feedManagementService.httpClient,
+        searchTerm: currentFeedName,
+        objectType: 'feed',
+      });
     });
 
     test(
