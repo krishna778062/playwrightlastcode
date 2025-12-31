@@ -1640,7 +1640,7 @@ export class SurveyCreationPage extends BasePage {
       stepInfo: `Click search icon`,
       timeout: TIMEOUTS.DEFAULT,
     });
-    await this.firstSurveyManageButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+    await this.page.waitForTimeout(TIMEOUTS.DEFAULT);
   }
 
   async addScaleQuestionFromData(index: number, scaleType: string): Promise<void> {
