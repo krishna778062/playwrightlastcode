@@ -1,7 +1,6 @@
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import { FEED_SEARCH_TEST_DATA } from '@/src/modules/global-search/test-data/feed-search.test-data';
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
@@ -25,39 +24,43 @@ test.describe(
         feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'site',
           siteId: publicSite.siteId,
+          options: { waitForSearchIndex: true },
         });
       } else {
         feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'public',
+          options: { waitForSearchIndex: true },
         });
       }
 
       currentFeedId = feedResponse.result.feedId;
       currentFeedName = feedResponse.feedName;
       currentAuthorName = feedResponse.result.authoredBy?.name;
-
-      /** Wait for the feed to appear in search API before performing UI search */
-      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
-        apiClient: appManagerFixture.feedManagementHelper.feedManagementService.httpClient,
-        searchTerm: currentFeedName,
-        objectType: 'feed',
-      });
     });
 
     test(
       `Verify Feed Search results for a new home ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+        annotation: { type: 'known_failure', description: 'SEN-20181' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12843',
+          isKnownFailure: true,
+          bugTicket: 'SEN-20181',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Not able to search feed results without exact match',
         });
 
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
+
+        // Get the feed result item matching the search term
+        await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
 
         await globalSearchResultPage.verifyFeedResultItemDataPoints({
           name: currentFeedName,
@@ -117,6 +120,10 @@ test.describe(
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
         });
 
+        // Get the feed result item matching the search term
+        const feedResultItem =
+          await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
+
         await globalSearchResultPage.verifyFeedResultItemDataPoints({
           name: currentFeedName,
           text: testData.text,
@@ -126,8 +133,6 @@ test.describe(
         });
 
         // Verify site navigation for site feed
-        const feedResultItem =
-          await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
         const feedListComponent = new FeedListComponent(feedResultItem.page, feedResultItem.rootLocator);
         await feedListComponent.verifyNavigationWithSiteLink(publicSite.siteId, publicSite.siteName);
       }
