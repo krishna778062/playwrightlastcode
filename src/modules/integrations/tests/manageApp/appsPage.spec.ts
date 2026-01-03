@@ -5,10 +5,11 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { SERVICE_NOW_VALUES } from '../../test-data/app-tiles.test-data';
+import { ExternalAppProvider, ExternalAppsPage } from '../../ui/pages/externalAppsPage';
 
 import { IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { integrationsFixture as test } from '@/src/modules/integrations/fixtures/integrationsFixture';
-import { AppsPage } from '@/src/modules/integrations/ui/pages/appsPage';
+import { AppsPage, IntegrationStatus } from '@/src/modules/integrations/ui/pages/appsPage';
 
 let appsPage: AppsPage;
 
@@ -20,7 +21,8 @@ test.describe(
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {
       appsPage = new AppsPage(appManagerFixture.page);
-      await appsPage.verifyThePageIsLoaded();
+      await appsPage.actions.navigateToAppsPage();
+      await appsPage.assertions.verifyThePageIsLoaded();
     });
 
     test(
@@ -60,37 +62,9 @@ test.describe(
         await appsPage.actions.navigateToAppsTab();
         await appsPage.verifyThePageIsLoaded();
         await appsPage.assertions.verifyIntegrationIsAddedSuccessfully(connectionName);
+        await appsPage.assertions.verifyStatusBadgeText(connectionName, IntegrationStatus.DISABLED);
       }
     );
-
-    // test(
-    //   'verify validation error is displayed when connection name is empty',
-    //   {
-    //     tag: [TestPriority.P2, TestGroupType.REGRESSION],
-    //   },
-    //   async () => {
-    //     tagTest(test.info(), {
-    //       storyId: 'INT-XXXX',
-    //       description: 'verify that validation error appears when trying to add integration without connection name',
-    //     });
-
-    //     const integrationName = 'ServiceNow';
-    //     const initialConnectionName = 'Test';
-
-    //     await appsPage.actions.clickAddIntegrationButton();
-    //     await appsPage.actions.searchForIntegration(integrationName);
-    //     await appsPage.actions.selectIntegrationFromList(integrationName);
-
-    //     await appsPage.actions.enterConnectionName(initialConnectionName);
-    //     await appsPage.actions.clearConnectionName();
-    //     await appsPage.actions.clickBrowseButton();
-    //     await appsPage.actions.selectAudience();
-    //     await appsPage.actions.clickDoneButton();
-
-    //     await appsPage.actions.clickAddButton();
-    //     await appsPage.assertions.verifyConnectionNameErrorMessage();
-    //   }
-    // );
 
     test(
       'verify app manager can add multiple integrations with different connection names',
@@ -119,9 +93,9 @@ test.describe(
     );
 
     test(
-      'verify app manager can enter ServiceNow credentials and connect to ServiceNow',
+      'verify app manager can enter ServiceNow credentials and connect to ServiceNow on apps page and external apps page',
       {
-        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
@@ -138,7 +112,15 @@ test.describe(
           url: SERVICE_NOW_VALUES.URL,
         });
         await appsPage.connectServiceNowAccount();
+        await appsPage.actions.navigateToAppsTab();
+        await appsPage.verifyThePageIsLoaded();
         await appsPage.assertions.verifyIntegrationIsAddedSuccessfully(connectionName);
+        await appsPage.assertions.verifyStatusBadgeText(connectionName, IntegrationStatus.ENABLED);
+        const externalAppsPage = new ExternalAppsPage(appsPage.page);
+        await externalAppsPage.actions.navigateToExternalAppsPage();
+        await externalAppsPage.verifyThePageIsLoaded();
+        await externalAppsPage.connectServiceNowAccount(connectionName);
+        await externalAppsPage.assertions.verifyIntegrationIsConnected(ExternalAppProvider.SERVICENOW, true);
       }
     );
 
@@ -168,7 +150,7 @@ test.describe(
     test(
       'verify add integration pop up can be closed by clicking on x button',
       {
-        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+        tag: [TestPriority.P3, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
@@ -186,7 +168,7 @@ test.describe(
     test(
       'verify save button is disabled when connection name is empty',
       {
-        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+        tag: [TestPriority.P3, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
@@ -225,6 +207,32 @@ test.describe(
         await appsPage.actions.selectIntegrationFromList(integrationName);
         await appsPage.actions.enterConnectionName(connectionName);
         await appsPage.assertions.verifyAddButtonIsDisabled();
+      }
+    );
+
+    test(
+      'verify app manager can add integration and search for it by connection name',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async () => {
+        tagTest(test.info(), {
+          storyId: 'INT-XXXX',
+          description:
+            'verify that after adding an integration, app manager can search for it by connection name and verify it exists',
+        });
+
+        const integrationName = 'ServiceNow';
+        const connectionName = `Test_${faker.string.alphanumeric(8)}`;
+
+        // Add a new integration
+        await appsPage.actions.addIntegration(integrationName, connectionName);
+        await appsPage.actions.navigateToAppsTab();
+        await appsPage.assertions.verifyIntegrationIsAddedSuccessfully(connectionName);
+
+        // Search for the integration tile by connection name
+        await appsPage.actions.searchIntegrationTile(connectionName);
+        await appsPage.assertions.verifyIntegrationTileIsVisible(connectionName);
       }
     );
   }

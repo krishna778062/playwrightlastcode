@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SERVICE_NOW_VALUES } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 export enum IntegrationStatus {
@@ -24,6 +25,8 @@ export interface IAppsPageActions {
   navigateToIntegrationsTab: () => Promise<void>;
   navigateToAppsTab: () => Promise<void>;
   addIntegration: (integrationName: string, connectionName: string) => Promise<void>;
+  searchIntegrationTile: (connectionName: string) => Promise<void>;
+  clickOnIntegrationTile: (connectionName: string) => Promise<void>;
 }
 
 export interface IAppsPageAssertions {
@@ -38,6 +41,10 @@ export interface IAppsPageAssertions {
   getIntegrationStatus: (connectionName: string) => Promise<IntegrationStatus>;
   isIntegrationEnabled: (connectionName: string) => Promise<boolean>;
   verifyAddButtonIsDisabled: () => Promise<void>;
+  getStatusBadgeText: (connectionName: string) => Promise<string>;
+  verifyStatusBadgeText: (connectionName: string, expectedStatus: IntegrationStatus) => Promise<void>;
+  verifyIntegrationTileIsVisible: (connectionName: string) => Promise<void>;
+  verifyIntegrationTileIsNotVisible: (connectionName: string) => Promise<void>;
 }
 
 export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAssertions {
@@ -82,9 +89,11 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
   readonly integrationCard: (connectionName: string) => Locator;
   readonly integrationCardEnabled: (connectionName: string) => Locator;
   readonly integrationCardDisabled: (connectionName: string) => Locator;
+  // Status badge inside integration card (shows "Enabled" or "Disabled")
+  readonly integrationStatusBadge: (connectionName: string) => Locator;
 
   constructor(page: Page) {
-    super(page, '/manage/app/integrations/apps');
+    super(page, PAGE_ENDPOINTS.APPS_PAGE);
 
     // Main navigation elements
     this.applicationSettingsMenuItem = page.getByRole('menuitem', { name: 'Application settings', exact: true });
@@ -112,7 +121,7 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
     this.searchField = page.getByRole('textbox', { name: 'Search' });
 
     // Connection form
-    this.connectionNameField = page.getByPlaceholder('Enter connection name');
+    this.connectionNameField = page.getByPlaceholder('Enter connection name').first();
     this.browseButton = page.getByRole('button', { name: 'Browse' });
     this.selectAudienceButton = page.getByRole('switch');
     this.doneButton = page.getByRole('button', { name: 'Done' });
@@ -141,6 +150,11 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
     // Matches: aria-label="ConnectionName - Disabled"
     this.integrationCardDisabled = (connectionName: string) =>
       page.getByRole('button', { name: new RegExp(`${connectionName}\\s*-\\s*Disabled`, 'i') });
+
+    // Status badge inside integration card - the badge element showing "Enabled" or "Disabled"
+    // Element: <span data-slot="badge">...<span>Enabled</span></span>
+    this.integrationStatusBadge = (connectionName: string) =>
+      this.integrationCard(connectionName).locator('[data-slot="badge"]').first();
   }
 
   get actions(): IAppsPageActions {
@@ -156,14 +170,8 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
    */
   async navigateToAppsPage(): Promise<void> {
     await test.step('Navigate to Apps page under Integrations', async () => {
-      await this.applicationSettingsMenuItem.click();
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.applicationButton.click();
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.integrationsTab.click();
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.appsTab.click();
-      await this.page.waitForLoadState('domcontentloaded');
+      const url = PAGE_ENDPOINTS.APPS_PAGE;
+      await this.page.goto(url, { waitUntil: 'domcontentloaded' });
     });
   }
 
@@ -261,7 +269,7 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
    */
   async selectIntegrationFromList(integrationName: string): Promise<void> {
     await test.step(`Select integration: "${integrationName}"`, async () => {
-      const integrationCardButton = this.integrationCard(integrationName);
+      const integrationCardButton = this.integrationCard(integrationName).first();
       await this.clickOnElement(integrationCardButton, {
         stepInfo: `Clicking on ${integrationName} integration card`,
       });
@@ -374,6 +382,59 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
   }
 
   /**
+   * Search for an integration tile by connection name in the installed apps list
+   * @param connectionName - The name of the integration connection to search for
+   */
+  async searchIntegrationTile(connectionName: string): Promise<void> {
+    await test.step(`Search for integration tile: "${connectionName}"`, async () => {
+      await this.searchField.click();
+      await this.searchField.fill(connectionName);
+      await this.page.waitForTimeout(500); // Wait for search results to filter
+    });
+  }
+
+  /**
+   * Click on an integration tile by connection name
+   * @param connectionName - The name of the integration connection
+   */
+  async clickOnIntegrationTile(connectionName: string): Promise<void> {
+    await test.step(`Click on integration tile: "${connectionName}"`, async () => {
+      const tile = this.integrationCard(connectionName);
+      await tile.waitFor({ state: 'visible', timeout: 10_000 });
+      await tile.click();
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  /**
+   * Verify integration tile is visible after search
+   * @param connectionName - The name of the integration connection
+   */
+  async verifyIntegrationTileIsVisible(connectionName: string): Promise<void> {
+    await test.step(`Verify integration tile "${connectionName}" is visible`, async () => {
+      const tile = this.integrationCard(connectionName);
+      await this.verifier.verifyTheElementIsVisible(tile, {
+        timeout: 10_000,
+        assertionMessage: `Integration tile "${connectionName}" should be visible`,
+      });
+    });
+  }
+
+  /**
+   * Verify integration tile is not visible
+   * @param connectionName - The name of the integration connection
+   */
+  async verifyIntegrationTileIsNotVisible(connectionName: string): Promise<void> {
+    await test.step(`Verify integration tile "${connectionName}" is not visible`, async () => {
+      const tile = this.integrationCard(connectionName);
+      await this.verifier.verifyTheElementIsNotVisible(tile, {
+        timeout: 10_000,
+        assertionMessage: `Integration tile "${connectionName}" should not be visible`,
+      });
+    });
+  }
+
+  /**
    * Verify connection name error message is displayed
    */
   async verifyConnectionNameErrorMessage(): Promise<void> {
@@ -464,7 +525,7 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
       await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
       await this.allowAccessButton.click();
       await this.page.waitForLoadState('domcontentloaded');
-      await expect(this.serviceNowDisconnectServiceAccountButton).toBeVisible({ timeout: 10_000 });
+      await expect(this.serviceNowDisconnectServiceAccountButton).toBeVisible({ timeout: 15_000 });
     });
   }
 
@@ -515,6 +576,33 @@ export class AppsPage extends BasePage implements IAppsPageActions, IAppsPageAss
     return await test.step(`Check if integration "${connectionName}" is enabled`, async () => {
       const status = await this.getIntegrationStatus(connectionName);
       return status === IntegrationStatus.ENABLED;
+    });
+  }
+
+  /**
+   * Get the status text directly from the badge element inside the integration card
+   * @param connectionName - The name of the integration connection
+   * @returns The text content of the status badge ("Enabled" or "Disabled")
+   */
+  async getStatusBadgeText(connectionName: string): Promise<string> {
+    return await test.step(`Get status badge text for integration "${connectionName}"`, async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      const statusBadge = this.integrationStatusBadge(connectionName);
+      await statusBadge.waitFor({ state: 'visible', timeout: 10_000 });
+      const text = await statusBadge.textContent();
+      return text?.trim() ?? '';
+    });
+  }
+
+  /**
+   * Verify the status badge shows the expected status text
+   * @param connectionName - The name of the integration connection
+   * @param expectedStatus - Expected status (IntegrationStatus.ENABLED or IntegrationStatus.DISABLED)
+   */
+  async verifyStatusBadgeText(connectionName: string, expectedStatus: IntegrationStatus): Promise<void> {
+    await test.step(`Verify status badge for "${connectionName}" shows ${expectedStatus}`, async () => {
+      const statusText = await this.getStatusBadgeText(connectionName);
+      expect(statusText).toContain(expectedStatus);
     });
   }
 }
