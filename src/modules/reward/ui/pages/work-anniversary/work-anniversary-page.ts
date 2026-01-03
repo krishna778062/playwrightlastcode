@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { getRewardDbConfigFromCache } from '@rewards/config/dbConfig';
 import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { getQuery } from '@rewards/utils/dbQuery';
 import { MilestoneAwardInstance } from '@rewards-components/milestone-award-instance/milestone-award-instance';
@@ -405,6 +406,8 @@ export class WorkAnniversaryPage extends BasePage {
   /**
    * Edit the work anniversary instance and set the data for work anniversary award instance
    * @param instanceIndex - index of WA instance
+   * @param customMessage - true for custom message, false for default message
+   * @param customAuthor - true for custom author, false for default author
    * @param customBadges - 0 for default badge, 1,2,3... for custom badges
    * @param customPoints - 0 for no points, null for cancel, other number for custom points
    */
@@ -418,26 +421,42 @@ export class WorkAnniversaryPage extends BasePage {
     await this.awardInstanceEditButton.nth(instanceIndex).click();
     const milestoneInstance = new MilestoneAwardInstance(this.page);
     let changesMade = false;
-    if (customMessage) {
-      const customMessageText = `Congratulations on your ${instanceIndex + 1} year work anniversary!`;
-      await milestoneInstance.enterCustomMessageInTiptapEditor(customMessageText);
-      changesMade = true;
-    }
-
     if (customAuthor) {
       const customAuthor = getRewardTenantConfigFromCache().appManagerName;
       await milestoneInstance.enterTheCustomAuthorNameInAwardInstance(customAuthor);
       changesMade = true;
     }
-
     if (customBadges) {
       const customBadge = customBadges ? 0 : 1;
       await milestoneInstance.setTheCustomBadgeInAwardInstanceModal(customBadge);
       changesMade = true;
     }
 
+    if (customMessage) {
+      const customMessageText = `Congratulations on your ${instanceIndex + 1} year with ${customPoints} work anniversary ${customAuthor}!`;
+      await milestoneInstance.enterCustomMessageInTiptapEditor(customMessageText);
+      changesMade = true;
+    }
+
     if (customPoints !== undefined) {
       await milestoneInstance.setTheCustomPointsInAwardInstanceModal(customPoints);
+      changesMade = true;
+    }
+
+    if (changesMade) {
+      await this.awardInstanceSaveButton.click();
+    } else {
+      await this.awardInstanceCancelButton.click();
+    }
+  }
+
+  async updateThePointInTheAwardInstance(instanceIndex: number = 0, customPoints: number | null = 0) {
+    await this.awardInstanceEditButton.nth(instanceIndex).click();
+    const milestoneInstance = new MilestoneAwardInstance(this.page);
+    let changesMade = false;
+
+    if (customPoints !== undefined) {
+      await milestoneInstance.customAwardPointsInputBox.fill(String(customPoints));
       changesMade = true;
     }
 
@@ -468,16 +487,14 @@ export class WorkAnniversaryPage extends BasePage {
       recognitionId: string;
       year: number;
     }[],
-    year?: number,
-    point?: number
+    points: (number | null)[]
   ): Promise<void> {
     for (const result of recognitionResults) {
       const { recognitionId, year } = result;
       let expectedPoints: number | null = null;
-      if (year === 1) expectedPoints = 20;
-      else if (year === 2)
-        expectedPoints = null; // no points
-      else if (year === 3) expectedPoints = 30;
+      if (year === 1) expectedPoints = points[0];
+      else if (year === 2) expectedPoints = points[1];
+      else if (year === 3) expectedPoints = points[2];
 
       await this.page.goto(`/recognition/recognition/${recognitionId}`);
       await expect(this.firstWorkAnniversaryPost).toBeVisible();
@@ -542,12 +559,11 @@ export class WorkAnniversaryPage extends BasePage {
   }
 
   async deleteAllExistingWorkAnniversaryForTheUserIds(userIds: string[], tenantId: string) {
-    // Original implementation from reference file:
     const userIdsString = userIds.map(id => `'${id}'`).join(', ');
     const query = getQuery('selectRecognitionsByUserAndTenant');
     const result = await executeQuery(
       query.replace('userIdsString', userIdsString).replace('tenantCode', tenantId),
-      'recognition'
+      getRewardDbConfigFromCache('recognition')
     );
     if (result.length > 0) {
       const recognitionIds = result.map((row: any) => row.recognitionId);
@@ -578,7 +594,6 @@ export class WorkAnniversaryPage extends BasePage {
           COMMIT;
         `;
         console.log('queryForDeletion:\n ', queryForDeletion);
-        console.log(await executeQuery(queryForDeletion, 'recognition'));
       }
     }
   }
@@ -586,7 +601,10 @@ export class WorkAnniversaryPage extends BasePage {
   async setTheUserIdsStartDateAsCurrentDate(userIds: any[], tenantId: string): Promise<void> {
     const userIdsString = userIds.map(id => `'${id}'`).join(', ');
     const query = getQuery('setTheStartUtcDateToTheUsers');
-    await executeQuery(query.replace('userIdsString', userIdsString).replace('tenantCode', tenantId), 'recognition');
+    await executeQuery(
+      query.replace('userIdsString', userIdsString).replace('tenantCode', tenantId),
+      getRewardDbConfigFromCache('recognition')
+    );
   }
 
   async setTheStartDateForUsersForWorkAnniversary(userId: any, number: number, tenantId: string) {
@@ -597,7 +615,7 @@ export class WorkAnniversaryPage extends BasePage {
         .replace('userIdsString', `'${userId}'`) // wrap in quotes for SQL
         .replace('tenantCode', tenantId)
         .replace('numberOfYears', number.toString()),
-      'recognition'
+      getRewardDbConfigFromCache('recognition')
     );
   }
 
@@ -607,7 +625,7 @@ export class WorkAnniversaryPage extends BasePage {
     const query = getQuery('selectRecognitionsByUserAndTenant');
     return await executeQuery(
       query.replace('userIdsString', userIdsString).replace('tenantCode', tenantId),
-      'recognition'
+      getRewardDbConfigFromCache('recognition')
     );
   }
 
@@ -644,6 +662,7 @@ export class WorkAnniversaryPage extends BasePage {
 
   async setToggleAndSaveChangesInWorkAnniversary(toggleState: boolean): Promise<void> {
     const awardToggle = this.page.getByRole('switch', { name: 'Make this award active' });
+    await awardToggle.scrollIntoViewIfNeeded();
     const isChecked = await awardToggle.getAttribute('aria-checked');
     const currentlyEnabled = isChecked === 'true' || isChecked === 'checked';
     if (currentlyEnabled !== toggleState) {
@@ -652,7 +671,7 @@ export class WorkAnniversaryPage extends BasePage {
     await this.saveTheWorkAnniversaryChanges();
   }
 
-  async validateTheWorkAnniversryWithPointsIsEnabledInTheTable() {
+  async validateTheWorkAnniversaryWithPointsIsEnabledInTheTable() {
     const headers: string[] = await this.milestoneTableRow.locator('td').nth(3).locator('p').allTextContents();
     expect(headers).toContain('Active');
   }

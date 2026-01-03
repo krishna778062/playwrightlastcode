@@ -75,7 +75,7 @@ test.describe('manage work anniversary setting', { tag: [REWARD_SUITE_TAGS.MANAG
       await workAnniversaryPage.dismissTheToastMessage({
         toastText: 'Saved changes successfully',
       });
-      await workAnniversaryPage.validateTheWorkAnniversryWithPointsIsEnabledInTheTable();
+      await workAnniversaryPage.validateTheWorkAnniversaryWithPointsIsEnabledInTheTable();
     }
   );
 
@@ -100,7 +100,7 @@ test.describe('manage work anniversary setting', { tag: [REWARD_SUITE_TAGS.MANAG
       await workAnniversaryPage.dismissTheToastMessage({
         toastText: 'Saved changes successfully',
       });
-      await workAnniversaryPage.validateTheWorkAnniversryWithPointsIsEnabledInTheTable();
+      await workAnniversaryPage.validateTheWorkAnniversaryWithPointsIsEnabledInTheTable();
     }
   );
 

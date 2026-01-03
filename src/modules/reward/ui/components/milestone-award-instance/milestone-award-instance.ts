@@ -25,7 +25,7 @@ export class MilestoneAwardInstance extends DialogBox {
   private customAuthorRadioButton: Locator;
   private customAuthorUserInputBox: Locator;
   private customAwardPointToReceiversSwitch: Locator;
-  private customAwardPointsInputBox: Locator;
+  customAwardPointsInputBox: Locator;
 
   private suggesterContainer: Locator;
 
@@ -237,7 +237,13 @@ export class MilestoneAwardInstance extends DialogBox {
   }
 
   async setTheCustomPointsInAwardInstanceModal(customPoints: number | null) {
-    await this.customAwardPointsPlusButton.click();
+    if (
+      !(await this.verifier.isTheElementVisible(this.customAwardPointToReceiversSwitch, {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      }))
+    ) {
+      await this.customAwardPointsPlusButton.click();
+    }
     if (customPoints === null) {
       const isChecked = await this.customAwardPointToReceiversSwitch.getAttribute('aria-checked');
       if (isChecked === 'true') {

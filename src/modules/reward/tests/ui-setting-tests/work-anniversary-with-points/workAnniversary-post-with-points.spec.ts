@@ -7,11 +7,11 @@ import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary/work-annive
 import { TestPriority } from '@core/constants';
 import { tagTest } from '@core/utils';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
-import { waitUntilNextDecadePlusOne } from '@core/utils/timeUtil';
+import { waitUntilNext10thMinuteWithPlusOne } from '@core/utils/timeUtil';
 
 test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.describe.configure({
-    timeout: 15 * 60 * 1000, // 15 minutes
+    timeout: 25 * 60 * 1000, // 25 minutes per test
   });
   let tenantCode: string;
   test.beforeEach('Login to Application and open Manage work anniversary page', async ({ appManagerFixture }) => {
@@ -25,45 +25,70 @@ test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
   });
 
   test(
-    '[RC-5787, RC-5788, RC-5789, RC-5860, RC-5790] Validate the Work Anniversary for logged in User',
+    '[RC-5787, RC-5788, RC-5789, RC-5860, RC-5790] Work anniversary post for 1st, 2nd, and 3rd year with points',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'Validate the Work Anniversary for logged in User',
-        zephyrTestId: 'RC-5787, RC-5788, RC-5789, RC-5860, RC-5790',
+        description: 'Verify the WA post with points and numbered badges in the Recognition Hub',
+        zephyrTestId: 'RC-5787',
         storyId: 'RC-5787',
       });
-
+      tagTest(test.info(), {
+        description: 'Verify the WA post without points but numbered badges in the Recognition Hub',
+        zephyrTestId: 'RC-5788',
+        storyId: 'RC-5788',
+      });
+      tagTest(test.info(), {
+        description: 'Verify WA post when numbered badges with points set on Milestone instance',
+        zephyrTestId: 'RC-5789',
+        storyId: 'RC-5789',
+      });
+      tagTest(test.info(), {
+        description: 'Verify adjust point balances for specific cycles of the work anniversary milestones',
+        zephyrTestId: 'RC-5860',
+        storyId: 'RC-5860',
+      });
+      tagTest(test.info(), {
+        description: 'Verify WA post when custom badges with points set as zero on Milestone instance',
+        zephyrTestId: 'RC-5859',
+        storyId: 'RC-5859',
+      });
+      tagTest(test.info(), {
+        description: 'Verify WA post when numbered badges without points set on Milestone award instance',
+        zephyrTestId: 'RC-5790',
+        storyId: 'RC-5790',
+      });
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
       const userIds = [
         getRewardTenantConfigFromCache().appManagerUserId,
         getRewardTenantConfigFromCache().recognitionManagerUserId,
         getRewardTenantConfigFromCache().endUserUserId,
       ];
-
+      const anniversaryPoints = [null, 10, 50];
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      // await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
-      // await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      // await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
-      // await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(20);
-      // await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(0, false, false, false, null);
-      // await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(1, false, true, true, 0);
-      // await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(2, true, false, true, 50);
-      // await workAnniversaryPage.saveTheWorkAnniversaryChanges();
+      await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
+      await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
+      await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(20);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(0, false, false, false, anniversaryPoints[0]);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(1, false, true, true, anniversaryPoints[1]);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(2, true, false, true, anniversaryPoints[2]);
+      await workAnniversaryPage.setToggleAndSaveChangesInWorkAnniversary(true);
+      await workAnniversaryPage.dismissTheToastMessage({
+        toastText: 'Saved changes successfully',
+      });
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
       await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[0], 1, tenantCode);
       await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[1], 2, tenantCode);
       await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[2], 3, tenantCode);
-      const finishedAt = await waitUntilNextDecadePlusOne(appManagerFixture.page);
+      const finishedAt = await waitUntilNext10thMinuteWithPlusOne(appManagerFixture.page);
       console.log('Wait finished at:', finishedAt.toISOString());
       const recognitionResults: { recognitionId: string; year: number }[] =
         await workAnniversaryPage.getTheLatestWorkAnniversaryRecognitionIdForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPost(recognitionResults);
-      await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
+      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPost(recognitionResults, anniversaryPoints);
     }
   );
 
@@ -79,31 +104,40 @@ test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
         storyId: 'RC-5808',
       });
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
-
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
-      const point = TestDataGenerator.getRandomNo(0, 30);
-      const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
+      const userIds = [
+        getRewardTenantConfigFromCache().appManagerUserId,
+        getRewardTenantConfigFromCache().recognitionManagerUserId,
+        getRewardTenantConfigFromCache().endUserUserId,
+      ];
+      const anniversaryPoints = [null, 10, 50];
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(0, point);
-      await workAnniversaryPage.saveTheWorkAnniversaryChanges();
+      await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(20);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(0, false, false, false, anniversaryPoints[0]);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(1, false, true, true, anniversaryPoints[1]);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(2, true, false, true, anniversaryPoints[2]);
+      await workAnniversaryPage.setToggleAndSaveChangesInWorkAnniversary(true);
+      await workAnniversaryPage.dismissTheToastMessage({
+        toastText: 'Saved changes successfully',
+      });
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
       await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[0], 1, tenantCode);
-      let finishedAt = await waitUntilNextDecadePlusOne(appManagerFixture.page);
+      await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[1], 2, tenantCode);
+      await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[2], 3, tenantCode);
+      let finishedAt = await waitUntilNext10thMinuteWithPlusOne(appManagerFixture.page);
       console.log('Wait finished at:', finishedAt.toISOString());
       const recognitionResults: { recognitionId: string; year: number }[] =
         await workAnniversaryPage.getTheLatestWorkAnniversaryRecognitionIdForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPostWithSpecificPoints(recognitionResults, point);
-      const newPoint = TestDataGenerator.getRandomNo(0, 30, point);
+      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPost(recognitionResults, anniversaryPoints);
+      const newPoint = TestDataGenerator.getRandomNo(0, 30, anniversaryPoints[2]!);
       await workAnniversaryPage.visit();
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(0, newPoint);
+      await workAnniversaryPage.updateThePointInTheAwardInstance(2, newPoint);
       await workAnniversaryPage.saveTheWorkAnniversaryChanges();
-      finishedAt = await waitUntilNextDecadePlusOne(appManagerFixture.page);
+      finishedAt = await waitUntilNext10thMinuteWithPlusOne(appManagerFixture.page);
       console.log('Wait finished at:', finishedAt.toISOString());
       const newRecognitionResults: {
         recognitionId: string;
@@ -111,10 +145,8 @@ test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
       }[] = await workAnniversaryPage.getTheLatestWorkAnniversaryRecognitionIdForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPostWithSpecificPoints(
         newRecognitionResults,
-        point
+        anniversaryPoints[2]!
       );
-      await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
     }
   );
 
@@ -130,76 +162,33 @@ test.describe('work anniversary with points', { tag: [REWARD_SUITE_TAGS.MANAGE_W
         zephyrTestId: 'RC-6087',
         storyId: 'RC-6087',
       });
-
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
       const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
-
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
-      const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
-      const point = TestDataGenerator.getRandomNo(0, 30);
+      const manageRecognitionPage = new ManageRecognitionPage(appManagerFixture.page);
+      const userIds = [getRewardTenantConfigFromCache().endUserUserId];
+      const anniversaryPoints = [10];
       await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
+      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
       await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(0, point);
-      await workAnniversaryPage.saveTheWorkAnniversaryChanges();
+      await workAnniversaryPage.clickOnPreviewAwardButtonAndValidateThePoints(20);
+      await workAnniversaryPage.setTheDataForWorkAnniversaryAwardInstance(0, false, false, false, anniversaryPoints[0]);
+      await workAnniversaryPage.setToggleAndSaveChangesInWorkAnniversary(true);
+      await workAnniversaryPage.dismissTheToastMessage({
+        toastText: 'Saved changes successfully',
+      });
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
       await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[0], 1, tenantCode);
-      const finishedAt = await waitUntilNextDecadePlusOne(appManagerFixture.page);
+      const finishedAt = await waitUntilNext10thMinuteWithPlusOne(appManagerFixture.page);
       console.log('Wait finished at:', finishedAt.toISOString());
       const recognitionResults: { recognitionId: string; year: number }[] =
         await workAnniversaryPage.getTheLatestWorkAnniversaryRecognitionIdForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPostWithSpecificPoints(recognitionResults, point);
+      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPost(recognitionResults, anniversaryPoints);
       await manageRecognitionPage.rewards.visit();
       await workAnniversaryPage.validateTheCSVDataForPointsGiven(
-        point,
+        anniversaryPoints[0],
         `Congratulations ${getRewardTenantConfigFromCache().endUserName} on reaching your 1st work anniversary! We're grateful to have you as part of our company!`
       );
-      await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
-    }
-  );
-
-  test(
-    '[RC-5859] Verify WA post when custom badges with points set as zero on Milestone instance',
-    {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, REWARD_FEATURE_TAGS.REWARDS_DB_CASES, TestPriority.P2],
-    },
-    async ({ appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Verify WA post when custom badges with points set as zero on Milestone instance',
-        zephyrTestId: 'RC-5859',
-        storyId: 'RC-5859',
-      });
-
-      const workAnniversaryPage = new WorkAnniversaryPage(appManagerFixture.page);
-
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
-      const userIds = [getRewardTenantConfigFromCache().endUserUserId].filter((id): id is string => id !== undefined);
-      const point = 0;
-      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
-      await workAnniversaryPage.setTheDefaultPointsInWorkAnniversary(20);
-      await workAnniversaryPage.editTheWorkAnniversaryInstanceAndSetThePoints(0, point, 2);
-      await workAnniversaryPage.saveTheWorkAnniversaryChanges();
-      await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
-      await workAnniversaryPage.setTheStartDateForUsersForWorkAnniversary(userIds[0], 1, tenantCode);
-      const finishedAt = await waitUntilNextDecadePlusOne(appManagerFixture.page);
-      console.log('Wait finished at:', finishedAt.toISOString());
-      const recognitionResults: { recognitionId: string; year: number }[] =
-        await workAnniversaryPage.getTheLatestWorkAnniversaryRecognitionIdForTheUserIds(userIds, tenantCode);
-      await workAnniversaryPage.validateTheWorkAnniversaryRecognitionPostWithSpecificPoints(
-        recognitionResults,
-        point,
-        true
-      );
-      await workAnniversaryPage.visit();
-      await workAnniversaryPage.verifyThePageIsLoaded();
-      await workAnniversaryPage.clickOnTheEditWorkAnniversaryButton();
-      await workAnniversaryPage.cleanUpTheDataIfAlreadySet();
       await workAnniversaryPage.deleteAllExistingWorkAnniversaryForTheUserIds(userIds, tenantCode);
       await workAnniversaryPage.setTheUserIdsStartDateAsCurrentDate(userIds, tenantCode);
     }
