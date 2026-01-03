@@ -13,6 +13,14 @@ export class NativeTileComponent extends BaseComponent {
   readonly calendarDropdownInput: Locator;
   readonly reactSelectInput: Locator;
   readonly calendarDropdownFirstOption: Locator;
+  readonly outlookCalendarGroupDropdown: Locator;
+  readonly outlookCalendarDropdown: Locator;
+  readonly reactSelectInputs: Locator;
+  readonly reactSelectMenu: Locator;
+  readonly reactSelectMenuOption: Locator;
+  readonly reactSelectListboxMenus: Locator;
+  readonly reactSelectOption: Locator;
+  readonly panelItem: Locator;
   readonly tileTitleInput: Locator;
   readonly addToHomeButton: Locator;
   readonly eventsContentTypeRadio: Locator;
@@ -41,7 +49,18 @@ export class NativeTileComponent extends BaseComponent {
     this.calendarDropdownInput = page.getByRole('combobox').first();
     this.reactSelectInput = page.locator('#react-select-2-input');
     this.calendarDropdownFirstOption = page.getByRole('option').first();
-    this.tileTitleInput = page.getByRole('textbox', { name: 'Tile title' });
+    this.reactSelectInputs = page.locator('input[id^="react-select"]');
+    // For Outlook Calendar: first dropdown is calendar group, second is specific calendar
+    this.outlookCalendarGroupDropdown = page.locator('input[id^="react-select"]').first();
+    this.outlookCalendarDropdown = page.locator('input[id^="react-select"]').nth(1);
+    // React-select menu and options - scoped to the modal
+    this.reactSelectMenu = page.locator('[id^="react-select"][id$="-listbox"]').first();
+    this.reactSelectMenuOption = page.locator('[role="listbox"] .ReactSelectInput-option').first();
+    this.reactSelectListboxMenus = page.locator('[id^="react-select"][id$="-listbox"]');
+    // Base locators for React Select options and panel items (used with selector strings when scoping)
+    this.reactSelectOption = page.locator('.ReactSelectInput-option');
+    this.panelItem = page.locator('.Panel-item');
+    this.tileTitleInput = page.getByRole('dialog').locator('input[id="title"], input[name="title"]').first();
     this.addToHomeButton = page.getByRole('button', { name: 'Add to home' });
     this.eventsContentTypeRadio = page.locator('#options_type_event');
     this.googleCalendarFromRadio = page.locator('#options_siteFilter_googleCalendar');
@@ -100,12 +119,70 @@ export class NativeTileComponent extends BaseComponent {
 
   /**
    * Select calendar from dropdown by email/name
+   * For Google Calendar: selects the calendar directly
+   * For Outlook Calendar: this should not be used - use selectOutlookCalendarGroupAndCalendar instead
    */
   async selectCalendarFromDropdown(calendarEmail: string): Promise<void> {
     await test.step(`Select calendar: ${calendarEmail}`, async () => {
       await this.clickOnElement(this.reactSelectInput, { timeout: 30_000 });
       const calendarEmailOption = this.getCalendarEmailOption(calendarEmail);
       await this.clickOnElement(calendarEmailOption, { timeout: 30_000 });
+    });
+  }
+
+  /**
+   * Select Outlook Calendar group and then a specific calendar
+   * Outlook Calendar requires two selections: first the group, then the calendar
+   * @param calendarGroup - The calendar group name (e.g., "My Calendars", "Shared")
+   * @param calendarName - Optional specific calendar name. If not provided, selects first available
+   */
+  async selectOutlookCalendarGroupAndCalendar(calendarGroup: string, calendarName?: string): Promise<void> {
+    await test.step(`Select Outlook Calendar group: ${calendarGroup}${calendarName ? ` and calendar: ${calendarName}` : ''}`, async () => {
+      // Select calendar group (first dropdown)
+      await this.clickOnElement(this.outlookCalendarGroupDropdown, { timeout: 30_000 });
+      const firstMenu = this.reactSelectListboxMenus.first();
+      await firstMenu.waitFor({ state: 'visible', timeout: 10000 });
+
+      const groupOption = firstMenu
+        .locator('.ReactSelectInput-option')
+        .filter({ has: this.panelItem.filter({ hasText: calendarGroup }) })
+        .first();
+      await this.clickOnElement(groupOption, { timeout: 30_000 });
+      await firstMenu.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+
+      // Select specific calendar (second dropdown)
+      await expect(this.outlookCalendarDropdown).toBeEnabled({ timeout: 15000 });
+      await this.clickOnElement(this.outlookCalendarDropdown, { timeout: 30_000 });
+
+      // Find visible menu with options
+      const findVisibleMenu = async (): Promise<Locator | null> => {
+        const count = await this.reactSelectListboxMenus.count();
+        for (let i = 0; i < count; i++) {
+          const menu = this.reactSelectListboxMenus.nth(i);
+          if (await menu.isVisible().catch(() => false)) {
+            const hasOptions = await menu.locator('.ReactSelectInput-option').count();
+            if (hasOptions > 0) return menu;
+          }
+        }
+        return null;
+      };
+
+      await expect.poll(findVisibleMenu, { timeout: 15000, intervals: [200, 500, 1000] }).not.toBeNull();
+
+      const secondMenu = await findVisibleMenu();
+      if (!secondMenu) {
+        throw new Error('Second calendar dropdown menu did not appear after clicking');
+      }
+
+      // Select calendar option
+      const calendarOption = calendarName
+        ? secondMenu
+            .locator('.ReactSelectInput-option')
+            .filter({ has: this.panelItem.filter({ hasText: calendarName }) })
+            .first()
+        : secondMenu.locator('.ReactSelectInput-option').first();
+
+      await this.clickOnElement(calendarOption, { timeout: 30_000 });
     });
   }
 
@@ -187,6 +264,16 @@ export class NativeTileComponent extends BaseComponent {
   }
 
   /**
+   * Verify Outlook Calendar is selected in From section
+   */
+  async verifyOutlookCalendarSelected(): Promise<void> {
+    await test.step('Verify Outlook Calendar is selected', async () => {
+      const outlookCalendarFromRadio = this.page.locator('#options_siteFilter_outlookCalendar');
+      await expect(outlookCalendarFromRadio, 'Expected Outlook Calendar to be checked').toBeChecked();
+    });
+  }
+
+  /**
    * Verify calendar email in dropdown
    */
   async verifyCalendarEmail(expectedEmail: string): Promise<void> {
@@ -221,17 +308,19 @@ export class NativeTileComponent extends BaseComponent {
   /**
    * Verify Calendar upcoming events tile data for native tiles
    * Native tiles use different HTML structure: Tile-contentList > ListingItem
-   * This method consolidates verification of event data, calendar day elements, Google Calendar label, and event count
+   * This method consolidates verification of event data, calendar day elements, calendar label, and event count
    * @param tileTitle - The title of the tile to verify
    * @param eventTitle - Optional regex pattern for event title (defaults to any text)
    * @param calDate - Optional regex pattern for calendar date (defaults to standard date format)
    * @param minExpectedCount - Optional minimum expected number of events (defaults to 1)
+   * @param calendarType - Optional calendar type ('Google Calendar' or 'Outlook Calendar', defaults to 'Google Calendar')
    */
   async verifyCalendarUpcomingEventsTileData(
     tileTitle: string,
     eventTitle: RegExp = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u,
     calDate: RegExp = /(?:(?:[A-Z][a-z]{2},?\s)?[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?(?:\s(?:at|to)\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))?(?:\s-\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?)?)|(?:Today(?:\s(?:at|to)\s(?:1[0-2]|0?\d):[0-5]\d(?:AM|PM))?(?:\s-\s[A-Z][a-z]{2}\s(?:[1-9]|[12]\d|3[01])(?:,\s\d{4})?)?)/,
-    minExpectedCount: number = 1
+    minExpectedCount: number = 1,
+    calendarType: string = 'Google Calendar'
   ): Promise<void> {
     await test.step(`Verify Calendar upcoming events tile data for native tile '${tileTitle}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
@@ -271,8 +360,9 @@ export class NativeTileComponent extends BaseComponent {
 
       await expect(calendarDay, 'Calendar day should be clickable').toHaveAttribute('href');
 
-      const calendarLabel = this.getCalendarLabel(firstEventItem).filter({ hasText: 'Google Calendar' });
-      await expect(calendarLabel, 'Google Calendar label should be visible').toBeVisible({ timeout: 10000 });
+      const expectedCalendarLabel = calendarType === 'Outlook Calendar' ? 'Outlook Calendar' : 'Google Calendar';
+      const calendarLabel = this.getCalendarLabel(firstEventItem).filter({ hasText: expectedCalendarLabel });
+      await expect(calendarLabel, `${expectedCalendarLabel} label should be visible`).toBeVisible({ timeout: 10000 });
     });
   }
 

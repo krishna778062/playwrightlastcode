@@ -165,6 +165,17 @@ export const TEST_EMAIL = {
   GOOGLE_CALENDAR: 'howard.nelson@simpplr.dev',
   OUTLOOK_CALENDAR: 'howard.nelson@smplrdev.onmicrosoft.com',
 };
+
+/**
+ * Outlook Calendar group names for testing
+ * Outlook Calendar uses calendar groups instead of email addresses for tile configuration
+ */
+export const OUTLOOK_CALENDAR_GROUPS = {
+  MY_CALENDARS: 'My Calendars',
+  SHARED: 'Shared',
+  PEOPLES_CALENDARS: "People's Calendars",
+  OTHER_CALENDARS: 'Other Calendars',
+} as const;
 /**
  * Data values for Docebo app tiles
  */

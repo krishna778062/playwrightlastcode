@@ -27,6 +27,9 @@ export class HomeDashboard extends BasePage {
   private readonly nativeTileComponent: NativeTileComponent;
   private readonly tileManagementHelper: IntegrationTileHelper;
   private readonly tileContainer: Locator;
+  private readonly outlookCalendarSecondDropdown: Locator;
+  private readonly reactSelectListboxMenu: Locator;
+  private readonly reactSelectFirstOption: Locator;
 
   private readonly defaultConfig = {
     baseName: AIRTABLE_TILE.BASE_NAME,
@@ -45,6 +48,13 @@ export class HomeDashboard extends BasePage {
     this.nativeTileComponent = new NativeTileComponent(page);
     this.tileManagementHelper = tileManagementHelper;
     this.tileContainer = page.locator('aside');
+    this.outlookCalendarSecondDropdown = page.locator('input[id^="react-select"]').nth(1);
+    this.reactSelectListboxMenu = page.locator('[id^="react-select"][id$="-listbox"]').first();
+    this.reactSelectFirstOption = page
+      .locator('[id^="react-select"][id$="-listbox"]')
+      .first()
+      .locator('.ReactSelectInput-option')
+      .first();
   }
 
   /**
@@ -603,18 +613,21 @@ export class HomeDashboard extends BasePage {
    * @param eventTitle - Optional regex pattern for event title (defaults to any text)
    * @param calDate - Optional regex pattern for calendar date (defaults to standard date format)
    * @param minExpectedCount - Optional minimum expected number of events (defaults to 1)
+   * @param calendarType - Optional calendar type ('Google Calendar' or 'Outlook Calendar', defaults to 'Google Calendar')
    */
   async verifyNativeCalendarUpcomingEventsTileData(
     tileTitle: string,
     eventTitle?: RegExp,
     calDate?: RegExp,
-    minExpectedCount?: number
+    minExpectedCount?: number,
+    calendarType?: string
   ): Promise<void> {
     await this.nativeTileComponent.verifyCalendarUpcomingEventsTileData(
       tileTitle,
       eventTitle,
       calDate,
-      minExpectedCount
+      minExpectedCount,
+      calendarType
     );
   }
 
@@ -829,9 +842,14 @@ export class HomeDashboard extends BasePage {
   /**
    * Open edit modal for native tile and verify fields
    * @param tileTitle - The tile title to edit (this is the actual title set when creating the tile)
-   * @param expectedCalendarEmail - Expected calendar email in dropdown
+   * @param expectedCalendarEmail - Expected calendar email/group in dropdown
+   * @param calendarType - Optional calendar type ('Google Calendar' or 'Outlook Calendar', defaults to 'Google Calendar')
    */
-  async openEditModalAndVerifyFields(tileTitle: string, expectedCalendarEmail: string): Promise<void> {
+  async openEditModalAndVerifyFields(
+    tileTitle: string,
+    expectedCalendarEmail: string,
+    calendarType: string = 'Google Calendar'
+  ): Promise<void> {
     await test.step(`Open edit modal and verify fields for: ${tileTitle}`, async () => {
       await this.appTileComponent.clickThreeDotsOnTile(tileTitle);
       await this.appTileComponent.clickTileOption(DASHBOARD_BUTTONS.EDIT);
@@ -842,7 +860,14 @@ export class HomeDashboard extends BasePage {
       // Verify all fields - tile title should match what was set when creating the tile
       await this.nativeTileComponent.verifyTileTitle(tileTitle);
       await this.nativeTileComponent.verifyEventsContentTypeSelected();
-      await this.nativeTileComponent.verifyGoogleCalendarSelected();
+
+      // Verify the correct calendar type is selected
+      if (calendarType === 'Outlook Calendar') {
+        await this.nativeTileComponent.verifyOutlookCalendarSelected();
+      } else {
+        await this.nativeTileComponent.verifyGoogleCalendarSelected();
+      }
+
       await this.nativeTileComponent.verifyCalendarEmail(expectedCalendarEmail);
     });
   }
@@ -1319,10 +1344,26 @@ export class HomeDashboard extends BasePage {
       await this.nativeTileComponent.selectEventsContentType();
       await this.nativeTileComponent.selectCalendarType(calendarType);
 
-      if (calendarEmail) {
-        await this.nativeTileComponent.selectCalendarFromDropdown(calendarEmail);
+      if (calendarType === 'Outlook Calendar') {
+        // Outlook Calendar requires two selections: group and then calendar
+        if (calendarEmail) {
+          await this.nativeTileComponent.selectOutlookCalendarGroupAndCalendar(calendarEmail);
+        } else {
+          await this.nativeTileComponent.selectFirstAvailableCalendar();
+          await this.page.waitForTimeout(1000);
+          await this.outlookCalendarSecondDropdown.waitFor({ state: 'visible', timeout: 10000 });
+          await this.nativeTileComponent.clickOnElement(this.outlookCalendarSecondDropdown, { timeout: 30_000 });
+          await this.page.waitForTimeout(500); // Brief wait for menu to render
+          await this.reactSelectListboxMenu.waitFor({ state: 'visible', timeout: 10000 });
+          await this.reactSelectFirstOption.waitFor({ state: 'visible', timeout: 10000 });
+          await this.nativeTileComponent.clickOnElement(this.reactSelectFirstOption, { timeout: 30_000 });
+        }
       } else {
-        await this.nativeTileComponent.selectFirstAvailableCalendar();
+        if (calendarEmail) {
+          await this.nativeTileComponent.selectCalendarFromDropdown(calendarEmail);
+        } else {
+          await this.nativeTileComponent.selectFirstAvailableCalendar();
+        }
       }
 
       await this.nativeTileComponent.setTileTitle(tileTitle);

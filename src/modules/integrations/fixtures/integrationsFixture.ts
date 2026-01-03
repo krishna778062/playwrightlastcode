@@ -8,6 +8,7 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
+import { ContentTilesHelper } from '@/src/modules/integrations/apis/helpers/contentTilesHelper';
 import { CustomIntegrationsHelper } from '@/src/modules/integrations/apis/helpers/customAppsHelper';
 import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
@@ -37,6 +38,7 @@ export interface IntegrationsApiFixture {
   tileManagementHelper: IntegrationTileHelper;
   integrationTileHelper: IntegrationTileHelper;
   customIntegrationsHelper: CustomIntegrationsHelper;
+  contentTilesHelper: ContentTilesHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -88,6 +90,7 @@ async function createIntegrationsApiFixture(
   const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
   const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl, frontendBaseUrl);
   const customIntegrationsHelper = new CustomIntegrationsHelper(apiContext, apiBaseUrl);
+  const contentTilesHelper = new ContentTilesHelper(apiContext, apiBaseUrl, frontendBaseUrl);
 
   return {
     apiContext,
@@ -95,6 +98,7 @@ async function createIntegrationsApiFixture(
     tileManagementHelper: integrationTileHelper, // Use IntegrationTileHelper for integration tests
     integrationTileHelper,
     customIntegrationsHelper,
+    contentTilesHelper,
   };
 }
 
@@ -188,10 +192,28 @@ export const integrationsFixture = base.extend<
   // Worker-scoped API context - shared across all tests in worker
   appManagerApiContext: [
     async ({ tenantConfig }, use) => {
-      const context = await RequestContextFactory.createAuthenticatedContext(tenantConfig.apiBaseUrl, {
-        email: tenantConfig.appManagerEmail,
-        password: tenantConfig.appManagerPassword,
-      });
+      // Retry API context creation to handle intermittent login failures
+      let context: APIRequestContext | null = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          context = await RequestContextFactory.createAuthenticatedContext(tenantConfig.apiBaseUrl, {
+            email: tenantConfig.appManagerEmail,
+            password: tenantConfig.appManagerPassword,
+          });
+          break;
+        } catch (error) {
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      if (!context) {
+        throw new Error('Failed to create API context after retries');
+      }
+
       await use(context);
       await context.dispose();
     },
@@ -208,6 +230,7 @@ export const integrationsFixture = base.extend<
       try {
         await fixture.siteManagementHelper.cleanup();
         await fixture.tileManagementHelper.cleanup();
+        await fixture.contentTilesHelper.cleanup();
       } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
       }
