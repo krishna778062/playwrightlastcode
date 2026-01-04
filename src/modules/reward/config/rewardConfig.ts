@@ -128,7 +128,7 @@ export const config = {
     uatEU: {
       tenantName: 'Reward UAT-EU Primary',
       frontendBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
-      apiBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://rewards-api.uat-eu.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
@@ -146,7 +146,7 @@ export const config = {
     uatAU: {
       tenantName: 'Reward UAT-AU Primary',
       frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
-      apiBaseUrl: 'https://king-in-the-north.uat-au-api.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
