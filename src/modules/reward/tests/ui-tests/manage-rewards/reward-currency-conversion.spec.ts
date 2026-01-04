@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getDbConfigFromCache } from '@rewards/config/dbConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { getQuery } from '@rewards/utils/dbQuery';
@@ -117,7 +118,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
       // Match the DB count with the CSV count
       const rawQuery = getQuery('getTheEmailOfUsersWhichCurrencyIsNull');
       const queryToRun = rawQuery.replace(/tenantCode/g, tenantCode);
-      const dbRows: any[] = await executeQuery(queryToRun, 'reward');
+      const dbRows: any[] = await executeQuery(queryToRun, getDbConfigFromCache('reward'));
       const dbCount = dbRows.length;
       const csvCount = await CSVUtils.getRowCount(latestCsvPath);
       expect(dbCount, 'DB row count should match CSV row count').toBe(csvCount);
