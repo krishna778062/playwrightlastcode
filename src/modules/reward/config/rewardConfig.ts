@@ -164,7 +164,7 @@ export const config = {
     uatCA: {
       tenantName: 'Reward UAT-CA Primary',
       frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
-      apiBaseUrl: 'https://the-maze-runner-1.uat-ca-api.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
       appManagerUserId: '5ec27443-c91a-42aa-8bc1-8f42c05765ed',
