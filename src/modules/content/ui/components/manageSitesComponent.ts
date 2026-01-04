@@ -125,7 +125,12 @@ export class ManageSitesComponent extends BaseComponent {
     return this.page.locator(`a:has-text("${name}")`);
   }
   getMembersListInPeopleTab(membersName: string): Locator {
-    return this.page.getByRole('link', { name: membersName });
+    // Scope to the members list to avoid matching navigation links
+    // Find the listitem containing the member, then get the link within it
+    return this.page
+      .getByRole('listitem')
+      .filter({ hasText: membersName })
+      .getByRole('link', { name: membersName, exact: true });
   }
 
   getSiteOwnerStatusForMember(membersName: string): Locator {
@@ -460,7 +465,9 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
   getFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
-    return this.page.locator('#react-select-2-listbox').getByText(bulkActionOption);
+    // Use role-based locator instead of brittle ID selector
+    // React Select listbox has role="listbox", find it and then get the text option
+    return this.page.getByRole('listbox').getByText(bulkActionOption);
   }
   async selectFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
     await test.step('Select filter by text', async () => {
@@ -823,9 +830,6 @@ export class ManageSitesComponent extends BaseComponent {
 
   async searchContentInManageSite(contentName: string): Promise<void> {
     await test.step(`Search content ${contentName} in manage site`, async () => {
-      if (!contentName || typeof contentName !== 'string') {
-        throw new Error(`Invalid contentName provided: ${contentName}. Expected a non-empty string.`);
-      }
       await this.typeInElement(this.contentSearchBar, contentName);
       await this.contentSearchBar.press('Enter');
     });

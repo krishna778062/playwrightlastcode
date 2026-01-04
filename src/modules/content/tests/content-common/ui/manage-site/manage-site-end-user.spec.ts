@@ -282,6 +282,7 @@ test.describe(
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
+        await newSiteDashboard.verifyThePageIsLoaded();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
         await manageContentPage.manageContent.clickSortByButton();
@@ -290,9 +291,6 @@ test.describe(
         await newSiteDashboard.verifyThePageIsLoaded();
         const contentNames = await manageContentPage.manageContent.getAllContentNames();
         console.log('contentNames', contentNames);
-        await manageSitesComponent.searchContentInManageSite(contentNames[0]);
-        await manageContentPage.manageContent.verifyContentVisibleInManageSite(contentNames[0]);
-        await standardUserFixture.page.reload();
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
         await manageContentPage.manageContent.verifyContentVisibleInManageSite(contentNames[0]);
       }
@@ -536,43 +534,17 @@ test.describe(
           filter: 'deactivated',
         });
 
-        // Check each deactivated site's details to find one where user has canEdit=true and isOwner=true
-        const sitesWithEditAndOwner: { siteId: string; name: string }[] = [];
-        for (const site of getListOfSitesResponse.result.listOfItems.slice(0, 20)) {
-          // Limit to first 20 sites to avoid too many API calls
-          try {
-            const siteDetails = await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(
-              site.siteId
-            );
-            console.log(
-              `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
-            );
+        // Find a deactivated site where user is manager and owner
+        const sitesWithManagerAndOwner = getListOfSitesResponse.result.listOfItems.filter(
+          (site: any) => site.isManager === true && site.isOwner === true
+        );
 
-            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
-              sitesWithEditAndOwner.push({ siteId: site.siteId, name: site.name });
-              console.log(`✓ Found deactivated site where user can edit and is owner: ${site.siteId} (${site.name})`);
-            }
-          } catch (error) {
-            console.log(
-              `⚠ Skipping site ${site.siteId} (${site.name}) - failed to get site details: ${error instanceof Error ? error.message : String(error)}`
-            );
-            // Continue to next site
-          }
+        if (sitesWithManagerAndOwner.length === 0) {
+          throw new Error('No deactivated sites found where user is both manager and owner');
         }
 
-        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
-        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
-        if (sitesWithEditAndOwner.length === 0) {
-          throw new Error('No deactivated sites found with canEdit=true and isOwner=true');
-        }
-
-        // Limit to first 20 sites to avoid pagination issues
-        const deactivatedSiteNames = sitesWithEditAndOwner.map((item: any) => item.name);
-
+        const deactivatedSiteNames = sitesWithManagerAndOwner.map((site: any) => site.name);
         console.log('deactivatedSiteNames', deactivatedSiteNames);
-        if (deactivatedSiteNames.length === 0) {
-          throw new Error('No deactivated sites found in the response');
-        }
 
         // Retry logic: Click "Show More" button if site is not found
         let selectedSiteName: string | null = null;

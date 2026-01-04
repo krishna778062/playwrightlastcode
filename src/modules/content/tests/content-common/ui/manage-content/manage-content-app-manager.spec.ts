@@ -121,7 +121,8 @@ test.describe(
         await manageContentPage.manageContent.selectActionDropdown();
         await manageContentPage.manageContent.selectPublishButton();
         await manageContentPage.manageContent.selectApplyButton();
-        await manageContentPage.manageContent.selectContentByNumberOfItems(3);
+        await appManagerFixture.page.reload();
+        await manageContentPage.manageContent.selectContentByNumberOfItems(4);
         await manageContentPage.manageContent.selectActionDropdown();
         await manageContentPage.manageContent.selectMoveButton();
         await manageContentPage.manageContent.selectMoveApplyButton();
@@ -137,9 +138,12 @@ test.describe(
         await manageContentPage.manageContent.selectPageCategoryIfVisible();
         await manageContentPage.manageContent.selectPageCategory();
         await manageContentPage.manageContent.selectMoveConfirmButton();
+        await appManagerFixture.page.reload();
+        await manageContentPage.manageContent.selectContentByNumberOfItems(2);
         await manageContentPage.manageContent.selectActionDropdown();
         await manageContentPage.manageContent.selectDeleteButton();
         await manageContentPage.manageContent.selectDeleteApplyButton();
+        await appManagerFixture.page.reload();
         await manageContentPage.manageContent.selectContentByNumberOfItems(3);
         await manageContentPage.manageContent.selectActionDropdown();
         await manageContentPage.manageContent.selectValidateButton();
@@ -291,7 +295,16 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();
         await manageContentPage.manageContent.clickFilterButton();
-        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const publicSites = await appManagerApiFixture.siteManagementHelper.getListOfSites({
+          filter: 'public',
+          sortBy: 'alphabetical',
+        });
+        console.log('publicSites', publicSites);
+        const publicSite = publicSites.result.listOfItems.find(
+          (site: any) => site.isActive === true && site.isPublic === true
+        );
+        console.log('publicSite', publicSite);
+
         await manageContentPage.manageContent.clickSiteSearchBar(publicSite?.name || '');
         await manageContentPage.manageContent.selectSiteSearchBarOption();
         await manageContentPage.manageContent.verifySiteNameLink();

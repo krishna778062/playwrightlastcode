@@ -49,7 +49,7 @@ export class ProfileScreenPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify profile screen page is visible', async () => {
       // Use "Show more" button as it's reliably present on profile pages
-      await this.verifier.verifyTheElementIsVisible(this.followButton, {
+      await this.verifier.verifyTheElementIsVisible(this.editTimezoneButton, {
         assertionMessage: 'Profile screen page should be visible',
       });
     });

@@ -89,8 +89,12 @@ export class ManageSitePageCategoryPage extends BasePage {
   }
 
   async verifyContentListAfterClickingShowMoreButton(): Promise<void> {
-    //element list size should be 16
-    const elementListSize = await this.contentListContainer.count();
-    expect(elementListSize).toBeGreaterThan(16);
+    await test.step('Verify content list has more than 16 items after clicking Show More', async () => {
+      // Wait for the count to increase after clicking Show More
+      await expect(async () => {
+        const elementListSize = await this.contentListContainer.count();
+        expect(elementListSize).toBeGreaterThan(16);
+      }).toPass();
+    });
   }
 }

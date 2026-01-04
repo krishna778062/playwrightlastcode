@@ -25,6 +25,7 @@ export class FavoritesPage extends BasePage {
   readonly getFileRowInFilesTab: (fileName: string) => Locator;
   readonly getUnfavoriteButtonForFile: (fileName: string) => Locator;
   readonly getFileLinkInFilesTab: (fileName: string) => Locator;
+  readonly getCalendarEventByEventName: (eventName: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
@@ -35,8 +36,12 @@ export class FavoritesPage extends BasePage {
     this.eventsTabImage = page.locator('[class="Image Image--objectFit Image--square Image--missing"]').first();
     this.eventsTabLink = page.locator('a[href*="/event/"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
-    this.getPeopleNamesLocators = (name: string) => page.getByText(name, { exact: false });
-    this.getContentNamesLocators = (name: string) => page.getByRole('link', { name: name, exact: true });
+    // Scope to People tab panel to avoid matching navigation sidebar links
+    this.getPeopleNamesLocators = (name: string) =>
+      page.getByRole('tabpanel', { name: 'People' }).getByRole('link', { name: name, exact: true });
+    // Scope to Content tab panel to avoid matching navigation sidebar links
+    this.getContentNamesLocators = (name: string) =>
+      page.getByRole('tabpanel', { name: 'Content' }).getByRole('link', { name: name, exact: true });
     this.getContentListingItem = (contentName: string) =>
       page.locator(`li.ListingItem--justFavorite:has(a.type--title:has-text("${contentName}"))`);
     this.getUnfavoriteButtonForContent = (contentName: string) =>
@@ -48,6 +53,11 @@ export class FavoritesPage extends BasePage {
       this.getFileRowInFilesTab(fileName).getByRole('button', { name: 'Unfavorite this file' }).first();
     this.getFileLinkInFilesTab = (fileName: string) =>
       this.getFilesTabPanel().getByRole('link', { name: fileName }).first();
+    // Locate calendar events by event name using aria-label format: "Event {eventName} Published on ,{date}"
+    this.getCalendarEventByEventName = (eventName: string) =>
+      page.getByRole('link', {
+        name: new RegExp(`Event ${eventName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*Published on`, 'i'),
+      });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.peopleButton, {
@@ -83,18 +93,39 @@ export class FavoritesPage extends BasePage {
   }
   async verifyEventsTabMatchesApiDate(startsAt: string): Promise<void> {
     await test.step('Verify events tab matches API startsAt date', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.eventsTabLink, {
-        assertionMessage: 'Events tab link should be visible',
-      });
+      const eventMonth = await this.page.locator('.CalendarDay-month').first().textContent();
+      const eventDay = await this.page.locator('.CalendarDay-date').first().textContent();
 
-      const eventsTabText = await this.eventsTabLink.textContent();
       const { month, day } = this.parseStartsAtDate(startsAt);
 
-      if (!eventsTabText || !this.doesTextMatchDate(eventsTabText, month, day)) {
+      // Verify both month and day separately
+      const eventMonthTrimmed = eventMonth?.trim() || '';
+      const eventDayTrimmed = eventDay?.trim() || '';
+      const expectedMonthTrimmed = month.trim();
+      const expectedDayTrimmed = day.trim();
+
+      if (!eventMonth || !eventDay) {
         throw new Error(
-          `Events tab text does not match API date.\n` +
-            `API startsAt: ${startsAt} (${month} ${day})\n` +
-            `Events tab text: "${eventsTabText || ''}"`
+          `Could not extract date from CalendarDay element.\n` +
+            `Month: "${eventMonth || 'null'}", Day: "${eventDay || 'null'}"`
+        );
+      }
+
+      // Check month match (case-insensitive)
+      if (eventMonthTrimmed.toLowerCase() !== expectedMonthTrimmed.toLowerCase()) {
+        throw new Error(
+          `Event month does not match API date.\n` +
+            `API startsAt: ${startsAt} (Expected month: ${expectedMonthTrimmed})\n` +
+            `CalendarDay month: "${eventMonthTrimmed}"`
+        );
+      }
+
+      // Check day match
+      if (eventDayTrimmed !== expectedDayTrimmed) {
+        throw new Error(
+          `Event day does not match API date.\n` +
+            `API startsAt: ${startsAt} (Expected day: ${expectedDayTrimmed})\n` +
+            `CalendarDay day: "${eventDayTrimmed}"`
         );
       }
     });

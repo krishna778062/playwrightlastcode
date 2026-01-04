@@ -275,7 +275,7 @@ export class SiteManagementHelper {
   }
 
   async getSitesWhereUserIsNotMemberOrOwner(
-    sitesList: any[],
+    sitesList: any[] = [],
     options?: { allowIsMemberAbsent?: boolean }
   ): Promise<{ siteId: string; name: string }> {
     return await this.queryHelper.getSitesWhereUserIsNotMemberOrOwner(sitesList, options);

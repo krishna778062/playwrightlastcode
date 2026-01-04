@@ -10,7 +10,7 @@ export class ManageFeatureComponent extends BaseComponent {
   constructor(readonly page: Page) {
     super(page);
     this.contentCard = this.page.locator('#page-content').getByRole('link', { name: 'Content', exact: true });
-    this.sitesCard = this.page.locator('#page-content').getByRole('link', { name: 'Sites', exact: true });
+    this.sitesCard = this.page.getByRole('menuitem', { name: 'Sites' });
     this.manageFeatureHeading = page.getByRole('heading', { name: 'Manage features' });
   }
 }

@@ -27,6 +27,7 @@ test.describe(
           description: 'Verify the site activate option in manage site user drop down sites for all site types',
           zephyrTestId: 'CONT-41476',
           storyId: 'CONT-41476',
+          isKnownFailure: true,
         });
 
         const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];

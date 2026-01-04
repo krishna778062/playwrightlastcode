@@ -89,9 +89,9 @@ export class SideNavBarComponent extends BaseComponent {
 
     this.socialCampaignsElement = page.locator('[href="/campaigns"][data-testid="main-nav-item"]');
     this.moreElement = page.locator('p', { hasText: 'More' });
-    this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
-    this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
-    this.peopleButton = page.locator('[href="/people"][data-testid="main-nav-item"]');
+    this.favoritePeopleSection = page.getByRole('menuitem', { name: 'Favorites' });
+    this.orgChartButton = page.getByRole('link', { name: 'Org chart' });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People' });
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites' });
 
     //recognition section
@@ -266,8 +266,8 @@ export class SideNavBarComponent extends BaseComponent {
 
   async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: clicking Org chart button`, async () => {
-      await this.hoverOverElementInJavaScript(this.peopleButton);
-      await this.clickOnElement(this.orgChartButton);
+      await this.peopleButton.click();
+      await this.orgChartButton.click();
     });
   }
 

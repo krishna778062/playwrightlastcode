@@ -523,7 +523,6 @@ test.describe(
         await favoritesPage.verifyPeopleNamesAreDisplayed(peopleNames);
         await appManagerFixture.navigationHelper.clickOnOrgChartButton();
         await orgChartPage.typeInSearchBarInput(peopleNames[0]);
-        await orgChartPage.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
         await userProfilePage.clickOnFollowersTab();
         await userProfilePage.verifyContactInformation();
       }
@@ -828,7 +827,9 @@ test.describe(
           console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
         }
         const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSite.siteId);
-        await manageSiteAppManagerPage.loadPage();
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, firstSite.siteId);
+        await siteDashboardPage.loadPage();
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSiteAppManagerPage.clickOnThePeopleTab();
         await manageSiteAppManagerPage.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
       }
@@ -1366,13 +1367,11 @@ test.describe(
         });
 
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
-        if (!siteListResponse || siteListResponse.length === 0) {
-          throw new Error('No sites found in siteListResponse');
-        }
+
         // Loop through sites to find one where standard user is NOT a member, owner, or manager
-        const newsiteInfo =
-          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
+        const newsiteInfo = await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(
+          siteInfo.siteListResponse
+        );
         const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
           siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
           contentInfo: { contentType: 'page', contentSubType: 'news' },

@@ -172,7 +172,7 @@ export class SiteQueryHelper {
    * Gets a site from the provided list where the current user is NOT a member, owner, or manager.
    */
   async getSitesWhereUserIsNotMemberOrOwner(
-    sitesList: any[],
+    sitesList: any[] = [],
     options?: { allowIsMemberAbsent?: boolean }
   ): Promise<{ siteId: string; name: string }> {
     const allowIsMemberAbsent = options?.allowIsMemberAbsent ?? false;
