@@ -233,6 +233,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly siteNameLocator = (postText: string, siteName: string): Locator =>
     this.page.getByRole('link', { name: siteName }).first();
 
+  readonly feedPostContainer: Locator;
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -285,6 +287,7 @@ export class ListFeedComponent extends BaseComponent {
     this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
     this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
     this.siteImageLocator = this.page.locator('.imageAnchor img');
+    this.feedPostContainer = this.page.locator("[class*='PostInner']");
   }
 
   /**
@@ -512,6 +515,25 @@ export class ListFeedComponent extends BaseComponent {
         timeout: 30000,
       });
     });
+  }
+
+  async validatePostIsVisibleWithText(postText: string): Promise<void> {
+    await test.step(`Validating post is visible with text: "${postText}"`, async () => {
+      const postContainer = await this.getPostContainerLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container "${postText}" should be visible`,
+        timeout: 30000,
+      });
+    });
+  }
+
+  /**
+   * Gets the post container locator for a given post text
+   * @param postText - The text of the post to get the container for
+   * @returns Locator for the post container
+   */
+  async getPostContainerLocator(postText: string): Promise<Locator> {
+    return this.feedPostContainer.filter({ hasText: postText }).first();
   }
 
   /**

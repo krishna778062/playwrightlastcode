@@ -77,6 +77,9 @@ test.describe(
       }
     });
 
+    /**
+     * TODO: Looks like a real bug, the paste is not working, need to fix it from product after checking manually.
+     */
     for (const testData of ALBUM_APPROVAL_TEST_DATA) {
       test(
         `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
