@@ -18,6 +18,9 @@ import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { getPastDate, getUpcomingDate } from '@/src/modules/content/utils/dateHelper';
 
+/**
+ * TO FIX: Notification flow is getting blocked
+ */
 test.describe(
   `event Creation by Standard user  and Approval/Rejection by Application Manager`,
   {

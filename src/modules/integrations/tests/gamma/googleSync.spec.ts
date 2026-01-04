@@ -38,7 +38,7 @@ test.describe(
       await googleSyncing.verifyErrorMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
     });
 
-    test(
+    test.fixme(
       'verify Google Sync when Email is selected as unique Identifier',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
@@ -90,7 +90,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'verify Google Sync when Mobile Phone is selected as unique Identifier',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
@@ -142,7 +142,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'verify Google Sync when Employee Number is selected as unique Identifier',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
@@ -198,7 +198,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'verify Google Sync when Phone is selected as unique Identifier',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],

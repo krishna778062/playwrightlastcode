@@ -58,7 +58,7 @@ export class SideNavBarComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
     this.clickOnContentModeration = page.locator('[href="/manage/content-moderation"][data-testid="main-nav-item"]');
-    this.createSection = page.getByRole('button', { name: 'Icon' });
+    this.createSection = page.locator("[aria-label='Icon']");
     this.feedLink = page.locator('[href*="/feed"][data-testid="main-nav-item"]');
     this.homeLink = page.locator('[href*="/home"][data-testid="main-nav-item"]');
     this.sitesButton = page.getByRole('menuitem', { name: 'Sites' });
