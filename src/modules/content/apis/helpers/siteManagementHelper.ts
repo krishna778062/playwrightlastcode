@@ -108,9 +108,52 @@ export class SiteManagementHelper {
     accessType: SITE_TYPES;
     waitForSearchIndex?: boolean;
   }) {
-    return await this.creationHelper.createSite(options);
+    switch (options.accessType) {
+      case SITE_TYPES.PUBLIC:
+        return await this.createPublicSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
+        });
+      case SITE_TYPES.PRIVATE:
+        return await this.createPrivateSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
+        });
+      case SITE_TYPES.UNLISTED:
+        return await this.createUnlistedSite({
+          siteName: options.siteName,
+          category: options.category,
+          overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
+        });
+      default:
+        throw new Error(`Invalid access type: ${options.accessType}`);
+    }
   }
 
+  /**
+   * Creates a site and returns the complete site details response.
+   * This method creates a site and then fetches the complete site details using getSiteDetails API.
+   * @param params - Site creation parameters
+   * @param params.siteName - Optional custom site name. If not provided, generates a random name.
+   * @param params.category - The site category object, containing name and categoryId.
+   * @param params.overrides - Optional overrides for site creation payload.
+   * @param params.accessType - The access type of the site (default: 'public').
+   * @param params.waitForSearchIndex - Optional flag to wait for site to appear in search results. Defaults to false.
+   * @returns The complete SiteDetailsResponse containing all site details
+   *
+   * @example
+   * const siteResponse = await siteHelper.createSiteWithCompleteResponse({
+   *   siteName: 'My Test Site',
+   *   accessType: SITE_TYPES.PUBLIC,
+   *   category: { name: 'Technology', categoryId: 'tech-123' }
+   * });
+   * // siteResponse contains full site details including status, result with all fields
+   */
   async createSiteWithCompleteResponse(params: {
     siteName?: string;
     category?: { name: string; categoryId: string };
