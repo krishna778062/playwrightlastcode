@@ -152,16 +152,57 @@ export class NativeTileComponent extends BaseComponent {
 
       // Select specific calendar (second dropdown)
       await expect(this.outlookCalendarDropdown).toBeEnabled({ timeout: 15000 });
+
+      // Get the menu count before clicking to identify the new menu
+      const menuCountBeforeClick = await this.reactSelectListboxMenus.count();
+
       await this.clickOnElement(this.outlookCalendarDropdown, { timeout: 30_000 });
 
-      // Find visible menu with options
+      // Wait for the second menu to appear - use a more reliable approach
+      // First, wait for a new menu to be added to the DOM (menu count should increase)
+      await expect
+        .poll(
+          async () => {
+            const currentCount = await this.reactSelectListboxMenus.count();
+            return currentCount > menuCountBeforeClick;
+          },
+          { timeout: 5000, intervals: [100, 200, 500] }
+        )
+        .toBeTruthy()
+        .catch(() => {
+          // If menu count doesn't increase, continue anyway - menu might reuse existing element
+        });
+
+      // Poll for a visible menu that contains options and is different from the first menu
       const findVisibleMenu = async (): Promise<Locator | null> => {
-        const count = await this.reactSelectListboxMenus.count();
-        for (let i = 0; i < count; i++) {
+        const currentCount = await this.reactSelectListboxMenus.count();
+
+        // Check all menus, but prioritize newer ones (those after the initial count)
+        for (let i = Math.max(0, menuCountBeforeClick - 1); i < currentCount; i++) {
           const menu = this.reactSelectListboxMenus.nth(i);
-          if (await menu.isVisible().catch(() => false)) {
-            const hasOptions = await menu.locator('.ReactSelectInput-option').count();
-            if (hasOptions > 0) return menu;
+          try {
+            const isVisible = await menu.isVisible({ timeout: 500 });
+            if (isVisible) {
+              const hasOptions = await menu.locator('.ReactSelectInput-option').count();
+              if (hasOptions > 0) return menu;
+            }
+          } catch {
+            // Menu not visible, continue to next
+            continue;
+          }
+        }
+
+        // Fallback: check all menus if we didn't find one in the new ones
+        for (let i = 0; i < currentCount; i++) {
+          const menu = this.reactSelectListboxMenus.nth(i);
+          try {
+            const isVisible = await menu.isVisible({ timeout: 500 });
+            if (isVisible) {
+              const hasOptions = await menu.locator('.ReactSelectInput-option').count();
+              if (hasOptions > 0) return menu;
+            }
+          } catch {
+            continue;
           }
         }
         return null;
@@ -171,7 +212,10 @@ export class NativeTileComponent extends BaseComponent {
 
       const secondMenu = await findVisibleMenu();
       if (!secondMenu) {
-        throw new Error('Second calendar dropdown menu did not appear after clicking');
+        const finalCount = await this.reactSelectListboxMenus.count();
+        throw new Error(
+          `Second calendar dropdown menu did not appear after clicking. Menu count: ${finalCount}, Before click: ${menuCountBeforeClick}`
+        );
       }
 
       // Select calendar option
