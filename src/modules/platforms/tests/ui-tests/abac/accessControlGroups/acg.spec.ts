@@ -615,7 +615,7 @@ test.describe(
     test(
       `verify the sorting functionality of Name column in access control groups page`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
