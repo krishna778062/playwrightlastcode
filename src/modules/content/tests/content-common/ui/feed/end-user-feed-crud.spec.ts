@@ -224,10 +224,7 @@ test.describe(
       }
     );
 
-    /**
-     * Need to be fixed, the api is giving 500
-     */
-    test.fixme(
+    test(
       'verify user can create, edit and delete a feed post with file attachment on content feed CONT-19540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19540'],
@@ -358,10 +355,9 @@ test.describe(
           storyId: 'CONT-24150',
         });
 
-        // Step 1: Get or reuse a private site that standard user is NOT a member of
-        // This will reuse an existing private site if available, or create a new one if needed
+        const userId = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-          [users.endUser.email],
+          [userId.userId],
           SITE_TYPES.PRIVATE
         );
         const privateSiteName = privateSiteResult.siteName;
@@ -369,7 +365,7 @@ test.describe(
 
         // Step 2: Get or reuse an unlisted site that standard user is NOT a member of
         const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-          [users.endUser.email],
+          [userId.userId],
           SITE_TYPES.UNLISTED
         );
         const unlistedSiteName = unlistedSiteResult.siteName;
@@ -839,15 +835,17 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Test feed post creation, editing and deletion with file attachments',
           zephyrTestId: 'CONT-26611',
           storyId: 'CONT-26611',
         });
 
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(
-          users.endUser.email,
+          endUserInfo.userId,
           SITE_TYPES.PRIVATE
         );
 
@@ -1537,12 +1535,10 @@ test.describe(
         });
 
         // Get or create a site for testing
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-
-        const siteName = siteDetails.name;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Load Site Dashboard page
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
 
@@ -1575,7 +1571,7 @@ test.describe(
         await recognitionForm.selectPostInSiteFeedInShareDialog();
 
         // Select the site from dropdown
-        await recognitionForm.selectSiteInShareDialog(siteName);
+        await recognitionForm.selectSiteInShareDialog(DEFAULT_PUBLIC_SITE_NAME);
 
         // Click Share post button to share the recognition
         await recognitionForm.clickSharePostButton();
@@ -1888,8 +1884,7 @@ test.describe(
         });
 
         // Get or create a site for testing
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const siteName = siteDetails.name;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Navigate to Home tab
         await appManagerFixture.homePage.loadPage();
@@ -1928,7 +1923,7 @@ test.describe(
         await recognitionForm.selectPostInSiteFeedInShareDialog();
 
         // Select the site from dropdown
-        await recognitionForm.selectSiteInShareDialog(siteName);
+        await recognitionForm.selectSiteInShareDialog(DEFAULT_PUBLIC_SITE_NAME);
 
         // Click Share post button to share the recognition
         await recognitionForm.clickSharePostButton();
@@ -1937,7 +1932,7 @@ test.describe(
         await recognitionForm.waitForShareDialogToClose();
 
         // Navigate to Site Dashboard to verify the post
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
 

@@ -252,7 +252,7 @@ export class ListFeedComponent extends BaseComponent {
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
-    this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+    this.replyInput = this.page.getByRole('button', { name: 'Leave a reply…' }).first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
     this.replyFileUploadInput = this.page.locator("input[type='file']");
@@ -334,7 +334,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async clickDeleteOption(): Promise<void> {
     await test.step('Click delete option', async () => {
-      await this.clickOnElement(this.deleteButton);
+      await this.clickByInjectingJavaScript(this.deleteButton);
     });
   }
 
@@ -585,6 +585,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
+      await this.clickOnElement(this.replyInput);
 
       await this.fillInElement(this.replyEditor, replyText);
 
@@ -649,17 +650,8 @@ export class ListFeedComponent extends BaseComponent {
     mentionUserName?: string
   ): Promise<string> {
     await test.step(`Add reply to post with file attachment`, async () => {
-      // Click reply button
-      const replyApiPromise = this.page.waitForResponse(
-        response =>
-          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200
-      );
-
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
 
-      await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
@@ -972,17 +964,12 @@ export class ListFeedComponent extends BaseComponent {
       const imageSrc = await this.getImageSrcAttribute(siteImageLocator);
 
       const feedImageFileId = this.extractFileIdFromImageSrc(imageSrc);
-      console.log(`Feed image src: ${imageSrc}`);
-      console.log(`Feed image fileId: ${feedImageFileId}`);
-      console.log(`Site image fileId: ${siteImageFileId}`);
 
       if (feedImageFileId !== siteImageFileId) {
         throw new Error(
           `Site image in feed card does not match site iconImage. Expected fileId: ${siteImageFileId}, but feed image fileId was: ${feedImageFileId}`
         );
       }
-
-      console.log(`Verified site image in feed matches site iconImage (fileId: ${siteImageFileId})`);
     });
   }
 

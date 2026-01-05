@@ -20,7 +20,6 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
-// Re-export the interfaces and types for backwards compatibility
 export { FeedPostOptions, FeedPostResult, QuestionOptions, QuestionResult };
 
 /**
@@ -139,11 +138,13 @@ export class FeedPage extends BasePage {
     });
   }
 
-  /**
-   * Gets the post container locator for a given post text
-   * @param postText - The text of the post to get the container for
-   * @returns Locator for the post container
-   */
+  async reloadFeedDetailPage(postText: string): Promise<void> {
+    await test.step('Reload feed detail page', async () => {
+      await this.page.reload();
+      await this.feedList.waitForPostToBeVisible(postText);
+    });
+  }
+
   async getPostContainerLocator(postText: string): Promise<Locator> {
     return this.feedPostContainer.filter({ hasText: postText }).first();
   }
@@ -503,10 +504,10 @@ export class FeedPage extends BasePage {
         if (selectedShareOption.toLowerCase() !== 'home feed') {
           await this.share.shareOptionDropdown.selectOption({ label: 'home feed' });
         }
+        await this.share.clickShareButton();
       } else {
         await this.share.shareOptionDropdown.selectOption({ label: 'site feed' });
       }
-      await this.share.clickShareButton();
     });
   }
 

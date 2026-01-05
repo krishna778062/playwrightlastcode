@@ -383,6 +383,10 @@ export class SiteManagementHelper {
     return await this.siteManagementService.getFollowersAndFollowingList(userId, size);
   }
 
+  async getSiteDetails(siteId: string): Promise<any> {
+    return await this.siteManagementService.getSiteDetails(siteId);
+  }
+
   async activateSite(siteId: string) {
     return await this.siteManagementService.activateSite(siteId);
   }

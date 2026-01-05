@@ -54,6 +54,12 @@ export abstract class BasePage extends BaseActionUtil {
     });
   }
 
+  async loadFeedDetailPage(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Loading feed detail page`, async () => {
+      await this.goToUrl(`${this.pageUrl}`);
+    });
+  }
+
   /**
    * @description
    * Reloads the page

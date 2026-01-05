@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
 import { log } from '@core/utils/logger';
@@ -151,7 +152,8 @@ export class SiteQueryHelper {
       const matchesRequirements =
         site.hasPages === requiredHasPages &&
         site.hasEvents === requiredHasEvents &&
-        site.hasAlbums === requiredHasAlbums;
+        site.hasAlbums === requiredHasAlbums &&
+        site.isActive;
 
       if (matchesRequirements) {
         log.debug(`Found matching site: ${site.name} (${site.siteId})`);
@@ -364,17 +366,21 @@ export class SiteQueryHelper {
         }
       }
       log.debug(`No site found where user ${userId} is an owner, creating a new site...`);
-      return await this.createSiteWithUserAsOwner(userId);
+      return await this.createSiteWithUserAsOwner(userId, accessType);
     } else {
       log.debug(`No active sites found, creating a new site...`);
-      return await this.createSiteWithUserAsOwner(userId);
+      return await this.createSiteWithUserAsOwner(userId, accessType);
     }
   }
 
-  private async createSiteWithUserAsOwner(userId: string): Promise<{ siteId: string; siteName: string }> {
+  private async createSiteWithUserAsOwner(
+    userId: string,
+    accessType?: SITE_TYPES
+  ): Promise<{ siteId: string; siteName: string }> {
+    const siteName = `Site for ${faker.company.buzzNoun()} ${faker.company.buzzAdjective()}`;
     const createdSite = await this.creationHelper.createSite({
-      accessType: SITE_TYPES.PUBLIC,
-      siteName: `Site for ${userId}`,
+      accessType: accessType || SITE_TYPES.PUBLIC,
+      siteName: siteName,
       category: { name: 'Public', categoryId: 'public' },
       waitForSearchIndex: true,
     });
