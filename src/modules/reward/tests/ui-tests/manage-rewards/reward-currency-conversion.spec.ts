@@ -63,6 +63,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-2236',
         storyId: 'RC-2236',
       });
+      tagTest(test.info(), {
+        description: 'Validate currency conversion page',
+        zephyrTestId: 'RC-3463',
+        storyId: 'RC-3169',
+      });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
       await currencyConversionPage.validateAllUIElements(apiData);
@@ -101,6 +106,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
           'Validate Download CSV option if some active users on the platform have not set a payroll currency on their profile',
         zephyrTestId: 'RC-4590',
         storyId: 'RC-4590',
+      });
+      tagTest(test.info(), {
+        description: 'Validate if currency conversion page contains only Active users data',
+        zephyrTestId: 'RC-3915',
+        storyId: 'RC-3894',
       });
 
       // Navigate to Currency conversion
