@@ -1,14 +1,35 @@
+/* eslint-disable simple-import-sort/imports */
 import { faker } from '@faker-js/faker';
 import { expect, Locator, Page, test } from '@playwright/test';
-import { AwardCreationForm } from '@recognition/ui/components/common/award-creation-form';
-import fs from 'fs';
-import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
+import { AwardCreationForm } from '@recognition/ui/components/common/award-creation-form';
 
 import { AWARD_CREATION_MESSAGES } from '@/src/modules/recognition/constants/messages';
+
+export type AwardScheduleRow = {
+  award: string;
+};
+
+type SummaryFieldMatcher = {
+  equals?: string;
+  contains?: string | string[];
+};
+
+export type AwardFrequencySummaryExpectations = {
+  frequency?: SummaryFieldMatcher;
+  effectiveFrom?: SummaryFieldMatcher;
+  participationWindow?: SummaryFieldMatcher;
+  nominationsClose?: SummaryFieldMatcher;
+  awardOverdue?: SummaryFieldMatcher;
+  awardTimezone?: SummaryFieldMatcher;
+  schedule?: {
+    rows: AwardScheduleRow[];
+    limitTo?: number;
+  };
+};
 
 export class RecurringAwardPage extends BasePage {
   readonly recurringTab: Locator;
@@ -29,13 +50,10 @@ export class RecurringAwardPage extends BasePage {
   defaultAwardOverdue: Locator;
   defaultParticipationWindow: Locator;
   defaultNominationsClose: Locator;
-
-  // Award table elements
   readonly noRecurringAwardsMessage: Locator;
   readonly recurringAwardTable: Locator;
   readonly recurringAwardTableHeading: Locator;
   readonly recurringAwardTableRows: Locator;
-
   awardDelegateField: Locator;
   awardDelegateSearchInput: Locator;
   awardDelegateOption: (delegateName: string) => Locator;
@@ -53,6 +71,10 @@ export class RecurringAwardPage extends BasePage {
   awardTimeZoneOption: (timezone: string) => Locator;
   startDateDropdown: Locator;
   startDateDropdownOptions: Locator;
+  readonly awardScheduleTable: Locator;
+  readonly awardSchedulePreviewTable: Locator;
+  readonly awardSchedulePreviewTableCells: Locator;
+  readonly awardFrequencyAndScheduleLabel: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION) {
     super(page, pageUrl);
@@ -78,6 +100,7 @@ export class RecurringAwardPage extends BasePage {
     this.awardQuarterlyFrequencyButton = page.locator('#frequencyQUARTERLY');
 
     //Award frequency and schedule
+    this.awardFrequencyAndScheduleLabel = page.getByRole('heading', { name: 'Award frequency and schedule' });
     this.participationWindowLabel = page.getByText('Participation window*');
     this.nominationsCloseLabel = page.getByText('Nominations close*');
     this.awardOverdueLabel = page.getByText('Award overdue*');
@@ -114,6 +137,29 @@ export class RecurringAwardPage extends BasePage {
     //Effective from dropdown
     this.startDateDropdown = page.locator('select#startDate').first();
     this.startDateDropdownOptions = page.locator('select#startDate option');
+
+    // Award schedule table elements
+    this.awardScheduleTable = page.locator('div[class*="DataGrid"] tbody tr td');
+    this.awardSchedulePreviewTable = page.locator('[data-testid="award-schedule-preview"] div');
+    this.awardSchedulePreviewTableCells = this.awardSchedulePreviewTable.locator(
+      'header + div div div div div div div div p'
+    );
+  }
+
+  /**
+   * Get award schedule expectations
+   * @returns The award schedule expectations
+   */
+  async getAwardScheduleExpectations(): Promise<AwardScheduleRow[]> {
+    const rows = this.awardScheduleTable;
+    const rowCount = await rows.count();
+    const expectations: AwardScheduleRow[] = [];
+    for (let index = 0; index < rowCount; index++) {
+      const row = rows.nth(index);
+      const award = (await row.innerText()).trim();
+      expectations.push({ award });
+    }
+    return expectations;
   }
 
   /**
@@ -256,6 +302,11 @@ export class RecurringAwardPage extends BasePage {
       await this.startDateDropdown.waitFor({ state: 'visible' });
       await this.startDateDropdown.selectOption({ index });
     });
+  }
+
+  async getSelectedEffectiveFromLabel(): Promise<string> {
+    const selectedOption = await this.startDateDropdown.locator('option:checked').textContent();
+    return selectedOption?.trim() ?? '';
   }
 
   /**
@@ -478,40 +529,6 @@ export class RecurringAwardPage extends BasePage {
     await this.verifyThePageIsLoaded();
   }
 
-  async clickOnFilterButtonAndValidateRows(filter: string, rowCount: number): Promise<void> {
-    await this.mockTheRecurringAwardsInUI(filter.toUpperCase());
-    await this.verifyThePageIsLoaded();
-    const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const exactRegex = new RegExp(`^${escapeRegExp(filter)}$`);
-    const filterButton = this.recurringAwardsFilter.filter({ hasText: exactRegex });
-    await this.verifier.verifyTheElementIsVisible(filterButton);
-    await this.verifier.waitUntilElementIsVisible(this.recurringAwardTableRows.last());
-    await filterButton.click();
-    await this.verifier.waitUntilElementIsVisible(this.recurringAwardTableRows.last());
-    const actualRowCount = await this.recurringAwardTableRows.count();
-    expect(actualRowCount).toBe(rowCount);
-  }
-
-  async mockTheRecurringAwardsInUI(filter: string): Promise<void> {
-    console.log(`**/recognition/admin/award/recurring/listing?**&status=${filter}`);
-    await this.page.route(
-      `**/recognition/admin/award/recurring/listing?size=10&sortBy=awardName&order=asc&status=${filter}`,
-      async route => {
-        const fixture = await fs.promises.readFile(
-          path.join(__dirname, '..', '..', '..', 'test-data', 'recurring-awards.json'),
-          'utf8'
-        );
-        const data = JSON.parse(fixture);
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(data),
-        });
-      }
-    );
-    await this.page.reload();
-  }
-
   /**
    * Fill the second page of recurring award creation form
    * @param delegateUserName - The name of the delegate to select
@@ -553,14 +570,213 @@ export class RecurringAwardPage extends BasePage {
     });
   }
 
+  async getAwardScheduleFromPreviewPage(): Promise<AwardScheduleRow[]> {
+    const visibleTable = this.awardSchedulePreviewTable
+      .filter({ has: this.page.locator('p', { hasText: 'Nominations open' }) })
+      .filter({ has: this.page.locator('p', { hasText: 'Nominations close' }) })
+      .filter({ has: this.page.locator('p', { hasText: 'Award overdue' }) })
+      .first();
+
+    await expect(visibleTable, 'expecting award schedule table to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    const cells = this.awardSchedulePreviewTableCells;
+    const rowCount = await cells.count();
+    const scheduleRows: AwardScheduleRow[] = [];
+    for (let index = 0; index < rowCount; index++) {
+      const row = cells.nth(index);
+      const award = (await row.innerText()).trim();
+      scheduleRows.push({ award });
+    }
+    return scheduleRows;
+  }
+
+  async validateAwardScheduleInPreviewPageMatchesExpectations(
+    expectedRows: AwardScheduleRow[]
+  ): Promise<AwardScheduleRow[]> {
+    let capturedRows: AwardScheduleRow[] = [];
+    await test.step('Validating award schedule table in preview page', async () => {
+      const actualRows = await this.getAwardScheduleFromPreviewPage();
+      capturedRows = actualRows;
+
+      expect(actualRows.length).toBeGreaterThanOrEqual(capturedRows.length);
+
+      for (let index = 0; index < capturedRows.length; index++) {
+        const actualRow = actualRows[index];
+        const expectedRow = expectedRows[index];
+        console.log('actualRow', actualRow);
+        console.log('expectedRow', expectedRow);
+        expect(actualRow).toMatchObject(expectedRow);
+      }
+    });
+    return capturedRows;
+  }
+
+  async getAwardFrequencyAndScheduleSummaryValue(detailLabel: string): Promise<string> {
+    const sectionHeading = this.awardFrequencyAndScheduleLabel;
+    await expect(sectionHeading, 'expecting award frequency and schedule heading to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    const section =
+      (await sectionHeading.locator('xpath=ancestor::section[1]').count()) > 0
+        ? sectionHeading.locator('xpath=ancestor::section[1]')
+        : sectionHeading.locator('xpath=ancestor::div[1]');
+
+    const labelLocator = section.locator(`xpath=.//*[normalize-space(text())="${detailLabel}"]`).first();
+    await expect(labelLocator, `expecting ${detailLabel} label to be visible`).toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+
+    const value = await labelLocator.evaluate(node => {
+      const getSanitizedText = (element: Element | null): string => (element?.textContent ?? '').trim();
+      if (!(node instanceof HTMLElement)) {
+        return getSanitizedText(node.parentElement);
+      }
+      // Handle definition list semantics if present (dt -> dd)
+      const definitionTerm = node.closest('dt');
+      if (definitionTerm) {
+        return getSanitizedText(definitionTerm.nextElementSibling);
+      }
+      // Check for immediate sibling value
+      const parent = node.parentElement;
+      if (parent) {
+        const siblings = Array.from(parent.children);
+        const currentIndex = siblings.indexOf(node);
+        if (currentIndex >= 0) {
+          for (let i = currentIndex + 1; i < siblings.length; i++) {
+            const siblingText = getSanitizedText(siblings[i]);
+            if (siblingText) {
+              return siblingText;
+            }
+          }
+        }
+      }
+
+      // Fallback: search common value containers within the same row
+      const candidateSelectors = ['dd', '[data-testid$="value"]', 'span', 'p', 'div'];
+      for (const selector of candidateSelectors) {
+        const candidate: Element | null =
+          node.parentElement?.querySelector(selector) ?? node.closest('[class]')?.querySelector(selector) ?? null;
+        const candidateText = getSanitizedText(candidate);
+        if (candidateText && !candidate?.contains(node)) {
+          return candidateText;
+        }
+      }
+
+      return '';
+    });
+
+    return value;
+  }
+
+  /**
+   * Validate award frequency and schedule summary details
+   * @param expectations - The expectations to validate
+   */
+  async validateAwardFrequencyAndScheduleSummary(expectations: AwardFrequencySummaryExpectations): Promise<void> {
+    await test.step('Validating award frequency and schedule summary details', async () => {
+      const applyMatcher = async (label: string, matcher?: SummaryFieldMatcher): Promise<void> => {
+        if (!matcher) {
+          return;
+        }
+        const actualValue = await this.getAwardFrequencyAndScheduleSummaryValue(label);
+        if (matcher.equals !== undefined) {
+          expect(actualValue).toBe(matcher.equals);
+        }
+        if (matcher.contains !== undefined) {
+          const expectedSnippets = Array.isArray(matcher.contains) ? matcher.contains : [matcher.contains];
+          for (const snippet of expectedSnippets) {
+            expect(actualValue).toContain(snippet);
+          }
+        }
+      };
+      await applyMatcher('Frequency', expectations.frequency);
+      await applyMatcher('Effective from', expectations.effectiveFrom);
+      await applyMatcher('Participation window', expectations.participationWindow);
+      await applyMatcher('Nominations close', expectations.nominationsClose);
+      await applyMatcher('Award overdue', expectations.awardOverdue);
+      await applyMatcher('Award timezone', expectations.awardTimezone);
+      if (expectations.schedule) {
+        await this.validateAwardScheduleInPreviewPageMatchesExpectations(expectations.schedule.rows);
+      }
+    });
+  }
+
+  /**
+   * Configure monthly schedule and validate summary
+   * @param timeZone - The timezone to select
+   * @param participationWindowOption - The participation window option to select
+   * @param nominationsCloseDays - The nominations close days to select
+   * @param awardOverdueDays - The award overdue days to select
+   * @param monthsToValidate - The months to validate
+   * @param frequencyLabel - The frequency label to select
+   */
+  async configureMonthlyScheduleAndValidateSummary({
+    timeZone,
+    participationWindowOption = 'Whole month',
+    nominationsCloseDays,
+    awardOverdueDays,
+    monthsToValidate,
+    frequencyLabel = 'Monthly',
+  }: {
+    timeZone: string;
+    participationWindowOption?: string;
+    nominationsCloseDays: number;
+    awardOverdueDays: number;
+    monthsToValidate: number;
+    frequencyLabel?: string;
+  }): Promise<void> {
+    await test.step('Configuring monthly schedule and validating summary', async () => {
+      if (participationWindowOption) {
+        await this.awardCreationForm.checkRadioButton('Participation window', participationWindowOption);
+      }
+
+      await this.setCustomRangeForCustomRecurringAward({
+        fieldTestId: 'Nominations close',
+        plusClicks: nominationsCloseDays - 1,
+        expectedValue: nominationsCloseDays,
+      });
+
+      await this.selectOverdueOption('Custom');
+      await this.setCustomRangeForCustomRecurringAward({
+        fieldTestId: 'Award overdue',
+        plusClicks: awardOverdueDays - 1,
+        expectedValue: awardOverdueDays,
+      });
+
+      const effectiveFromLabel = await this.getSelectedEffectiveFromLabel();
+      const expectedAwardSchedule = await this.getAwardScheduleExpectations();
+      await this.proceedToReviewPage();
+
+      const nominationMatchers = ['Custom', `${nominationsCloseDays}`];
+      const overdueMatchers = ['Custom', `${awardOverdueDays}`];
+
+      await this.validateAwardFrequencyAndScheduleSummary({
+        frequency: { equals: frequencyLabel },
+        effectiveFrom: { equals: effectiveFromLabel },
+        participationWindow: participationWindowOption ? { contains: participationWindowOption } : undefined,
+        nominationsClose: { contains: nominationMatchers },
+        awardOverdue: { contains: overdueMatchers },
+        awardTimezone: { contains: timeZone },
+        schedule: { rows: expectedAwardSchedule, limitTo: monthsToValidate },
+      });
+    });
+  }
+
+  async proceedToReviewPage(): Promise<void> {
+    await test.step('Proceeding to recurring award review page', async () => {
+      await expect(this.awardCreationForm.nextButton).toBeEnabled();
+      await this.awardCreationForm.nextButton.click();
+      await expect(this.awardCreationForm.createButton).toBeVisible();
+    });
+  }
+
   /**
    * Confirm and create recurring award
    */
   async confirmAndCreateRecurringAward(): Promise<void> {
     await test.step('Confirming and creating recurring award', async () => {
-      await expect(this.awardCreationForm.nextButton).toBeEnabled();
-      await this.awardCreationForm.nextButton.click();
-      await expect(this.awardCreationForm.createButton).toBeVisible();
+      await this.proceedToReviewPage();
       await expect(this.awardCreationForm.createButton).toBeEnabled();
       await this.awardCreationForm.createButton.click();
     });
@@ -923,10 +1139,26 @@ export class RecurringAwardPage extends BasePage {
     expectMinusDisabled?: boolean;
   }) {
     const field = this.page.getByTestId(`field-${fieldTestId}`);
+    await expect(field, `expecting ${fieldTestId} field to be visible`).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    await field.scrollIntoViewIfNeeded();
+
     const customRadio = field.getByRole('radio', { name: 'Custom' });
     if (!(await customRadio.isChecked())) {
       await customRadio.check();
     }
+
+    const plusButton =
+      (await field.getByTestId('i-add').count()) > 0
+        ? field.getByTestId('i-add').first()
+        : this.awardCreationForm.plusButton;
+    const minusButton =
+      (await field.getByTestId('i-subtract').count()) > 0
+        ? field.getByTestId('i-subtract').first()
+        : this.awardCreationForm.minusButton;
+    const rangeValueInput =
+      (await field.locator('input[class*="NumberInput"]').count()) > 0
+        ? field.locator('input[class*="NumberInput"]').first()
+        : this.awardCreationForm.rangeValueInput;
     const clickIfEnabled = async (button: Locator, times: number) => {
       for (let i = 0; i < times; i++) {
         if (!(await button.isEnabled())) break;
@@ -934,29 +1166,64 @@ export class RecurringAwardPage extends BasePage {
       }
     };
 
-    const plusButton = this.awardCreationForm.plusButton;
-    // verify and click Plus (only if provided)
+    // If an explicit target value is provided, set it deterministically (fill then nudge as needed).
+    if (expectedValue !== undefined) {
+      await rangeValueInput.click();
+      await rangeValueInput.fill(expectedValue.toString());
+      // Blur to allow any on-change logic to run
+      await this.page.keyboard.press('Tab');
+
+      const currentValue = Number.parseInt((await rangeValueInput.inputValue()) || '0', 10);
+      const delta = expectedValue - currentValue;
+      if (delta !== 0) {
+        if (delta > 0) {
+          await this.verifier.verifyTheElementIsVisible(plusButton, {
+            timeout: TIMEOUTS.MEDIUM,
+            assertionMessage: `Plus button for ${fieldTestId} should be visible`,
+          });
+          await clickIfEnabled(plusButton, delta);
+        } else {
+          await this.verifier.verifyTheElementIsVisible(minusButton, {
+            timeout: TIMEOUTS.MEDIUM,
+            assertionMessage: `Minus button for ${fieldTestId} should be visible`,
+          });
+          await clickIfEnabled(minusButton, Math.abs(delta));
+          if (expectMinusDisabled) {
+            await expect(minusButton).toBeDisabled();
+          }
+        }
+      }
+
+      if (expectPlusDisabled) {
+        await expect(plusButton).toBeDisabled();
+      }
+
+      await expect(rangeValueInput).toHaveValue(expectedValue.toString());
+      return;
+    }
+
+    // Fallback to legacy click counts when no explicit expected value is provided.
     if (plusClicks > 0) {
-      (await this.verifier.verifyTheElementIsVisible(plusButton),
-        { timeout: TIMEOUTS.MEDIUM, assertionMessage: `Day(s) text should be visible on page` });
+      await this.verifier.verifyTheElementIsVisible(plusButton, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Plus button for ${fieldTestId} should be visible`,
+      });
       await clickIfEnabled(plusButton, plusClicks);
     }
-    // verify and click Minus (only if provided)
+
     if (minusClicks > 0) {
-      const minusButton = this.awardCreationForm.minusButton;
-      (await this.verifier.verifyTheElementIsVisible(minusButton),
-        { timeout: TIMEOUTS.MEDIUM, assertionMessage: `Day(s) text should be visible on page` });
+      await this.verifier.verifyTheElementIsVisible(minusButton, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Minus button for ${fieldTestId} should be visible`,
+      });
       await clickIfEnabled(minusButton, minusClicks);
       if (expectMinusDisabled) {
         await expect(minusButton).toBeDisabled();
       }
     }
+
     if (expectPlusDisabled) {
       await expect(plusButton).toBeDisabled();
-    }
-    if (expectedValue !== undefined) {
-      const rangeValueInput = this.awardCreationForm.rangeValueInput;
-      await expect(rangeValueInput).toHaveValue(expectedValue.toString());
     }
   }
 

@@ -44,6 +44,7 @@ coverage/
 downloads/
 
 # all debug csv and log files
+*.csv
 *.log
 
 #browserstack files

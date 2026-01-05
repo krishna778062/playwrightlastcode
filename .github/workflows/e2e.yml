@@ -15,14 +15,19 @@ on:
           - 'global-search'
           - 'reward'
           - 'reward-settings'
-          - 'integrations'
+          - 'integrations-primary'
+          - 'integrations-workday'
+          - 'integrations-azuresso'
+          - 'integrations-api'
           - 'frontline'
           - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
           - 'comms-planner'
-          - 'data-engineering'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -153,10 +158,35 @@ jobs:
           echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
+          # Map short module names to config paths (for data-engineering modules)
+          MODULE="${{ inputs.module_name }}"
+          case "$MODULE" in
+            "de")
+              CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering.config.ts"
+              MODULE_ENV="data-engineering"
+              ;;
+            "de-api")
+              CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering-api.config.ts"
+              MODULE_ENV="data-engineering"
+              ;;
+            "de-api-abac")
+              CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts"
+              MODULE_ENV="data-engineering"
+              ;;
+            "integrations-api")
+              CONFIG_PATH="src/modules/integrations/playwright.integrations-api.config.ts"
+              MODULE_ENV="integrations"
+              ;;
+            *)
+              CONFIG_PATH="src/modules/$MODULE/playwright.$MODULE.config.ts"
+              MODULE_ENV="$MODULE"
+              ;;
+          esac
+
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
             if [ "${{ inputs.is_browserstack }}" = true ]; then
-              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=${{ inputs.module_name }} npx browserstack-node-sdk playwright test --config=src/modules/${{ inputs.module_name}}/playwright.${{ inputs.module_name}}.config.ts --workers=${{ inputs.workers }}
+              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=$MODULE_ENV npx browserstack-node-sdk playwright test --config=$CONFIG_PATH --workers=${{ inputs.workers }}
             else
               npm run test:${{ inputs.module_name }} -- --workers=${{ inputs.workers }}
             fi
@@ -164,7 +194,7 @@ jobs:
             GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
             if [ "${{ inputs.is_browserstack }}" = true ]; then
-              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=${{ inputs.module_name }} npx browserstack-node-sdk playwright test --config=src/modules/${{ inputs.module_name}}/playwright.${{ inputs.module_name}}.config.ts --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=$MODULE_ENV npx browserstack-node-sdk playwright test --config=$CONFIG_PATH --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
             else
               npm run test:${{ inputs.module_name }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
             fi
