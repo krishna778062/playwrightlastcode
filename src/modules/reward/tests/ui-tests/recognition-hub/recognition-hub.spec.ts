@@ -220,7 +220,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
   );
 
   test(
-    'RC-3223 Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
+    '[RC-3223] Validate Points refreshing banner should not be shown on the delete recognition modal if grace period is over',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestGroupType.REGRESSION, TestPriority.P0],
     },
@@ -231,12 +231,13 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         zephyrTestId: 'RC-3223',
         storyId: 'RC-3223',
       });
-
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.loadPage();
       await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
-      const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs();
+      const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs(
+        getRewardTenantConfigFromCache().appManagerName
+      );
       const points = rewardData.resultAny?.points!;
       await recognitionHub.page.goto(rewardData.resultAny?.URL!);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
@@ -244,14 +245,12 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         String(points),
         'Only visible to recipients, their managers and app administrators'
       );
-
       // Click on the Delete option in More Menu and validate revoke point is disabled
       await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
       await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
       await expect(recognitionHub.deleteRecognitionWithRevokePoints).not.toBeVisible();
       await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
       await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
-
       // Create One more Recognition and validate revoke points is enabled
       const recognizedUser = getRewardTenantConfigFromCache().endUserName;
       const existingOptions = await recognitionHub.visitRecognitionHub();
@@ -265,19 +264,18 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsTextNew = await giveRecognitionModal.giftThePoints(1);
       await giveRecognitionModal.recognizeButton.click({ force: true });
-
       const dialogBox = new DialogBox(appManagerFixture.page);
       if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
-
+      await recognitionHub.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.dismissTheToastMessage();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsTextNew,
         'Only visible to you, your manager and app administrators'
       );
-
       // Validate the Delete recognition and revoke points is enabled in the dialog box
       await recognitionHub.clickOnTheFirstPostMoreOption('Delete');
       await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
