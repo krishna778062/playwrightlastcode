@@ -541,7 +541,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FAILED_TESTS_FIXED,
         ],
       },
       async ({ appManagerPage }) => {
@@ -587,7 +586,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FAILED_TESTS_FIXED,
         ],
       },
       async ({ appManagerPage }) => {
@@ -746,7 +744,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FAILED_TESTS_FIXED,
         ],
       },
       async ({ appManagerPage }) => {
@@ -854,7 +851,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FAILED_TESTS_FIXED,
         ],
       },
       async ({ appManagerPage }) => {
@@ -894,7 +890,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FAILED_TESTS_FIXED,
         ],
       },
       async ({ appManagerPage }) => {
@@ -1072,7 +1067,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FAILED_TESTS_FIXED,
         ],
       },
       async ({ appManagerPage }) => {
