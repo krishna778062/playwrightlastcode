@@ -64,6 +64,7 @@ jobs:
             de-api-abac,
             reward,
             reward-settings,
+            reward-workAnniversary,
             recognition,
             content-abac,
             frontline,
