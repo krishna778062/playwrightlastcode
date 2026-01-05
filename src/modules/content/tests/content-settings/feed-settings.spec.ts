@@ -281,8 +281,8 @@ test.describe(
         await governanceScreenPage.loadPage();
         await governanceScreenPage.makePlaceholderDefault();
 
-        const appConfig = await appManagerFixture.feedManagementHelper.getAppConfig();
-        const isRecognitionEnabled = appConfig.result?.isRecognitionEnabled || false;
+        const recognitionConfig = await appManagerFixture.feedManagementHelper.getRecognitionConfig();
+        const isRecognitionEnabled = recognitionConfig.enabled;
 
         // Expected placeholder texts based on Recognition feature flag
         const expectedPlaceholderWithRecognition = FEED_TEST_DATA.PLACEHOLDER_TEXT.WITH_RECOGNITION;
@@ -858,7 +858,8 @@ test.describe(
         });
 
         // Setup: Create event and page content so smart feed blocks are visible
-        const setupSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const setupSiteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create an event for "Upcoming events" block
         const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({

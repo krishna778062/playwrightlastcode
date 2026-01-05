@@ -73,7 +73,7 @@ test.describe('home Dashboard Tiles', () => {
 
       // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
       const allEmployeesSiteId =
-        await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate random page name using faker
       const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;

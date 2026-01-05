@@ -28,7 +28,7 @@ test.describe(
 
     test('setup: Configure Box files', async ({ appManagerApiFixture, appManagerFixture }) => {
       // Get DEFAULT_PUBLIC_SITE_NAME site ID
-      siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+      siteId = await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
       // Configure External Files to use Box via UI (done once for all tests)
       const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
@@ -240,7 +240,8 @@ test.describe(
           storyId: 'CONT-24917',
         });
 
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
         await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));

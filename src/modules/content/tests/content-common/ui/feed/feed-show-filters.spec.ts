@@ -534,7 +534,8 @@ test.describe(
       });
 
       // Get site ID
-      allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+      allEmployeesSiteId =
+        await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate album name using TestDataGenerator pattern
       const albumName = TestDataGenerator.generateAlbum({ fileName: FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname) });
@@ -617,7 +618,8 @@ test.describe(
       });
 
       // Get site ID
-      allEmployeesSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+      allEmployeesSiteId =
+        await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate page data using TestDataGenerator
       const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
@@ -724,7 +726,7 @@ test.describe(
 
       // Get site ID
       const allEmployeesSiteId =
-        await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate event data with TestDataGenerator
       const eventData = TestDataGenerator.generateEvent();

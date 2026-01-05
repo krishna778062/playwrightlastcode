@@ -343,7 +343,8 @@ test.describe(
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
 
-        testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        testSiteId =
+          await standardUserApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         const contentListResponse =
           await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({

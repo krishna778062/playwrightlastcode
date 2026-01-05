@@ -79,15 +79,7 @@ export class NavigationHelper {
   async clickOnGlobalFeed(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Clicking on global feed', async () => {
       //check if feed link is visible
-      try {
-        await this.sideNavBarComponent.feedLink.waitFor({ state: 'visible', timeout: 5000 });
-        await this.sideNavBarComponent.feedLink.click();
-      } catch (error) {
-        console.log('DEBUG: Feed link is not visible, clicking on home link', error);
-        await this.sideNavBarComponent.clickOnHomeIcon();
-        await this.sideNavBarComponent.feedLink.waitFor({ state: 'visible', timeout: 5000 });
-        await this.sideNavBarComponent.feedLink.click();
-      }
+      await this.sideNavBarComponent.clickOnGlobalFeed();
     });
   }
 
