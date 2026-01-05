@@ -22,6 +22,23 @@ import { ShareComponent } from '@/src/modules/content/ui/components/shareCompone
 
 export { FeedPostOptions, FeedPostResult, QuestionOptions, QuestionResult };
 
+/**
+ * FeedPage - Simplified page object following Phase 2 cleanup
+ *
+ * Components are exposed directly for test access:
+ * - `postEditor` - CreateFeedPostComponent for creating/editing posts
+ * - `feedList` - ListFeedComponent for interacting with feed posts
+ * - `filePreview` - FilePreviewComponent for file preview operations
+ * - `questionEditor` - CreateQuestionComponent for Q&A functionality
+ * - `share` - ShareComponent for sharing posts
+ *
+ * Usage in tests:
+ * ```typescript
+ * await feedPage.postEditor.createAndPost({ text: 'Hello' });
+ * await feedPage.feedList.waitForPostToBeVisible('Hello');
+ * await feedPage.share.clickShareButton();
+ * ```
+ */
 export class FeedPage extends BasePage {
   /** Component for creating and editing feed posts */
   readonly postEditor: CreateFeedPostComponent;
