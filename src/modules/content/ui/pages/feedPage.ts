@@ -500,10 +500,10 @@ export class FeedPage extends BasePage {
         if (selectedShareOption.toLowerCase() !== 'home feed') {
           await this.share.shareOptionDropdown.selectOption({ label: 'home feed' });
         }
+        await this.share.clickShareButton();
       } else {
         await this.share.shareOptionDropdown.selectOption({ label: 'site feed' });
       }
-      await this.share.clickShareButton();
     });
   }
 

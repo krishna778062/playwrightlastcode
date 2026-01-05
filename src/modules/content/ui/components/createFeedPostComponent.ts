@@ -394,7 +394,7 @@ export class CreateFeedPostComponent extends BaseComponent {
           response.url().includes(API_ENDPOINTS.feed.create) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
-        { timeout: 20_000 }
+        { timeout: TIMEOUTS.LONG }
       );
     });
   }

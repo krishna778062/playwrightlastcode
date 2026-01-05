@@ -358,10 +358,9 @@ test.describe(
           storyId: 'CONT-24150',
         });
 
-        // Step 1: Get or reuse a private site that standard user is NOT a member of
-        // This will reuse an existing private site if available, or create a new one if needed
+        const userId = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-          [users.endUser.email],
+          [userId.userId],
           SITE_TYPES.PRIVATE
         );
         const privateSiteName = privateSiteResult.siteName;
@@ -369,7 +368,7 @@ test.describe(
 
         // Step 2: Get or reuse an unlisted site that standard user is NOT a member of
         const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-          [users.endUser.email],
+          [userId.userId],
           SITE_TYPES.UNLISTED
         );
         const unlistedSiteName = unlistedSiteResult.siteName;

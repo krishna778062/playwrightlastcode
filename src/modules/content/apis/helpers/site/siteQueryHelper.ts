@@ -152,7 +152,8 @@ export class SiteQueryHelper {
       const matchesRequirements =
         site.hasPages === requiredHasPages &&
         site.hasEvents === requiredHasEvents &&
-        site.hasAlbums === requiredHasAlbums;
+        site.hasAlbums === requiredHasAlbums &&
+        site.isActive;
 
       if (matchesRequirements) {
         log.debug(`Found matching site: ${site.name} (${site.siteId})`);

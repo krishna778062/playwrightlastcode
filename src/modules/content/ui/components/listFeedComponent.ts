@@ -334,7 +334,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   async clickDeleteOption(): Promise<void> {
     await test.step('Click delete option', async () => {
-      await this.clickOnElement(this.deleteButton);
+      await this.clickByInjectingJavaScript(this.deleteButton);
     });
   }
 
