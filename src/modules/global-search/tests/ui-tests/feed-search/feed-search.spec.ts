@@ -24,10 +24,12 @@ test.describe(
         feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'site',
           siteId: publicSite.siteId,
+          options: { waitForSearchIndex: true },
         });
       } else {
         feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
           scope: 'public',
+          options: { waitForSearchIndex: true },
         });
       }
 
@@ -40,16 +42,25 @@ test.describe(
       `Verify Feed Search results for a new home ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+        annotation: { type: 'known_failure', description: 'SEN-20181' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12843',
+          isKnownFailure: true,
+          bugTicket: 'SEN-20181',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Not able to search feed results without exact match',
         });
 
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the content`,
         });
+
+        // Get the feed result item matching the search term
+        await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
 
         await globalSearchResultPage.verifyFeedResultItemDataPoints({
           name: currentFeedName,
@@ -65,10 +76,16 @@ test.describe(
       `verify Feed Search results with sidebar filter`,
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        annotation: { type: 'known_failure', description: 'SEN-20181' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-19281',
+          isKnownFailure: true,
+          bugTicket: 'SEN-20181',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Not able to search feed results without exact match',
         });
 
         // Search for the feed
@@ -98,16 +115,26 @@ test.describe(
       `Verify user able to search feed post from site ${testData.content}`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
+        annotation: { type: 'known_failure', description: 'SEN-20181' },
       },
       async ({ appManagerFixture, publicSite }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-13079',
           storyId: 'SEN-12844',
+          isKnownFailure: true,
+          bugTicket: 'SEN-20181',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Not able to search feed results without exact match',
         });
 
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(currentFeedName, {
           stepInfo: `Searching with term "${currentFeedName}" and intent is to find the site feed content`,
         });
+
+        // Get the feed result item matching the search term
+        const feedResultItem =
+          await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
 
         await globalSearchResultPage.verifyFeedResultItemDataPoints({
           name: currentFeedName,
@@ -118,8 +145,6 @@ test.describe(
         });
 
         // Verify site navigation for site feed
-        const feedResultItem =
-          await globalSearchResultPage.getFeedResultItemExactlyMatchingTheSearchTerm(currentFeedName);
         const feedListComponent = new FeedListComponent(feedResultItem.page, feedResultItem.rootLocator);
         await feedListComponent.verifyNavigationWithSiteLink(publicSite.siteId, publicSite.siteName);
       }
