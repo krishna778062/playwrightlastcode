@@ -24,6 +24,7 @@ export class SyncingComponent extends BaseComponent {
   readonly userSyncingStatus: (action: string) => Locator;
   readonly alternateIdentifierDropdown: Locator;
   readonly question1Dropdown: Locator;
+  readonly fieldToSyncInputInRow: (row: Locator) => Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -38,7 +39,7 @@ export class SyncingComponent extends BaseComponent {
       this.dataGridRows.filter({ has: this.page.locator('p').filter({ hasText: firstname }) });
     this.moreButtonInRow = (row: Locator) => row.getByLabel('More');
     this.searchInputBox = this.page.locator('#searchTerm');
-    this.editUserBtn = (text: string) => this.page.getByRole('button', { name: text });
+    this.editUserBtn = (text: string) => this.page.getByRole('button', { name: new RegExp(text, 'i') });
     this.formFieldInput = (fieldName: string) => this.page.locator(`#${fieldName}`);
     this.syncSourceDropdown = this.page.locator('#syncSource');
     this.fieldRowByLabel = (fieldLabel: string) => {
@@ -65,6 +66,7 @@ export class SyncingComponent extends BaseComponent {
       .locator('div')
       .filter({ hasText: /^Question 1$/ })
       .nth(2);
+    this.fieldToSyncInputInRow = (row: Locator) => row.locator('.provisionSyncDisplay__mapping input');
   }
 
   async clickOnTab(text: string): Promise<void> {
@@ -163,9 +165,10 @@ export class SyncingComponent extends BaseComponent {
       const moreButton = this.moreButtonInRow(userRow);
 
       await expect(userRow, `Row with firstname "${firstname}" should be visible`).toBeVisible();
-
+      await this.page.waitForTimeout(1000);
       await expect(moreButton, 'More button should be visible').toBeVisible();
       await moreButton.click();
+      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -344,6 +347,29 @@ export class SyncingComponent extends BaseComponent {
         throw new Error(
           `Success status not found for ${action} scheduler after ${maxAttempts} attempts (${maxAttempts * 20} seconds)`
         );
+      }
+    });
+  }
+
+  async fillSchemaMappingForCheckedFields(schemaMapping: Record<string, string>): Promise<void> {
+    await test.step(`Fill schema mapping for checked sync fields`, async () => {
+      for (const [fieldLabel, schemaValue] of Object.entries(schemaMapping)) {
+        const fieldRow = this.fieldRowByLabel(fieldLabel);
+        const syncCheckbox = this.syncCheckboxInRow(fieldRow);
+        const input = this.fieldToSyncInputInRow(fieldRow);
+        await expect(fieldRow, `Field row for "${fieldLabel}" should be visible`).toBeVisible();
+        await expect(syncCheckbox, `Sync checkbox for "${fieldLabel}" should be visible`).toBeVisible();
+        await expect(input, `Field-to-sync input for "${fieldLabel}" should be visible`).toBeVisible();
+
+        const isChecked = await syncCheckbox.isChecked();
+
+        if (isChecked) {
+          await input.fill('');
+          await input.fill(schemaValue);
+          console.log(`Filled "${fieldLabel}" → "${schemaValue}"`);
+        } else {
+          console.log(`Skipping "${fieldLabel}", sync not checked`);
+        }
       }
     });
   }

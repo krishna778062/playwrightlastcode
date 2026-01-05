@@ -72,7 +72,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields(SYNCING.COMMON_SYNC_FIELDS);
         await azureSyncing.clickOnSaveButton(UI_ACTIONS.SAVE);
         await azureSyncing.verifyErrorMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
@@ -123,7 +123,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
           ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.MOBILE_PHONE,
@@ -179,7 +179,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
           ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.PHONE,
@@ -234,7 +234,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
           ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
@@ -289,7 +289,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
           ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.EMPLOYEE_NUMBER,
@@ -345,7 +345,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
           ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.PHONE,
@@ -399,7 +399,7 @@ test.describe(
         await azureSyncing.clickOnSaveButton(ACTION_LABELS.UPDATE);
         await azureSyncing.page.goto(PAGE_ENDPOINTS.USER_SYNCING_PAGE);
         await azureSyncing.selectSyncSource(AZURE_SYNCING.MICROSOFT_ENTRA_ID_OPTION);
-        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID);
+        await azureSyncing.uncheckCheckboxIfChecked(SYNCING.SELECT_ALL_FIELDS_CHECKBOX_ID_AZURE);
         await azureSyncing.checkSyncCheckboxesForMultipleFields([
           ...SYNCING.COMMON_SYNC_FIELDS,
           AZURE_SYNCING.FIELD_LABELS.MOBILE_PHONE,

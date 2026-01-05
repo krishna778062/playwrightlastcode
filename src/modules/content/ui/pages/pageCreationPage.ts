@@ -180,10 +180,10 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       }
       await this.imageCropper.clickOnNextButton();
 
-      //handle square crop option
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
       }
+
       await this.imageCropper.clickOnNextButton();
       //await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();

@@ -61,7 +61,7 @@ test.describe(
     );
 
     test(
-      'verify User is able to Share RECOGNITION from HUB',
+      'verify User is able to Share RECOGNITION from HUB CONT-28587',
       {
         tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28587'],
       },

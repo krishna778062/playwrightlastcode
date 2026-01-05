@@ -27,7 +27,7 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe.fixme(
+test.describe(
   'app Adoption Dashboard - Custom Period Filter + All Filters + Group by Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],

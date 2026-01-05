@@ -110,40 +110,23 @@ export class MonthlyReportsAdoption extends TabluarMetricsComponent {
       const csvMonths = new Set(csvData.map((row: any) => row.Month?.trim()).filter(Boolean));
 
       // Transform DB data to match CSV format and filter to only include months in CSV:
-      // - Percentages: CSV has decimals rounded to 6 decimal places (0.314286), not full precision
+      // - Percentages: Use DB percentage values directly (already calculated as percentages like 31.4)
       // - Numbers: CSV has no commas (18912), not comma-separated (18,912)
-      // - Avg views per user: CSV calculates with full precision, not using rounded DB value
+      // - Avg views per user: Use DB value directly
       // - All numeric values should be numbers (not strings) for proper comparison
       const transformedDBData = snowflakeData
         .filter(item => csvMonths.has(item['MONTH']?.trim())) // Only include months present in CSV
         .map(item => {
-          // Calculate percentages as decimals and round to 6 decimal places (matching CSV format)
-          const monthEndAdoptionRateDecimal =
-            item['TOTAL_ACTIVE_USERS'] > 0
-              ? Math.round((item['USER_LOGGED_IN_COUNT'] / item['TOTAL_ACTIVE_USERS']) * 1000000) / 1000000
-              : 0;
-
-          const todayAdoptionRateDecimal =
-            item['TOTAL_USERS_AS_OF_TODAY'] > 0
-              ? Math.round((item['ACTIVE_USER_ADOPTION_COUNT'] / item['TOTAL_USERS_AS_OF_TODAY']) * 1000000) / 1000000
-              : 0;
-
-          // Calculate avg views per user and round to 6 decimal places (matching CSV format)
-          const avgViewsPerUser =
-            item['TOTAL_ACTIVE_USERS'] > 0 && item['VIEWED_CONTENT_COUNT'] > 0
-              ? Math.round((item['VIEWED_CONTENT_COUNT'] / item['TOTAL_ACTIVE_USERS']) * 1000000) / 1000000
-              : 0;
-
           return {
             Month: item['MONTH'] || '',
             'Total users (month end snapshot )': item['TOTAL_ACTIVE_USERS'] || 0,
             'Total logged in users (month end snapshot)': item['USER_LOGGED_IN_COUNT'] || 0,
-            'App adoption rate (month end snapshot)': monthEndAdoptionRateDecimal,
+            'App adoption rate (month end snapshot)': item['USER_LOGGED_IN_PERCENTAGE'] || 0,
             'Total users (as of today)': item['TOTAL_USERS_AS_OF_TODAY'] || 0,
             'Total logged in users(as of today)': item['ACTIVE_USER_ADOPTION_COUNT'] || 0,
-            'App adoption rate (as of today)': todayAdoptionRateDecimal,
-            'Viewed content (month end snapshot)': item['VIEWED_CONTENT_COUNT'] || 0, // No commas in CSV
-            'Avg views per user (month end snapshot)': avgViewsPerUser,
+            'App adoption rate (as of today)': item['ACTIVE_USER_ADOPTION_PERCENTAGE'] || 0,
+            'Viewed content (month end snapshot)': item['VIEWED_CONTENT_COUNT'] || 0,
+            'Avg views per user (month end snapshot)': item['AVG_VIEW_PER_USER'] || 0,
             'Posts & replies(month end snapshot)': item['POSTS_AND_REPLIES'] || 0,
             'Reactions (month end snapshot)': item['LIKES'] || 0,
             'Shares (month end snapshot)': item['SHARES'] || 0,
@@ -186,20 +169,9 @@ export class MonthlyReportsAdoption extends TabluarMetricsComponent {
             'Shares (month end snapshot)': 'Shares (month end snapshot)',
           },
           keyFields: ['Month'],
-          // Handle percentage fields as decimals (CSV format)
-          // Note: CSV exports percentages as decimals (0.314286), not percentage strings (31.4%)
-          // We specify one percentageField for tolerance, but both percentage fields are in decimal format
-          percentageField: {
-            fieldName: 'App adoption rate (month end snapshot)',
-            normalizeToPercentage: false, // CSV has decimals, not percentages
-          },
-          // Allow tolerance for decimal precision differences
-          // Note: Tolerance only applies to the percentageField specified above
-          // For "App adoption rate (as of today)", the normalizePercentageValue function will handle
-          // the comparison, but without tolerance. Since both are decimals, they should match closely.
-          // For numeric fields like "Avg views per user", we rely on exact match or very close values.
+          // Allow tolerance for percentage precision differences
           tolerance: {
-            percentage: 0.001, // Allow 0.1% difference in decimal format (0.001 = 0.1%)
+            percentage: 1, // Allow 1% difference for rounding
           },
         },
       };

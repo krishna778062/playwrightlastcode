@@ -5,6 +5,7 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export interface IActivityNotificationActions {
   clickOnNotificationForMention(expectedNotificationMessage: string): Promise<void>;
+  clickOnNotification(expectedNotificationMessage: string): Promise<void>;
 }
 
 export interface IActivityNotificationAssertions {
@@ -55,6 +56,12 @@ export class ActivityNotificationPage
       // Find the anchor tag that contains the notification text and click it
       // notificationByText finds 'a div' elements, so we get the parent 'a' tag
       const notificationLink = this.notificationByMention(expectedNotificationMessage).first();
+      await this.clickOnElement(notificationLink);
+    });
+  }
+  async clickOnNotification(expectedNotificationMessage: string): Promise<void> {
+    await test.step(`Clicking on notification: ${expectedNotificationMessage}`, async () => {
+      const notificationLink = this.notificationByText(expectedNotificationMessage).nth(1);
       await this.clickOnElement(notificationLink);
     });
   }

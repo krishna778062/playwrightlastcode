@@ -90,4 +90,8 @@ export class SyncingPage extends BasePage {
   async selectQuestionValue(questionValue: string): Promise<void> {
     return this.azureSyncingComponent.selectQuestionValue(questionValue);
   }
+
+  async fillSchemaMappingForCheckedFields(schemaMapping: Record<string, string>): Promise<void> {
+    return this.azureSyncingComponent.fillSchemaMappingForCheckedFields(schemaMapping);
+  }
 }

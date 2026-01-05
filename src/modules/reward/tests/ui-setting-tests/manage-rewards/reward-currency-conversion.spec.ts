@@ -39,7 +39,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   });
 
   test(
-    '[RC-2531] Validate Add & remove currency in currency conversion tab.',
+    'RC-2531 Validate Add & remove currency in currency conversion tab.',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
     },
@@ -64,7 +64,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   );
 
   test(
-    '[RC-3466,RC-3467] Validate currency conversion page on custom conversion',
+    'RC-3466,RC-3467 Validate currency conversion page on custom conversion',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
     },

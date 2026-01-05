@@ -40,7 +40,7 @@ test.describe(
     });
 
     test(
-      'aM | Home Q&A | Create, Edit with only Title of the question',
+      'aM | Home Q&A | Create, Edit with only Title of the question CONT-38778',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-38778', '@healthcheck'],
       },
@@ -69,7 +69,7 @@ test.describe(
     );
 
     test(
-      'verify User creates a question for sites',
+      'verify User creates a question for sites CONT-33540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33540'],
       },
@@ -95,7 +95,7 @@ test.describe(
     );
 
     test(
-      'verify User creates a question for content feed',
+      'verify User creates a question for content feed CONT-34095',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-34095'],
       },

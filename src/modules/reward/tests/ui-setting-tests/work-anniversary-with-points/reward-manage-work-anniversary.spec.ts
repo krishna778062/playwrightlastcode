@@ -18,7 +18,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
   });
 
   test(
-    '[RC-5715] Verify "Award points to Receiver" option on Edit milestone award',
+    'RC-5715 Verify "Award points to Receiver" option on Edit milestone award',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY,
@@ -47,7 +47,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
   );
 
   test(
-    '[RC-5718] Validate Rewards points option on Edit milestone award page',
+    'RC-5718 Validate Rewards points option on Edit milestone award page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -73,7 +73,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
   );
 
   test(
-    '[RC-5730] Validate "Award points to receiver option" on edit milestone instance',
+    'RC-5730 Validate "Award points to receiver option" on edit milestone instance',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
@@ -148,7 +148,7 @@ test.describe('edit points in work anniversary award', { tag: [REWARD_SUITE_TAGS
   );
 
   test(
-    '[RC-5732] Verify cancel button on milestone award instance page while adding reward points',
+    'RC-5732 Verify cancel button on milestone award instance page while adding reward points',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.REGRESSION],
     },
