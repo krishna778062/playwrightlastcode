@@ -328,12 +328,12 @@ export class SiteQueryHelper {
       const siteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
       log.debug('siteListResponse', { response: siteListResponse });
 
-      for (const site of siteListResponse.result.listOfItems) {
+      //iterate the site which is active
+      const activeSites = siteListResponse.result.listOfItems.filter(site => site.isActive === true);
+
+      for (const site of activeSites) {
         const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
         if (siteDetails.result.isContentSubmissionsEnabled === isContentSubmissionsEnabled) {
-          if (!site.isActive) {
-            await this.siteManagementService.activateSite(site.siteId);
-          }
           return { siteId: site.siteId, siteName: site.name };
         }
       }
