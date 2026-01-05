@@ -443,14 +443,14 @@ export class PeopleTabComponent extends BaseComponent {
   }
 
   async verifyNamePronunciationFieldUncheckedAndDisabled(): Promise<void> {
-    await test.step('Verify Name pronunciation field is unchecked and disabled for syncing', async () => {
+    await test.step('Verify Name pronunciation field is unchecked and disabled for provisioning', async () => {
       const fieldName = PEOPLE_TAB.NAME_PRONUNCIATION_FIELD;
-      const syncingCheckbox = this.fieldSyncingCheckbox(fieldName);
-      const isSyncingChecked = await syncingCheckbox.isChecked();
-      const isSyncingDisabled = await syncingCheckbox.isDisabled();
+      const provisioningCheckbox = this.getFieldCheckbox(fieldName, 'provisioning');
 
-      expect(isSyncingChecked, `${fieldName} field should not be checked in syncing column`).toBe(false);
-      expect(isSyncingDisabled, `${fieldName} field should be disabled in syncing column`).toBe(true);
+      await expect(provisioningCheckbox, `expecting ${fieldName} provisioning checkbox to be visible`).toBeVisible();
+      const isProvisioningDisabled = await provisioningCheckbox.isDisabled();
+
+      expect(isProvisioningDisabled, `${fieldName} field should be disabled in provisioning column`).toBe(true);
     });
   }
 }
