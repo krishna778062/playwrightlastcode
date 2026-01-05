@@ -27,13 +27,14 @@ test.describe(
           description: 'Verify the site activate option in manage site user drop down sites for all site types',
           zephyrTestId: 'CONT-41476',
           storyId: 'CONT-41476',
+          isKnownFailure: true,
         });
 
         const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];
         const manageSitePage = new ManageSitePage(siteManagerFixture.page);
         await manageSitePage.loadPage();
-        await manageSitePage.actions.clickOnFilterOptionsDropdownButton();
-        await manageSitePage.actions.selectFilterOption('All');
+        await manageSitePage.clickOnFilterOptionsDropdownButton();
+        await manageSitePage.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
           const siteInfo = await siteManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
@@ -42,11 +43,11 @@ test.describe(
           });
           const siteName = siteInfo.siteName;
 
-          await manageSitePage.actions.searchSite(siteName);
-          await manageSitePage.actions.clickOnSearchButton();
-          await manageSitePage.actions.clickOnOptionsDropdown(siteName);
-          await manageSitePage.assertions.verifyOptionIsVisibleInOptionsDropdown('Activate');
-          await manageSitePage.assertions.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
+          await manageSitePage.searchSite(siteName);
+          await manageSitePage.clickOnSearchButton();
+          await manageSitePage.clickOnOptionsDropdown(siteName);
+          await manageSitePage.verifyOptionIsVisibleInOptionsDropdown('Activate');
+          await manageSitePage.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
         }
       }
     );

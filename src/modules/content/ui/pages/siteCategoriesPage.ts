@@ -23,15 +23,6 @@ export class SiteCategoriesPage extends BasePage {
     this.deleteButton = page.locator('*:has-text("Delete")');
     this.confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")');
   }
-
-  get actions(): SiteCategoriesPage {
-    return this;
-  }
-
-  get assertions(): SiteCategoriesPage {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Site Categories page is loaded', async () => {
       // Framework standard: wait for the key element with default timeout

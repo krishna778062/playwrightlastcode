@@ -6,37 +6,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 
-export interface ISocialCampaignPageActions {
-  removeAllExistingCampaigns: () => Promise<void>;
-  clickPopularLink: () => Promise<void>;
-  clickAddCampaignButton: () => Promise<void>;
-  clickCampaignOptions: () => Promise<void>;
-  clickExpireCampaignButton: () => Promise<void>;
-  confirmExpireCampaign: () => Promise<void>;
-  clickDeleteCampaignButton: () => Promise<void>;
-  clickExpiredLink: () => Promise<void>;
-  getSocialCampaignCount: () => Promise<number>;
-  confirmDeleteCampaign: () => Promise<void>;
-  clickShareToFeedButton: () => Promise<void>;
-  selectShareOptionAsSiteFeed: () => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
-  enterSiteName: (siteName: string) => Promise<void>;
-  clickShareButton: () => Promise<void>;
-}
-
-export interface ISocialCampaignPageAssertions {
-  verifyCampaignLinkDisplayed: (linkText: string) => Promise<void>;
-  verifyCampaignNotInLatest: (linkText: string) => Promise<void>;
-  verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
-  verifyCampaignInExpired: (linkText: string) => Promise<void>;
-  verifyToastMessage: (message: string) => Promise<void>;
-  verifyAddCampaignButtonIsNotVisible: () => Promise<void>;
-  verifyExpireTabNotVisible: () => Promise<void>;
-  verifyExpireCampaignButtonIsNotVisible: () => Promise<void>;
-  verifyDeleteCampaignButtonIsNotVisible: () => Promise<void>;
-}
-
-export class SocialCampaignPage extends BasePage implements ISocialCampaignPageActions, ISocialCampaignPageAssertions {
+export class SocialCampaignPage extends BasePage {
   readonly socialCampaignsSection: Locator;
   readonly addCampaignButton: Locator;
   readonly popularLink: Locator;
@@ -54,15 +24,6 @@ export class SocialCampaignPage extends BasePage implements ISocialCampaignPageA
     this.listOfSocialCampaignComponent = new ListOfSocialCampaignComponent(page);
     this.shareSocialCampaignComponent = new ShareComponent(page);
   }
-
-  get actions(): ISocialCampaignPageActions {
-    return this;
-  }
-
-  get assertions(): ISocialCampaignPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify social campaign page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.socialCampaignsSection, {

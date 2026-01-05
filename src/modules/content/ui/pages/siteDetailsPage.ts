@@ -6,21 +6,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SiteDetailsComponent } from '@/src/modules/content/ui/components/siteDetailsComponent';
 import { TargetAudienceComponent } from '@/src/modules/content/ui/components/targetAudienceComponent';
 
-export interface ISiteDetailsPageActions {
-  removingAudienceGroup: () => Promise<void>;
-  clickOnContentTab: () => Promise<void>;
-  typeContentInSearchBar: (contentName: string) => Promise<void>;
-  clickSearchIcon: () => Promise<void>;
-  openContentDetailsPage: () => Promise<void>;
-  ViewSite: () => Promise<void>;
-}
-
-export interface ISiteDetailsPageAssertions {
-  verifyWarningMessage: () => Promise<void>;
-  validatingCategory: () => Promise<void>;
-  validatingCategoryToUncategorized: () => Promise<void>;
-  verifyThePageIsLoaded: () => Promise<void>;
-}
 export class SiteDetailsPage extends BasePage {
   private siteDetailsComponent: SiteDetailsComponent;
   readonly categoryName = this.page.locator('id="category":has-text("Uncategorized")');
@@ -35,15 +20,6 @@ export class SiteDetailsPage extends BasePage {
     this.targetAudienceComponent = new TargetAudienceComponent(page);
     this.siteDetailsComponent = new SiteDetailsComponent(page);
   }
-
-  get actions(): ISiteDetailsPageActions {
-    return this;
-  }
-
-  get assertions(): ISiteDetailsPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {}
 
   async removingAudienceGroup(): Promise<void> {

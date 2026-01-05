@@ -60,16 +60,16 @@ test.describe('home Dashboard Tiles', () => {
         zephyrTestId: 'CONT-22815',
         storyId: 'CONT-22815',
       });
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickOnAddTileButton();
-      await homeDashboardPage.actions.clickOnAddContentTileOption();
-      await homeDashboardPage.actions.selectingPagesAsContentType();
+      await homeDashboardPage.clickOnEditDashboardButton();
+      await homeDashboardPage.clickOnAddTileButton();
+      await homeDashboardPage.clickOnAddContentTileOption();
+      await homeDashboardPage.selectingPagesAsContentType();
       const tileName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Tile`;
-      await homeDashboardPage.actions.namingTheTile(tileName);
-      await homeDashboardPage.actions.clickingOnAddToHomeButton();
-      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD);
-      await homeDashboardPage.actions.clickingOnDoneButton();
-      await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(tileName);
+      await homeDashboardPage.namingTheTile(tileName);
+      await homeDashboardPage.clickingOnAddToHomeButton();
+      await homeDashboardPage.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD);
+      await homeDashboardPage.clickingOnDoneButton();
+      await homeDashboardPage.verifyingThePageTileSectionIsVisible(tileName);
 
       // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
       const allEmployeesSiteId =
@@ -92,41 +92,39 @@ test.describe('home Dashboard Tiles', () => {
         },
       });
       await appManagerFixture.page.reload();
-      await homeDashboardPage.assertions.verifyingCreatedPageIsVisibleInTile(randomPageName);
-      await homeDashboardPage.actions.openingCreatedPageInTile(randomPageName);
+      await homeDashboardPage.verifyingCreatedPageIsVisibleInTile(randomPageName);
+      await homeDashboardPage.openingCreatedPageInTile(randomPageName);
       contentPreviewPage = new ContentPreviewPage(
         appManagerFixture.page,
         allEmployeesSiteId,
         pageInfo.contentId,
         'page'
       );
-      await contentPreviewPage.actions.unpublishingTheContent();
-      await contentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
-        TILE_TEST_DATA.TOAST_MESSAGES.UNPUBLISHED_CONTENT
-      );
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await contentPreviewPage.unpublishingTheContent();
+      await contentPreviewPage.verifyUnpublishedContentToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.UNPUBLISHED_CONTENT);
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
       await appManagerFixture.page.reload();
-      await homeDashboardPage.assertions.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
+      await homeDashboardPage.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
       await contentPreviewPage.loadPage();
-      await contentPreviewPage.actions.publishingTheContent();
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await contentPreviewPage.publishingTheContent();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
       await appManagerFixture.page.reload();
-      await homeDashboardPage.assertions.verifyingCreatedPageIsVisibleInTile(randomPageName);
-      await homeDashboardPage.actions.openingCreatedPageInTile(randomPageName);
+      await homeDashboardPage.verifyingCreatedPageIsVisibleInTile(randomPageName);
+      await homeDashboardPage.openingCreatedPageInTile(randomPageName);
       // Delete the page using API
       await appManagerFixture.contentManagementHelper.deleteContent(allEmployeesSiteId, pageInfo.contentId);
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
       await appManagerFixture.page.reload();
-      await homeDashboardPage.assertions.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickingOnEditTileButton(tileName);
-      await homeDashboardPage.actions.selectingSiteRadioButton(DEFAULT_PUBLIC_SITE_NAME);
-      await homeDashboardPage.actions.selectingShowcaseRadioButton();
-      await homeDashboardPage.actions.clickingOnSaveButton();
-      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.EDITED_DASHBOARD_TILE);
-      await homeDashboardPage.actions.clickingOnRemoveTileButton(tileName);
-      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.REMOVED_TILE_FROM_DASHBOARD);
-      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(tileName);
+      await homeDashboardPage.verifyingCreatedPageIsNotVisibleInTile(randomPageName);
+      await homeDashboardPage.clickOnEditDashboardButton();
+      await homeDashboardPage.clickingOnEditTileButton(tileName);
+      await homeDashboardPage.selectingSiteRadioButton(DEFAULT_PUBLIC_SITE_NAME);
+      await homeDashboardPage.selectingShowcaseRadioButton();
+      await homeDashboardPage.clickingOnSaveButton();
+      await homeDashboardPage.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.EDITED_DASHBOARD_TILE);
+      await homeDashboardPage.clickingOnRemoveTileButton(tileName);
+      await homeDashboardPage.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.REMOVED_TILE_FROM_DASHBOARD);
+      await homeDashboardPage.verifyingThePageTileSectionIsNotVisible(tileName);
     }
   );
 
@@ -143,10 +141,10 @@ test.describe('home Dashboard Tiles', () => {
       });
 
       // Navigate to Home page
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.navigationHelper.clickOnHomeIconButton();
 
       // Enter edit mode
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
+      await homeDashboardPage.clickOnEditDashboardButton();
 
       // Generate unique tile names
       const textTileTitle = TestDataGenerator.generateRandomString('Text Tile');
@@ -158,49 +156,49 @@ test.describe('home Dashboard Tiles', () => {
       const siteName = DEFAULT_PUBLIC_SITE_NAME;
 
       // Add Text/HTML & Links tile
-      await homeDashboardPage.actions.addTextHtmlLinksTile(textTileDescription, textTileTitle);
-      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+      await homeDashboardPage.addTextHtmlLinksTile(textTileDescription, textTileTitle);
+      await homeDashboardPage.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
 
       // Add Sites & Category tile
-      await homeDashboardPage.actions.addSitesCategoryTile(siteName, sitesTileTitle);
-      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+      await homeDashboardPage.addSitesCategoryTile(siteName, sitesTileTitle);
+      await homeDashboardPage.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
 
       // Reorder tiles - move Sites tile before Text tile
-      await homeDashboardPage.actions.reorderTiles(sitesTileTitle, textTileTitle);
+      await homeDashboardPage.reorderTiles(sitesTileTitle, textTileTitle);
 
       // Verify tile order (Sites should be before Text)
-      await homeDashboardPage.assertions.verifyTileOrder([textTileTitle, sitesTileTitle]);
+      await homeDashboardPage.verifyTileOrder([textTileTitle, sitesTileTitle]);
 
       //  Exit edit mode and refresh page
-      await homeDashboardPage.actions.clickingOnDoneButton();
+      await homeDashboardPage.clickingOnDoneButton();
       await appManagerFixture.page.reload();
       await homeDashboardPage.verifyThePageIsLoaded();
-      await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(textTileTitle);
+      await homeDashboardPage.verifyingThePageTileSectionIsVisible(textTileTitle);
 
       // Verify tile order persists after refresh
-      await homeDashboardPage.assertions.verifyTileOrder([textTileTitle, sitesTileTitle]);
+      await homeDashboardPage.verifyTileOrder([textTileTitle, sitesTileTitle]);
 
       // Remove tiles via three dots menu
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
+      await homeDashboardPage.clickOnEditDashboardButton();
 
       // Remove Text tile
       await homeDashboardPage.pageTileSectionComponent.clickThreeDotsOnTile(textTileTitle);
       await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
       await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
-      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+      await homeDashboardPage.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
 
       // Remove Sites tile
       await homeDashboardPage.pageTileSectionComponent.clickThreeDotsOnTile(sitesTileTitle);
       await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
       await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
-      await homeDashboardPage.assertions.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+      await homeDashboardPage.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
 
       // Exit edit mode
-      await homeDashboardPage.actions.clickingOnDoneButton();
+      await homeDashboardPage.clickingOnDoneButton();
 
       // Verify tiles are removed
-      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(textTileTitle);
-      await homeDashboardPage.assertions.verifyingThePageTileSectionIsNotVisible(sitesTileTitle);
+      await homeDashboardPage.verifyingThePageTileSectionIsNotVisible(textTileTitle);
+      await homeDashboardPage.verifyingThePageTileSectionIsNotVisible(sitesTileTitle);
     }
   );
 
@@ -245,35 +243,35 @@ test.describe('home Dashboard Tiles', () => {
       const unlistedSiteName = unlistedSiteResult.siteName;
 
       // Navigate to Home tab
-      await appManagerFixture.navigationHelper.clickOnHomeButton();
+      await appManagerFixture.homePage.loadPage();
       await homeDashboardPage.verifyThePageIsLoaded();
 
       // Click settings → Add tile
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickOnAddTileButton();
+      await homeDashboardPage.clickOnEditDashboardButton();
+      await homeDashboardPage.clickOnAddTileButton();
 
       // Select "Sites & Categories" type → "Sites" tab
-      await homeDashboardPage.actions.clickOnSitesCategoriesTileOption();
-      await homeDashboardPage.actions.clickOnSitesTab();
+      await homeDashboardPage.clickOnSitesCategoriesTileOption();
+      await homeDashboardPage.clickOnSitesTab();
 
       // Enter tile name
       const tileName = TestDataGenerator.generateRandomString('Sites Tile');
-      await homeDashboardPage.actions.setSitesTileTitle(tileName);
+      await homeDashboardPage.setSitesTileTitle(tileName);
 
       // Add private and unlisted sites to tile
-      await homeDashboardPage.actions.addSiteToSitesTile(privateSiteName);
-      await homeDashboardPage.actions.addSiteToSitesTile(unlistedSiteName);
+      await homeDashboardPage.addSiteToSitesTile(privateSiteName);
+      await homeDashboardPage.addSiteToSitesTile(unlistedSiteName);
 
       // Set layout as "List"
-      await homeDashboardPage.actions.setSitesTileLayout('list');
+      await homeDashboardPage.setSitesTileLayout('list');
 
       // Click "Add to home" button
-      await homeDashboardPage.actions.clickingOnAddToHomeButton();
-      await homeDashboardPage.assertions.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD);
-      await homeDashboardPage.actions.clickingOnDoneButton();
+      await homeDashboardPage.clickingOnAddToHomeButton();
+      await homeDashboardPage.verifyToastMessage(TILE_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD);
+      await homeDashboardPage.clickingOnDoneButton();
 
       // Verify tile is created on home dashboard
-      await homeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(tileName);
+      await homeDashboardPage.verifyingThePageTileSectionIsVisible(tileName);
 
       // Get the tile ID for cleanup
       const tilesList = await appManagerApiFixture.tileManagementHelper.listTiles('home', null);
@@ -285,21 +283,21 @@ test.describe('home Dashboard Tiles', () => {
       // Login as End User and verify
       await test.step('Verify as End User', async () => {
         // Navigate to Home tab as end user
-        await standardUserFixture.navigationHelper.clickOnHomeButton();
+        await standardUserFixture.navigationHelper.clickOnHomeIconButton();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
         const endUserHomeDashboardPage = new HomeDashboardPage(standardUserFixture.page);
-        await endUserHomeDashboardPage.verifyThePageIsLoaded();
         await endUserHomeDashboardPage.reloadPage();
-
-        await endUserHomeDashboardPage.assertions.verifyingThePageTileSectionIsVisible(tileName);
+        await endUserHomeDashboardPage.verifyThePageIsLoaded();
+        await endUserHomeDashboardPage.verifyingThePageTileSectionIsVisible(tileName);
 
         // Verify private site is visible in Sites tile
-        await endUserHomeDashboardPage.assertions.verifyingSiteIsVisibleInSitesTile(privateSiteName, tileName);
+        await endUserHomeDashboardPage.verifyingSiteIsVisibleInSitesTile(privateSiteName, tileName);
 
         // Verify member icon is NOT visible for private site (non-member)
-        await endUserHomeDashboardPage.assertions.verifyingMemberIconIsNotVisibleForSite(privateSiteName, tileName);
+        await endUserHomeDashboardPage.verifyingMemberIconIsNotVisibleForSite(privateSiteName, tileName);
 
         // Verify unlisted site is NOT visible in Sites tile
-        await endUserHomeDashboardPage.assertions.verifyingSiteIsNotVisibleInSitesTile(unlistedSiteName, tileName);
+        await endUserHomeDashboardPage.verifyingSiteIsNotVisibleInSitesTile(unlistedSiteName, tileName);
       });
     }
   );

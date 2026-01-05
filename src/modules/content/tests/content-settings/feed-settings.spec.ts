@@ -101,7 +101,7 @@ test.describe(
       if (placeholder) {
         //revert the custom placeholder
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.makePlaceholderDefault();
+        await governanceScreenPage.makePlaceholderDefault();
       }
 
       // Reset Timeline & feed setting to default mode
@@ -110,7 +110,7 @@ test.describe(
       governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
 
       await governanceScreenPage.loadPage();
-      await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
+      await governanceScreenPage.selectTimelineFeedSettingsAsDefaultMode();
 
       // Cleanup home feed post
       if (homeFeedPostId) {
@@ -194,34 +194,34 @@ test.describe(
           storyId: 'CONT-26613',
         });
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedDisabled();
+        await governanceScreenPage.clickOnTimelineFeedDisabled();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(appManagerFixture.page);
-        await feedPage.assertions.verifyFeedSectionIsNotVisible();
+        await feedPage.verifyFeedSectionIsNotVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturePage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickOnContent();
-        await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
+        await manageFeaturePage.clickOnContentCard();
+        await manageContentPage.manageContent.clickOnContent();
+        await contentPreviewPage.verifyCommentOptionIsNotVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturePage.actions.clickOnSitesCard();
-        await manageSiteSetUpPage.actions.clickOnSite();
-        await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
+        await manageFeaturePage.clickOnSitesCard();
+        await manageSiteSetUpPage.clickOnSite();
+        await siteDetailsPage.ViewSite();
+        await siteDashboardPage.verifyFeedSectionIsNotVisible();
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+        await governanceScreenPage.clickOnTimelineFeedEnabled();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.verifyFeedSectionIsVisible();
+        await feedPage.verifyFeedSectionIsVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturePage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickOnContent();
-        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await manageFeaturePage.clickOnContentCard();
+        await manageContentPage.manageContent.clickOnContent();
+        await contentPreviewPage.verifyCommentOptionIsVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturePage.actions.clickOnSitesCard();
-        await manageSiteSetUpPage.actions.clickOnSite();
-        await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.assertions.verifyFeedSectionIsVisible();
+        await manageFeaturePage.clickOnSitesCard();
+        await manageSiteSetUpPage.clickOnSite();
+        await siteDetailsPage.ViewSite();
+        await siteDashboardPage.verifyFeedSectionIsVisible();
       }
     );
 
@@ -242,14 +242,14 @@ test.describe(
         const topic = topicList.result.listOfItems[0].name;
         await appManagerFixture.feedManagementHelper.setOneLanguage();
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+        await governanceScreenPage.clickOnTimelineFeedEnabled();
         const customPlaceholder =
           'Share your thoughts @' + userInfo.firstName + ' about #' + topic + ' #' + userInfo.lastName + '#';
-        await governanceScreenPage.actions.updateTheCustomFeedPlaceholder(customPlaceholder);
+        await governanceScreenPage.updateTheCustomFeedPlaceholder(customPlaceholder);
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(appManagerFixture.page);
-        await feedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
+        await feedPage.postEditor.verifyFeedPlaceholderText(customPlaceholder);
         const contentInfo = await appManagerFixture.contentManagementHelper.getContentId();
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         const contentPreviewPage = new ContentPreviewPage(
@@ -261,7 +261,7 @@ test.describe(
         await contentPreviewPage.loadPage();
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
+        await siteDashboardPage.createFeedPostComponent.verifyFeedPlaceholderText(customPlaceholder);
         placeholder = true;
       }
     );
@@ -279,7 +279,7 @@ test.describe(
         });
 
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.makePlaceholderDefault();
+        await governanceScreenPage.makePlaceholderDefault();
 
         const appConfig = await appManagerFixture.feedManagementHelper.getAppConfig();
         const isRecognitionEnabled = appConfig.result?.isRecognitionEnabled || false;
@@ -296,21 +296,23 @@ test.describe(
 
         // Verify placeholder text matches expected based on Recognition flag
         if (isRecognitionEnabled) {
-          await feedPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
+          await feedPage.postEditor.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
         } else {
-          await feedPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
+          await feedPage.postEditor.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
         }
 
         // Also verify on Site Feed
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.clickOnFeedLink();
 
         if (isRecognitionEnabled) {
-          await siteDashboardPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
+          await siteDashboardPage.createFeedPostComponent.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
         } else {
-          await siteDashboardPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
+          await siteDashboardPage.createFeedPostComponent.verifyFeedPlaceholderText(
+            expectedPlaceholderWithoutRecognition
+          );
         }
 
         // Verify on Content Feed
@@ -324,9 +326,13 @@ test.describe(
         await contentPreviewPage.loadPage();
 
         if (isRecognitionEnabled) {
-          await contentPreviewPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithRecognition);
+          await contentPreviewPage.createFeedPostComponent.verifyFeedPlaceholderText(
+            expectedPlaceholderWithRecognition
+          );
         } else {
-          await contentPreviewPage.assertions.verifyFeedPlaceholderText(expectedPlaceholderWithoutRecognition);
+          await contentPreviewPage.createFeedPostComponent.verifyFeedPlaceholderText(
+            expectedPlaceholderWithoutRecognition
+          );
         }
       }
     );
@@ -346,22 +352,22 @@ test.describe(
         // Step 1: Admin configures custom placeholder text
         await appManagerFixture.feedManagementHelper.setOneLanguage();
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+        await governanceScreenPage.clickOnTimelineFeedEnabled();
         const customPlaceholder = 'Share your thoughts ' + TestDataGenerator.generateRandomString('');
-        await governanceScreenPage.actions.updateTheCustomFeedPlaceholder(customPlaceholder);
+        await governanceScreenPage.updateTheCustomFeedPlaceholder(customPlaceholder);
         placeholder = true;
 
         // Step 2: Verify placeholder is displayed before logout
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-        await appManagerFeedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
+        await appManagerFeedPage.postEditor.verifyFeedPlaceholderText(customPlaceholder);
 
         //Verify the place holder text for the standard user
         const standardUserFeedPage = new FeedPage(standardUserFixture.page);
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        await standardUserFeedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
+        await standardUserFeedPage.postEditor.verifyFeedPlaceholderText(customPlaceholder);
 
         // Step 3: Log out
         await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
@@ -378,7 +384,7 @@ test.describe(
 
         // Step 5: Verify placeholder text persists after logout/login
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await appManagerFeedPage.assertions.verifyFeedPlaceholderText(customPlaceholder);
+        await appManagerFeedPage.postEditor.verifyFeedPlaceholderText(customPlaceholder);
       }
     );
 
@@ -396,7 +402,7 @@ test.describe(
 
         // Step 1: Set feed mode to timeline_comment_post
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.clickOnTimelineFeedEnabled();
+        await governanceScreenPage.clickOnTimelineFeedEnabled();
 
         // Step 2: Set languages to 1 or fewer
         await appManagerFixture.feedManagementHelper.setOneLanguage();
@@ -406,10 +412,10 @@ test.describe(
         await governanceScreenPage.verifyThePageIsLoaded();
 
         // Step 4: Verify "Feed placeholder" section is visible
-        await governanceScreenPage.assertions.verifyFeedPlaceholderSettingIsVisible();
+        await governanceScreenPage.verifyFeedPlaceholderSettingIsVisible();
 
         // Step 5: Verify it's positioned below "Timeline & Feed" heading
-        await governanceScreenPage.assertions.verifyFeedPlaceholderPositionedBelowTimelineFeed();
+        await governanceScreenPage.verifyFeedPlaceholderPositionedBelowTimelineFeed();
       }
     );
 
@@ -428,16 +434,16 @@ test.describe(
 
         // ----- Set feed mode to timeline and verify "Feed placeholder" section is not visible -----
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+        await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
 
         // Verify "Feed placeholder" section is not visible
-        await governanceScreenPage.assertions.verifyFeedPlaceholderSettingIsNotVisible();
+        await governanceScreenPage.verifyFeedPlaceholderSettingIsNotVisible();
 
         // ----- Set multiple languages to 2 and verify "Feed placeholder" section is not visible -----
         await appManagerFixture.feedManagementHelper.setMultipleLanguages([1, 2]);
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
-        await governanceScreenPage.assertions.verifyFeedPlaceholderSettingIsNotVisible();
+        await governanceScreenPage.selectTimelineFeedSettingsAsDefaultMode();
+        await governanceScreenPage.verifyFeedPlaceholderSettingIsNotVisible();
       }
     );
 
@@ -499,23 +505,23 @@ test.describe(
 
         // Set Timeline & feed setting to "Timeline"
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+        await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
 
         // Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.reloadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
-        await feedPage.assertions.verifyPostIsNotVisible(homeFeedTestData.text);
-        await feedPage.assertions.verifyShareButtonIsNotVisible();
+        await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+        await feedPage.feedList.verifyPostIsNotVisible(homeFeedTestData.text);
+        await feedPage.feedList.verifyShareButtonIsNotVisible();
 
         // Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
-        await siteDashboardPage.assertions.verifyThePageIsLoadedWithTimelineMode();
-        await siteDashboardPage.assertions.validatePostNotVisible(siteFeedTestData.text);
-        await siteDashboardPage.assertions.verifyShareButtonIsNotVisible();
+        await siteDashboardPage.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
+        await siteDashboardPage.validatePostNotVisible(siteFeedTestData.text);
+        await siteDashboardPage.listFeedComponent.verifyShareButtonIsNotVisible();
 
         // Step 5: Navigate to Content Preview Page and verify post is not visible and share button is NOT visible
         contentPreviewPage = new ContentPreviewPage(
@@ -525,11 +531,11 @@ test.describe(
           ContentType.PAGE.toLowerCase()
         );
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-        await contentPreviewPage.assertions.verifyThePageIsLoadedWithTimelineModeOnContentPage();
-        await contentPreviewPage.assertions.verifyPostIsNotVisible(contentFeedTestData.text);
-        await contentPreviewPage.assertions.verifyShareButtonIsNotVisible();
+        await contentPreviewPage.verifyThePageIsLoadedWithTimelineModeOnContentPage();
+        await contentPreviewPage.listFeedComponent.verifyPostIsNotVisible(contentFeedTestData.text);
+        await contentPreviewPage.listFeedComponent.verifyShareButtonIsNotVisible();
         // Verify content share button is visible on content preview page
-        await contentPreviewPage.assertions.verifyContentShareButtonIsVisible();
+        await contentPreviewPage.verifyContentShareButtonIsVisible();
       }
     );
 
@@ -591,21 +597,21 @@ test.describe(
 
         // Set Timeline & feed setting to "Timeline and comments on Content"
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
+        await governanceScreenPage.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
 
         //  Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
-        await feedPage.assertions.verifyPostIsNotVisible(homeFeedTestData.text);
-        await feedPage.assertions.verifyShareButtonIsNotVisible();
+        await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+        await feedPage.feedList.verifyPostIsNotVisible(homeFeedTestData.text);
+        await feedPage.feedList.verifyShareButtonIsNotVisible();
 
         // Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
-        await siteDashboardPage.assertions.validatePostNotVisible(siteFeedTestData.text);
-        await siteDashboardPage.assertions.verifyShareButtonIsNotVisible();
+        await siteDashboardPage.validatePostNotVisible(siteFeedTestData.text);
+        await siteDashboardPage.listFeedComponent.verifyShareButtonIsNotVisible();
 
         // Navigate to Content Preview Page and verify post is not visible and share button is NOT visible
         contentPreviewPage = new ContentPreviewPage(
@@ -615,11 +621,11 @@ test.describe(
           ContentType.PAGE.toLowerCase()
         );
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-        await contentPreviewPage.assertions.verifyThePageIsLoadedWithTimelineModeOnContentPage();
-        await contentPreviewPage.assertions.waitForPostToBeVisible(contentFeedTestData.text);
-        await contentPreviewPage.assertions.verifyShareButtonIsNotVisible();
+        await contentPreviewPage.verifyThePageIsLoadedWithTimelineModeOnContentPage();
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(contentFeedTestData.text);
+        await contentPreviewPage.listFeedComponent.verifyShareButtonIsNotVisible();
         // Verify content share button is visible on content preview page
-        await contentPreviewPage.assertions.verifyContentShareButtonIsVisible();
+        await contentPreviewPage.verifyContentShareButtonIsVisible();
       }
     );
 
@@ -638,18 +644,18 @@ test.describe(
 
         // Set Timeline & feed setting to "Timeline" (already done in beforeEach, but ensuring it's set)
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+        await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
 
         // Navigate to Home Feed
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+        await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
         // Verify "Share your thoughts" is not displayed
-        await feedPage.assertions.verifyFeedSectionIsNotVisible();
+        await feedPage.verifyFeedSectionIsNotVisible();
 
         // Verify "Add Reaction" icon should not be visible
-        await feedPage.assertions.verifyReactionButtonIsNotVisible();
+        await feedPage.feedList.verifyReactionButtonIsNotVisible();
       }
     );
 
@@ -693,35 +699,35 @@ test.describe(
         await contentPreviewPage.verifyThePageIsLoaded();
 
         // Click "Share your thoughts" button
-        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
-        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.verifyCommentOptionIsVisible();
+        await contentPreviewPage.clickShareThoughtsButton();
 
         // Create a comment/post using CreateFeedPostComponent
         commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
         const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-        await createFeedPostComponent.actions.createPost(commentText);
-        await createFeedPostComponent.actions.clickPostButton();
+        await createFeedPostComponent.createPost(commentText);
+        await createFeedPostComponent.clickPostButton();
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page again' });
 
         // Verify comment is visible
-        await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
 
         // Set Timeline & feed setting to "Timeline and Comments on Content"
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
+        await governanceScreenPage.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
 
         // Navigate to home page and click Global Feed
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.reloadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+        await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
         // Verify "Share your thoughts" is not displayed
-        await feedPage.assertions.verifyFeedSectionIsNotVisible();
+        await feedPage.verifyFeedSectionIsNotVisible();
 
-        await feedPage.assertions.validatePostText(commentText);
+        await feedPage.feedList.validatePostText(commentText);
 
-        await feedPage.assertions.verifyReactionButtonIsVisible();
+        await feedPage.feedList.verifyReactionButtonIsVisible();
 
         // Navigate back to content preview page
         contentPreviewPage = new ContentPreviewPage(
@@ -731,13 +737,13 @@ test.describe(
           ContentType.PAGE.toLowerCase()
         );
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page again' });
-        await contentPreviewPage.assertions.verifyThePageIsLoadedWithTimelineModeOnContentPage();
+        await contentPreviewPage.verifyThePageIsLoadedWithTimelineModeOnContentPage();
 
         // Verify comment is still visible
-        await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
 
         // Verify "Add Reaction" button is visible for the comment
-        await contentPreviewPage.assertions.verifyReactionButtonIsVisible();
+        await contentPreviewPage.listFeedComponent.verifyReactionButtonIsVisible();
       }
     );
 
@@ -756,7 +762,7 @@ test.describe(
 
         // Set Timeline & feed setting to "Default Mode" (Timeline, Comments on Content, and Feed Post)
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
+        await governanceScreenPage.selectTimelineFeedSettingsAsDefaultMode();
 
         // Create a feed post via API (in default mode, posts can be created)
         const feedPostTestData = TestDataGenerator.generateFeed({
@@ -772,20 +778,20 @@ test.describe(
         // Navigate to Home Feed and verify feed post is visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.waitForPostToBeVisible(feedPostText);
+        await feedPage.feedList.waitForPostToBeVisible(feedPostText);
 
         // Verify "Add Reaction" button is visible for the feed post
-        await feedPage.assertions.verifyReactionButtonIsVisible();
+        await feedPage.feedList.verifyReactionButtonIsVisible();
 
         // Add a reply to the feed post
         feedReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-        await feedPage.actions.addReplyToPost(feedReplyText, homeFeedPostId);
+        await feedPage.feedList.addReplyToPost(feedReplyText, homeFeedPostId);
 
         // Verify reply is visible
-        await feedPage.assertions.verifyReplyIsVisible(feedReplyText);
+        await feedPage.feedList.verifyReplyIsVisible(feedReplyText);
 
         // Verify "Add Reaction" button is visible for the feed reply
-        await feedPage.assertions.verifyReactionButtonIsVisibleForReply();
+        await feedPage.feedList.verifyReactionButtonIsVisibleForReply();
 
         // Create content (page) via API helper
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
@@ -814,28 +820,28 @@ test.describe(
         await contentPreviewPage.verifyThePageIsLoaded();
 
         // Click "Share your thoughts" button and create a comment
-        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
-        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.verifyCommentOptionIsVisible();
+        await contentPreviewPage.clickShareThoughtsButton();
 
         commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
         const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-        const commentResponse = await createFeedPostComponent.actions.createAndPost({ text: commentText });
+        const commentResponse = await createFeedPostComponent.createAndPost({ text: commentText });
 
         // Verify comment is visible
-        await contentPreviewPage.assertions.waitForPostToBeVisible(commentResponse.postText);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentResponse.postText);
 
         // Verify "Add Reaction" button is visible for the content comment
-        await contentPreviewPage.assertions.verifyReactionButtonIsVisible();
+        await contentPreviewPage.listFeedComponent.verifyReactionButtonIsVisible();
 
         // Add a reply to the content comment
         commentReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-        await contentPreviewPage.actions.addReplyToComment(commentReplyText, commentResponse.postId as string);
+        await contentPreviewPage.addReplyToComment(commentReplyText, commentResponse.postId as string);
 
         // Verify comment reply is visible
-        await contentPreviewPage.assertions.verifyReplyIsVisible(commentReplyText);
+        await contentPreviewPage.listFeedComponent.verifyReplyIsVisible(commentReplyText);
 
         // Verify "Add Reaction" button is visible for the comment reply
-        await contentPreviewPage.assertions.verifyReactionButtonIsVisibleForReply();
+        await contentPreviewPage.listFeedComponent.verifyReactionButtonIsVisibleForReply();
       }
     );
 
@@ -883,36 +889,36 @@ test.describe(
 
         //  Set Timeline option under "Timeline & feed" section
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+        await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
 
         // Verify Home-Global Feed
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-        await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+        await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
         // Verify "Share your thoughts or question" is not displayed
-        await feedPage.assertions.verifyFeedSectionIsNotVisible();
+        await feedPage.verifyFeedSectionIsNotVisible();
 
         // Verify Content Comment icon is not visible on Timeline
-        await feedPage.assertions.verifyCommentIconIsNotVisible();
+        await feedPage.feedList.verifyCommentIconIsNotVisible();
 
         // Verify smart feed blocks are displayed
-        await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.TOP_PICKS);
-        await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
-        await feedPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
+        await feedPage.feedList.verifySmartFeedBlockIsVisible(SmartFeedBlock.TOP_PICKS);
+        await feedPage.feedList.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
+        await feedPage.feedList.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
 
         // Click on "feed" link
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, setupSiteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.clickOnFeedLink();
 
         // Verify "Share your thoughts or question" is not displayed
-        await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
+        await siteDashboardPage.verifyFeedSectionIsNotVisible();
 
         // Verify smart feed blocks are displayed
-        await siteDashboardPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.POPULAR_CONTENT);
-        await siteDashboardPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
-        await siteDashboardPage.assertions.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
+        await siteDashboardPage.listFeedComponent.verifySmartFeedBlockIsVisible(SmartFeedBlock.POPULAR_CONTENT);
+        await siteDashboardPage.listFeedComponent.verifySmartFeedBlockIsVisible(SmartFeedBlock.UPCOMING_EVENTS);
+        await siteDashboardPage.listFeedComponent.verifySmartFeedBlockIsVisible(SmartFeedBlock.CELEBRATION);
 
         // Get first available content and navigate to content detail page
         const contentInfo = await appManagerFixture.contentManagementHelper.getContentId();
@@ -925,7 +931,7 @@ test.describe(
         await contentPreviewPage.loadPage();
 
         // Verify comment icon on the detail page is not visible
-        await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
+        await contentPreviewPage.verifyCommentOptionIsNotVisible();
       }
     );
 
@@ -987,9 +993,9 @@ test.describe(
             });
 
             const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
-            await appManagerProfileScreenPage.actions.clickEditAbout();
-            await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
-            await appManagerProfileScreenPage.actions.saveProfileChanges();
+            await appManagerProfileScreenPage.clickEditAbout();
+            await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
+            await appManagerProfileScreenPage.saveProfileChanges();
           }
 
           // Create a page on the site
@@ -1016,85 +1022,85 @@ test.describe(
           await contentPreviewPage.verifyThePageIsLoaded();
 
           // Click Share your thoughts button and create a comment
-          await contentPreviewPage.actions.clickShareThoughtsButton();
+          await contentPreviewPage.clickShareThoughtsButton();
           commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
           const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-          const commentResponse = await createFeedPostComponent.actions.createAndPost({ text: commentText });
+          const commentResponse = await createFeedPostComponent.createAndPost({ text: commentText });
           commentPostId = commentResponse.postId as string;
 
           // Verify comment is created
-          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
         });
         await test.step('Set feed setting as timeline and commentsOnContent', async () => {
           await governanceScreenPage.loadPage();
-          await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
+          await governanceScreenPage.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
         });
 
         await test.step('Home Feed: Verify governance setting, smart blocks, comment visibility, and reply functionality', async () => {
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-          await feedPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+          await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify "Share your thoughts" is NOT displayed
-          await feedPage.assertions.verifyFeedSectionIsNotVisible();
+          await feedPage.verifyFeedSectionIsNotVisible();
 
           // Verify smart feed blocks are displayed
-          await feedPage.assertions.verifyTopPicksBlockIsVisible();
-          await feedPage.assertions.verifyUpcomingEventsBlockIsVisible();
-          await feedPage.assertions.verifyCelebrationBlockIsVisible();
+          await feedPage.verifyTopPicksBlockIsVisible();
+          await feedPage.verifyUpcomingEventsBlockIsVisible();
+          await feedPage.verifyCelebrationBlockIsVisible();
 
           // Verify the created comment is displayed
-          await feedPage.assertions.validatePostText(commentText);
+          await feedPage.feedList.validatePostText(commentText);
 
           // Click on Reply button of the comment (this should redirect to post detail page)
 
-          await feedPage.actions.clickReplyOnContentComment(commentText);
+          await feedPage.feedList.clickReplyOnContentComment(commentText);
 
-          await feedPage.assertions.validatePostText(commentText);
+          await feedPage.feedList.validatePostText(commentText);
 
-          await feedPage.actions.openReplyEditorForPost(commentText);
+          await feedPage.feedList.openReplyEditorForPost(commentText);
 
           // Create a reply
           replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-          await feedPage.actions.addReplyToPost(replyText, commentPostId);
+          await feedPage.feedList.addReplyToPost(replyText, commentPostId);
 
           // Verify reply is visible
-          await feedPage.assertions.verifyReplyIsVisible(replyText);
+          await feedPage.feedList.verifyReplyIsVisible(replyText);
         });
 
         await test.step('Site Feed: Verify governance setting, smart blocks, comment visibility, and reply functionality', async () => {
           siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.actions.clickOnFeedLink();
-          await siteDashboardPage.assertions.verifyThePageIsLoadedWithTimelineMode();
+          await siteDashboardPage.clickOnFeedLink();
+          await siteDashboardPage.listFeedComponent.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify "Share your thoughts" is NOT displayed
-          await siteDashboardPage.assertions.verifyFeedSectionIsNotVisible();
+          await siteDashboardPage.verifyFeedSectionIsNotVisible();
 
           // Verify smart feed blocks are displayed
-          await siteDashboardPage.assertions.verifyPopularContentBlockIsVisible();
-          await siteDashboardPage.assertions.verifyRecentlyPublishedBlockIsVisible();
-          await siteDashboardPage.assertions.verifyUpcomingEventsBlockIsVisible();
-          await siteDashboardPage.assertions.verifyCelebrationBlockIsVisible();
+          await siteDashboardPage.verifyPopularContentBlockIsVisible();
+          await siteDashboardPage.verifyRecentlyPublishedBlockIsVisible();
+          await siteDashboardPage.verifyUpcomingEventsBlockIsVisible();
+          await siteDashboardPage.verifyCelebrationBlockIsVisible();
 
           // Verify the created comment is displayed
           const siteFeedPage = new FeedPage(appManagerFixture.page);
-          await siteFeedPage.assertions.validatePostText(commentText);
+          await siteFeedPage.feedList.validatePostText(commentText);
 
           // Click on Reply button of the comment (this should redirect to post detail page)
-          await siteFeedPage.actions.clickReplyOnContentComment(commentText);
+          await siteFeedPage.feedList.clickReplyOnContentComment(commentText);
 
-          await siteFeedPage.assertions.validatePostText(commentText);
+          await siteFeedPage.feedList.validatePostText(commentText);
 
           // Click on "Leave a reply" button on the detail page
-          await siteFeedPage.actions.openReplyEditorForPost(commentText);
+          await siteFeedPage.feedList.openReplyEditorForPost(commentText);
 
           // Create a reply
           const siteReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-          await siteFeedPage.actions.addReplyToPost(siteReplyText, commentPostId);
+          await siteFeedPage.feedList.addReplyToPost(siteReplyText, commentPostId);
 
           // Verify reply is visible
-          await siteFeedPage.assertions.verifyReplyIsVisible(siteReplyText);
+          await siteFeedPage.feedList.verifyReplyIsVisible(siteReplyText);
         });
 
         await test.step('Content Feed: Verify Share Your Thoughts is visible and user can create feed post', async () => {
@@ -1107,16 +1113,16 @@ test.describe(
           await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
           await contentPreviewPage.verifyThePageIsLoaded();
 
-          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+          await contentPreviewPage.verifyCommentOptionIsVisible();
 
-          await contentPreviewPage.actions.clickShareThoughtsButton();
+          await contentPreviewPage.clickShareThoughtsButton();
           const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
           const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-          await createFeedPostComponent.actions.createPost(commentText);
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.createPost(commentText);
+          await createFeedPostComponent.clickPostButton();
 
           // Verify the feed post is created
-          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
         });
 
         // Cleanup

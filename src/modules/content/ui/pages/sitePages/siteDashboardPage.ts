@@ -78,7 +78,7 @@ export interface ISiteDashboardAssertions {
   verifyToastMessage(message: string): Promise<void>;
 }
 
-export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
+export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions, ISiteDashboardActions {
   // Locators for site and category verification
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
@@ -99,16 +99,11 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
+  readonly createFeedPostComponent: CreateFeedPostComponent;
+  readonly createQuestionComponent: CreateQuestionComponent;
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
   private addTileComponent: AddTileComponent;
-  private createQuestionComponent: CreateQuestionComponent;
-  private createFeedPostComponent: CreateFeedPostComponent;
-  // Actions
-  get actions(): ISiteDashboardActions {
-    return this;
-  }
-
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.listFeedComponent = new ListFeedComponent(page);
@@ -162,14 +157,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
-  // Assertions
-  get assertions(): ISiteDashboardAssertions {
-    return this;
-  }
-
-  /**
-   * Verifies that the site dashboard page is loaded
-   */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');

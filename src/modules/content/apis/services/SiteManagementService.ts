@@ -321,7 +321,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         {
           message: `Video file "${fileName}" to appear in search results for site ${siteId}`,
         }
-      ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
+      ).toPass({ intervals: [10_000, 20_000, 40_000, 60_000], timeout: 60_000 });
     });
     log.debug('fileID', { fileId: file.item.fileId });
     return { fileId: file.item.fileId, authorName: file.item.owner.name };
@@ -653,7 +653,9 @@ export class SiteManagementService implements ISiteManagementOperations {
       const responseBody = await response.json();
 
       if (!response.ok()) {
-        throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
+        throw new Error(
+          `Failed to get site details for ${siteId}. Status: ${response.status()} and body: ${JSON.stringify(responseBody)}`
+        );
       }
 
       return responseBody;

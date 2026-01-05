@@ -6,71 +6,7 @@ import { ManageSitesComponent } from '@/src/modules/content/ui/components/manage
 import { SubscriptionComponent } from '@/src/modules/content/ui/components/subscriptionComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
-export interface IManageSiteSetUpActions {
-  // Old methods from ManageSitesComponent
-  clickOnSite: () => Promise<void>;
-  clickOnAboutTab: () => Promise<void>;
-  clickOnTheMembersTab: () => Promise<void>;
-  hoverOnMembersName: (membersName: string) => Promise<void>;
-  clickOnTheFavouriteTabs: () => Promise<void>;
-  markAsUnfavorite: (membersName: string) => Promise<void>;
-  clickOnTheMemberButtonInAboutTab: () => Promise<void>;
-  clickOnTheAboutTab: () => Promise<void>;
-  clickOnTheManageSiteButton: () => Promise<void>;
-  clickOnThePeopleTab: () => Promise<void>;
-  clickOnThePageCategoryButton: () => Promise<void>;
-  clickOnThePageTemplateTab: () => Promise<void>;
-  searchEventInSearchBar: (eventName: string) => Promise<void>;
-  clickOntheMemberButton: () => Promise<void>;
-  clickOnInsideContentButton: () => Promise<void>;
-  // Follow/Unfollow methods
-  clickOnAboutTabAction: () => Promise<void>;
-  clickOnTheFollowersTabButtonInAboutTab: () => Promise<void>;
-  clickOnFollowButton: () => Promise<void>;
-  clickOnFollowSiteButton: () => Promise<void>;
-  clickOnFollowingButton: () => Promise<void>;
-  clickOnUnfollowSiteButton: () => Promise<void>;
-  clickOnRequestMembershipButton: () => Promise<string>;
-  // New methods from develop
-  clickOnUpdateCategory: () => Promise<void>;
-  clickOnCancelOption: () => Promise<void>;
-  clickOnSites: () => Promise<void>;
-  updatingCategoryToUncategorized: (categoryName: string) => Promise<void>;
-  searchForSite: (siteName: string) => Promise<void>;
-  selectSite: () => Promise<void>;
-  clickOnSubscriptionButton: () => Promise<void>;
-  clickThreeDotsMenuForTemplate: (templateName: string) => Promise<void>;
-  clickOnEditButton: () => Promise<void>;
-}
-
-export interface IManageSiteSetUpAssertions {
-  // Old methods from ManageSitesComponent
-  checkIsUserMarkedAsFavorite: () => Promise<void>;
-  clickOnPeppleTab: () => Promise<void>;
-  verifyEventsTabMatchesApiDate: (startsAt: string) => Promise<void>;
-  checkAuthorNameIsDisplayed: (authorName: string) => Promise<void>;
-  checkTheError: () => Promise<void>;
-  markAsFavoriteAndCheckRGBColor: (membersName: string) => Promise<void>;
-  checkMarkedAsFavoriteInPeopleList: (membersName: string) => Promise<void>;
-  checkMarkedAsFavoriteInPeopleListShouldNotBeVisible: (membersName: string) => Promise<void>;
-  clickOnLeaveButton: () => Promise<void>;
-  verifyEventsTabImageIsDisplayed: () => Promise<void>;
-  verifyAlbumTabImageIsDisplayed: () => Promise<void>;
-  verifyPageTabImageIsDisplayed: () => Promise<void>;
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifySitesNamesAreDisplayed: (siteNames: string | string[]) => Promise<void>;
-  searchSiteNameInSearchBar: (siteName: string) => Promise<void>;
-  // Follow/Unfollow assertions
-  checkMembersNameShouldBeVisibleInFollowersTab: (membersName: string) => Promise<void>;
-  checkMembersNameShouldNotBeVisibleInFollowersTab: (membersName: string) => Promise<void>;
-  verifyFollowButtonShouldBeChangedIntoFollowing: () => Promise<void>;
-  verifyUnfollowButtonShouldBeChangedIntoFollowButton: () => Promise<void>;
-  verifyMemberButtonShouldBeVisible: () => Promise<void>;
-  verifyMemberNameAndSiteOwnerStatus: (membersName: string) => Promise<void>;
-  verifyAddSubscriptionPageIsLoaded: () => Promise<void>;
-}
-
-export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpActions, IManageSiteSetUpAssertions {
+export class ManageSiteSetUpPage extends BasePage {
   readonly contentTab = this.page.locator(
     'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
   );
@@ -97,17 +33,7 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
     await this.verifier.verifyTheElementIsVisible(this.manageSitesComponent.contentTab, {
       assertionMessage: 'Content tab should be visible on manage site page',
     });
-  }
-
-  get actions(): IManageSiteSetUpActions {
-    return this;
-  }
-
-  get assertions(): IManageSiteSetUpAssertions {
-    return this;
-  }
-
-  // OLD METHODS - from ManageSitesComponent
+  } // OLD METHODS - from ManageSitesComponent
   async clickOnSite(): Promise<void> {
     await this.manageSitesComponent.clickOnSiteAction();
   }
@@ -340,6 +266,6 @@ export class ManageSiteSetUpPage extends BasePage implements IManageSiteSetUpAct
 
   // Subscription assertions
   async verifyAddSubscriptionPageIsLoaded(): Promise<void> {
-    await this.subscriptionComponent.assertions.verifyAddSubscriptionPageIsLoaded();
+    await this.subscriptionComponent.verifyAddSubscriptionPageIsLoaded();
   }
 }

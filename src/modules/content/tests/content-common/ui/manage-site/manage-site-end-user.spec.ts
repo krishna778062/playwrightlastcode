@@ -65,8 +65,8 @@ test.describe(
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, publicSite.siteId);
         await newSiteDashboard.loadPage();
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, publicSite.siteId);
-        await manageSiteStandardUserPage.actions.clickOntheMemberButton();
-        await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
+        await manageSiteStandardUserPage.clickOntheMemberButton();
+        await manageSiteStandardUserPage.clickOnLeaveButton();
       }
     );
 
@@ -117,18 +117,14 @@ test.describe(
             contentDescription: randDomDescription,
           },
         });
-        await manageSiteStandardUserPage.actions.clickOnTheManageSiteButton();
-        await manageSiteStandardUserPage.assertions.verifyEventsTabImageIsDisplayed();
-        await manageSiteStandardUserPage.assertions.verifyAlbumTabImageIsDisplayed();
-        await manageSiteStandardUserPage.assertions.verifyPageTabImageIsDisplayed();
+        await manageSiteStandardUserPage.clickOnTheManageSiteButton();
+        await manageSiteStandardUserPage.verifyEventsTabImageIsDisplayed();
+        await manageSiteStandardUserPage.verifyAlbumTabImageIsDisplayed();
+        await manageSiteStandardUserPage.verifyPageTabImageIsDisplayed();
         const siteAuthorNameAndEventStartDate =
           await appManagerApiFixture.siteManagementHelper.getSiteAuthorNameAndEventStartDate();
-        await manageSiteStandardUserPage.assertions.checkAuthorNameIsDisplayed(
-          siteAuthorNameAndEventStartDate.authorName || ''
-        );
-        await manageSiteStandardUserPage.assertions.verifyEventsTabMatchesApiDate(
-          siteAuthorNameAndEventStartDate.startsAt || ''
-        );
+        await manageSiteStandardUserPage.checkAuthorNameIsDisplayed(siteAuthorNameAndEventStartDate.authorName || '');
+        await manageSiteStandardUserPage.verifyEventsTabMatchesApiDate(siteAuthorNameAndEventStartDate.startsAt || '');
 
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: siteInfo.siteId,
@@ -208,8 +204,8 @@ test.describe(
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
         await newSiteDashboard.loadPage();
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, privateSiteId);
-        await manageSiteStandardUserPage.actions.clickOntheMemberButton();
-        await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
+        await manageSiteStandardUserPage.clickOntheMemberButton();
+        await manageSiteStandardUserPage.clickOnLeaveButton();
       }
     );
 
@@ -238,8 +234,8 @@ test.describe(
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, unlistedSite.siteId);
         await newSiteDashboard.loadPage();
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, unlistedSite.siteId);
-        await manageSiteStandardUserPage.actions.clickOntheMemberButton();
-        await manageSiteStandardUserPage.assertions.clickOnLeaveButton();
+        await manageSiteStandardUserPage.clickOntheMemberButton();
+        await manageSiteStandardUserPage.clickOnLeaveButton();
       }
     );
 
@@ -286,19 +282,17 @@ test.describe(
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
         await newSiteDashboard.loadPage();
+        await newSiteDashboard.verifyThePageIsLoaded();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
-        await manageContentPage.actions.clickSortByButton();
-        await newSiteDashboard.assertions.verifyThePageIsLoaded();
-        const contentNames = await manageContentPage.actions.getAllContentNames();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.manageContent.clickSortByButton();
+        await newSiteDashboard.verifyThePageIsLoaded();
+        const contentNames = await manageContentPage.manageContent.getAllContentNames();
         console.log('contentNames', contentNames);
         await manageSitesComponent.searchContentInManageSite(contentNames[0]);
-        await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
-        await standardUserFixture.page.reload();
-        await manageSitesComponent.searchContentInManageSite(contentNames[0]);
-        await manageContentPage.actions.verifyContentVisibleInManageSite(contentNames[0]);
+        await manageContentPage.manageContent.verifyContentVisibleInManageSite(contentNames[0]);
       }
     );
 
@@ -314,7 +308,7 @@ test.describe(
           storyId: 'CONT-41421',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
         });
@@ -326,9 +320,9 @@ test.describe(
           throw new Error('No sites found in the response');
         }
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
-        await manageSiteStandardUserPage.assertions.searchSiteNameInSearchBar(siteNames[0]);
+        await manageSiteStandardUserPage.searchSiteNameInSearchBar(siteNames[0]);
         const siteDashBoardPage = new SiteDashboardPage(standardUserFixture.page, firstSiteId);
-        await siteDashBoardPage.assertions.verifySiteNameIsDisplayed(siteNames[0]);
+        await siteDashBoardPage.verifySiteNameIsDisplayed(siteNames[0]);
       }
     );
     test(
@@ -373,18 +367,18 @@ test.describe(
         const siteManager = new SiteManager(standardUserFixture.page, siteId);
         await siteManager.loadSite();
         const manageSitePage = new ManageSitePage(standardUserFixture.page);
-        await manageSitePage.actions.clickOnSiteTab(SitePageTab.FilesTab);
-        await manageSitePage.assertions.verifyFileIsPresentInTheSiteFilesList(fileDetails.fileInfo.title);
-        await manageSitePage.actions.clickOnFileOption(fileDetails.fileInfo.title);
-        await manageSitePage.actions.clickOnEditOption();
+        await manageSitePage.clickOnSiteTab(SitePageTab.FilesTab);
+        await manageSitePage.verifyFileIsPresentInTheSiteFilesList(fileDetails.fileInfo.title);
+        await manageSitePage.clickOnFileOption(fileDetails.fileInfo.title);
+        await manageSitePage.clickOnEditOption();
         const editFileComponent = new EditFileComponent(standardUserFixture.page);
-        await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(245));
-        await editFileComponent.assertions.verifyFileDescriptionIsFilledCount(245);
-        await editFileComponent.actions.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(250));
-        await editFileComponent.assertions.verifyFileDescriptionIsFilledCount(250);
-        await editFileComponent.actions.clickOnUpdateButton();
-        await manageSitePage.actions.clickOnEditOption();
-        await editFileComponent.assertions.verifyInputBoxHasValueOf(250);
+        await editFileComponent.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(245));
+        await editFileComponent.verifyFileDescriptionIsFilledCount(245);
+        await editFileComponent.fillFileDescription(MANAGE_SITE_TEST_DATA.FILE_DESCRIPTION.DESCRIPTION(250));
+        await editFileComponent.verifyFileDescriptionIsFilledCount(250);
+        await editFileComponent.clickOnUpdateButton();
+        await manageSitePage.clickOnEditOption();
+        await editFileComponent.verifyInputBoxHasValueOf(250);
       }
     );
     test(
@@ -399,7 +393,7 @@ test.describe(
           storyId: 'CONT-26503',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
 
         manageSitesComponent = new ManageSitesComponent(standardUserFixture.page);
         const editSitePage = new EditSitePage(standardUserFixture.page);
@@ -456,7 +450,7 @@ test.describe(
                 `Site "${selectedSite.name}" not found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
               );
               try {
-                await manageSitePage.actions.clickOnShowMoreButtonAction();
+                await manageSitePage.clickOnShowMoreButtonAction();
               } catch {
                 console.log('Show More button not available or clickable');
                 // Continue to next attempt
@@ -469,10 +463,10 @@ test.describe(
           }
         }
 
-        await editSitePage.actions.clickOnEditOption();
-        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
-        await editSitePage.actions.clickOnUpdateButton();
-        await editSitePage.assertions.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.clickOnEditOption();
+        await editSitePage.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.clickOnUpdateButton();
+        await editSitePage.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
       }
     );
     test(
@@ -529,7 +523,7 @@ test.describe(
           storyId: 'CONT-26576',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const manageSitePage = new ManageSitePage(standardUserFixture.page);
         await manageSitePage.loadPage();
 
@@ -540,43 +534,17 @@ test.describe(
           filter: 'deactivated',
         });
 
-        // Check each deactivated site's details to find one where user has canEdit=true and isOwner=true
-        const sitesWithEditAndOwner: { siteId: string; name: string }[] = [];
-        for (const site of getListOfSitesResponse.result.listOfItems.slice(0, 20)) {
-          // Limit to first 20 sites to avoid too many API calls
-          try {
-            const siteDetails = await standardUserApiFixture.siteManagementHelper.siteManagementService.getSiteDetails(
-              site.siteId
-            );
-            console.log(
-              `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
-            );
+        // Find a deactivated site where user is manager and owner
+        const sitesWithManagerAndOwner = getListOfSitesResponse.result.listOfItems.filter(
+          (site: any) => site.isManager === true && site.isOwner === true
+        );
 
-            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
-              sitesWithEditAndOwner.push({ siteId: site.siteId, name: site.name });
-              console.log(`✓ Found deactivated site where user can edit and is owner: ${site.siteId} (${site.name})`);
-            }
-          } catch (error) {
-            console.log(
-              `⚠ Skipping site ${site.siteId} (${site.name}) - failed to get site details: ${error instanceof Error ? error.message : String(error)}`
-            );
-            // Continue to next site
-          }
+        if (sitesWithManagerAndOwner.length === 0) {
+          throw new Error('No deactivated sites found where user is both manager and owner');
         }
 
-        console.log('sitesWithEditAndOwner', sitesWithEditAndOwner);
-        console.log('Total sites with canEdit=true and isOwner=true:', sitesWithEditAndOwner.length);
-        if (sitesWithEditAndOwner.length === 0) {
-          throw new Error('No deactivated sites found with canEdit=true and isOwner=true');
-        }
-
-        // Limit to first 20 sites to avoid pagination issues
-        const deactivatedSiteNames = sitesWithEditAndOwner.map((item: any) => item.name);
-
+        const deactivatedSiteNames = sitesWithManagerAndOwner.map((site: any) => site.name);
         console.log('deactivatedSiteNames', deactivatedSiteNames);
-        if (deactivatedSiteNames.length === 0) {
-          throw new Error('No deactivated sites found in the response');
-        }
 
         // Retry logic: Click "Show More" button if site is not found
         let selectedSiteName: string | null = null;
@@ -592,7 +560,7 @@ test.describe(
               `No enabled checkbox found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
             );
             try {
-              await manageSitePage.actions.clickOnShowMoreButtonAction();
+              await manageSitePage.clickOnShowMoreButtonAction();
             } catch {
               console.log('Show More button not available or clickable');
               // Continue to next attempt
@@ -605,9 +573,9 @@ test.describe(
             'No deactivated site with enabled checkbox found. All sites may be disabled due to permissions or state.'
           );
         }
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnActivateButton();
-        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.clickOnActivateButton();
+        await manageContentPage.manageContent.clickOnActivateApplyButton();
         await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
         await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
         const getSiteListResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
@@ -647,7 +615,7 @@ test.describe(
           storyId: 'CONT-26574',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const getListOfSitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',
@@ -703,7 +671,7 @@ test.describe(
                 `Site checkbox "${selectedSite.name}" not found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
               );
               try {
-                await manageSitePage.actions.clickOnShowMoreButtonAction();
+                await manageSitePage.clickOnShowMoreButtonAction();
               } catch {
                 console.log('Show More button not available or clickable');
                 // Continue to next attempt
@@ -715,11 +683,11 @@ test.describe(
             }
           }
         }
-        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.manageContent.selectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
-        await manageContentPage.actions.clickOnApply();
+        await manageContentPage.manageContent.clickOnApply();
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
-        await manageSiteStandardUserPage.actions.updatingCategoryToUncategorized('Uncategorized');
+        await manageSiteStandardUserPage.updatingCategoryToUncategorized('Uncategorized');
       }
     );
     test(
@@ -740,26 +708,26 @@ test.describe(
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, newsiteInfo.siteId);
         await siteDashboardPage.loadPage();
         const manageSiteSetUpPage = new ManageSiteSetUpPage(standardUserFixture.page, newsiteInfo.siteId);
-        await manageSiteSetUpPage.actions.clickOnFollowButton();
-        await manageSiteSetUpPage.actions.clickOnFollowSiteButton();
-        await manageSiteSetUpPage.assertions.verifyFollowButtonShouldBeChangedIntoFollowing();
-        await manageSiteSetUpPage.actions.clickOnAboutTabAction();
-        await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
+        await manageSiteSetUpPage.clickOnFollowButton();
+        await manageSiteSetUpPage.clickOnFollowSiteButton();
+        await manageSiteSetUpPage.verifyFollowButtonShouldBeChangedIntoFollowing();
+        await manageSiteSetUpPage.clickOnAboutTabAction();
+        await manageSiteSetUpPage.clickOnTheFollowersTabButtonInAboutTab();
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-        await manageSiteSetUpPage.assertions.checkMembersNameShouldBeVisibleInFollowersTab(userInfo.fullName);
-        await manageSiteSetUpPage.actions.clickOnFollowingButton();
-        await manageSiteSetUpPage.actions.clickOnUnfollowSiteButton();
-        await manageSiteSetUpPage.assertions.verifyUnfollowButtonShouldBeChangedIntoFollowButton();
-        await manageSiteSetUpPage.actions.clickOnAboutTabAction();
-        await manageSiteSetUpPage.actions.clickOnTheFollowersTabButtonInAboutTab();
-        await manageSiteSetUpPage.assertions.checkMembersNameShouldNotBeVisibleInFollowersTab(userInfo.fullName);
-        await manageSiteSetUpPage.actions.clickOnFollowButton();
-        const requestId = await manageSiteSetUpPage.actions.clickOnRequestMembershipButton();
+        await manageSiteSetUpPage.checkMembersNameShouldBeVisibleInFollowersTab(userInfo.fullName);
+        await manageSiteSetUpPage.clickOnFollowingButton();
+        await manageSiteSetUpPage.clickOnUnfollowSiteButton();
+        await manageSiteSetUpPage.verifyUnfollowButtonShouldBeChangedIntoFollowButton();
+        await manageSiteSetUpPage.clickOnAboutTabAction();
+        await manageSiteSetUpPage.clickOnTheFollowersTabButtonInAboutTab();
+        await manageSiteSetUpPage.checkMembersNameShouldNotBeVisibleInFollowersTab(userInfo.fullName);
+        await manageSiteSetUpPage.clickOnFollowButton();
+        const requestId = await manageSiteSetUpPage.clickOnRequestMembershipButton();
         console.log('requestId from membership request:', requestId);
         await appManagerApiFixture.siteManagementHelper.acceptMembershipRequest(newsiteInfo.siteId, requestId);
         const siteDetailsPage = new SiteDetailsPage(standardUserFixture.page, newsiteInfo.siteId);
         await siteDetailsPage.loadPage();
-        await manageSiteSetUpPage.assertions.verifyMemberButtonShouldBeVisible();
+        await manageSiteSetUpPage.verifyMemberButtonShouldBeVisible();
       }
     );
   }

@@ -54,31 +54,6 @@ test.describe(
     });
 
     test(
-      'verify that App Manager is able to connect Expensify from Manage->Integrations',
-      {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
-      },
-      async ({ page }) => {
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-25946',
-          storyId: 'INT-24423',
-        });
-        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
-
-        // Navigate to Manage->Integrations->Custom page
-        await customIntegrationsPage.loadPage();
-        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Delete);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(AppName));
-        await customIntegrationsPage.addPrebuiltApp(AppName);
-        await customIntegrationsPage.clickSaveButton();
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(AppName));
-        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
-        await customIntegrationsPage.openConnectorOptions(ACTION_LABELS.ENABLE);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
-      }
-    );
-
-    test(
       'create and edit Expensify tile on home dashboard',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
@@ -311,51 +286,6 @@ test.describe(
     );
 
     test(
-      'verfiy App Manager Disabling a connector removes its tiles from home dashboard',
-      {
-        tag: [TestPriority.P0, TestGroupType.SANITY],
-      },
-      async ({ page, appManagerApiFixture }) => {
-        const { tileManagementHelper } = appManagerApiFixture;
-        tagTest(test.info(), {
-          zephyrTestId: 'INT-24579',
-          storyId: 'INT-24423',
-        });
-
-        // Create HomeDashboard with tileManagementHelper
-        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
-        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
-
-        // Add tile
-        await tileManagementHelper.createIntegrationAppTile(
-          createdTileTitle,
-          TILE_IDS.EXPENSIFY_REPORT,
-          CONNECTOR_IDS.EXPENSIFY
-        );
-        await homeDashboard.isTilePresent(createdTileTitle);
-        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
-
-        // Disable the connector
-        await customIntegrationsPage.loadPage();
-        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Disable);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisabledMessage(AppName));
-        await homeDashboard.loadPage();
-        await homeDashboard.verifyTileRemoved(createdTileTitle);
-
-        // Re-enable the connector
-        await customIntegrationsPage.loadPage();
-        await customIntegrationsPage.searchAndSelectAppWithName(AppName);
-        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
-
-        // Enable the connector
-        await customIntegrationsPage.openConnectorOptions(APP_LABELS.ENABLE_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
-        await homeDashboard.loadPage();
-        await homeDashboard.isTilePresent(createdTileTitle);
-      }
-    );
-
-    test(
       'verify users should be able to display expensify reports from expensify on a tile on Home dashboard - user manager defined',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
@@ -531,9 +461,81 @@ test.describe(
     );
 
     test(
-      'disconnect expensify and verify tile shows unavailable connection message',
+      'verify that App Manager is able to connect Expensify from Manage->Integrations',
+      {
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ page }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-25946',
+          storyId: 'INT-24423',
+        });
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+
+        // Navigate to Manage->Integrations->Custom page
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.verifyThePageIsLoaded();
+
+        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Delete);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDeletedMessage(AppName));
+        await customIntegrationsPage.addPrebuiltApp(AppName);
+        await customIntegrationsPage.clickSaveButton();
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppAddedMessage(AppName));
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+        await customIntegrationsPage.openConnectorOptions(ACTION_LABELS.ENABLE);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
+      }
+    );
+
+    test(
+      'verfiy App Manager Disabling a connector removes its tiles from home dashboard',
       {
         tag: [TestPriority.P0, TestGroupType.SANITY],
+      },
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-24579',
+          storyId: 'INT-24423',
+        });
+
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
+        createdTileTitle = `Expensify report ${faker.string.alphanumeric({ length: 6 })}`;
+
+        // Add tile
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.EXPENSIFY_REPORT,
+          CONNECTOR_IDS.EXPENSIFY
+        );
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const customIntegrationsPage = new CustomAppsIntegrationPage(page);
+
+        // Disable the connector
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.searchAndSelectAppWithNameToPerformAction(AppName, AppConnectorOptions.Disable);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisabledMessage(AppName));
+        await homeDashboard.loadPage();
+        await homeDashboard.verifyTileRemoved(createdTileTitle);
+
+        // Re-enable the connector
+        await customIntegrationsPage.loadPage();
+        await customIntegrationsPage.searchAndSelectAppWithName(AppName);
+        await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
+
+        // Enable the connector
+        await customIntegrationsPage.openConnectorOptions(APP_LABELS.ENABLE_LABEL);
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppEnabledMessage(AppName));
+        await homeDashboard.loadPage();
+        await homeDashboard.isTilePresent(createdTileTitle);
+      }
+    );
+
+    test(
+      'disconnect expensify and verify tile shows unavailable connection message',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ page, appManagerApiFixture }) => {
         const { tileManagementHelper } = appManagerApiFixture;
@@ -558,7 +560,7 @@ test.describe(
         await customIntegrationsPage.disconnectApp(AppName);
         await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
         await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.verifyToastMessage(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
         // Verify Expensify setup checklist - Connect is incomplete, Enable is completed
         await customIntegrationsPage.verifySetupChecklistSteps([
           { text: 'Connect the app-level account', status: 'incomplete' },
@@ -705,7 +707,7 @@ test.describe(
         await customIntegrationsPage.disconnectApp(AppName);
         await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
         await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
 
         // Enter invalid credentials
         const invalidUserId = 'invalid_user_id';
@@ -721,7 +723,7 @@ test.describe(
         await customIntegrationsPage.disconnectApp(AppName);
         await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
         await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
         await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
       }
     );
@@ -757,7 +759,7 @@ test.describe(
         await customIntegrationsPage.disconnectApp(AppName);
         await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
         await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
         const invalidUserId = 'invalid_user_id';
         const invalidUserSecret = 'invalid_user_secret';
         await customIntegrationsPage.enterCredentials(invalidUserId, invalidUserSecret);
@@ -771,7 +773,7 @@ test.describe(
         await customIntegrationsPage.disconnectApp(AppName);
         await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
         await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.verifyToastMessage(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
         await customIntegrationsPage.enterCredentials(EXPENSIFY_CREDS.USER_ID, EXPENSIFY_CREDS.USER_SECRET);
         await homeDashboard.loadPage();
         await homeDashboard.isTilePresent(createdTileTitle);

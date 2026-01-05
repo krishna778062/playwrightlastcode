@@ -86,7 +86,7 @@ test.describe(
         });
 
         // Create and publish the album
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum(albumCreationOptions);
+        const { albumId, siteId } = await albumCreationPage.createAndPublishAlbum(albumCreationOptions);
 
         // Store IDs for cleanup
         publishedAlbumId = albumId;
@@ -94,10 +94,10 @@ test.describe(
         manualCleanupNeeded = true;
 
         // Handle promotion step
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
 
         // Verify content was published successfully
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           albumCreationOptions.title,
           "Created album successfully - it's published"
         );

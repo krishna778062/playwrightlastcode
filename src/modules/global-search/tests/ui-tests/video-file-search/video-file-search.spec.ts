@@ -24,17 +24,11 @@ for (const fileType of testData.fileTypes) {
         `Verify search results for a new video file of type ${fileType.type}`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
-          annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
-            isKnownFailure: true,
-            bugTicket: 'CONT-43091',
-            bugReportedDate: '2025-12-10',
-            knownFailurePriority: 'High',
-            knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
 
           // Setup: Upload video file
@@ -69,16 +63,10 @@ for (const fileType of testData.fileTypes) {
         `verify Video File Search results with sidebar filter`,
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
-          annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19543',
-            isKnownFailure: true,
-            bugTicket: 'CONT-43091',
-            bugReportedDate: '2025-12-10',
-            knownFailurePriority: 'High',
-            knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
 
           // Setup: Upload video file
@@ -139,16 +127,10 @@ for (const fileType of testData.fileTypes) {
         `verify Video File Autocomplete functionality`,
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
-          annotation: { type: 'known_failure', description: 'CONT-43091' },
         },
         async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19659',
-            isKnownFailure: true,
-            bugTicket: 'CONT-43091',
-            bugReportedDate: '2025-12-10',
-            knownFailurePriority: 'High',
-            knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
           });
 
           // Setup: Upload video file
@@ -196,16 +178,17 @@ test.describe(
       'to verify video transcripts search',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
-        annotation: { type: 'known_failure', description: 'CONT-43091' },
+        annotation: { type: 'known_failure', description: 'SEN-20179' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-17761',
           isKnownFailure: true,
-          bugTicket: 'CONT-43091',
-          bugReportedDate: '2025-12-10',
-          knownFailurePriority: 'High',
-          knownFailureNote: 'Investigate missing Site Videos folder in new organisation',
+          bugTicket: 'SEN-20179',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote:
+            'Not showing video when we try to search with video captions (Using exact match its showing)',
         });
 
         const captionSearchData = testData.captionSearch;

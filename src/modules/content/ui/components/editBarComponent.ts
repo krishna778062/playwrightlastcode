@@ -2,15 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export interface IEditBarActions {
-  clickEditCarousel: () => Promise<void>;
-  clickOnAddTile: () => Promise<void>;
-  clickChangeLayout: () => Promise<void>;
-}
-
-export interface IEditBarAssertions {}
-
-export class EditBarComponent extends BaseComponent implements IEditBarActions, IEditBarAssertions {
+export class EditBarComponent extends BaseComponent {
   // Action buttons
   readonly editCarouselButton: Locator;
   readonly addTileButton: Locator;

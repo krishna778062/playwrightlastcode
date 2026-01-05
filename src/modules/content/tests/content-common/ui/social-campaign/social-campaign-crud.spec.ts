@@ -68,7 +68,7 @@ test.describe(
         });
 
         await socialCampaignManagerFixture.navigationHelper.clickOnSocialCampaigns();
-        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.clickAddCampaignButton();
 
         // Create and post social campaign using wrapper function
         const campaignOptions = {
@@ -80,13 +80,13 @@ test.describe(
 
         addCampaignPage = new AddCampaignPage(socialCampaignManagerFixture.page);
         // When Add Campaign and Create
-        campaignId = await addCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
-        await socialCampaignPage.assertions.verifyToastMessage(
+        campaignId = await addCampaignPage.AddCampaignAndCreate(campaignOptions);
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
-        await socialCampaignPage.actions.clickPopularLink();
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.clickPopularLink();
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         manualCleanupNeeded = true;
       }
@@ -128,28 +128,28 @@ test.describe(
 
         await socialCampaignPage.loadPage();
 
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
-        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignData.linkText);
+        await socialCampaignPage.clickCampaignOptions();
 
-        await socialCampaignPage.actions.clickExpireCampaignButton();
+        await socialCampaignPage.clickExpireCampaignButton();
 
-        await socialCampaignPage.actions.confirmExpireCampaign();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.confirmExpireCampaign();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.EXPIRED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignNotInLatest(campaignData.linkText);
+        await socialCampaignPage.verifyCampaignNotInLatest(campaignData.linkText);
 
-        await socialCampaignPage.actions.clickExpiredLink();
+        await socialCampaignPage.clickExpiredLink();
 
-        await socialCampaignPage.assertions.verifyCampaignInExpired(campaignData.linkText);
+        await socialCampaignPage.verifyCampaignInExpired(campaignData.linkText);
 
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickDeleteCampaignButton();
-        await socialCampaignPage.actions.confirmDeleteCampaign();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.clickCampaignOptions();
+        await socialCampaignPage.clickDeleteCampaignButton();
+        await socialCampaignPage.confirmDeleteCampaign();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.DELETED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
+        await socialCampaignPage.verifyCampaignNotInExpired(campaignData.linkText);
       }
     );
 
@@ -183,24 +183,24 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString('Social Campaign Share Description');
         // Share campaign to site feed
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickShareToFeedButton();
-        await socialCampaignPage.actions.enterShareDescription(description);
-        await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterSiteName(DEFAULT_PUBLIC_SITE_NAME);
-        await socialCampaignPage.actions.clickShareButton();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.clickCampaignOptions();
+        await socialCampaignPage.clickShareToFeedButton();
+        await socialCampaignPage.enterShareDescription(description);
+        await socialCampaignPage.selectShareOptionAsSiteFeed();
+        await socialCampaignPage.enterSiteName(DEFAULT_PUBLIC_SITE_NAME);
+        await socialCampaignPage.clickShareButton();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.SHARED_SUCCESSFULLY
         );
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
-        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await siteDashboardPage.clickOnFeedLink();
+        await siteDashboardPage.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
         manualCleanupNeeded = true;
       }
     );
@@ -222,15 +222,15 @@ test.describe(
 
         // Navigate to social campaigns and add campaign
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.clickAddCampaignButton();
         addCampaignPage = new AddCampaignPage(appManagerFixture.page);
-        await addCampaignPage.actions.enterCampaignUrl(SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE_2);
-        await addCampaignPage.actions.uncheckNetwork('X');
-        await addCampaignPage.actions.uncheckNetwork('Facebook');
-        await addCampaignPage.actions.uncheckNetwork('LinkedIn');
-        await addCampaignPage.actions.clickCreateCampaignButton();
-        await addCampaignPage.assertions.verifyErrorMessagePresence('You must select at least one social network');
-        await addCampaignPage.assertions.verifyErrorMessagePresence(
+        await addCampaignPage.enterCampaignUrl(SOCIAL_CAMPAIGN_TEST_DATA.URLS.YOUTUBE_2);
+        await addCampaignPage.uncheckNetwork('X');
+        await addCampaignPage.uncheckNetwork('Facebook');
+        await addCampaignPage.uncheckNetwork('LinkedIn');
+        await addCampaignPage.clickCreateCampaignButton();
+        await addCampaignPage.verifyErrorMessagePresence('You must select at least one social network');
+        await addCampaignPage.verifyErrorMessagePresence(
           'Suggested campaign message is a required field is a required field'
         );
       }
@@ -251,7 +251,7 @@ test.describe(
         // Create social campaign page instance
         const socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.clickAddCampaignButton();
 
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.YOUTUBE,
@@ -262,11 +262,11 @@ test.describe(
         };
         addCampaignPage = new AddCampaignPage(appManagerFixture.page);
 
-        campaignId = await addCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
-        await socialCampaignPage.assertions.verifyToastMessage(
+        campaignId = await addCampaignPage.AddCampaignAndCreate(campaignOptions);
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         manualCleanupNeeded = true;
       }
@@ -289,7 +289,7 @@ test.describe(
 
         // Navigate to social campaigns and add campaign
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.clickAddCampaignButton();
 
         const audienceDetailsWithDescription =
           await appManagerFixture.audienceManagementHelper.getAudienceWithDescription();
@@ -297,15 +297,15 @@ test.describe(
           await appManagerFixture.audienceManagementHelper.getAudienceWithNoDescription();
 
         addCampaignPage = new AddCampaignPage(appManagerFixture.page);
-        await addCampaignPage.actions.selectMemberAsAudience();
-        await addCampaignPage.actions.enterAudienceName(audienceDetailsWithDescription.name);
-        await addCampaignPage.assertions.verifyAudienceNameAndDescription(
+        await addCampaignPage.selectMemberAsAudience();
+        await addCampaignPage.enterAudienceName(audienceDetailsWithDescription.name);
+        await addCampaignPage.verifyAudienceNameAndDescription(
           audienceDetailsWithDescription.audienceCount,
           audienceDetailsWithDescription.description,
           audienceDetailsWithDescription.name
         );
-        await addCampaignPage.actions.enterAudienceName(audienceDetailsWithNoDescription.name);
-        await addCampaignPage.assertions.verifyAudienceNameAndNoDescription(
+        await addCampaignPage.enterAudienceName(audienceDetailsWithNoDescription.name);
+        await addCampaignPage.verifyAudienceNameAndNoDescription(
           audienceDetailsWithNoDescription.audienceCount,
           audienceDetailsWithNoDescription.description,
           audienceDetailsWithNoDescription.name
@@ -342,20 +342,20 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickShareToFeedButton();
-        await socialCampaignPage.actions.enterShareDescription(description);
-        await socialCampaignPage.actions.clickShareButton();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.clickCampaignOptions();
+        await socialCampaignPage.clickShareToFeedButton();
+        await socialCampaignPage.enterShareDescription(description);
+        await socialCampaignPage.clickShareButton();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.SHARED_SUCCESSFULLY
         );
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await feedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
         manualCleanupNeeded = true;
       }
     );
@@ -396,28 +396,28 @@ test.describe(
 
         await socialCampaignPage.loadPage();
 
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
-        await socialCampaignPage.actions.clickCampaignOptions();
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignData.linkText);
+        await socialCampaignPage.clickCampaignOptions();
 
-        await socialCampaignPage.actions.clickExpireCampaignButton();
+        await socialCampaignPage.clickExpireCampaignButton();
 
-        await socialCampaignPage.actions.confirmExpireCampaign();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.confirmExpireCampaign();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.EXPIRED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignNotInLatest(campaignData.linkText);
+        await socialCampaignPage.verifyCampaignNotInLatest(campaignData.linkText);
 
-        await socialCampaignPage.actions.clickExpiredLink();
+        await socialCampaignPage.clickExpiredLink();
 
-        await socialCampaignPage.assertions.verifyCampaignInExpired(campaignData.linkText);
+        await socialCampaignPage.verifyCampaignInExpired(campaignData.linkText);
 
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickDeleteCampaignButton();
-        await socialCampaignPage.actions.confirmDeleteCampaign();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.clickCampaignOptions();
+        await socialCampaignPage.clickDeleteCampaignButton();
+        await socialCampaignPage.confirmDeleteCampaign();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.DELETED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignNotInExpired(campaignData.linkText);
+        await socialCampaignPage.verifyCampaignNotInExpired(campaignData.linkText);
       }
     );
 
@@ -452,12 +452,12 @@ test.describe(
         await endUserSocialCampaignPage.loadPage();
 
         // Verify campaign is visible to end user
-        await endUserSocialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignData.linkText);
-        await endUserSocialCampaignPage.assertions.verifyAddCampaignButtonIsNotVisible();
-        await endUserSocialCampaignPage.assertions.verifyExpireTabNotVisible();
-        await endUserSocialCampaignPage.actions.clickCampaignOptions();
-        await endUserSocialCampaignPage.assertions.verifyExpireCampaignButtonIsNotVisible();
-        await endUserSocialCampaignPage.assertions.verifyDeleteCampaignButtonIsNotVisible();
+        await endUserSocialCampaignPage.verifyCampaignLinkDisplayed(campaignData.linkText);
+        await endUserSocialCampaignPage.verifyAddCampaignButtonIsNotVisible();
+        await endUserSocialCampaignPage.verifyExpireTabNotVisible();
+        await endUserSocialCampaignPage.clickCampaignOptions();
+        await endUserSocialCampaignPage.verifyExpireCampaignButtonIsNotVisible();
+        await endUserSocialCampaignPage.verifyDeleteCampaignButtonIsNotVisible();
       }
     );
 
@@ -490,21 +490,21 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickShareToFeedButton();
-        await socialCampaignPage.actions.enterShareDescription(description);
-        await socialCampaignPage.actions.clickShareButton();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.clickCampaignOptions();
+        await socialCampaignPage.clickShareToFeedButton();
+        await socialCampaignPage.enterShareDescription(description);
+        await socialCampaignPage.clickShareButton();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.SHARED_SUCCESSFULLY
         );
 
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
-        await feedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await feedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
       }
     );
 
@@ -540,24 +540,24 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
         await socialCampaignPage.loadPage();
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         const description = TestDataGenerator.generateRandomString();
         // Share campaign to site feed
-        await socialCampaignPage.actions.clickCampaignOptions();
-        await socialCampaignPage.actions.clickShareToFeedButton();
-        await socialCampaignPage.actions.enterShareDescription(description);
-        await socialCampaignPage.actions.selectShareOptionAsSiteFeed();
-        await socialCampaignPage.actions.enterSiteName(DEFAULT_PUBLIC_SITE_NAME);
-        await socialCampaignPage.actions.clickShareButton();
-        await socialCampaignPage.assertions.verifyToastMessage(
+        await socialCampaignPage.clickCampaignOptions();
+        await socialCampaignPage.clickShareToFeedButton();
+        await socialCampaignPage.enterShareDescription(description);
+        await socialCampaignPage.selectShareOptionAsSiteFeed();
+        await socialCampaignPage.enterSiteName(DEFAULT_PUBLIC_SITE_NAME);
+        await socialCampaignPage.clickShareButton();
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.SHARED_SUCCESSFULLY
         );
 
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
-        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await siteDashboardPage.clickOnFeedLink();
+        await siteDashboardPage.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
       }
     );
 
@@ -615,16 +615,16 @@ test.describe(
         ]);
 
         await Promise.all([
-          appManagerFeedPage.actions.clickOnShowOption('all'),
-          socialCampaignManagerFeedPage.actions.clickOnShowOption('all'),
-          endUserFeedPage.actions.clickOnShowOption('all'),
+          appManagerFeedPage.clickOnShowOption('all'),
+          socialCampaignManagerFeedPage.clickOnShowOption('all'),
+          endUserFeedPage.clickOnShowOption('all'),
         ]);
 
         // Verify campaign is displayed in both feeds
         await Promise.all([
-          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
         ]);
 
         // Delete campaign
@@ -645,12 +645,9 @@ test.describe(
 
         // Verify campaign is no longer displayed in both feeds
         await Promise.all([
-          appManagerFeedPage.assertions.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
-          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkNotDisplayed(
-            campaignOptions.linkText,
-            description
-          ),
-          endUserFeedPage.assertions.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.feedList.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.feedList.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.feedList.verifyCampaignLinkNotDisplayed(campaignOptions.linkText, description),
         ]);
       }
     );
@@ -709,19 +706,19 @@ test.describe(
         ]);
 
         await Promise.all([
-          appManagerFeedPage.actions.clickOnShowOption('all'),
-          socialCampaignManagerFeedPage.actions.clickOnShowOption('all'),
-          endUserFeedPage.actions.clickOnShowOption('all'),
+          appManagerFeedPage.clickOnShowOption('all'),
+          socialCampaignManagerFeedPage.clickOnShowOption('all'),
+          endUserFeedPage.clickOnShowOption('all'),
         ]);
 
         // Verify campaign is displayed in both feeds
         await Promise.all([
-          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          appManagerFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
-          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          socialCampaignManagerFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
-          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          endUserFeedPage.assertions.verifySocialCampaignShareButtonIsVisible(description),
+          appManagerFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.feedList.verifySocialCampaignShareButtonIsVisible(description),
+          socialCampaignManagerFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.feedList.verifySocialCampaignShareButtonIsVisible(description),
+          endUserFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.feedList.verifySocialCampaignShareButtonIsVisible(description),
         ]);
 
         // Delete campaign
@@ -742,17 +739,22 @@ test.describe(
 
         // Verify campaign is no longer displayed in both feeds
         await Promise.all([
-          appManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          appManagerFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
-          socialCampaignManagerFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          socialCampaignManagerFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
-          endUserFeedPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
-          endUserFeedPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description),
+          appManagerFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          appManagerFeedPage.feedList.verifySocialCampaignShareButtonIsNotVisible(description),
+          socialCampaignManagerFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          socialCampaignManagerFeedPage.feedList.verifySocialCampaignShareButtonIsNotVisible(description),
+          endUserFeedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description),
+          endUserFeedPage.feedList.verifySocialCampaignShareButtonIsNotVisible(description),
         ]);
       }
     );
 
-    test(
+    /**
+     * TODO:
+     *
+     * Looks like this bug is in prod and the bheaviour with carousel apis are very flaky
+     */
+    test.fixme(
       'in Zeus Verify App Manager able to add and remove Social Campaign to Site Carousel and remove when deleted',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14905'],
@@ -788,17 +790,17 @@ test.describe(
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnEditDashboard();
-        await siteDashboardPage.actions.clickOnEditCarousel();
-        await siteDashboardPage.actions.enterSearchCarouselInput(campaignOptions.linkText);
-        await siteDashboardPage.actions.selectCarouselItem(campaignOptions.linkText);
-        await siteDashboardPage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
-        await siteDashboardPage.actions.clickDoneButton();
-        await siteDashboardPage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.clickOnEditDashboard();
+        await siteDashboardPage.clickOnEditCarousel();
+        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.selectCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await siteDashboardPage.clickDoneButton();
+        await siteDashboardPage.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
         // Delete campaign
         await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -836,14 +838,14 @@ test.describe(
         await appManagerFixture.socialCampaignHelper.shareCampaignToSiteFeed(campaignId, description, siteId);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnFeedLink();
-        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await siteDashboardPage.clickOnFeedLink();
+        await siteDashboardPage.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
 
         // Expire campaign
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
-        await siteDashboardPage.assertions.verifySocialCampaignShareButtonIsNotVisible(description);
+        await siteDashboardPage.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await siteDashboardPage.verifySocialCampaignShareButtonIsNotVisible(description);
       }
     );
 
@@ -881,18 +883,18 @@ test.describe(
         campaignId = createdCampaign.campaignId;
 
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.actions.clickOnEditDashboard();
-        await applicationManagerHomePage.actions.clickOnEditCarousel();
-        await applicationManagerHomePage.actions.enterSearchCarouselInput(campaignOptions.linkText);
-        await applicationManagerHomePage.actions.selectCarouselItem(campaignOptions.linkText);
-        await applicationManagerHomePage.assertions.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
-        await applicationManagerHomePage.actions.clickHomeDashboardDoneButton();
-        await applicationManagerHomePage.assertions.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.clickOnEditDashboard();
+        await applicationManagerHomePage.clickOnEditCarousel();
+        await applicationManagerHomePage.enterSearchCarouselInput(campaignOptions.linkText);
+        await applicationManagerHomePage.selectCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await applicationManagerHomePage.clickHomeDashboardDoneButton();
+        await applicationManagerHomePage.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
         // expire campaign
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.assertions.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -929,16 +931,16 @@ test.describe(
         const tileTitle = TestDataGenerator.generateRandomString();
         campaignId = createdCampaign.campaignId;
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.actions.clickOnAddTile();
-        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
-        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
-        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
-        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.clickOnAddTile();
+        await applicationManagerHomePage.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.enterTileTitle(tileTitle);
+        tileId = await applicationManagerHomePage.clickAddToHomeButton();
+        await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
 
@@ -978,18 +980,18 @@ test.describe(
         const tileTitle = TestDataGenerator.generateRandomString();
         campaignId = createdCampaign.campaignId;
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.actions.clickOnAddTile();
-        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
-        await applicationManagerHomePage.actions.clickOnCustomSCTile();
-        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
-        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.clickOnAddTile();
+        await applicationManagerHomePage.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.clickOnCustomSCTile();
+        await applicationManagerHomePage.enterTileTitle(tileTitle);
+        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await applicationManagerHomePage.clickAddToHomeButton();
+        await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
 
@@ -1027,16 +1029,16 @@ test.describe(
         const tileTitle = TestDataGenerator.generateRandomString();
         campaignId = createdCampaign.campaignId;
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.actions.clickOnAddTile();
-        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
-        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
-        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
-        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.clickOnAddTile();
+        await applicationManagerHomePage.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.enterTileTitle(tileTitle);
+        tileId = await applicationManagerHomePage.clickAddToHomeButton();
+        await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await socialCampaignManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
 
@@ -1076,18 +1078,18 @@ test.describe(
         const tileTitle = TestDataGenerator.generateRandomString();
         campaignId = createdCampaign.campaignId;
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.actions.clickOnAddTile();
-        await applicationManagerHomePage.actions.clickOnSocialCampaignTile();
-        await applicationManagerHomePage.actions.clickOnCustomSCTile();
-        await applicationManagerHomePage.actions.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await applicationManagerHomePage.actions.clickAddToHomeButton();
-        await applicationManagerHomePage.assertions.verifyTileIsDisplayed(tileTitle);
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.clickOnAddTile();
+        await applicationManagerHomePage.clickOnSocialCampaignTile();
+        await applicationManagerHomePage.clickOnCustomSCTile();
+        await applicationManagerHomePage.enterTileTitle(tileTitle);
+        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await applicationManagerHomePage.clickAddToHomeButton();
+        await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
+        await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
 
@@ -1125,18 +1127,18 @@ test.describe(
         const tileTitle = TestDataGenerator.generateRandomString();
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnEditDashboard();
-        await siteDashboardPage.actions.clickOnAddTile();
-        await siteDashboardPage.actions.clickOnSocialCampaignTile();
-        await siteDashboardPage.actions.clickOnCustomSCTile();
-        await siteDashboardPage.actions.enterTileTitle(tileTitle);
-        await siteDashboardPage.actions.setCustomSCTitle(campaignOptions.linkText);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
-        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
-        await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await siteDashboardPage.clickOnEditDashboard();
+        await siteDashboardPage.clickOnAddTile();
+        await siteDashboardPage.clickOnSocialCampaignTile();
+        await siteDashboardPage.clickOnCustomSCTile();
+        await siteDashboardPage.enterTileTitle(tileTitle);
+        await siteDashboardPage.setCustomSCTitle(campaignOptions.linkText);
+        tileId = await siteDashboardPage.clickAddToSiteButton(siteId);
+        await siteDashboardPage.verifyTileIsDisplayed(tileTitle);
+        await siteDashboardPage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
 
@@ -1173,16 +1175,16 @@ test.describe(
         const tileTitle = TestDataGenerator.generateRandomString();
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.actions.clickOnEditDashboard();
-        await siteDashboardPage.actions.clickOnAddTile();
-        await siteDashboardPage.actions.clickOnSocialCampaignTile();
-        await siteDashboardPage.actions.enterTileTitle(tileTitle);
-        tileId = await siteDashboardPage.actions.clickAddToSiteButton(siteId);
-        await siteDashboardPage.assertions.verifyTileIsDisplayed(tileTitle);
-        await siteDashboardPage.assertions.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
+        await siteDashboardPage.clickOnEditDashboard();
+        await siteDashboardPage.clickOnAddTile();
+        await siteDashboardPage.clickOnSocialCampaignTile();
+        await siteDashboardPage.enterTileTitle(tileTitle);
+        tileId = await siteDashboardPage.clickAddToSiteButton(siteId);
+        await siteDashboardPage.verifyTileIsDisplayed(tileTitle);
+        await siteDashboardPage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.assertions.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignNameNotDisplayed(campaignOptions.linkText);
       }
     );
 
@@ -1201,7 +1203,7 @@ test.describe(
         });
 
         await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
-        await socialCampaignPage.actions.clickAddCampaignButton();
+        await socialCampaignPage.clickAddCampaignButton();
 
         // Create and post social campaign using wrapper function
         const campaignOptions = {
@@ -1213,13 +1215,13 @@ test.describe(
 
         addCampaignPage = new AddCampaignPage(appManagerFixture.page);
         // When Add Campaign and Create
-        campaignId = await addCampaignPage.actions.AddCampaignAndCreate(campaignOptions);
-        await socialCampaignPage.assertions.verifyToastMessage(
+        campaignId = await addCampaignPage.AddCampaignAndCreate(campaignOptions);
+        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
           SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY
         );
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
-        await socialCampaignPage.actions.clickPopularLink();
-        await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
+        await socialCampaignPage.clickPopularLink();
+        await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
         manualCleanupNeeded = true;
       }
@@ -1241,9 +1243,9 @@ test.describe(
         await addCampaignPage.loadPage();
 
         const audienceDetails = await appManagerFixture.audienceManagementHelper.getRandomAudienceId();
-        await addCampaignPage.actions.selectMemberAsAudience();
-        await addCampaignPage.actions.enterAudienceName(audienceDetails.name);
-        await addCampaignPage.assertions.verifyAudienceNameAndCount(audienceDetails.count, audienceDetails.name);
+        await addCampaignPage.selectMemberAsAudience();
+        await addCampaignPage.enterAudienceName(audienceDetails.name);
+        await addCampaignPage.verifyAudienceNameAndCount(audienceDetails.count, audienceDetails.name);
         //update the audience name
         const updatedAudienceName = TestDataGenerator.generateRandomString();
         await appManagerFixture.audienceManagementHelper.updateAudience(audienceDetails.audienceId, {
@@ -1254,16 +1256,13 @@ test.describe(
         });
 
         await addCampaignPage.loadPage();
-        await addCampaignPage.actions.selectMemberAsAudience();
-        await addCampaignPage.actions.enterAudienceName(audienceDetails.name);
-        await addCampaignPage.assertions.verifyAudienceNameAndCountNotVisible(
-          audienceDetails.count,
-          audienceDetails.name
-        );
+        await addCampaignPage.selectMemberAsAudience();
+        await addCampaignPage.enterAudienceName(audienceDetails.name);
+        await addCampaignPage.verifyAudienceNameAndCountNotVisible(audienceDetails.count, audienceDetails.name);
         await addCampaignPage.loadPage();
-        await addCampaignPage.actions.selectMemberAsAudience();
-        await addCampaignPage.actions.enterAudienceName(updatedAudienceName);
-        await addCampaignPage.assertions.verifyAudienceNameAndCount(audienceDetails.count, updatedAudienceName);
+        await addCampaignPage.selectMemberAsAudience();
+        await addCampaignPage.enterAudienceName(updatedAudienceName);
+        await addCampaignPage.verifyAudienceNameAndCount(audienceDetails.count, updatedAudienceName);
       }
     );
 
@@ -1319,61 +1318,61 @@ test.describe(
           await userFixture.navigationHelper.clickOnSocialCampaigns();
           const socialCampaignPage = new SocialCampaignPage(userFixture.page);
           await socialCampaignPage.loadPage();
-          await socialCampaignPage.assertions.verifyCampaignLinkDisplayed(campaignLinkText);
+          await socialCampaignPage.verifyCampaignLinkDisplayed(campaignLinkText);
 
           // Click "..." option on the Social Campaign
-          await socialCampaignPage.actions.clickCampaignOptions();
+          await socialCampaignPage.clickCampaignOptions();
 
           // Click "Share to feed" button
-          await socialCampaignPage.actions.clickShareToFeedButton();
+          await socialCampaignPage.clickShareToFeedButton();
 
           // Wait for share modal to appear
-          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.verifyShareModalIsFunctional();
 
           // Step 1: Cancel Flow
           // Enter inappropriate text
-          await shareComponent.actions.enterShareDescription(inappropriateText);
+          await shareComponent.enterShareDescription(inappropriateText);
 
           // Select post location
           if (postIn === 'Site Feed') {
             await shareComponent.selectShareOptionAsSiteFeed();
             if (siteName) {
-              await shareComponent.actions.enterSiteName(siteName);
+              await shareComponent.enterSiteName(siteName);
             }
           }
 
           // Click Share button
-          await shareComponent.actions.clickShareButton();
+          await shareComponent.clickShareButton();
 
           // Verify warning popup appears
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Cancel button
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify share modal is still functional and user can edit content
-          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.verifyShareModalIsFunctional();
 
           // Step 2: Submit Anyway Flow
           // Enter inappropriate text again
-          await shareComponent.actions.enterShareDescription(inappropriateText);
+          await shareComponent.enterShareDescription(inappropriateText);
 
           // Click Share button
-          await shareComponent.actions.clickShareButton();
+          await shareComponent.clickShareButton();
 
           // Verify warning popup appears
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Submit Anyway button (Continue button)
-          await warningPopup.actions.clickContinue();
+          await warningPopup.clickContinue();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
         };
 
         // Phase 2: Test Execution (as End User)

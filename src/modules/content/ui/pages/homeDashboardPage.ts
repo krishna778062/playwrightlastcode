@@ -11,49 +11,7 @@ import { OnboardingComponent } from '@/src/modules/content/ui/components/onboard
 import { PageTileSectionComponent } from '@/src/modules/content/ui/components/pageTileSectionComponent';
 import { dragAndDrop } from '@/src/modules/form-designer/utils/dragAndDropUtil';
 
-export interface IHomeDashboardPageActions {
-  clickOnEditDashboardButton: () => Promise<void>;
-  clickOnAddTileButton: () => Promise<void>;
-  clickOnAddContentTileOption: () => Promise<void>;
-  selectingPagesAsContentType: () => Promise<void>;
-  namingTheTile: (tileName: string) => Promise<void>;
-  clickingOnAddToHomeButton: () => Promise<void>;
-  clickingOnDoneButton: () => Promise<void>;
-  openingCreatedPageInTile: (pageName: string) => Promise<void>;
-  clickingOnEditTileButton: (tileName: string) => Promise<void>;
-  selectingSiteRadioButton: (siteName: string) => Promise<void>;
-  selectingShowcaseRadioButton: () => Promise<void>;
-  clickingOnSaveButton: () => Promise<void>;
-  clickingOnRemoveTileButton: (tileName: string) => Promise<void>;
-  addTextHtmlLinksTile: (description: string, tileTitle: string) => Promise<void>;
-  addSitesCategoryTile: (siteName: string, tileTitle: string) => Promise<void>;
-  reorderTiles: (sourceTileTitle: string, targetTileTitle: string) => Promise<void>;
-  clickThreeDotsOnTile: (tileTitle: string) => Promise<void>;
-  clickOnSitesCategoriesTileOption: () => Promise<void>;
-  clickOnSitesTab: () => Promise<void>;
-  setSitesTileTitle: (tileName: string) => Promise<void>;
-  addSiteToSitesTile: (siteName: string) => Promise<void>;
-  setSitesTileLayout: (layout: 'list' | 'grid') => Promise<void>;
-  clickingOnOnboardingTab: () => Promise<void>;
-  isAddToHomeButtonDisabled: () => Promise<boolean>;
-  closeAddContentTileDialog: () => Promise<void>;
-}
-
-export interface IHomeDashboardPageAssertions {
-  verifyToastMessage: (toastMessage: string) => Promise<void>;
-  verifyingThePageTileSectionIsVisible: (tileName: string) => Promise<void>;
-  verifyingCreatedPageIsVisibleInTile: (pageName: string) => Promise<void>;
-  verifyingCreatedPageIsNotVisibleInTile: (pageName: string) => Promise<void>;
-  verifyingThePageTileSectionIsNotVisible: (tileName: string) => Promise<void>;
-  verifyTileOrder: (tileTitles: string[]) => Promise<void>;
-  verifyingSiteIsVisibleInSitesTile: (siteName: string, tileName: string) => Promise<void>;
-  verifyingSiteIsNotVisibleInSitesTile: (siteName: string, tileName: string) => Promise<void>;
-  verifyingMemberIconIsNotVisibleForSite: (siteName: string, tileName: string) => Promise<void>;
-  verifyOnboardingTileIsVisible: () => Promise<void>;
-  verifyAddToHomeButtonIsDisabled: () => Promise<void>;
-  verifyTileAlreadyAddedMessage: () => Promise<void>;
-}
-export class HomeDashboardPage extends BasePage implements IHomeDashboardPageActions, IHomeDashboardPageAssertions {
+export class HomeDashboardPage extends BasePage {
   addTileComponent: AddTileComponent;
   addContentTileComponent: AddContentTileComponent;
   onboardingComponent: OnboardingComponent;
@@ -82,15 +40,6 @@ export class HomeDashboardPage extends BasePage implements IHomeDashboardPageAct
     this.baseActionUtil = new BaseActionUtil(page);
     this.pageTileSectionComponent = new PageTileSectionComponent(page);
   }
-
-  get actions(): IHomeDashboardPageActions {
-    return this;
-  }
-
-  get assertions(): IHomeDashboardPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
       const isEditButtonVisible = await this.verifier.isTheElementVisibleWithLessTimeout(this.editDashboardButton);

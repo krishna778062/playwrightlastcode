@@ -56,15 +56,15 @@ test.describe(
         feedPage = new FeedPage(appManagerFixture.page);
         await feedPage.verifyThePageIsLoaded();
         // And Click "Question"
-        await feedPage.actions.clickShareThoughtsButton();
-        await feedPage.actions.clickQuestionButton();
+        await feedPage.clickShareThoughtsButton();
+        await feedPage.postEditor.clickQuestionButton();
         const questionTitle = TestDataGenerator.generateRandomText();
-        const questionResult = await feedPage.actions.createAndPostQuestion({ title: questionTitle });
+        const questionResult = await feedPage.questionEditor.createAndPostQuestion({ title: questionTitle });
         createdPostId = questionResult.questionId!;
-        await feedPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
+        await feedPage.questionEditor.verifyQuestionCreatedSuccessfully(questionTitle);
         const editTitle = TestDataGenerator.generateRandomText();
-        await feedPage.actions.editQuestion(questionTitle, editTitle);
-        await feedPage.assertions.verifyQuestionCreatedSuccessfully(editTitle);
+        await feedPage.questionEditor.editQuestion(questionTitle, editTitle);
+        await feedPage.questionEditor.verifyQuestionCreatedSuccessfully(editTitle);
       }
     );
 
@@ -85,12 +85,14 @@ test.describe(
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         // And Click "Question"
-        await siteDashboardPage.actions.clickShareThoughtsButton();
-        await siteDashboardPage.actions.clickQuestionButton();
+        await siteDashboardPage.clickShareThoughtsButton();
+        await siteDashboardPage.createFeedPostComponent.clickQuestionButton();
         const questionTitle = TestDataGenerator.generateRandomText();
-        const questionResult = await siteDashboardPage.actions.createAndPostQuestion({ title: questionTitle });
+        const questionResult = await siteDashboardPage.createQuestionComponent.createAndPostQuestion({
+          title: questionTitle,
+        });
         createdPostId = questionResult.questionId!;
-        await siteDashboardPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
+        await siteDashboardPage.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
       }
     );
 
@@ -115,12 +117,14 @@ test.describe(
         );
         // And Click "Question"
         await contentPreviewPage.loadPage();
-        await contentPreviewPage.actions.clickShareThoughtsButton();
-        await contentPreviewPage.actions.clickQuestionButton();
+        await contentPreviewPage.clickShareThoughtsButton();
+        await contentPreviewPage.createFeedPostComponent.clickQuestionButton();
         const questionTitle = TestDataGenerator.generateRandomText();
-        const questionResult = await contentPreviewPage.actions.createAndPostQuestion({ title: questionTitle });
+        const questionResult = await contentPreviewPage.createQuestionComponent.createAndPostQuestion({
+          title: questionTitle,
+        });
         createdPostId = questionResult.questionId!;
-        await contentPreviewPage.assertions.verifyQuestionCreatedSuccessfully(questionTitle);
+        await contentPreviewPage.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
       }
     );
   }
