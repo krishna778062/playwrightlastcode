@@ -11,6 +11,7 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
@@ -316,6 +317,7 @@ test.describe(
   () => {
     let appManagerFeedPage: FeedPage;
     let createdFeedId: string;
+    let createdFeedText: string;
     let siteId: string;
     const siteName: string = DEFAULT_PUBLIC_SITE_NAME;
     let contentId: string;
@@ -336,16 +338,18 @@ test.describe(
       await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify site image' });
 
       // Get site details to retrieve the site iconImage fileId for verification
-      const siteDetails = await appManagerFixture.siteManagementHelper.siteManagementService.getSiteDetails(siteId);
-      const siteImageUrl = siteDetails.result?.img;
+      let siteDetails = await appManagerFixture.siteManagementHelper.getSiteDetails(siteId);
+      let siteImageUrl = siteDetails.result?.img;
       if (!siteImageUrl) {
-        throw new Error(`Site ${siteName} (${siteId}) does not have an iconImage. Cannot verify site image fallback.`);
+        await siteDashboardPage.uploadSiteImage(FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname));
+        await siteDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SET_SITE_IMAGE_SUCCESSFULLY);
+        await siteDashboardPage.page.reload();
+        await siteDashboardPage.verifyThePageIsLoaded();
+        siteDetails = await appManagerFixture.siteManagementHelper.getSiteDetails(siteId);
+        siteImageUrl = siteDetails.result?.img;
       }
       // Extract fileId from the site image URL
       siteImageFileId = siteImageUrl.split('/').pop() || siteImageUrl;
-
-      console.log(`Site image URL: ${siteImageUrl}`);
-      console.log(`Site image fileId: ${siteImageFileId}`);
 
       // Create a page without images (no cover image)
       const pageResult = await appManagerFixture.contentManagementHelper.createPage({
@@ -362,18 +366,22 @@ test.describe(
       contentId = pageResult.contentId;
       pageName = pageResult.pageName;
 
-      // Share the content to Home Feed via API
-      const feedResponse = await appManagerFixture.feedManagementHelper.createFeed({
-        scope: 'content',
-        siteId: siteId,
-        contentId: contentId,
-        options: {
-          waitForSearchIndex: false,
-        },
-      });
+      const contentPreviewPage = new ContentPreviewPage(
+        appManagerFixture.page,
+        siteId,
+        contentId,
+        ContentType.PAGE.toLowerCase()
+      );
 
-      createdFeedId = feedResponse.result.feedId;
-      console.log(`Created feed for content ${contentId} with feed ID: ${createdFeedId}`);
+      await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+      await contentPreviewPage.verifyThePageIsLoaded();
+      await contentPreviewPage.clickShareThoughtsButton();
+
+      createdFeedText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+
+      const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+      const feedResponse = await createFeedPostComponent.createAndPost({ text: createdFeedText });
+      createdFeedId = feedResponse.postId || '';
     });
 
     test.afterEach('Cleanup created resources', async ({ appManagerFixture }) => {
@@ -402,7 +410,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36283'],
       },
-      async ({ appManagerFixture: _appManagerFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify that the site image is rendered in the feed when the shared content has no square or landscape image',
@@ -411,9 +419,13 @@ test.describe(
         });
 
         // Navigate directly to the feed URL to see the shared content
-        await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdFeedId));
+        const feedDetailPage = new FeedPage(appManagerFixture.page, createdFeedId);
+        await feedDetailPage.loadFeedDetailPage({ stepInfo: 'Load feed detail page to verify shared content' });
+        await feedDetailPage.verifyFeedDetailPageLoaded();
+        await feedDetailPage.feedList.waitForPostToBeVisible(createdFeedText);
 
         // Verify that the feed card for the shared content is displayed
+        await feedDetailPage.reloadFeedDetailPage(createdFeedText);
 
         // Verify that the site image is rendered as the fallback image in the feed card
         // This verifies that the image shown is the same as the site's iconImage

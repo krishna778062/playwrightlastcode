@@ -87,7 +87,7 @@ test.describe(
 
           // Verify updated content is visible
           await feedPage.feedList.validatePostText(editText);
-          await feedPage.feedList.verifyEmbededUrlIsVisible(embedUrl);
+          await feedPage.feedList.verifyEmbededUrlIsVisible(newEmbedUrl);
         });
 
         await test.step('Delete the post', async () => {

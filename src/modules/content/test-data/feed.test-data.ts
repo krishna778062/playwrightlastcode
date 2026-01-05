@@ -15,6 +15,7 @@ export const FEED_TEST_DATA = {
     COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
     ADDED_NEW_VERSION: 'Added new version successfully',
     DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
+    SET_SITE_IMAGE_SUCCESSFULLY: 'Set site image successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
