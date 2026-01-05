@@ -304,7 +304,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5351 Verify recognition manager can edit points within the 24hr pending period',
+    '[RC-5351] Verify recognition manager can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -345,6 +345,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
+      await recognitionHub.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.dismissTheToastMessage();
 
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
@@ -379,12 +381,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await giveRecognitionModal.doneButton.click({ force: true });
       const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
       await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
+      await manageRecognition.dismissTheToastMessage();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
       await recognitionHub.deleteTheFirstRecognitionPost();
+      await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition deleted');
+      await manageRecognition.dismissTheToastMessage();
     }
   );
 
