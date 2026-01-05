@@ -143,7 +143,7 @@ export class SideNavBarComponent extends BaseComponent {
    */
   async clickOnHomeIcon(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: clicking Home button on side navbar`, async () => {
-      await this.clickOnElement(this.homeIconLocator);
+      await this.clickOnElement(this.homeLink);
     });
   }
 

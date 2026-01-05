@@ -85,8 +85,6 @@ export class NavigationHelper {
       } catch (error) {
         console.log('DEBUG: Feed link is not visible, clicking on home link', error);
         await this.sideNavBarComponent.clickOnHomeIcon();
-        await this.sideNavBarComponent.feedLink.waitFor({ state: 'visible', timeout: 5000 });
-        await this.sideNavBarComponent.feedLink.click();
       }
     });
   }
