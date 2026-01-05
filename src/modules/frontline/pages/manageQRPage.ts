@@ -1297,7 +1297,6 @@ export class ManageQRPage extends BasePage {
         stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
       });
 
-      // Set up download listener BEFORE clicking to avoid race condition
       const downloadPromise = this.page.waitForEvent('download', { timeout: TIMEOUTS.LONG });
 
       await downloadIcon.evaluate((el: HTMLElement) => el.click());
