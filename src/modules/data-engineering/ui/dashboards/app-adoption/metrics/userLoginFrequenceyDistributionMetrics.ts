@@ -38,14 +38,9 @@ export class UserLoginFrequencyDistributionMetrics extends HorizontalBarChartCom
       ];
 
       // Iterate through bars in the expected order
-      for (const key of expectedOrder) {
+      for (let index = 0; index < expectedOrder.length; index++) {
+        const key = expectedOrder[index];
         const data = dbData[key];
-
-        if (data === undefined) {
-          console.log(`----> Skipping ${key} - not found in dbData`);
-          continue;
-        }
-
         console.log(`----> Verifying bar for ${key}: ${data}`);
 
         // if data is 0, skip the bar
@@ -55,58 +50,79 @@ export class UserLoginFrequencyDistributionMetrics extends HorizontalBarChartCom
         }
 
         // Hover over the bar and verify the tooltip values
-        await this.hoverOnBarWithLabelAs(key);
-        await this.waitForToolTipContainerToBeVisible();
+        try {
+          await this.hoverOnBarWithLabelAs(key);
+          await this.waitForToolTipContainerToBeVisible();
+        } catch (error) {
+          console.error(`----> Error hovering on bar with label ${key}: ${error}`);
+          await this.hoverOnBarWithValueByIndexAs(index);
+          await this.waitForToolTipContainerToBeVisible();
+        }
 
-        // Try multiple tooltip validation strategies
+        const toolTipBlock = this.getToolTipBlockWithKeyTextAs(key);
+        const toolTipValue = toolTipBlock.locator("[class*='chart-tooltip-value']");
+        await expect(toolTipValue, `Value shown in tool tip for ${key} should be visible`).toBeVisible();
+        await expect(toolTipValue, `Value shown in tool tip for ${key} should be ${data}`).toHaveText(data.toString());
+
+        // //move mouse to profile to close the tooltip
+        await this.page.locator('#site-header').hover();
+        //wait for tooltip to close
+        await this.waitForToolTipContainerToBeHidden();
+        //wait for 1 second
+        await this.page.waitForTimeout(1000);
+
         // The tooltip might show the frequency label as keyText with or without a colon
-        const tooltipKeyTexts = [key, `${key}:`];
-        let tooltipValidated = false;
+        // const tooltipKeyTexts = [key, `${key}:`];
+        // const tooltipValidated = false;
 
-        for (const keyText of tooltipKeyTexts) {
-          try {
-            const toolTipBlock = this.getToolTipBlockWithKeyTextAs(keyText);
-            const toolTipValue = toolTipBlock.locator("[class*='chart-tooltip-value']");
-            const isVisible = await toolTipValue.isVisible({ timeout: 2000 }).catch(() => false);
+        // for (const keyText of tooltipKeyTexts) {
+        //   try {
+        //     const toolTipBlock = this.getToolTipBlockWithKeyTextAs(keyText);
+        //     const toolTipValue = toolTipBlock.locator("[class*='chart-tooltip-value']");
+        //     await expect(toolTipValue, `Value shown in tool tip for ${key} should be visible`).toBeVisible();
+        //     await expect(toolTipValue, `Value shown in tool tip for ${key} should be ${data}`).toHaveText(
+        //       data.toString()
+        //     );
+        //     // const isVisible = await toolTipValue.isVisible({ timeout: 2000 }).catch(() => false);
 
-            if (isVisible) {
-              await expect(toolTipValue, `Value shown in tool tip for ${key} should be ${data}`).toHaveText(
-                data.toString()
-              );
-              tooltipValidated = true;
-              console.log(`----> Successfully validated tooltip for ${key} using keyText: ${keyText}`);
-              break;
-            }
-          } catch (error) {
-            // Try next strategy
-            continue;
-          }
-        }
+        //     // if (isVisible) {
+        //     //   await expect(toolTipValue, `Value shown in tool tip for ${key} should be ${data}`).toHaveText(
+        //     //     data.toString()
+        //     //   );
+        //     //   tooltipValidated = true;
+        //     //   console.log(`----> Successfully validated tooltip for ${key} using keyText: ${keyText}`);
+        //     //   break;
+        //     // }
+        //   } catch (error) {
+        //     // Try next strategy
+        //     continue;
+        //   }
+        // }
 
-        // If standard validation failed, try checking if tooltip contains the value
-        // This is a fallback for cases where the tooltip structure is different
-        if (!tooltipValidated) {
-          try {
-            const tooltipText = await this.toolTipContainer.textContent();
-            if (tooltipText && tooltipText.includes(data.toString())) {
-              console.log(`----> Validated tooltip for ${key} by checking tooltip text contains value: ${data}`);
-              tooltipValidated = true;
-            }
-          } catch (error) {
-            // Continue to throw error below
-          }
-        }
+        // // If standard validation failed, try checking if tooltip contains the value
+        // // This is a fallback for cases where the tooltip structure is different
+        // if (!tooltipValidated) {
+        //   try {
+        //     const tooltipText = await this.toolTipContainer.textContent();
+        //     if (tooltipText && tooltipText.includes(data.toString())) {
+        //       console.log(`----> Validated tooltip for ${key} by checking tooltip text contains value: ${data}`);
+        //       tooltipValidated = true;
+        //     }
+        //   } catch (error) {
+        //     // Continue to throw error below
+        //   }
+        // }
 
-        if (!tooltipValidated) {
-          const tooltipText = await this.toolTipContainer.textContent().catch(() => 'Unable to get tooltip text');
-          throw new Error(
-            `Failed to validate tooltip for ${key} with value ${data}. Tooltip text: ${tooltipText}. ` +
-              `Tried keyTexts: ${tooltipKeyTexts.join(', ')}`
-          );
-        }
+        // if (!tooltipValidated) {
+        //   const tooltipText = await this.toolTipContainer.textContent().catch(() => 'Unable to get tooltip text');
+        //   throw new Error(
+        //     `Failed to validate tooltip for ${key} with value ${data}. Tooltip text: ${tooltipText}. ` +
+        //       `Tried keyTexts: ${tooltipKeyTexts.join(', ')}`
+        //   );
+        // }
 
-        // Add a small delay between hovers to avoid rapid interactions
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // // Add a small delay between hovers to avoid rapid interactions
+        // await new Promise(resolve => setTimeout(resolve, 500));
       }
     });
   }

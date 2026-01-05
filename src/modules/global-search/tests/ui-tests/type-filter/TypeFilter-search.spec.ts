@@ -144,6 +144,7 @@ test.describe(
         },
         options: {
           contentDescription: testData.description,
+          waitForSearchIndex: true,
         },
       });
 
@@ -252,6 +253,7 @@ test.describe(
         },
         options: {
           contentDescription: testData.description,
+          waitForSearchIndex: true,
         },
       });
 
@@ -482,6 +484,7 @@ test.describe(
         },
         options: {
           contentDescription: testData.description,
+          waitForSearchIndex: true,
         },
       });
 
