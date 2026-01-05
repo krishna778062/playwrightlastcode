@@ -8,6 +8,11 @@ dotenv.config({
   override: true,
 });
 
+// Initialize primary tenant config before any imports that depend on it
+import { initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
+
+initializeDataEngineeringConfig('primary');
+
 import { defineConfig, devices } from '@playwright/test';
 
 import baseConfig from './playwright.data-engineering.base.config';

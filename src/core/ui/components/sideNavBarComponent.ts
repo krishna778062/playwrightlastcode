@@ -57,44 +57,41 @@ export class SideNavBarComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
-    this.clickOnContentModeration = page.getByRole('menuitem', { name: 'Content Moderation' });
-    this.createSection = page.getByRole('button', { name: 'Create', exact: true });
-    this.feedLink = page.getByRole('menuitem', { name: 'Feed' });
-    this.homeLink = page.locator('p:text-is("Home")');
-    this.sitesButton = page.getByRole('button', { name: 'Sites' });
-    this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
-    this.clickOnManageFeature = page.locator('[aria-label="Manage features"]').first();
+    this.clickOnContentModeration = page.locator('[href="/manage/content-moderation"][data-testid="main-nav-item"]');
+    this.createSection = page.getByRole('button', { name: 'Icon' });
+    this.feedLink = page.locator('[href="/feed"][data-testid="main-nav-item"]');
+    this.homeLink = page.locator('[href="/home"][data-testid="main-nav-item"]');
+    this.sitesButton = page.locator('[href="/sites/featured"][data-testid="main-nav-item"]');
+    this.navigateOnApplication = page.locator('[aria-label="Application settings"]');
+    this.clickOnManageFeature = page.locator('[aria-label="Manage"]').first();
     this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
     this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
-
     //analytics section
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.appAnalyticsButton = page.getByRole('menuitem', { name: 'App', exact: true });
-    this.campaignsButton = page.getByRole('menuitem', { name: 'Campaigns', exact: true });
-    this.recognitionButton = page.getByRole('menuitem', { name: 'Recognition', exact: true });
-
+    this.campaignsButton = page.locator('[href="/manage/campaigns"][data-testid="main-nav-item"]');
+    this.recognitionButton = page.locator('[href="/analytics/recognition/overview"][data-testid="main-nav-item"]');
     //application settings section
-    this.applicationSettings = page.getByRole('menuitem', { name: 'Application settings', exact: true });
-    this.manageAppSetupButton = page.getByRole('menuitem', { name: 'Application', exact: true });
-    this.manageAccountButton = page.getByRole('menuitem', { name: 'Account', exact: true });
-    this.manageAppsAndLinksButton = page.getByRole('menuitem', { name: 'Apps & links', exact: true });
-    this.manageCompanyValuesButton = page.getByRole('menuitem', { name: 'Company values ', exact: true });
-    this.manageExpertiseButton = page.getByRole('menuitem', { name: 'Expertise', exact: true });
-    this.manageHomeDefaultsButton = page.getByRole('menuitem', { name: 'Home defaults', exact: true });
-    this.managePerceptionThemesButton = page.getByRole('menuitem', { name: 'Perception themes', exact: true });
-    this.manageTopicsButton = page.getByRole('menuitem', { name: 'Topics', exact: true });
-    this.manageAudiencesButton = page.getByRole('menuitem', { name: 'Audiences', exact: true });
-    this.manageRolesButton = page.getByRole('menuitem', { name: 'Roles', exact: true });
-    this.manageSubscriptionsButton = page.getByRole('menuitem', { name: 'Subscriptions', exact: true });
-    this.manageUsersButton = page.getByRole('menuitem', { name: 'Users', exact: true });
+    this.applicationSettings = page.locator('[aria-label="Application settings"]');
+    this.manageAppSetupButton = page.locator('[href="/manage/app/setup/general"][data-testid="main-nav-item"]');
+    this.manageAccountButton = page.locator('[href="/manage/account"][data-testid="main-nav-item"]');
+    this.manageAppsAndLinksButton = page.locator('[href="/manage/apps-and-links"][data-testid="main-nav-item"]');
+    this.manageCompanyValuesButton = page.locator('[href="/manage/company-values"][data-testid="main-nav-item"]');
+    this.manageExpertiseButton = page.locator('[href="/manage/expertise"][data-testid="main-nav-item"]');
+    this.manageHomeDefaultsButton = page.locator('[href="/manage/home-defaults"][data-testid="main-nav-item"]');
+    this.managePerceptionThemesButton = page.locator('[href="/manage/perception-themes"][data-testid="main-nav-item"]');
+    this.manageTopicsButton = page.locator('[href="/manage/topics"][data-testid="main-nav-item"]');
+    this.manageAudiencesButton = page.locator('[href="/audiences/org"][data-testid="main-nav-item"]');
+    this.manageRolesButton = page.locator('[href="/manage/roles"][data-testid="main-nav-item"]');
+    this.manageSubscriptionsButton = page.locator('[href="/subscriptions/org"][data-testid="main-nav-item"]');
+    this.manageUsersButton = page.locator('[href="/manage/users"][data-testid="main-nav-item"]');
 
-    this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
+    this.socialCampaignsElement = page.locator('[href="/campaigns"][data-testid="main-nav-item"]');
     this.moreElement = page.locator('p', { hasText: 'More' });
     this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
     this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
-    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
-    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
+    this.peopleButton = page.locator('[href="/people"][data-testid="main-nav-item"]');
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
 
     //recognition section

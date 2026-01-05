@@ -12,8 +12,8 @@ import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export enum MostPopularSitesColumns {
   SITE_NAME = 'Site name',
-  SITE_TYPE = 'Site Type',
-  POPULARITY_SCORE = 'Popularity Score',
+  SITE_TYPE = 'Site type',
+  POPULARITY_SCORE = 'Popularity score',
 }
 
 // Re-export the type for convenience

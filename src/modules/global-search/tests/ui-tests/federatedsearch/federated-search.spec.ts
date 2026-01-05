@@ -22,10 +22,16 @@ test.describe(
       'to verify box file is displayed in global search page',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        annotation: { type: 'known_failure', description: 'SEN-20180' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-14000',
+          isKnownFailure: true,
+          bugTicket: 'SEN-20180',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Back button not working for box once we pasted copied url (Federated search)',
         });
 
         const testData = FEDERATED_SEARCH_TEST_DATA.boxIntegration;

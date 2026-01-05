@@ -98,8 +98,8 @@ export class ManageQRPage extends BasePage {
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_QR_PAGE);
 
-    this.manageLink = page.getByRole('menuitem', { name: 'Manage features', exact: true });
-    this.qrCodesLink = page.getByRole('menuitem', { name: 'QR codes' });
+    this.manageLink = page.getByRole('menuitem', { name: 'Manage', exact: true });
+    this.qrCodesLink = page.getByTestId('main-nav').getByRole('link', { name: 'QR codes' });
     this.addQRButton = page.getByText('Add QR');
     this.appPromotionMenuOption = page.getByRole('menuitem', { name: 'App promotion' });
     this.contentMenuOption = page.getByRole('menuitem', { name: 'Content', exact: true });
@@ -191,12 +191,20 @@ export class ManageQRPage extends BasePage {
   }
 
   async clickOnManage() {
+    await this.verifier.waitUntilElementIsVisible(this.manageLink, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Wait for Manage menu to be visible',
+    });
     await this.clickOnElement(this.manageLink, {
-      stepInfo: 'Click on Manage features menu',
+      stepInfo: 'Click on Manage menu',
     });
   }
 
   async clickOnQRCodesMenu() {
+    await this.verifier.waitUntilElementIsVisible(this.qrCodesLink, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: 'Wait for QR codes menu to be visible',
+    });
     await this.clickOnElement(this.qrCodesLink, {
       stepInfo: 'Click on QR codes menu',
     });
@@ -1277,14 +1285,18 @@ export class ManageQRPage extends BasePage {
     const downloadIcon = qrRow.locator(this.downloadIcon);
 
     await this.verifier.waitUntilElementIsVisible(downloadIcon, {
-      timeout: 10000,
+      timeout: TIMEOUTS.SHORT,
       stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
     });
 
-    const result = await this.downloadFileWithCleanup(() => this.clickByInjectingJavaScript(downloadIcon), {
-      stepInfo: `Download QR from table for "${qrName}"`,
-      cleanup: false,
-    });
+    const result = await this.downloadFileWithCleanup(
+      () => this.clickOnElement(downloadIcon, { stepInfo: `Click download icon for QR: ${qrName}`, force: true }),
+      {
+        stepInfo: `Download QR from table for "${qrName}"`,
+        cleanup: false,
+        timeout: TIMEOUTS.MEDIUM,
+      }
+    );
 
     return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
   }
