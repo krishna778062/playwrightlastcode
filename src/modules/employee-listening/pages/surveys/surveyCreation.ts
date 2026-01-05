@@ -1105,6 +1105,7 @@ export class SurveyCreationPage extends BasePage {
         if (isDisabled === 'true' || !isClickable || !cellText?.trim() || !/^\d+$/.test(cellText.trim())) {
           continue;
         }
+        console.log(`✅ Selected first available date: ${cellText.trim()}`);
         await this.clickOnElement(cell, {
           stepInfo: `Select available date: ${cellText.trim()}`,
         });
@@ -1115,6 +1116,7 @@ export class SurveyCreationPage extends BasePage {
       const tomorrowDate = tomorrow.getDate().toString();
       const fallbackDate = this.getFallbackDateCell(tomorrowDate);
       if ((await fallbackDate.isVisible()) && (await fallbackDate.isEnabled())) {
+        console.log(`📅 Selected fallback date (tomorrow): ${tomorrowDate}`);
         await this.clickOnElement(fallbackDate, {
           stepInfo: `Fallback: Select tomorrow's date: ${tomorrowDate}`,
         });
@@ -1123,9 +1125,11 @@ export class SurveyCreationPage extends BasePage {
           assertionMessage: 'Last resort: Select date 18 should be visible',
           timeout: TIMEOUTS.MEDIUM,
         });
+        console.log('⚠️ Selected last resort date: 18');
         await this.clickOnElement(this.lastResortDateCell, {
           stepInfo: 'Last resort: Select date 18',
         });
+        console.log("Warning: Selected last resort date '18' as no other dates were available.");
       }
     });
   }
