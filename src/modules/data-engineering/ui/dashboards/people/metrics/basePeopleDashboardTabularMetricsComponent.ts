@@ -45,7 +45,7 @@ export class PeopleDashboardTabularMetricsComponent extends TabluarMetricsCompon
   async compareUIDataWithDBRecords<T extends Record<string, any>>(
     dbData: T[],
     dataMapper: (item: T) => Record<string, string>,
-    keyColumn: string
+    keyColumns: string | string[]
   ): Promise<void> {
     await test.step(`Verify ${this.metricTitle} data is correct`, async () => {
       // Verify we're reading from the correct table by checking the heading is within the container
@@ -73,7 +73,7 @@ export class PeopleDashboardTabularMetricsComponent extends TabluarMetricsCompon
         const mappedDbData = dbData.map(dataMapper);
         console.log('Mapped DB Data (all records):', mappedDbData);
 
-        await (this as any).runDataComparison(uiDataObjects, mappedDbData, keyColumn);
+        await (this as any).runDataComparison(uiDataObjects, mappedDbData, keyColumns);
       }
     });
   }
