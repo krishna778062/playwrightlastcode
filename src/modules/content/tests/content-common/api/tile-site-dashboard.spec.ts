@@ -55,7 +55,8 @@ test.describe(
         await tileApiHelper.validateAppGovernanceResponse(governanceResponse);
 
         // Get site ID by name (using DEFAULT_PUBLIC_SITE_NAME as the default public site)
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Get end user info for the people tile
         const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);

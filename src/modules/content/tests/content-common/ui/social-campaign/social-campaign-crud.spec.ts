@@ -166,7 +166,8 @@ test.describe(
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -523,7 +524,8 @@ test.describe(
 
         socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
 
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -768,7 +770,8 @@ test.describe(
           bugTicket: 'SEN-19493',
         });
 
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         //remove all the carousel items from the site
         await appManagerFixture.carouselHelper.getAndRemoveAllCarouselItems(siteId);
 
@@ -817,7 +820,8 @@ test.describe(
           storyId: 'CONT-14903',
         });
 
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         // Create campaign with audience
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -1123,7 +1127,8 @@ test.describe(
           recipient: campaignOptions.recipient,
           shouldWaitForSearchIndex: true,
         });
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const tileTitle = TestDataGenerator.generateRandomString();
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
@@ -1171,7 +1176,8 @@ test.describe(
         });
 
         campaignId = createdCampaign.campaignId;
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const tileTitle = TestDataGenerator.generateRandomString();
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
@@ -1284,7 +1290,7 @@ test.describe(
 
         // Phase 1: Setup - Admin creates Social Campaign for "All Organization"
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
 
         // Create campaign with audience

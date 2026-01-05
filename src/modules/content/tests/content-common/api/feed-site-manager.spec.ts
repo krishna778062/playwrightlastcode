@@ -60,7 +60,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -228,7 +228,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -400,7 +400,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -560,7 +560,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -802,7 +802,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1040,7 +1040,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }

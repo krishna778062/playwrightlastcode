@@ -345,7 +345,8 @@ test.describe(
         if (!campaignName) {
           throw new Error('Campaign has neither title nor message');
         }
-        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteInfo =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -411,7 +412,8 @@ test.describe(
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteInfo =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },

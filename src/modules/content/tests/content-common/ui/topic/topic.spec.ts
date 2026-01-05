@@ -108,7 +108,8 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
       console.log('Created topic via API:', topicInfo);
 
-      const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+      const siteId =
+        await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
       // Generate random page name using faker
       const randomPageName = `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()} Page`;

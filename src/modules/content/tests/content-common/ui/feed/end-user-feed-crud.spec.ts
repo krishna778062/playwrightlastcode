@@ -138,7 +138,7 @@ test.describe(
         });
 
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Navigate to Site Dashboard as
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId);
@@ -241,7 +241,7 @@ test.describe(
 
         // Get DEFAULT_PUBLIC_SITE_NAME site ID
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create a page in DEFAULT_PUBLIC_SITE_NAME site for testing
         const pageInfo = await appManagerFixture.contentManagementHelper.createPage({

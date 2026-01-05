@@ -203,7 +203,7 @@ test.describe(
 
         // Search existing site DEFAULT_PUBLIC_SITE_NAME
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create an event with upcoming date (valid upcoming event)
         eventCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(

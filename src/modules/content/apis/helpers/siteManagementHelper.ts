@@ -395,6 +395,53 @@ export class SiteManagementHelper {
     return await this.siteManagementService.deactivateSite(siteId);
   }
 
+  /**
+   * Searches for a site by name, activates it if inactive, and returns the site ID
+   * @param siteName - The exact name of the site to search for
+   * @param options - Optional search parameters
+   * @param options.canManage - Filter sites that can be managed (default: true)
+   * @param options.filter - Filter by site status (default: 'all')
+   * @param options.includeDeactivated - Include deactivated sites (default: true)
+   * @returns Promise with the site ID
+   */
+  async searchSiteAndActivateIfNeeded(
+    siteName: string,
+    options?: {
+      canManage?: boolean;
+      filter?: string;
+      includeDeactivated?: boolean;
+    }
+  ): Promise<string> {
+    return await test.step(`Searching for site "${siteName}" and activating if needed`, async () => {
+      // Search for the site
+      const searchResponse = await this.siteManagementService.searchSites(siteName, {
+        canManage: options?.canManage !== undefined ? options.canManage : true,
+        filter: options?.filter || 'all',
+        includeDeactivated: options?.includeDeactivated !== undefined ? options.includeDeactivated : true,
+      });
+
+      // Iterate through the search results to find exact site name match
+      const matchingSite = searchResponse.result.listOfItems.find(
+        item => item.item.title.toLowerCase() === siteName.toLowerCase()
+      );
+
+      if (!matchingSite) {
+        throw new Error(`Site with name "${siteName}" not found in search results`);
+      }
+
+      const siteId = matchingSite.item.id;
+      const isActive = matchingSite.item.isActive;
+
+      // If site is not active, activate it
+      if (!isActive) {
+        log.debug(`Site "${siteName}" (${siteId}) is inactive, activating...`);
+        await this.siteManagementService.activateSite(siteId);
+      }
+      log.debug(`Site "${siteName}" (${siteId}) is activate`);
+      return siteId;
+    });
+  }
+
   async getCategoryList(options: { size?: number; sortBy?: string } = {}): Promise<any> {
     return await test.step('Getting list of categories via API', async () => {
       return await this.siteManagementService.getListOfCategories(options);
