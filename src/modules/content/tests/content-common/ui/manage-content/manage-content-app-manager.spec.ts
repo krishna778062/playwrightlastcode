@@ -416,7 +416,7 @@ test.describe(
         });
         // Get the DEFAULT_PUBLIC_SITE_NAME site ID for API page creation
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Use test data for page name
         const randomPageName = CONTENT_TEST_DATA.DEFAULT_PAGE_CONTENT.title;

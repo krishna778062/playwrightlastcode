@@ -858,7 +858,8 @@ test.describe(
         });
 
         // Setup: Create event and page content so smart feed blocks are visible
-        const setupSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const setupSiteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create an event for "Upcoming events" block
         const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({

@@ -128,7 +128,7 @@ test.describe(
 
         // creating event through API
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const eventName = CONTENT_TEST_DATA.DEFAULT_EVENT_CONTENT.title;
         const eventInfo = await appManagerFixture.contentManagementHelper.createEvent({
           siteId: allEmployeesSiteId,

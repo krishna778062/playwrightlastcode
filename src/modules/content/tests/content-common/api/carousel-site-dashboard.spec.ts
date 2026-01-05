@@ -34,7 +34,8 @@ test.describe(
         });
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Enable site carousel
         const enableResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
@@ -83,7 +84,8 @@ test.describe(
         );
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Get existing content for carousel
         const contentInfo = await appManagerApiFixture.contentManagementHelper.getContentId({
@@ -141,7 +143,8 @@ test.describe(
         );
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create event content
         const eventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
@@ -204,7 +207,8 @@ test.describe(
         );
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create album content
         const albumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
