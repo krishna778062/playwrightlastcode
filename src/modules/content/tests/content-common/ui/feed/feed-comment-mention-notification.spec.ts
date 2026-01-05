@@ -180,8 +180,8 @@ test.describe(
         const endUserReplyText = TestDataGenerator.generateRandomText('Reply', 1, false);
         const replyText = await contentPreviewPage.addReplyToComment(
           endUserReplyText,
-          siteManagerInfo.fullName,
-          createdPostId
+          createdPostId,
+          siteManagerInfo.fullName
         );
         await siteManagerFixture.homePage.loadPage();
         const notificationComponentSiteManager = await siteManagerFixture.navigationHelper.clickOnBellIcon({

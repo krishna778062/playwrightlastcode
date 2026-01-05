@@ -252,7 +252,7 @@ export class ListFeedComponent extends BaseComponent {
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
-    this.replyInput = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+    this.replyInput = this.page.getByRole('button', { name: 'Leave a reply…' }).first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
     this.replyFileUploadInput = this.page.locator("input[type='file']");
@@ -585,6 +585,7 @@ export class ListFeedComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
+      await this.clickOnElement(this.replyInput);
 
       await this.fillInElement(this.replyEditor, replyText);
 
