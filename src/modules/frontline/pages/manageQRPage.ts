@@ -1298,10 +1298,9 @@ export class ManageQRPage extends BasePage {
       });
 
       // Set up download listener BEFORE clicking to avoid race condition
-      const downloadPromise = this.page.waitForEvent('download', { timeout: TIMEOUTS.MEDIUM });
+      const downloadPromise = this.page.waitForEvent('download', { timeout: TIMEOUTS.LONG });
 
-      // Click with noWaitAfter to prevent Playwright from waiting for post-click actions
-      await downloadIcon.click({ noWaitAfter: true });
+      await downloadIcon.evaluate((el: HTMLElement) => el.click());
 
       // Wait for download event
       const download = await downloadPromise;
