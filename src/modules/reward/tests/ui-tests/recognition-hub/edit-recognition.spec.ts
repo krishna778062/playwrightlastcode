@@ -635,7 +635,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5629 Validate status of transaction history when edit recognition with points within 24hr',
+    '[RC-5629] Validate status of transaction history when edit recognition with points within 24hr',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -654,13 +654,13 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const existingOptions = await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
       if (existingOptions.length <= 1) {
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
@@ -687,12 +687,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         String(rewardOptionIndex),
         'Only visible to recipients, their managers and app administrators'
       );
-
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
-      await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
-        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
-      });
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       // ✅ Trigger and capture download
@@ -711,7 +705,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       let validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFilePath);
       expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
       fs.unlinkSync(csvFilePath);
-      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
       const rewardPoints = 4;
@@ -727,7 +721,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
       await recognitionHub.page.reload();
       await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
