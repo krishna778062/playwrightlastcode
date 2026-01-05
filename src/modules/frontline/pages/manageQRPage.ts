@@ -174,7 +174,7 @@ export class ManageQRPage extends BasePage {
     this.editContentQRHeader = page.getByRole('heading', { name: 'Edit content QR' });
     this.addContentDescription = page.getByRole('heading').locator('xpath=following-sibling::p');
     this.contentSearchBoxText = page.getByText(QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT);
-    this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE);
+    this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE).first();
     this.textBelowPromoteContentViaQRPopupHeading = page.getByText(QR_MESSAGES.TEXT_BELOW_QR_CODES_POPUP_HEADING);
     this.textBelowPreviewQRPopupHeading = page.getByText(QR_MESSAGES.TEXT_BELOW_PREVIEW_QR_CODE_POPUP_HEADING);
     this.helpTextBelowQRNameField = page.getByText(QR_MESSAGES.HELP_TEXT_BELOW_QR_NAME_FIELD);
@@ -1184,8 +1184,7 @@ export class ManageQRPage extends BasePage {
 
   async verifySuccessToastMessage(expectedMessage: string): Promise<void> {
     await test.step(`Verify success toast message: "${expectedMessage}"`, async () => {
-      // Use constructor-defined locator for toast messages
-      const toastMessage = this.toastMessage.filter({ hasText: expectedMessage });
+      const toastMessage = this.toastMessage.filter({ hasText: expectedMessage }).first();
       await this.verifier.waitUntilElementIsVisible(toastMessage, {
         timeout: 10000,
         stepInfo: 'Wait for success toast message to be visible',
@@ -1281,24 +1280,33 @@ export class ManageQRPage extends BasePage {
   }
 
   async downloadQRFromTable(qrName: string): Promise<string> {
-    const qrRow = this.qrRowByText.filter({ hasText: qrName });
-    const downloadIcon = qrRow.locator(this.downloadIcon);
+    return await test.step(`Download QR from table for "${qrName}"`, async () => {
+      const qrRow = this.qrRowLocator.filter({ hasText: qrName });
+      const downloadIcon = qrRow.getByLabel('Download');
 
-    await this.verifier.waitUntilElementIsVisible(downloadIcon, {
-      timeout: TIMEOUTS.SHORT,
-      stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
+      // First wait for the row to be visible and scroll it into view
+      await this.verifier.waitUntilElementIsVisible(qrRow, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: `Wait for QR row to be visible for QR: ${qrName}`,
+      });
+
+      await qrRow.scrollIntoViewIfNeeded();
+
+      await this.verifier.waitUntilElementIsVisible(downloadIcon, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
+      });
+
+      const downloadPromise = this.page.waitForEvent('download', { timeout: TIMEOUTS.LONG });
+
+      await downloadIcon.evaluate((el: HTMLElement) => el.click());
+
+      // Wait for download event
+      const download = await downloadPromise;
+      const downloadPath = await download.path();
+
+      return await QRCodeUtil.processDownloadedFile(downloadPath!, qrName);
     });
-
-    const result = await this.downloadFileWithCleanup(
-      () => this.clickOnElement(downloadIcon, { stepInfo: `Click download icon for QR: ${qrName}`, force: true }),
-      {
-        stepInfo: `Download QR from table for "${qrName}"`,
-        cleanup: false,
-        timeout: TIMEOUTS.MEDIUM,
-      }
-    );
-
-    return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
   }
 
   async verifyQRCodeExpiredMessage(page: Page, expectedMessage: string): Promise<void> {
