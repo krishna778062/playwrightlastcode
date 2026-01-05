@@ -121,7 +121,7 @@ test.describe(
     };
 
     test(
-      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 1 (Content Manager and Manager)',
+      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 1 (Content Manager and Manager) CONT-29513',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
       },
@@ -219,7 +219,7 @@ test.describe(
     );
 
     test(
-      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 2 (Member and Owner)',
+      'verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue - Part 2 (Member and Owner) CONT-29513',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
       },
@@ -320,7 +320,7 @@ test.describe(
     );
 
     test(
-      'verify Content Moderator can view Reported posts/comments/replies in Content Moderation queue',
+      'verify Content Moderator can view Reported posts/comments/replies in Content Moderation queue CONT-29514',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29514'],
       },

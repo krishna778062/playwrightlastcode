@@ -83,7 +83,7 @@ test.describe(
 
     for (const testData of EVENT_APPROVAL_TEST_DATA) {
       test(
-        `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName}`,
+        `Event Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,

@@ -14,7 +14,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
     await rewardsStore.enableTheRewardStoreAndPeerGiftingIfDisabled();
   });
   test(
-    '[RC-3311] Validate if Categories option list on rewards store page is showing in Users set language',
+    'RC-3311 Validate if Categories option list on rewards store page is showing in Users set language',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -126,7 +126,7 @@ test.describe('rewards store', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, () => 
   );
 
   test(
-    "[RC-3312] Validate if location list on rewards store page is showing in User's set language",
+    "RC-3312 Validate if location list on rewards store page is showing in User's set language",
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

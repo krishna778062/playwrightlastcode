@@ -13,7 +13,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
   });
 
   test(
-    '[RC-3227] Validate Variable amount gift card redemptions',
+    'RC-3227 Validate Variable amount gift card redemptions',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },

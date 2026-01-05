@@ -45,3 +45,11 @@ downloads/
 
 # all debug csv and log files
 *.log
+
+#browserstack files
+browserstack.err
+log/
+src/modules/*/playwright-browserstack-sdk.config.ts
+playwright-report-browserstack/
+src/modules/*/browserstacksetupConfig.json
+playwright-browserstack-sdk.config.temp.json

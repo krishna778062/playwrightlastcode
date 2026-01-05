@@ -6,7 +6,7 @@ import { tagTest, TestGroupType, TestPriority } from '@/src/core';
 
 test.describe('rewards overview page', { tag: [REWARD_FEATURE_TAGS.REWARD_OVERVIEW] }, () => {
   test(
-    '[RC-3094] Validate tooltips on Rewards Overview Points Balance summary tile component',
+    'RC-3094 Validate tooltips on Rewards Overview Points Balance summary tile component',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
