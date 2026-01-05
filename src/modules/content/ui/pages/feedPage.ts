@@ -128,19 +128,6 @@ export class FeedPage extends BasePage {
     });
   }
 
-  // High-level user flow methods
-  async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
-    return await this.postEditor.createAndPost(options);
-  }
-
-  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
-    return await this.postEditor.createAndPostWithTopic(text, topic);
-  }
-
-  async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
-    return await this.questionEditor.createAndPostQuestion(options);
-  }
-
   async getPostContainerLocator(postText: string): Promise<Locator> {
     return this.feedPostContainer.filter({ hasText: postText }).first();
   }
