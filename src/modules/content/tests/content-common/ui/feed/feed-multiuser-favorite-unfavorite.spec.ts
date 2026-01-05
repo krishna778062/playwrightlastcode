@@ -101,16 +101,24 @@ test.describe.skip(
 
           // Generate feed test data using the test data generator
           const feedTestData = testData.hasAttachment
-            ? TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: createdSite.siteId,
-                withAttachment: true as const,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
-              })
+            ? (() => {
+                const attachmentData = testData as typeof testData & {
+                  fileName: string;
+                  fileSize: number;
+                  mimeType: string;
+                  filePath: string;
+                };
+                return TestDataGenerator.generateFeed({
+                  scope: 'site',
+                  siteId: createdSite.siteId,
+                  withAttachment: true as const,
+                  fileName: attachmentData.fileName,
+                  fileSize: attachmentData.fileSize,
+                  mimeType: attachmentData.mimeType,
+                  filePath: attachmentData.filePath,
+                  waitForSearchIndex: false,
+                });
+              })()
             : TestDataGenerator.generateFeed({
                 scope: 'site',
                 siteId: createdSite.siteId,
@@ -274,16 +282,24 @@ test.describe(
 
           // Generate feed test data using the test data generator
           const feedTestData = testData.hasAttachment
-            ? TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: siteId,
-                withAttachment: true as const,
-                fileName: testData.fileName,
-                fileSize: testData.fileSize,
-                mimeType: testData.mimeType,
-                filePath: testData.filePath,
-                waitForSearchIndex: false,
-              })
+            ? (() => {
+                const attachmentData = testData as typeof testData & {
+                  fileName: string;
+                  fileSize: number;
+                  mimeType: string;
+                  filePath: string;
+                };
+                return TestDataGenerator.generateFeed({
+                  scope: 'site',
+                  siteId: siteId,
+                  withAttachment: true as const,
+                  fileName: attachmentData.fileName,
+                  fileSize: attachmentData.fileSize,
+                  mimeType: attachmentData.mimeType,
+                  filePath: attachmentData.filePath,
+                  waitForSearchIndex: false,
+                });
+              })()
             : TestDataGenerator.generateFeed({
                 scope: 'site',
                 siteId: siteId,
