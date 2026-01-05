@@ -29,16 +29,17 @@ test.describe(
       onSitePage: OnSitePage;
       onSiteQueryHelper: OnSiteQueryHelper;
       snowflakeHelper: SnowflakeHelper;
+      siteCode: string;
     };
     let testFiltersConfig: OnSiteFilterOptions;
     let siteCode: string;
 
     test.beforeAll('Setup On-Site Analytics Page with default filters', async ({ browser }) => {
-      // Setup page using dedicated method
+      // Setup page using dedicated method - site_code is now retrieved dynamically from DB
       testEnvironment = await setupOnSitePageForTest(browser, UserRole.APP_MANAGER);
 
-      // Extract site code from URL
-      siteCode = testEnvironment.onSitePage.getSiteCodeFromUrl();
+      // Use the site code returned from setup (dynamically retrieved from DB)
+      siteCode = testEnvironment.siteCode;
 
       // Define unified filter configuration for default state (Last 30 days)
       testFiltersConfig = {

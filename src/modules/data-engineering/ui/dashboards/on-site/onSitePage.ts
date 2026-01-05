@@ -36,8 +36,8 @@ export class OnSitePage extends BaseAnalyticsDashboardPage {
   readonly mostContentPublished: MostContentPublished;
   readonly mostViewedContent: MostViewedContent;
 
-  constructor(page: Page) {
-    super(page, PAGE_ENDPOINTS.ON_SITE_PAGE);
+  constructor(page: Page, siteId: string) {
+    super(page, PAGE_ENDPOINTS.ON_SITE_PAGE(siteId));
     this.reactionsMade = new ReactionsMade(page, this.thoughtSpotIframe);
     this.reactionsReceived = new ReactionsReceived(page, this.thoughtSpotIframe);
     this.favoritesReceived = new FavoritesReceived(page, this.thoughtSpotIframe);

@@ -248,4 +248,33 @@ GROUP BY
     c.title
 ORDER BY
     "Views" DESC;`,
+
+  GET_SITE_CODE: `Select site_code from (
+SELECT 
+    i.site_code,
+    COUNT(*) AS total_interactions
+FROM udl.interaction AS i
+INNER JOIN udl.site s
+    ON s.code = i.site_code
+   AND s.tenant_code = i.tenant_code
+WHERE 
+    s.tenant_code = '{tenantCode}'
+    AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+    AND s.overall_is_site_active = TRUE
+    AND i.is_system_feed = FALSE
+    AND i.interaction_content_post_first_publish = TRUE
+    AND i.is_deleted = FALSE
+    AND i.current_site_code IS NOT NULL
+    AND i.current_site_code <> 'N/A'
+GROUP BY 
+    i.site_code
+HAVING
+    COUNT(CASE WHEN i.interaction_type_code = 'IT001' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT002' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT003' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT004' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT006' THEN 1 END) > 0
+ORDER BY 
+    total_interactions DESC 
+LIMIT 1);`,
 };

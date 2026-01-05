@@ -134,4 +134,35 @@ export class OnSiteQueryHelper extends BaseAnalyticsQueryHelper {
     });
     return await this.executeQuery(finalQuery);
   }
+
+  /**
+   * Gets site code from database based on tenant code and date range
+   * Returns the site with the most interactions that meets all the required interaction type criteria
+   * @param filterBy - Filter options including time period and tenantCode
+   * @returns Promise<string | null> - Site code (UUID) or null if no matching site found
+   */
+  async getSiteCodeFromDB({ filterBy }: { filterBy: FilterOptions }): Promise<string | null> {
+    // Handle date replacements
+    const dateReplacements = DateHelper.getDateReplacements(
+      filterBy.timePeriod,
+      filterBy.customStartDate,
+      filterBy.customEndDate
+    );
+
+    // Replace placeholders in the query
+    const query = OnSiteSql.GET_SITE_CODE.replace(/{tenantCode}/g, filterBy.tenantCode)
+      .replace(/{startDate}/g, dateReplacements.startDate)
+      .replace(/{endDate}/g, dateReplacements.endDate);
+
+    const results = await this.executeQuery(query);
+
+    if (results && results.length > 0) {
+      // Try different possible column name variations
+      const firstRow = results[0] as any;
+      const siteCode = firstRow.SITE_CODE || firstRow.site_code || firstRow['SITE_CODE'] || firstRow['site_code'];
+      return siteCode || null;
+    }
+
+    return null;
+  }
 }
