@@ -174,7 +174,7 @@ export class ManageQRPage extends BasePage {
     this.editContentQRHeader = page.getByRole('heading', { name: 'Edit content QR' });
     this.addContentDescription = page.getByRole('heading').locator('xpath=following-sibling::p');
     this.contentSearchBoxText = page.getByText(QR_MESSAGES.CONTENT_SEARCH_BOX_TEXT);
-    this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE);
+    this.updatedSuccessMessage = page.getByText(QR_MESSAGES.SUCCESSFULLY_UPDATED_QR_CODE).first();
     this.textBelowPromoteContentViaQRPopupHeading = page.getByText(QR_MESSAGES.TEXT_BELOW_QR_CODES_POPUP_HEADING);
     this.textBelowPreviewQRPopupHeading = page.getByText(QR_MESSAGES.TEXT_BELOW_PREVIEW_QR_CODE_POPUP_HEADING);
     this.helpTextBelowQRNameField = page.getByText(QR_MESSAGES.HELP_TEXT_BELOW_QR_NAME_FIELD);
@@ -1184,8 +1184,7 @@ export class ManageQRPage extends BasePage {
 
   async verifySuccessToastMessage(expectedMessage: string): Promise<void> {
     await test.step(`Verify success toast message: "${expectedMessage}"`, async () => {
-      // Use constructor-defined locator for toast messages
-      const toastMessage = this.toastMessage.filter({ hasText: expectedMessage });
+      const toastMessage = this.toastMessage.filter({ hasText: expectedMessage }).first();
       await this.verifier.waitUntilElementIsVisible(toastMessage, {
         timeout: 10000,
         stepInfo: 'Wait for success toast message to be visible',
