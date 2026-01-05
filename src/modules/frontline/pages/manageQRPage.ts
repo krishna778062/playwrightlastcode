@@ -1280,8 +1280,8 @@ export class ManageQRPage extends BasePage {
   }
 
   async downloadQRFromTable(qrName: string): Promise<string> {
-    const qrRow = this.qrRowByText.filter({ hasText: qrName });
-    const downloadIcon = qrRow.locator(this.downloadIcon);
+    const qrRow = this.qrRowLocator.filter({ hasText: qrName });
+    const downloadIcon = qrRow.getByLabel('Download');
 
     // First wait for the row to be visible and scroll it into view
     await this.verifier.waitUntilElementIsVisible(qrRow, {
@@ -1296,14 +1296,11 @@ export class ManageQRPage extends BasePage {
       stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
     });
 
-    const result = await this.downloadFileWithCleanup(
-      () => this.clickOnElement(downloadIcon, { stepInfo: `Click download icon for QR: ${qrName}`, force: true }),
-      {
-        stepInfo: `Download QR from table for "${qrName}"`,
-        cleanup: false,
-        timeout: TIMEOUTS.MEDIUM,
-      }
-    );
+    const result = await this.downloadFileWithCleanup(() => downloadIcon.click(), {
+      stepInfo: `Download QR from table for "${qrName}"`,
+      cleanup: false,
+      timeout: TIMEOUTS.MEDIUM,
+    });
 
     return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
   }
