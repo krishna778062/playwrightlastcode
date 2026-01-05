@@ -441,7 +441,7 @@ export class CreateFeedPostComponent extends BaseComponent {
    */
   async clickUpdateButton(): Promise<void> {
     await test.step('Click update button', async () => {
-      await this.clickOnElement(this.updateButton);
+      await this.clickOnElement(this.updateButton.last());
     });
   }
 
@@ -506,8 +506,8 @@ export class CreateFeedPostComponent extends BaseComponent {
   async addUserNameMention(userName: string): Promise<void> {
     await test.step(`Adding user mention: @${userName}`, async () => {
       await this.typeInElement(this.feedEditor, ` @${userName}`);
-      await this.getDropdownOption(userName).waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
-      await this.clickOnElement(this.getDropdownOption(userName));
+      await this.getDropdownOption(userName).first().waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.getDropdownOption(userName).first());
     });
   }
 
@@ -578,7 +578,7 @@ export class CreateFeedPostComponent extends BaseComponent {
           response.request().method() === 'POST' &&
           response.status() === 201,
         {
-          timeout: 20_000,
+          timeout: TIMEOUTS.LONG,
         }
       );
       return postResponse;
@@ -593,6 +593,7 @@ export class CreateFeedPostComponent extends BaseComponent {
     if (embedUrl) {
       await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
         await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
+        await this.page.keyboard.press('Enter');
       });
     }
   }
