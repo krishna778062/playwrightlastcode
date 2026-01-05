@@ -27,9 +27,9 @@ const commonLaunchArgs = [
 
 export default defineConfig({
   ...baseConfig,
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests'),
-  testIgnore: '**/tests/ui-setting-tests/**',
-  workers: process.env.CI ? 3 : 5,
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'work-anniversary-points'),
+  testIgnore: ['**/tests/ui-setting-tests/**', '**/tests/ui-tests/**'],
+  workers: process.env.CI ? 1 : 5,
   projects: [
     {
       name: 'Reward',
