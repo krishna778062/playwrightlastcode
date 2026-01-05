@@ -29,7 +29,7 @@ export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'work-anniversary-points'),
   testIgnore: ['**/tests/ui-setting-tests/**', '**/tests/ui-tests/**'],
-  workers: process.env.CI ? 1 : 5,
+  workers: process.env.CI ? 1 : 1,
   projects: [
     {
       name: 'Reward',
