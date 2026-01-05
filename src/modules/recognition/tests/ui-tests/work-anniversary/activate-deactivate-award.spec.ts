@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
+import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
 import {
   automatedAwardMsgs,
@@ -9,7 +9,7 @@ import {
   milestoneEndpointUrls,
 } from '@rewards-pages/work-anniversary';
 
-import { TestGroupType, TestPriority } from '@core/constants';
+import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
 
 test.describe(
@@ -20,8 +20,10 @@ test.describe(
       const { page: appManagerPage } = appManagerFixture;
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
-      await expect(manageRecognitionPage.page).toHaveURL(milestoneEndpointUrls.milestoneEndpointUrl);
-      await expect(manageRecognitionPage.header).toBeVisible();
+      await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+      await expect(manageRecognitionPage.header).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
 
     test(
@@ -74,8 +76,10 @@ test.describe('Work anniversary award activation by Recognition Manager', () => 
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
-    await expect(manageRecognitionPage.page).toHaveURL(milestoneEndpointUrls.milestoneEndpointUrl);
-    await expect(manageRecognitionPage.header).toBeVisible();
+    await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+    await expect(manageRecognitionPage.header).toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
   });
 
   test(
@@ -96,7 +100,9 @@ test.describe('Work anniversary award activation by Recognition Manager', () => 
       await editAutomatedAwardPage.inactivateAwardIfActive(automatedAwardPage, manageRecognitionPage);
 
       // Open edit page
-      await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
+      const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
+      await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await threeDotsButton.click();
       await manageRecognitionPage.automatedAwards.editMenuItem.click();
       await automatedAwardPage.editMilestoneTitle.waitFor({ state: 'visible' });
 

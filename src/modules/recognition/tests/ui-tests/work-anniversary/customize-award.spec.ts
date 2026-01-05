@@ -1,9 +1,10 @@
+import { expect } from '@playwright/test';
+import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
 import { AutomatedAwardPage, EditAutomatedAwardPage, milestoneEndpointUrls } from '@rewards-pages/work-anniversary';
 
-import { TestGroupType, TestPriority } from '@core/constants';
+import { TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
 
 test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
@@ -12,7 +13,9 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
     await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
-    await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
+    const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
+    await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    await threeDotsButton.click();
     await manageRecognitionPage.automatedAwards.editMenuItem.click();
     await automatedAwardPage.editMilestoneTitle.waitFor({ state: 'visible' });
   });

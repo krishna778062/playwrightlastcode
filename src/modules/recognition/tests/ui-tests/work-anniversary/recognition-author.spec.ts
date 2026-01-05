@@ -1,10 +1,10 @@
 import { expect } from '@playwright/test';
+import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
 import { AutomatedAwardPage, EditAutomatedAwardPage } from '@rewards-pages/work-anniversary';
 
-import { TestGroupType, TestPriority } from '@core/constants';
+import { TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { tagTest } from '@core/utils';
 
@@ -16,7 +16,10 @@ test.describe(
       const { page: appManagerPage } = appManagerFixture;
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-      await expect(manageRecognitionPage.header).toBeVisible();
+      await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+      await expect(manageRecognitionPage.header).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
       await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
       await manageRecognitionPage.automatedAwards.editMenuItem.click();
     });
@@ -62,13 +65,10 @@ test.describe(
         await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
 
         await manageRecognitionPage.navigateToAutomatedAwardsPage();
-        await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
+        const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
+        await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+        await threeDotsButton.click();
         await manageRecognitionPage.automatedAwards.editMenuItem.click();
-        const recognitionAuthorIntranetNameText = await editAutomatedAwardPage
-          .getElementByPassingPartialText('Intranet name')
-          .textContent();
-        const intranetNameAfter = editAutomatedAwardPage.extractIntranetName(recognitionAuthorIntranetNameText);
-
         await editAutomatedAwardPage.verifyIntranetNameUpdated(intranetNameBefore, newIntranetName);
       }
     );

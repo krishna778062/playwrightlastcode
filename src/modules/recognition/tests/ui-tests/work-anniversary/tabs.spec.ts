@@ -1,5 +1,5 @@
+import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
 import { automatedAwardMsgs, AutomatedAwardPage } from '@rewards-pages/work-anniversary';
 

@@ -61,7 +61,12 @@ export class ManageRecognitionPage extends BasePage {
       dailogAwardeeName: dialog.locator('[data-testid*="awardeeNames"]'),
       dailogSubHeader: dialog.getByRole('heading', { name: 'year work anniversary' }).nth(1),
       dailogSubWorkAnniversaryHeader: dialog.getByText('WORK ANNIVERSARY', { exact: true }),
-      dailogTipTapContent: dialog.getByText('Congratulations <fullName> on'),
+      dailogTipTapContent: dialog
+        .locator('[class*="MessageBubble"]')
+        .locator('[class*="Tiptap_tiptapContent"]')
+        .locator('p')
+        .filter({ hasNotText: /^(intranetName|Recognized by)/i })
+        .first(),
       dailogCheerIcon: dialog.getByRole('button', { name: 'Cheer this recognition' }),
       dailogCommentIcon: dialog.getByRole('button', { name: 'Comment on this recognition' }),
       dailogShareIcon: dialog.getByRole('button', { name: 'Share this recognition' }),
@@ -79,15 +84,15 @@ export class ManageRecognitionPage extends BasePage {
       dailogCustomiseAuthorHeader: dialog.getByRole('heading', { name: 'Author' }),
       dailogCustomiseNoAuthorRadio: dialog.getByRole('radio', { name: 'No author' }),
       dailogCustomiseAuthorFooterText: dialog.getByText('Select the user the'),
-      dailogIntranetNameRadio: dialog.getByRole('radio', { name: /Intranet name/ }),
+      dailogIntranetNameRadio: dialog.getByRole('radio', { name: 'Intranet name' }),
       dailogAuthorNameLink: dialog.locator('[class*="MessageBubble"] p[class*="Typography"]').first(),
       dailogCustomAuthorTextBox: dialog.getByRole('textbox', { name: 'custom author name' }),
       dailogSelectedUserTextBox: dialog.getByRole('combobox'),
       dailogSelectOptions: dialog.getByRole('menuitem'),
       dailogSelectUserValue: dialog.locator('[class*="MultiValueLabelWithIcon-module__label"]').first(),
-      dailogAuthorAppNameLabel: dialog.getByText(/Intranet name/),
-      dailogCustomiseMsgError: dialog.getByText(/Must not exceed 2,500 characters/i),
-      dailogCustomiseBadgeLink: dialog.getByRole('button', { name: /milestone instance badge/i }),
+      dailogAuthorAppNameLabel: dialog.getByText('Intranet name'),
+      dailogCustomiseMsgError: dialog.getByText('Must not exceed 2,500 characters'),
+      dailogCustomiseBadgeLink: dialog.getByRole('button', { name: 'milestone instance badge' }),
       dailogCustomiseBadgeHeader: dialog.getByRole('heading', { name: 'Badge' }),
       dailogBadgeUploadBtn: dialog.getByRole('button', { name: 'Upload' }),
       dailogFirstBagde: dialog.locator('[class*="AwardIcon"]').first(),
