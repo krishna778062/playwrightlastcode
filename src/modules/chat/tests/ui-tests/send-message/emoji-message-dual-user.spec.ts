@@ -18,7 +18,7 @@ test.describe(
     test(
       'send message with first 4 emojis from emoji picker',
       {
-        tag: [TestPriority.P2, TestGroupType.SMOKE],
+        tag: [TestPriority.P2, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ multiUserChatTestHelper, chatPages }) => {
         tagTest(test.info(), {

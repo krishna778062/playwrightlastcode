@@ -1,9 +1,17 @@
-import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
-import baseConfig from '../../../playwright.base.config';
-import { PROJECT_ROOT } from '../../core/constants/paths';
+// Initialize tenant config
+import { getDataEngineeringConfigFromCache, initializeDataEngineeringConfig } from './config/dataEngineeringConfig';
 
+initializeDataEngineeringConfig('primary');
+
+const tenantConfig = getDataEngineeringConfigFromCache();
+
+import { defineConfig, devices } from '@playwright/test';
+
+import baseConfig from './playwright.data-engineering.base.config';
+
+import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export default defineConfig({
@@ -14,9 +22,9 @@ export default defineConfig({
   testIgnore: '**/api-tests/**',
   use: {
     ...baseConfig.use,
-    baseURL: process.env.FRONTEND_BASE_URL,
-    actionTimeout: 15_000, // 15 seconds auto-wait for actions
-    navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
+    baseURL: tenantConfig.frontendBaseUrl,
+    actionTimeout: 15_000,
+    navigationTimeout: 15_000,
   },
   projects: [
     {
@@ -24,7 +32,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         headless: process.env.CI ? true : false,
-        viewport: { width: 1920, height: 1080 },
+        viewport: { width: 1728, height: 992 },
+        deviceScaleFactor: 2,
       },
     },
   ],

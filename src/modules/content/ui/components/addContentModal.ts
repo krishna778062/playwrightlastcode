@@ -21,6 +21,7 @@ export class AddContentModalComponent extends BaseComponent {
   readonly pageContentTypeLabel: Locator;
   readonly albumContentTypeLabel: Locator;
   readonly eventContentTypeLabel: Locator;
+  readonly siteMessage: Locator;
 
   //select site dropdown
   readonly selectSiteDropdown: Locator;
@@ -53,10 +54,8 @@ export class AddContentModalComponent extends BaseComponent {
 
     //select site dropdown
     this.selectSiteDropdown = page.locator('input.ReactSelectInput-inputField');
-    this.selectSiteDropdownOption = (siteName: string) =>
-      page.locator(`div.u-textTruncate div:has-text("${siteName}")`);
+    this.selectSiteDropdownOption = (siteName: string) => page.locator(`div.u-textTruncate div:text-is("${siteName}")`);
     this.clearButtonOnSelectSiteDropdown = page.getByLabel('Clear search');
-
     this.selectSiteDropdownOptionByIndex = (index: number) => page.locator(`span.u-textTruncate`).nth(index);
 
     //select template dropdown
@@ -67,7 +66,8 @@ export class AddContentModalComponent extends BaseComponent {
       page.locator("div[class*='Menu-module'] div[role='menuitem']").nth(index);
 
     this.errorMessage = (contentType: ContentType) =>
-      page.locator(`p:has-text('${contentType}s have been disabled within this site')`);
+      page.getByText(`${contentType}s have been disabled within this site`);
+    this.siteMessage = page.locator('#siteError');
   }
 
   /**
@@ -133,7 +133,15 @@ export class AddContentModalComponent extends BaseComponent {
   async selectSiteFromDropdown(siteName: string) {
     await test.step(`Select ${siteName} site from select site dropdown`, async () => {
       await this.typeInElement(this.selectSiteDropdown, siteName);
-      await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+      try {
+        console.log(`Selecting ${siteName} site from select site dropdown`);
+        await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+      } catch (error) {
+        console.log(`Error selecting ${siteName} site from select site dropdown: ${error}`);
+        await this.selectSiteDropdown.clear();
+        await this.typeInElement(this.selectSiteDropdown, siteName);
+        await this.clickOnElement(this.selectSiteDropdownOption(siteName));
+      }
     });
   }
 
@@ -309,6 +317,7 @@ export class AddContentModalComponent extends BaseComponent {
   async verifyErrorMessageWhenContentSubmissionIsDisabled(contentType: ContentType) {
     await test.step('Verify error message when content submission is disabled', async () => {
       await this.verifier.verifyTheElementIsVisible(this.errorMessage(contentType));
+      await this.verifier.verifyTheElementIsVisible(this.siteMessage);
     });
   }
 }

@@ -16,6 +16,4 @@ export interface ISiteManagementOperations {
     action?: SiteMembershipAction
   ): Promise<SiteMembershipResponse>;
   getSiteMembershipList(siteId: string, options?: { size?: number; type?: string }): Promise<any>;
-  getSiteCarouselItems(siteId: string): Promise<any>;
-  deleteSiteCarouselItem(siteId: string, carouselItemId: string): Promise<any>;
 }

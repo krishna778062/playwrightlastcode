@@ -29,6 +29,7 @@ test.describe(
           imageName: 'beach.jpg',
           options: {
             contentDescription: ALBUM_SEARCH_TEST_DATA.description,
+            waitForSearchIndex: true,
           },
         });
 
@@ -54,12 +55,18 @@ test.describe(
     test(
       `Verify Content Search results for a new ${ALBUM_SEARCH_TEST_DATA.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+        annotation: { type: 'known_failure', description: 'SEN-18939' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12410',
           storyId: 'SEN-12297',
+          isKnownFailure: true,
+          bugTicket: 'SEN-18939',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Failing to show content description in global search page',
         });
 
         // 5. UI Search for the album
@@ -131,7 +138,7 @@ test.describe(
     test(
       `verify Album Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

@@ -29,15 +29,20 @@ export class SocialCampaignShareDistribution extends TabluarMetricsComponent {
       'Platform share contribution (%)': string;
     }>
   ): Promise<void> {
-    // Define data mapper function for better readability
-    const dataMapper = (item: {
-      'Social platform': string;
-      'Share count': number;
-      'Platform share contribution (%)': string;
-    }) => ({
-      [SocialCampaignDataColumns.SOCIAL_PLATFORM]: item['Social platform'],
-      [SocialCampaignDataColumns.SHARE_COUNT]: item['Share count'].toString(),
-      [SocialCampaignDataColumns.PLATFORM_SHARE_CONTRIBUTION]: item['Platform share contribution (%)'],
+    // Helper to get case-insensitive property value
+    const getCaseInsensitiveValue = (obj: any, key: string): any => {
+      const foundKey = Object.keys(obj).find(k => k.toLowerCase() === key.toLowerCase());
+      return foundKey ? obj[foundKey] : obj[key];
+    };
+
+    // Define data mapper function
+    const dataMapper = (item: any) => ({
+      [SocialCampaignDataColumns.SOCIAL_PLATFORM]: getCaseInsensitiveValue(item, 'Social platform'),
+      [SocialCampaignDataColumns.SHARE_COUNT]: getCaseInsensitiveValue(item, 'Share count').toString(),
+      [SocialCampaignDataColumns.PLATFORM_SHARE_CONTRIBUTION]: getCaseInsensitiveValue(
+        item,
+        'Platform share contribution (%)'
+      ),
     });
 
     // Use the generic validation method from base component

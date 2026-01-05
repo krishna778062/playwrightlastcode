@@ -7,6 +7,7 @@ import {
 
 export interface IContentManagementServices {
   getPageCategoryID(siteId: string): Promise<any>;
+  getPageCategoriesList(siteId: string, options?: { size?: number; sortBy?: string }): Promise<any>;
   addNewPageContent(siteId: string, payload?: Partial<PageCreationPayload>): Promise<any>;
   addNewEventContent(siteId: string, payload?: Partial<EventCreationPayload>): Promise<any>;
   addNewAlbumContent(siteId: string, overrides?: Partial<AlbumCreationPayload>): Promise<any>;

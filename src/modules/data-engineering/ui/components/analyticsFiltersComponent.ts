@@ -45,7 +45,7 @@ export class AnalyticsFiltersComponent extends BaseComponent {
     this.groupByOnUserParameterOption = (groupBy: string) =>
       this.page.locator("[class*='FilterGroupFilter-module']").getByText(groupBy, { exact: true });
     this.filterDialog = this.page.locator('[id*="tippy"]');
-    this.filterOptionByText = (filterName: string) => this.page.getByText(filterName, { exact: true });
+    this.filterOptionByText = (filterName: string) => this.filterDialog.getByText(filterName, { exact: true });
     this.filterApplyButton = this.page.getByRole('button', { name: 'Apply' }).first();
     this.filterClearAllButton = this.page.getByRole('button', { name: 'Clear' }).first();
 
@@ -134,11 +134,20 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    */
   async verifyFiltersAreVisible() {
     await test.step('Verify common filters are visible', async () => {
-      await expect(this.filterGroup('Department'), 'Department filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Location'), 'Location filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Company name'), 'Company name filter should be visible').toBeVisible();
-      await expect(this.filterGroup('People Category'), 'People Category filter should be visible').toBeVisible();
-      await expect(this.filterGroup('Period'), 'Period filter should be visible').toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.DEPARTMENT),
+        'Department filter should be visible'
+      ).toBeVisible();
+      await expect(this.filterGroup(AnalyticsFilterLabels.LOCATION), 'Location filter should be visible').toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.COMPANY_NAME),
+        'Company name filter should be visible'
+      ).toBeVisible();
+      await expect(
+        this.filterGroup(AnalyticsFilterLabels.PEOPLE_CATEGORY),
+        'People Category filter should be visible'
+      ).toBeVisible();
+      await expect(this.filterGroup(AnalyticsFilterLabels.PERIOD), 'Period filter should be visible').toBeVisible();
     });
   }
 
@@ -271,6 +280,32 @@ export class AnalyticsFiltersComponent extends BaseComponent {
   }
 
   /**
+   * Applies a Segment filter by opening the dialog and selecting the provided option.
+   * Tries both 'Segment' and 'All segments' labels to handle different dashboards.
+   * @param segmentFilterOptions - The Segment filter option to select.
+   */
+  async applySegmentFilter(segmentFilterOptions: string[]) {
+    await test.step(`Apply Segment filter: ${segmentFilterOptions.join(', ')}`, async () => {
+      // Try 'Segment' label first, then 'All segments' if not found
+      const segmentFilter = this.filterGroup(AnalyticsFilterLabels.SEGMENT);
+      const allSegmentsFilter = this.filterGroup(AnalyticsFilterLabels.ALL_SEGMENTS);
+
+      if (await segmentFilter.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.openFilter(AnalyticsFilterLabels.SEGMENT);
+      } else if (await allSegmentsFilter.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await this.openFilter(AnalyticsFilterLabels.ALL_SEGMENTS);
+      } else {
+        throw new Error('Segment filter not found with either "Segment" or "All segments" label');
+      }
+
+      for (const segment of segmentFilterOptions) {
+        await this.selectFilterOptionByOptionName(segment);
+      }
+      await this.clickOnApplyButton();
+    });
+  }
+
+  /**
    * Applies a People Category filter by opening the dialog and selecting the provided option.
    * @param peopleCategoryFilterOptions - The People Category filter option to select.
    */
@@ -312,7 +347,7 @@ export class AnalyticsFiltersComponent extends BaseComponent {
       day: string;
     };
   }) {
-    await test.step('Selecting the from date ${customStartDate.year}-${customStartDate.month}-${customStartDate.day}', async () => {
+    await test.step(`Selecting the from date ${customStartDate.year}-${customStartDate.month}-${customStartDate.day}`, async () => {
       await this.clickOnElement(this.fromDateInput, {
         stepInfo: 'Click on from date input to open calendar picker',
       });
@@ -340,12 +375,51 @@ export class AnalyticsFiltersComponent extends BaseComponent {
       //select month (convert numeric to abbreviation)
       await this.monthPicker.selectOption(convertNumericMonthToAbbreviation(customEndDate.month));
 
+      // Wait a bit for month selection to apply
+      await this.page.waitForTimeout(300);
+
       //select year
       await this.yearPicker.selectOption(customEndDate.year);
 
-      //select day
-      await this.dayPicker(customEndDate.day).click();
+      // Wait a bit for year selection to apply
+      await this.page.waitForTimeout(300);
+
+      //select day - use force click to ensure it's clicked
+      const dayLocator = this.dayPicker(customEndDate.day);
+      await dayLocator.scrollIntoViewIfNeeded();
+      await dayLocator.click({ force: true });
+
+      // Wait for the click to register
+      await this.page.waitForTimeout(500);
     });
+
+    // Wait for calendar picker to close and date to be applied
+    await this.waitUntilCalendarPickerIsHidden();
+
+    // Additional wait to ensure date is applied to the input field
+    await this.page.waitForTimeout(1000);
+
+    // Verify end date is set, retry if not
+    const endDateText = await this.toDateInput.textContent();
+    if (endDateText?.includes('Select date') || !endDateText || endDateText.trim() === '') {
+      await this.clickOnElement(this.toDateInput, {
+        stepInfo: 'Retry: Click on to date input to open calendar picker',
+      });
+      await this.waitUntilCalendarPickerIsVisible();
+
+      await this.monthPicker.selectOption(convertNumericMonthToAbbreviation(customEndDate.month));
+      await this.page.waitForTimeout(300);
+      await this.yearPicker.selectOption(customEndDate.year);
+      await this.page.waitForTimeout(300);
+
+      const dayLocator = this.dayPicker(customEndDate.day);
+      await dayLocator.scrollIntoViewIfNeeded();
+      await dayLocator.click({ force: true });
+      await this.page.waitForTimeout(500);
+
+      await this.waitUntilCalendarPickerIsHidden();
+      await this.page.waitForTimeout(1000);
+    }
   }
 
   /**
@@ -394,7 +468,11 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    * @param filterConfig - Unified filter configuration object
    */
   async applyFiltersFromConfig(filterConfig: FilterOptions) {
-    await test.step('Apply filters from unified configuration', async () => {
+    await test.step('Apply filters from unified configuration', async stepInfo => {
+      await stepInfo.attach('filterConfig', {
+        body: JSON.stringify(filterConfig),
+        contentType: 'application/json',
+      });
       // Apply period filter (always required)
       if (filterConfig.timePeriod === PeriodFilterTimeRange.CUSTOM) {
         if (!filterConfig.customStartDate || !filterConfig.customEndDate) {
@@ -417,6 +495,11 @@ export class AnalyticsFiltersComponent extends BaseComponent {
 
       if (filterConfig.locations && filterConfig.locations.length > 0) {
         await this.applyLocationFilter(filterConfig.locations);
+        await this.page.waitForTimeout(1000);
+      }
+
+      if (filterConfig.segments && filterConfig.segments.length > 0) {
+        await this.applySegmentFilter(filterConfig.segments);
         await this.page.waitForTimeout(1000);
       }
 

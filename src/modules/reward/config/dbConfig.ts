@@ -113,15 +113,7 @@ export function initializeDbConfig(databaseType: DatabaseType): void {
   const caller = getCallerInfo();
 
   if (dbConfigCache && dbConfigCache.currentDatabase === databaseType) {
-    console.log(`🔧 DB Config already initialized for database: ${databaseType} (called from: ${caller})`);
     return; // Already initialized for the same database
-  }
-
-  // Allow database switching - clear cache if different database
-  if (dbConfigCache && dbConfigCache.currentDatabase !== databaseType) {
-    console.log(
-      `🔧 Switching from database '${dbConfigCache.currentDatabase}' to '${databaseType}' (called from: ${caller})`
-    );
   }
 
   console.log(`🔧 Initializing database config for database: ${databaseType} (called from: ${caller})`);

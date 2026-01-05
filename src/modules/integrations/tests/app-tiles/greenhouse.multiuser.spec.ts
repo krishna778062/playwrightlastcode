@@ -50,15 +50,15 @@ test.describe(
         createdTileTitle = `Greenhouse report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add tile, verify by both users, then remove
-        await homeDashboard.addAppManagerDefinedWithOptions(
+        await homeDashboard.addTileWithDropdownAndField(
           createdTileTitle,
           AppName,
           tileName,
-          UI_ACTIONS.ADD_TO_HOME,
           GREENHOUSE_VALUES.JOB_TYPE,
-          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.EXTERNAL,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
-          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE,
+          UI_ACTIONS.ADD_TO_HOME
         );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
@@ -91,15 +91,15 @@ test.describe(
         await siteDashboard.navigateToSite(createdSite.siteId);
 
         // Add tile, verify by both users, then remove
-        await siteDashboard.addAppManagerDefinedWithOptions(
+        await siteDashboard.addTileWithDropdownAndField(
           createdTileTitle,
           AppName,
           tileName,
-          UI_ACTIONS.ADD_TO_SITE,
           GREENHOUSE_VALUES.JOB_TYPE,
-          GREENHOUSE_VALUES.ALL,
+          GREENHOUSE_VALUES.EXTERNAL,
           GREENHOUSE_VALUES.JOB_BOARD_TOKEN,
-          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE
+          GREENHOUSE_VALUES.JOB_BOARD_TOKEN_VALUE,
+          UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await siteDashboard.isTilePresent(createdTileTitle);

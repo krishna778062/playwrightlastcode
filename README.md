@@ -1395,32 +1395,237 @@ The framework automatically loads the appropriate environment file and injects v
 
 ---
 
-## Playwright Configuration Structure
+## Configuration & Build
 
-The framework uses a layered Playwright configuration approach for flexibility and maintainability:
+### Config Distribution
 
-- **Base Configuration:**  
-  `playwright.base.config.ts`  
-  Contains all common Playwright settings (timeouts, reporters, device settings, etc.) shared across modules.
+```
+playwright.base.config.ts          # Shared Playwright settings (timeouts, reporters, devices)
+src/modules/<module>/
+├── playwright.<module>.config.ts  # Extends base config with module-specific overrides
+└── env/
+    ├── qa.env                     # QA environment variables
+    ├── uat.env                    # UAT environment variables
+    └── prod.env                   # Production variables
+```
 
-- **Module-Specific Configuration:**  
-  Each module can extend or override the base config.  
-  For example, `src/modules/chat/playwright.chat.config.ts` imports the base config and customizes it for the chat module (e.g., test directory, browser launch options).
+**Build & Usage:**
 
-**How to extend:**
+```sh
+npm ci                    # Install dependencies
+npx playwright install    # Install browsers
+npm test                  # Interactive runner (recommended)
+npm run test:module <module> [tags] [env] --workers=N
+```
+
+---
+
+## Adding an API Test Suite
+
+1. **Create test file** in `src/modules/<module>/tests/api-tests/`:
 
 ```typescript
-// src/modules/chat/playwright.chat.config.ts
-import baseConfig from '../../../playwright.base.config';
-import { defineConfig } from '@playwright/test';
+// src/modules/<module>/tests/api-tests/my-api.spec.ts
+import { expect } from '@playwright/test';
+import { myModuleTestFixture as test } from '../fixtures/myFixture';
+import { TestPriority } from '@core/constants/testPriority';
 
-export default defineConfig({
-  ...baseConfig,
-  // Module-specific overrides here
+test.describe('My API Tests', { tag: ['@api-tests'] }, () => {
+  test('validate API response', { tag: [TestPriority.P0] }, async ({ appManagerApiFixture }) => {
+    const response = await appManagerApiFixture.myApiService.getData();
+    expect(response.success).toBe(true);
+  });
 });
 ```
 
-**Best Practice:**  
-Always put shared settings in the base config and only override in the module config when necessary.
+2. **API Service** in `src/modules/<module>/api/services/`:
+
+```typescript
+export class MyApiService extends BaseApiClient {
+  async getData(): Promise<MyResponse> {
+    return this.get('/api/endpoint');
+  }
+}
+```
+
+3. **Add to fixture** in `src/modules/<module>/fixtures/`:
+
+```typescript
+async function createModuleApiFixture(apiContext: APIRequestContext) {
+  return {
+    apiContext,
+    myApiService: new MyApiService(apiContext, getEnvConfig().apiBaseUrl),
+  };
+}
+```
+
+4. **Run**: `npm run test:module <module> @api-tests qa`
+
+---
+
+## Running on CI (GitHub Actions)
+
+### Manual Trigger
+
+1. Go to **Actions** → **UI E2E Tests** workflow
+2. Click **Run workflow**
+3. Select: module, priority (`@P0`/`@P1`/`all`), environment, workers, feature tags
+4. Click **Run workflow**
+
+### CI Configuration (`.github/workflows/e2e.yml`)
+
+```yaml
+- name: Run tests
+  env:
+    TEST_ENV: ${{ inputs.environment }}
+  run: npm run test:${{ inputs.module_name }} -- --grep="@P0" --workers=3
+```
+
+### Key CI Features
+
+- Auto-uploads HTML reports to S3
+- Slack notifications with test results
+- Supports all modules and environments
+- Configurable parallelization (1-5 workers)
+
+---
+
+## 🔀 Branching Strategy & Release Flow
+
+### Branch Overview
+
+| Branch    | Purpose                           | Runs against application code deployed to |
+| --------- | --------------------------------- | ----------------------------------------- |
+| `develop` | Active development, new features  | Test environment                          |
+| `release` | Release candidate, QA/UAT testing | QA → UAT environments                     |
+| `main`    | Production-monitoring code        | Production                                |
+
+### Release Lifecycle
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      RELEASE FLOW                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  develop ──► release ──► main                                   │
+│     │           │          │                                    │
+│     │           │          └─► Production                       │
+│     │           └─► QA → UAT                                    │
+│     └─► Test environment                                        │
+│                                                                 │
+│  Stage Progression:                                             │
+│  CURRENT_STAGE: qa → uat → production                           │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Automated Workflows
+
+| Workflow         | Trigger             | Action                               |
+| ---------------- | ------------------- | ------------------------------------ |
+| Daily Regression | Cron (develop)      | Runs all module tests on Test env    |
+| QA Regression    | Cron (release/main) | Runs tests based on `CURRENT_STAGE`  |
+| UAT Regression   | Cron (release/main) | Runs tests based on `CURRENT_STAGE`  |
+| Prod Healthcheck | Cron (main)         | Runs healthchecks on Production      |
+| Auto-Backport    | PR merge to main    | Creates sync PRs based on PR options |
+
+---
+
+## 📝 Pull Request Workflow
+
+### Universal PR Template
+
+When you create any PR, you'll see a universal template with checkboxes:
+
+```markdown
+## 🏷️ PR Type
+
+> **Check ONE that applies:**
+
+- [ ] 🚀 **Feature** - New functionality (target: `develop`)
+- [ ] 🐛 **Bug Fix** - Fix for develop/release branch
+- [ ] 🚨 **Hotfix** - Production fix (target: `main`)
+- [ ] 📦 **Release** - Release preparation (`develop` → `release`)
+
+---
+
+## 🔄 Backport Options (Hotfix Only)
+
+> **If this is a HOTFIX to `main`, check where to sync:**
+
+- [x] **Develop** - Sync to `develop` branch (recommended)
+- [ ] **Release** - Sync to `release` branch (only if QA/UAT needs this)
+```
+
+### PR Types Explained
+
+| Type           | Target Branch          | When to Use                          |
+| -------------- | ---------------------- | ------------------------------------ |
+| 🚀 **Feature** | `develop`              | New tests, enhancements, refactoring |
+| 🐛 **Bug Fix** | `develop` or `release` | Non-critical fixes                   |
+| 🚨 **Hotfix**  | `main`                 | Critical production fixes            |
+| 📦 **Release** | `release`              | Promoting `develop` to `release`     |
+
+### Hotfix Flow
+
+When you merge a **Hotfix** to `main`, automation handles backporting:
+
+```
+Hotfix PR merged to main
+    │
+    ├── [x] Develop checked? ──► Creates main → develop sync PR
+    │
+    └── [x] Release checked? ──► Creates main → release sync PR
+                                 (only if CURRENT_STAGE ≠ production)
+```
+
+**Example: Fixing a flaky locator in production**
+
+1. Create branch from `main`: `hotfix/fix-login-locator`
+2. Fix the locator, push changes
+3. Create PR to `main`
+4. In PR template:
+   - Check `🚨 Hotfix`
+   - Check `Develop` (to sync fix to develop)
+   - Leave `Release` unchecked (unless QA/UAT needs it)
+5. Merge PR
+6. Automation creates `main → develop` sync PR automatically
+
+### Release Promotion Flow
+
+```
+1. Feature Development (develop)
+   └── PR: feature/* → develop
+
+2. Release Preparation (release)
+   └── PR: develop → release
+   └── CURRENT_STAGE set to "qa"
+
+3. QA Testing (release branch)
+   └── QA regression runs from release
+   └── Bug fixes: PR directly to release
+
+4. UAT Promotion
+   └── CURRENT_STAGE set to "uat"
+   └── UAT regression runs from release
+
+5. Production Release
+   └── PR: release → main
+   └── CURRENT_STAGE set to "production"
+   └── Prod healthchecks run from main
+```
+
+### Labels
+
+The repository uses these labels for PR categorization:
+
+| Label              | Color     | Description                     |
+| ------------------ | --------- | ------------------------------- |
+| `hotfix`           | 🔴 Red    | Critical fix for production     |
+| `feature`          | 🟢 Green  | New feature or enhancement      |
+| `release`          | 🟡 Yellow | Related to a release cycle      |
+| `bug`              | 🔴 Red    | Bug fix                         |
+| `backport:develop` | 🟣 Purple | Should be backported to develop |
+| `backport:release` | 🩷 Pink   | Should be backported to release |
 
 ---

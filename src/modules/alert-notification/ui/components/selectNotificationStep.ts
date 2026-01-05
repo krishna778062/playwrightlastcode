@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from 'playwright/test';
+import { Locator, Page, test } from 'playwright/test';
 
 import { NotificationCustomizationItem } from './notifcationCustomizationItem';
 
@@ -42,7 +42,9 @@ export class SelectNotificationStep extends BaseComponent {
           .locator('h3')
           .filter({ hasText: feature }),
       });
-      await expect(notificationFeatureItem, `Notification feature item ${feature} should be visible`).toBeVisible();
+      await this.verifier.verifyTheElementIsVisible(notificationFeatureItem, {
+        assertionMessage: `Notification feature item ${feature} should be visible`,
+      });
       return new NotificationCustomizationItem(this.page, notificationFeatureItem);
     });
   }

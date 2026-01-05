@@ -359,7 +359,7 @@ test.describe(
 
     test(
       'verify user is able to create audience with Country attribute with all five operators under manage audience',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, '@healthcheck'] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35751'],

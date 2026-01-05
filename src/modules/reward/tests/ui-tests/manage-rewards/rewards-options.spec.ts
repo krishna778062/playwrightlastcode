@@ -10,7 +10,7 @@ import { tagTest } from '@core/utils';
 
 test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   test(
-    'a - Verify Reward options only visible to App managers',
+    'RC-5371 Verify Reward options only visible to App managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION],
     },
@@ -31,7 +31,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'b - Verify Reward options only visible to recognition managers',
+    'RC-5371 Verify Reward options only visible to recognition managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -52,7 +52,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'verify Reward options not visible to user other than recognition managers',
+    'RC-5374 Verify Reward options not visible to user other than recognition managers',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -71,9 +71,15 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'validate search box on rewards option page',
+    'RC-5386 Validate search box on rewards option page',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_OPTIONS,
+        TestGroupType.REGRESSION,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ recoManagerFixture }) => {
       tagTest(test.info(), {
@@ -95,7 +101,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5385] Validate sorting of column on rewards options page',
+    'RC-5385 Validate sorting of column on rewards options page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -105,16 +111,23 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         zephyrTestId: 'RC-5385',
         storyId: 'RC-5385',
       });
+      tagTest(test.info(), {
+        description: 'Validate search box on rewards option page',
+        zephyrTestId: 'RC-5386',
+        storyId: 'RC-5386',
+      });
+      tagTest(test.info(), {
+        description: 'Validate Reward Options page',
+        zephyrTestId: 'RC-5375',
+        storyId: 'RC-5375',
+      });
       const rewardOptionsPage = new RewardOptionsPage(recoManagerFixture.page);
 
       // Load page and validate table structure
       await rewardOptionsPage.loadPage();
+      await rewardOptionsPage.verifyThePageIsLoaded();
       await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsHeader);
       await rewardOptionsPage.verifier.verifyElementHasText(rewardOptionsPage.rewardsOptionsHeader, 'Reward options');
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchInput);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsShowMoreButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardOptionsTableContainer);
 
       const headersCount = rewardOptionsPage.rewardsOptionsTableHeaders;
       await expect(headersCount).toHaveCount(6);
@@ -160,7 +173,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5570] Validate show more button on rewards option page',
+    'RC-5570 Validate show more button on rewards option page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -178,7 +191,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5377] Verify reward options when feature flag is enabled',
+    'RC-5377 Verify reward options when feature flag is enabled',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -197,22 +210,11 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
       await rewardOptionsPage.setTheRewardsOptionsFeatureFlag(true);
       await rewardOptionsPage.loadPage();
-
-      // Wait for API response
-      const rewardApiPromise = appManagerFixture.page.waitForResponse(
-        response => response.url().includes('/recognition/admin/rewards') && response.status() === 200
-      );
-      await rewardApiPromise;
-
+      await rewardOptionsPage.verifyThePageIsLoaded();
       // Verify the Rewards Options page elements are visible on rewards_options Flag enabled
       await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.disableRewardLink);
       await rewardOptionsPage.loadPage();
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsHeader);
-      await rewardOptionsPage.verifier.verifyElementHasText(rewardOptionsPage.rewardsOptionsHeader, 'Reward options');
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchInput);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.searchButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardsOptionsShowMoreButton);
-      await rewardOptionsPage.verifier.verifyTheElementIsVisible(rewardOptionsPage.rewardOptionsTableContainer);
+      await rewardOptionsPage.verifyThePageIsLoaded();
       const headersCount = rewardOptionsPage.rewardsOptionsTableHeaders;
       await expect(headersCount).toHaveCount(6);
       const headers = await rewardOptionsPage.rewardsOptionsTableHeaders.allTextContents();
@@ -221,7 +223,30 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5567] Validate user should able to deactivate the active cards',
+    'RC-5379 Verify rewards options when feature flag is disabled',
+    {
+      tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify rewards options when feature flag is disabled',
+        zephyrTestId: 'RC-5379',
+        storyId: 'RC-5379',
+      });
+      const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const rewardOptionsPage = new RewardOptionsPage(appManagerFixture.page);
+
+      await manageRewardsPage.loadPage();
+      await manageRewardsPage.verifyThePageIsLoaded();
+      await manageRewardsPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');
+      await manageRewardsPage.verifier.verifyTheElementIsVisible(manageRewardsPage.header);
+      await rewardOptionsPage.setTheRewardsOptionsFeatureFlag(false);
+      await rewardOptionsPage.validateVisibilityOfRewardOptionsLink(false);
+    }
+  );
+
+  test(
+    'RC-5567 Validate user should able to deactivate the active cards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -251,7 +276,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5568] Validate user should able to activate the inactive cards',
+    'RC-5568 Validate user should able to activate the inactive cards',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -280,7 +305,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5433] Validate gift card on order history after user deactivate it',
+    'RC-5433 Validate gift card on order history after user deactivate it',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -294,11 +319,12 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const rewardsStorePage = new RewardsStore(recoManagerFixture.page);
       const giftCardDetails = { country: 'United States', name: "Domino's" };
 
-      // Navigate to Rewards option page and check the gift card is enabled
+      // Navigate to the Rewards option page and check the gift card is enabled
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Active');
 
       // Redeem the gift card
       await rewardsStorePage.loadPage();
+      await rewardsStorePage.verifyThePageIsLoaded();
       await rewardsStorePage.selectCountry(giftCardDetails.country);
       await rewardsStorePage.searchForGiftCard(giftCardDetails.name);
       await rewardsStorePage.clickOnTheNthGiftCard(1);
@@ -312,6 +338,8 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Inactive');
 
       // Go to the Order History page and validate order for gift card
+      await rewardsStorePage.visit();
+      await rewardsStorePage.verifyThePageIsLoaded();
       await rewardsStorePage.visitTheOrderHistory();
       await rewardsStorePage.verifier.verifyTheElementIsVisible(rewardsStorePage.orderHistoryPanel.first());
       await rewardsStorePage.verifier.verifyTheElementIsVisible(
@@ -331,7 +359,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardsStorePage.enterAllTheDetailsAndClickOnResend('sonu.kumar+12@simmplr.com');
       await rewardsStorePage.validateTheResentConfirmation();
 
-      // Navigate to Rewards option page and Set the Active again for the gift card
+      // Navigate to the Rewards option page and Set the Active again for the gift card
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Active');
     }
   );

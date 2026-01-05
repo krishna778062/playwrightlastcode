@@ -1,11 +1,14 @@
 import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export class PieChartComponent extends BaseComponent {
   readonly toolTipContainer: Locator;
+  readonly chartSegmentLocator: Locator;
   readonly getToolTipBlockWithKeyTextAs: (keyText: string) => Locator;
   readonly getChartLabelLocatorWithLabelAs: (label: string) => Locator;
+  readonly downloadCSVButton: Locator;
   constructor(
     readonly page: Page,
     readonly thoughtSpotIframe: FrameLocator,
@@ -16,11 +19,35 @@ export class PieChartComponent extends BaseComponent {
       has: thoughtSpotIframe.getByRole('heading', { name: metricTitle, exact: true }),
     });
     super(page, container);
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
+    this.chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-data-labels']").locator('path');
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
     this.getChartLabelLocatorWithLabelAs = (label: string) =>
       this.rootLocator.locator(`g[class*='highcharts-data-label-color']`).filter({ hasText: label });
+    this.downloadCSVButton = this.rootLocator.getByRole('button', { name: 'Download CSV' });
+  }
+
+  /**
+   * Waits for the pie chart to be loaded and visible
+   */
+  async waitForChartToLoad(): Promise<void> {
+    await test.step(`Wait for pie chart to load for metric ${this.metricTitle}`, async () => {
+      // Wait for the container to be visible
+      await this.verifier.waitUntilElementIsVisible(this.rootLocator, {
+        timeout: TIMEOUTS.VERY_LONG,
+        stepInfo: `Wait for metric container to be visible for ${this.metricTitle}`,
+      });
+
+      // Wait for the chart series group to be present (indicates chart is rendered)
+      const chartSeriesGroup = this.rootLocator.locator("g[class*='highcharts-series-group']");
+      await this.verifier.waitUntilElementIsVisible(chartSeriesGroup, {
+        timeout: TIMEOUTS.VERY_LONG,
+        stepInfo: `Wait for chart series group to be visible for ${this.metricTitle}`,
+      });
+    });
   }
 
   /**
@@ -28,19 +55,21 @@ export class PieChartComponent extends BaseComponent {
    * @param numberOfSegments - The number of segments to verify
    */
   async verifyNumberOfSegmentsVisibleonPieChartIs(numberOfSegments: number) {
-    const chartSegmentLocator = this.rootLocator.locator("g[class*='highcharts-series-group']").locator('path');
+    // Wait for chart to load first
+    await this.waitForChartToLoad();
+
     await expect(
-      chartSegmentLocator,
+      this.chartSegmentLocator,
       `Number of segments visible on pie chart should be ${numberOfSegments}`
-    ).toHaveCount(numberOfSegments);
+    ).toHaveCount(numberOfSegments, { timeout: TIMEOUTS.MEDIUM });
   }
 
   /**
-   * Verifies the tool tip container is visible
+   * Verifies the tool tip container has opacity 1
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: 30_000,
+      timeout: 10_000,
       stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
     });
   }
@@ -120,5 +149,29 @@ export class PieChartComponent extends BaseComponent {
       normalizedActual,
       `Segment label ${label} should display text: ${expectedText}, but got: ${actualText}`
     ).toBe(normalizedExpected);
+  }
+
+  /**
+   * Downloads the data as csv
+   * @returns The downloaded file path and filename
+   */
+  async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
+    return await test.step(`download data as csv for ${this.metricTitle}`, async () => {
+      /**
+       * 1. first hover over the container, it should reveal the download csv button
+       * 2. click on the download csv button
+       * 3. save the file to downloads folder
+       * 4. return the downloaded file path and filename
+       */
+      const downloadAction = async () => {
+        await this.rootLocator.hover();
+        await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
+          timeout: 10_000,
+          assertionMessage: `Download csv button should be visible for ${this.metricTitle}`,
+        });
+        await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
+      };
+      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file for ${this.metricTitle}` });
+    });
   }
 }

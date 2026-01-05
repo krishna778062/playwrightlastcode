@@ -26,7 +26,9 @@ export class HorizontalBarChartComponent extends BaseComponent {
     this.chartLegends = this.rootLocator.locator('[class*="legend-item-v2"]').locator('.label-v2');
 
     // Tool tip container
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
   }
@@ -87,12 +89,23 @@ export class HorizontalBarChartComponent extends BaseComponent {
         .locator(`rect[class*="highcharts-point"][aria-label*="${label}"]`);
       await expect(exactBarToLocate, `Bar with label ${label} should be visible`).toBeVisible();
       const barBoundingBox = await exactBarToLocate.boundingBox();
-      //get the middle point of the bar
+      // get the middle point of the bar
       const middlePoint = {
         x: (barBoundingBox?.x ?? 0) + (barBoundingBox?.width ?? 0) / 2,
         y: (barBoundingBox?.y ?? 0) + (barBoundingBox?.height ?? 0) / 2,
       };
-      await this.page.mouse.move(middlePoint.x, middlePoint.y);
+      await this.page.mouse.move(middlePoint.x, middlePoint.y, {
+        steps: 10,
+      });
+      // await exactBarToLocate.hover();
+    });
+  }
+
+  async hoverOnBarWithValueByIndexAs(index: number): Promise<void> {
+    await test.step(`Hover on bar with value by index ${index} for metric ${this.metricTitle}`, async () => {
+      const exactBarToLocate = this.rootLocator.locator(`[class*="highcharts-data-labels"]`).nth(index);
+      await expect(exactBarToLocate, `Bar with value by index ${index} should be visible`).toBeVisible();
+      await exactBarToLocate.hover();
     });
   }
 
@@ -140,10 +153,19 @@ export class HorizontalBarChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await test.step(`Verify tool tip container is visible for metric ${this.metricTitle}`, async () => {
+    await test.step(`Wait for tool tip container to be visible for metric ${this.metricTitle}`, async () => {
       await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-        timeout: 30_000,
+        timeout: 10_000,
         stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
+      });
+    });
+  }
+
+  async waitForToolTipContainerToBeHidden(): Promise<void> {
+    await test.step(`Wait for tool tip container to be hidden for metric ${this.metricTitle}`, async () => {
+      await this.verifier.waitUntilElementIsHidden(this.toolTipContainer, {
+        timeout: 10_000,
+        stepInfo: `Wait for tool tip container to be hidden for metric ${this.metricTitle}`,
       });
     });
   }

@@ -45,12 +45,12 @@ test.describe(
     test(
       'create and edit UKG WFM Apply for Time Off tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: 'INT-23638',
           storyId: 'INT-22854',
         });
 
@@ -77,7 +77,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23143',
+          zephyrTestId: 'INT-26507',
           storyId: 'INT-22854',
         });
 
@@ -113,7 +113,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23139',
+          zephyrTestId: 'INT-26931',
           storyId: 'INT-22854',
         });
 
@@ -147,7 +147,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23132',
+          zephyrTestId: 'INT-26931',
           storyId: 'INT-22854',
         });
 
@@ -181,12 +181,12 @@ test.describe(
     test(
       'create and edit UKG WFM Display upcoming schedule tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-22844', 'INT-22842', 'INT-23186'],
           storyId: 'INT-22854',
         });
 
@@ -214,7 +214,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23138',
+          zephyrTestId: ['INT-22843', 'INT-23186'],
           storyId: 'INT-22854',
         });
 
@@ -245,12 +245,12 @@ test.describe(
     test(
       'verify metadata for UKG WFM Display upcoming schedule tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23693',
+          zephyrTestId: 'INT-23210',
           storyId: 'INT-22854',
         });
 
@@ -275,7 +275,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23186',
+          zephyrTestId: 'INT-23208',
           storyId: 'INT-22854',
         });
 

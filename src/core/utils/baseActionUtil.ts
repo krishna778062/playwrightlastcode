@@ -36,11 +36,14 @@ export type CustomTypeOptions = Parameters<Locator['pressSequentially']>[1] & {
 export class BaseActionUtil {
   readonly toastMessages: Locator;
   readonly dismissToastMessage: Locator;
+  readonly dismissToastMessageByText: (toastText: string) => Locator;
 
   constructor(readonly page: Page) {
     this.page = page;
     this.toastMessages = page.locator('[class*="Toast-module"] p');
     this.dismissToastMessage = page.locator('[aria-label="Dismiss"]');
+    this.dismissToastMessageByText = (toastText: string) =>
+      page.locator('[class*="Toast-module"]').filter({ hasText: toastText }).locator('+ button');
   }
 
   /**
@@ -182,6 +185,7 @@ export class BaseActionUtil {
     const eleToFill = typeof selectorOrLocator === 'string' ? this.page.locator(selectorOrLocator) : selectorOrLocator;
     await test.step(options?.stepInfo || `Fill in ${selectorOrLocator}`, async () => {
       try {
+        await eleToFill.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
         await eleToFill.fill(value, options);
       } catch (error) {
         throw PlaywrightErrorHandler.handle(error, PlaywrightAction.FILL_IN, selectorOrLocator);
@@ -422,10 +426,17 @@ export class BaseActionUtil {
   /**
    * Dismisses the toast message.
    */
-  async dismissTheToastMessage(): Promise<void> {
-    await test.step(`Dismissing the toast message`, async () => {
-      await this.clickOnElement(this.dismissToastMessage);
-    });
+  async dismissTheToastMessage(options?: { toastText?: string }): Promise<void> {
+    await test.step(
+      options?.toastText
+        ? `Dismissing the toast message having text ${options?.toastText}`
+        : `Dismissing the toast message`,
+      async () => {
+        options?.toastText
+          ? await this.clickOnElement(this.dismissToastMessageByText(options?.toastText))
+          : await this.clickOnElement(this.dismissToastMessage);
+      }
+    );
   }
 
   /**
@@ -569,7 +580,6 @@ export class BaseActionUtil {
       // 5. Save to downloads folder
       const filePath = FileUtil.getDownloadsFilePath(fileName);
       await download.saveAs(filePath);
-
       console.log(`Downloaded file: ${fileName}`);
 
       return {

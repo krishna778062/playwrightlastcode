@@ -3,6 +3,8 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { TIMEOUTS } from '@/src/core';
+
 export class RewardOptionsPage extends BasePage {
   readonly rewardsOptionsContainer: Locator;
   readonly rewardOptionLink: Locator;
@@ -126,9 +128,7 @@ export class RewardOptionsPage extends BasePage {
       const currentUrl = this.page.url();
       const newPage = await this.page.context().newPage();
       await newPage.goto(currentUrl);
-      await this.verifier.verifyTheElementIsVisible(newPage.locator('input[aria-label="Search…"]'), {
-        assertionMessage: 'Verify the search input is visible in the new tab',
-      });
+      await this.verifyThePageIsLoaded();
       await this.verifier.verifyTheElementIsVisible(this.rewardsOptionsTableRow.last(), {
         assertionMessage: 'Verify the Reward name is visible in the search results in the new tab',
       });
@@ -244,24 +244,23 @@ export class RewardOptionsPage extends BasePage {
 
   /**
    * Sets the rewards options feature flag
-   * @param enabled - Whether to enable or disable the feature flag
+   * @param flagValue - Whether to enable or disable the feature flag
    */
-  async setTheRewardsOptionsFeatureFlag(enabled: boolean): Promise<void> {
+  async setTheRewardsOptionsFeatureFlag(flagValue: boolean): Promise<void> {
     await this.page.route('**/api/1.0/client/env/**/target/**/evaluations?cluster=2', async route => {
       const response = await route.fetch();
       const body = await response.json();
-
       const updatedBody = body.map((item: any) => {
-        if (item.flag === 'rewards_options') {
+        if (item.flag === 'reward_options') {
           return {
             ...item,
-            value: enabled.toString(),
-            identifier: enabled.toString(),
+            value: flagValue.toString(), // just a plain string
+            identifier: flagValue.toString(), // also plain string
           };
         }
         return item;
       });
-
+      console.log(updatedBody.find((f: any) => f.flag === 'reward_options'));
       await route.fulfill({
         response,
         body: JSON.stringify(updatedBody),
@@ -329,5 +328,12 @@ export class RewardOptionsPage extends BasePage {
     await expect(showMoreButton).toHaveCount(0);
     expect(displayedRewards).toBe(totalRewards);
     return { totalRewards, displayedRewards };
+  }
+
+  async visit(): Promise<void> {
+    await this.page.goto(PAGE_ENDPOINTS.REWARDS_OPTIONS_PAGE, {
+      waitUntil: 'domcontentloaded',
+      timeout: TIMEOUTS.SHORT,
+    });
   }
 }

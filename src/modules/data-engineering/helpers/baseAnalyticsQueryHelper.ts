@@ -149,11 +149,24 @@ export abstract class BaseAnalyticsQueryHelper {
       filterBy.customEndDate
     );
 
+    // Check if any user-based filters are present to determine if we need the user JOIN
+    const hasUserFilters =
+      (filterBy.locations && filterBy.locations.length > 0) ||
+      (filterBy.departments && filterBy.departments.length > 0) ||
+      (filterBy.segments && filterBy.segments.length > 0) ||
+      (filterBy.userCategories && filterBy.userCategories.length > 0) ||
+      (filterBy.companyName && filterBy.companyName.length > 0);
+
+    const userJoin = hasUserFilters
+      ? 'inner join simpplr_common_tenant.udl.vw_user_as_is as u on i.interacted_by_user_code = u.code and i.tenant_code = u.tenant_code'
+      : '';
+
     // Replace all placeholders in base query using global regex to handle multiple occurrences
     let query = baseQuery
       .replace(/{tenantCode}/g, filterBy.tenantCode)
       .replace(/{startDate}/g, dateReplacements.startDate)
       .replace(/{endDate}/g, dateReplacements.endDate)
+      .replace(/{userJoin}/g, userJoin)
       .replace(/{locationFilter}/g, this.addLocationFilter(filterBy.locations))
       .replace(/{departmentFilter}/g, this.addDepartmentFilter(filterBy.departments))
       .replace(/{segmentFilter}/g, this.addSegmentFilter(filterBy.segments))
@@ -162,9 +175,9 @@ export abstract class BaseAnalyticsQueryHelper {
     // Handle user category mapping and replacement
     if (filterBy.userCategories && filterBy.userCategories.length > 0) {
       const userCategoryCodes = await this.mapUserCategoryNamesToCodes(filterBy.userCategories);
-      query = query.replace(/{userCategoryFilter}/g, this.addUserCategoryFilter(userCategoryCodes));
+      query = query.replace(/\{userCategoryFilter\}/g, this.addUserCategoryFilter(userCategoryCodes));
     } else {
-      query = query.replace(/{userCategoryFilter}/g, this.addUserCategoryFilter(filterBy.userCategories));
+      query = query.replace(/\{userCategoryFilter\}/g, this.addUserCategoryFilter(filterBy.userCategories));
     }
 
     return query;
@@ -174,8 +187,9 @@ export abstract class BaseAnalyticsQueryHelper {
 
   protected addLocationFilter(locations?: string[]): string {
     if (!locations || locations.length === 0) return '';
-    const quotedValues = locations.map(v => `'${v}'`).join(', ');
-    return `\n  and u.location in (${quotedValues})`;
+    // Use LOWER() with IN for case-insensitive matching like ThoughtSpot
+    const quotedValues = locations.map(v => `LOWER('${v}')`).join(', ');
+    return `\n  and LOWER(u.location) in (${quotedValues})`;
   }
 
   protected addDepartmentFilter(departments?: string[]): string {
@@ -187,7 +201,7 @@ export abstract class BaseAnalyticsQueryHelper {
   protected addSegmentFilter(segments?: string[]): string {
     if (!segments || segments.length === 0) return '';
     const quotedValues = segments.map(v => `'${v}'`).join(', ');
-    return `\n  and u.segment_code in (${quotedValues})`;
+    return `\n  and u.segment_name in (${quotedValues})`;
   }
 
   protected addUserCategoryFilter(userCategories?: string[]): string {

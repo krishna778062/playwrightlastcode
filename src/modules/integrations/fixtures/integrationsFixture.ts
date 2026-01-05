@@ -1,5 +1,6 @@
-import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
+import { APIRequestContext, BrowserContext, Page, test as base } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { LoginHelper } from '@core/helpers/loginHelper';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
@@ -7,15 +8,35 @@ import { RequestContextFactory } from '@/src/core/api/factories/requestContextFa
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
-import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
+import { CustomIntegrationsHelper } from '@/src/modules/integrations/apis/helpers/customAppsHelper';
+import { IntegrationTileHelper } from '@/src/modules/integrations/apis/helpers/integrationTileHelper';
 import { HomeDashboard } from '@/src/modules/integrations/ui/pages/homeDashboard';
 import { SiteDashboard } from '@/src/modules/integrations/ui/pages/siteDashboard';
 
+interface TenantConfig {
+  tenantName: string;
+  frontendBaseUrl: string;
+  apiBaseUrl: string;
+  appManagerEmail: string;
+  appManagerPassword: string;
+  endUserEmail?: string;
+  endUserPassword?: string;
+  QA_MOBILE?: string;
+  QA_ALTERNATE?: string;
+  QA_ALTERNATE_PHONE?: string;
+  UAT_MOBILE?: string;
+  UAT_ALTERNATE?: string;
+  UAT_ALTERNATE_PHONE?: string;
+}
+
+export type Options = { tenantConfig: TenantConfig };
 // API-only fixture type for API helpers and services
 export interface IntegrationsApiFixture {
   apiContext: APIRequestContext;
   siteManagementHelper: SiteManagementHelper;
-  tileManagementHelper: TileManagementHelper;
+  tileManagementHelper: IntegrationTileHelper;
+  integrationTileHelper: IntegrationTileHelper;
+  customIntegrationsHelper: CustomIntegrationsHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -31,30 +52,70 @@ export interface IntegrationsUiFixture {
 // Combined user fixture type that extends both API and UI fixtures
 export interface IntegrationsUserFixture extends IntegrationsApiFixture, IntegrationsUiFixture {}
 
+/**
+ * Helper function to perform login with retry logic
+ */
+async function loginWithRetry(
+  page: Page,
+  user: { email: string; password: string },
+  tenantConfig: TenantConfig,
+  maxRetries: number = 3
+): Promise<NewHomePage> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await LoginHelper.loginWithPassword(page, user, tenantConfig);
+    } catch (error) {
+      lastError = error as Error;
+      if (attempt < maxRetries) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await page.goto('/login', { timeout: TIMEOUTS.SHORT, waitUntil: 'domcontentloaded' }).catch(() => {});
+      }
+    }
+  }
+
+  throw new Error(`Login failed after ${maxRetries} attempts: ${lastError?.message || 'Unknown error'}`);
+}
+
 // Helper function to create API-only fixtures using existing API contexts
-async function createIntegrationsApiFixture(apiContext: APIRequestContext): Promise<IntegrationsApiFixture> {
-  const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+async function createIntegrationsApiFixture(
+  apiContext: APIRequestContext,
+  tenantConfig?: TenantConfig
+): Promise<IntegrationsApiFixture> {
+  const apiBaseUrl = tenantConfig?.apiBaseUrl || getEnvConfig().apiBaseUrl;
+  const frontendBaseUrl = tenantConfig?.frontendBaseUrl || getEnvConfig().frontendBaseUrl;
+  const siteManagementHelper = new SiteManagementHelper(apiContext, apiBaseUrl);
+  const integrationTileHelper = new IntegrationTileHelper(apiContext, apiBaseUrl, frontendBaseUrl);
+  const customIntegrationsHelper = new CustomIntegrationsHelper(apiContext, apiBaseUrl);
 
   return {
     apiContext,
     siteManagementHelper,
-    tileManagementHelper,
+    tileManagementHelper: integrationTileHelper, // Use IntegrationTileHelper for integration tests
+    integrationTileHelper,
+    customIntegrationsHelper,
   };
 }
 
 // Helper function to create UI-only fixtures
 async function createIntegrationsUiFixture(
   browser: any,
-  tileManagementHelper: TileManagementHelper
+  tileManagementHelper: IntegrationTileHelper,
+  tenantConfig: TenantConfig
 ): Promise<IntegrationsUiFixture> {
   const context = await browser.newContext();
   const page = await context.newPage();
 
-  await LoginHelper.loginWithPassword(page, {
-    email: getEnvConfig().appManagerEmail,
-    password: getEnvConfig().appManagerPassword,
-  });
+  // Use retry logic for login to handle intermittent failures
+  await loginWithRetry(
+    page,
+    {
+      email: tenantConfig.appManagerEmail,
+      password: tenantConfig.appManagerPassword,
+    },
+    tenantConfig
+  );
 
   const homePage = new NewHomePage(page);
   await homePage.loadPage();
@@ -65,7 +126,21 @@ async function createIntegrationsUiFixture(
   // Create integrations-specific page objects
   const homeDashboard = new HomeDashboard(page, tileManagementHelper);
   await homeDashboard.loadPage();
-  await homeDashboard.verifyThePageIsLoaded();
+
+  // Retry dashboard verification to handle slow page loads
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await homeDashboard.verifyThePageIsLoaded();
+      break;
+    } catch (error) {
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        await page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+      } else {
+        throw error;
+      }
+    }
+  }
 
   const siteDashboard = new SiteDashboard(page);
 
@@ -79,7 +154,7 @@ async function createIntegrationsUiFixture(
   };
 }
 
-export const integrationsFixture = test.extend<
+export const integrationsFixture = base.extend<
   {
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: IntegrationsApiFixture;
@@ -89,18 +164,33 @@ export const integrationsFixture = test.extend<
 
     // Combined user fixtures - complete entry points with all helpers and services
     appManagerFixture: IntegrationsUserFixture;
+
+    // Convenience fixture for just the page
+    appManagerPage: Page;
   },
   {
     // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
+    tenantConfig: TenantConfig;
   }
 >({
+  // Worker-scoped tenant config - read from project use options
+  tenantConfig: [
+    async ({}, use, testInfo) => {
+      const tenantConfig = (testInfo.project.use as any).tenantConfig as TenantConfig | undefined;
+      if (!tenantConfig) {
+        throw new Error('tenantConfig is not defined in project use options');
+      }
+      await use(tenantConfig);
+    },
+    { scope: 'worker' },
+  ],
   // Worker-scoped API context - shared across all tests in worker
   appManagerApiContext: [
-    async ({}, use) => {
-      const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
-        email: getEnvConfig().appManagerEmail,
-        password: getEnvConfig().appManagerPassword,
+    async ({ tenantConfig }, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(tenantConfig.apiBaseUrl, {
+        email: tenantConfig.appManagerEmail,
+        password: tenantConfig.appManagerPassword,
       });
       await use(context);
       await context.dispose();
@@ -110,8 +200,8 @@ export const integrationsFixture = test.extend<
 
   // API-only fixtures - fast, no browser overhead, using worker-scoped contexts
   appManagerApiFixture: [
-    async ({ appManagerApiContext }, use) => {
-      const fixture = await createIntegrationsApiFixture(appManagerApiContext);
+    async ({ appManagerApiContext, tenantConfig }, use) => {
+      const fixture = await createIntegrationsApiFixture(appManagerApiContext, tenantConfig);
       await use(fixture);
 
       // Cleanup helpers that have cleanup methods
@@ -128,8 +218,12 @@ export const integrationsFixture = test.extend<
   // UI-only fixtures - browser and page components
   // Note: HomeDashboard requires tileManagementHelper, so we pass it from API fixture
   appManagerUiFixture: [
-    async ({ browser, appManagerApiFixture }, use) => {
-      const fixture = await createIntegrationsUiFixture(browser, appManagerApiFixture.tileManagementHelper);
+    async ({ browser, appManagerApiFixture, tenantConfig }, use) => {
+      const fixture = await createIntegrationsUiFixture(
+        browser,
+        appManagerApiFixture.tileManagementHelper,
+        tenantConfig
+      );
       await use(fixture);
       await fixture.browserContext.close();
     },
@@ -140,6 +234,28 @@ export const integrationsFixture = test.extend<
   appManagerFixture: [
     async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
       await use({ ...appManagerUiFixture, ...appManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  // Convenience fixture for just the page (UI-only, no API required)
+  appManagerPage: [
+    async ({ browser, tenantConfig }, use) => {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+
+      // Use retry logic for login to handle intermittent failures
+      await loginWithRetry(
+        page,
+        {
+          email: tenantConfig.appManagerEmail,
+          password: tenantConfig.appManagerPassword,
+        },
+        tenantConfig
+      );
+
+      await use(page);
+      await context.close();
     },
     { scope: 'test' },
   ],

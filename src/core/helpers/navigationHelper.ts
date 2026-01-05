@@ -1,11 +1,9 @@
 import { Page, test } from '@playwright/test';
 
 import { CreateComponent } from '@content/ui/components/createComponent';
+import { SideNavBarComponent, TopNavBarComponent } from '@core/ui/components';
 
 import { TestOptions } from '../types';
-import { SideNavBarComponent, TopNavBarComponent } from '../ui/components';
-import { ApplicationSettingsOption } from '../ui/types/navigation.types';
-import { getEnvConfig } from '../utils/getEnvConfig';
 
 import { EmailNotificationAppSettingsPage } from '@/src/modules/alert-notification/ui/pages/emailNotificationAppSettingsPage';
 import { ChatNavigationComponent } from '@/src/modules/chat/ui/components/chatNavigationComponent';
@@ -14,6 +12,7 @@ import { ContentType } from '@/src/modules/content/constants';
 import {
   AddContentModalComponent,
   AlbumCreationPage,
+  ContentModerationQueuePage,
   EventCreationPage,
   FeaturedSitePage,
   ManageApplicationPage,
@@ -21,9 +20,11 @@ import {
   PageCreationPage,
   SiteCreationPage,
 } from '@/src/modules/content/ui';
+import { CreateComponent as AbacCreateComponent } from '@/src/modules/content/ui/components/globalCreateContainerComponent';
+import { ApplicationScreenPage } from '@/src/modules/content/ui/pages/applicationsScreenPage';
 import { ContentStudioPageCreationPage } from '@/src/modules/content/ui/pages/contentStudioPageCreationPage';
-import { CreateComponent as AbacCreateComponent } from '@/src/modules/content-abac/ui/components/globalCreateContainerComponent';
-import { SiteCreationPageAbac } from '@/src/modules/content-abac/ui/pages/siteCreationPageAbac';
+import { ORGChartPage } from '@/src/modules/content/ui/pages/ORGChatPage';
+import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 import { AnalyticsLandingPage } from '@/src/modules/data-engineering/ui/pages/analyticsLandingPage';
 import { GlobalSearchResultPage } from '@/src/modules/global-search/ui/pages/globalSearchResultPage';
 import { ManageRecognitionPage } from '@/src/modules/recognition/ui/pages/manage/manageRecognitionPage';
@@ -49,11 +50,9 @@ export interface ICommonHomePageAssertions {
 }
 
 export class NavigationHelper {
-  readonly isNewUx: boolean;
   readonly topNavBarComponent: TopNavBarComponent;
   readonly sideNavBarComponent: SideNavBarComponent;
   constructor(private readonly page: Page) {
-    this.isNewUx = getEnvConfig().newUxEnabled;
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.sideNavBarComponent = new SideNavBarComponent(page);
   }
@@ -152,6 +151,18 @@ export class NavigationHelper {
     });
   }
 
+  async clickOnFavoritePeopleSection(): Promise<void> {
+    await test.step('Clicking on favourite people section', async () => {
+      await this.sideNavBarComponent.favoritePeopleSection.click();
+    });
+  }
+
+  async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || 'Clicking on org chart button', async () => {
+      await this.sideNavBarComponent.clickOnOrgChartButton(options);
+    });
+  }
+
   async clickOnBellIcon(options?: { stepInfo?: string }): Promise<NotificationComponent> {
     await this.topNavBarComponent.clickOnBellIconToOpenNotifications(options);
     return new NotificationComponent(this.page);
@@ -219,6 +230,18 @@ export class NavigationHelper {
     });
   }
 
+  async openCreateContentPage(
+    contentType: ContentType,
+    options?: { stepInfo?: string; isFromStudio?: boolean; siteName?: string }
+  ): Promise<AddContentModalComponent> {
+    return await test.step(options?.stepInfo || `Opening create content page for ${contentType}`, async () => {
+      await this.sideNavBarComponent.clickOnCreateButton();
+      const createComponent = new CreateComponent(this.page);
+      await createComponent.verifyTheCreateComponentIsVisible();
+      return await createComponent.selectContentTypeAndCreateContent(contentType);
+    });
+  }
+
   async openAddContentModal(
     contentType: ContentType,
     siteName?: string,
@@ -282,9 +305,9 @@ export class NavigationHelper {
       options?.stepInfo || 'Navigating to email notification settings page via side nav bar',
       async () => {
         //click on application settings and click on application
-        await this.sideNavBarComponent.openApplicationSettingsAndSelectMenuOptionFromSideNav(
-          ApplicationSettingsOption.APPLICATION
-        );
+        await this.openApplicationSettings({ stepInfo: 'Open Application settings via side nav' });
+        const applicationScreenPage = new ApplicationScreenPage(this.page);
+        await applicationScreenPage.actions.clickOnApplication();
         //verify manage application page is visible
         const manageApplicationPage = new ManageApplicationPage(this.page);
         await manageApplicationPage.verifyThePageIsLoaded();
@@ -330,7 +353,12 @@ export class NavigationHelper {
       await analyticsLandingPage.openRecognitionAnalytics();
     });
   }
-
+  async navigateToORGChart(options?: TestOptions): Promise<ORGChartPage> {
+    return await test.step(options?.stepInfo || 'Navigating to ORG chart', async () => {
+      await this.sideNavBarComponent.clickOnOrgChartButton(options);
+      return new ORGChartPage(this.page);
+    });
+  }
   /**
    * Navigates to the campaign analytics page
    * @param options - The options for the step
@@ -348,7 +376,6 @@ export class NavigationHelper {
    * @param options - The options for the step
    * @returns The manage recognition page
    */
-
   async navigateToManageRecognitionViaSideNavBar(options?: { stepInfo?: string }): Promise<ManageRecognitionPage> {
     return await test.step(options?.stepInfo || 'Navigating to manage recognition via side nav bar', async () => {
       await this.sideNavBarComponent.clickRecognitionLinkInsideManageNavMenu();
@@ -370,5 +397,30 @@ export class NavigationHelper {
       await recognitionHubPage.verifyThePageIsLoaded();
       return recognitionHubPage;
     });
+  }
+
+  /**
+   * Navigates to the content moderation queue page via Avatar → Manage → Content Moderation
+   * @param options - The options for the step
+   * @returns The ContentModerationQueuePage instance
+   */
+  async navigateToContentModerationQueue(options?: { stepInfo?: string }) {
+    return await test.step(
+      options?.stepInfo || 'Navigating to content moderation queue via Avatar → Manage → Content Moderation',
+      async () => {
+        // Open profile settings (Avatar)
+        const manageFeatureComponent = this.sideNavBarComponent.clickOnManageFeature;
+
+        await manageFeatureComponent.click();
+        await test.step('Clicking on content moderation', async () => {
+          await this.sideNavBarComponent.clickOnContentModeration.click();
+        });
+
+        // Return ContentModerationQueuePage
+        const moderationQueuePage = new ContentModerationQueuePage(this.page);
+        await moderationQueuePage.verifyThePageIsLoaded();
+        return moderationQueuePage;
+      }
+    );
   }
 }

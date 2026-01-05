@@ -9,6 +9,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly createSection: Locator;
   readonly feedLink: Locator;
   readonly homeLink: Locator;
+  readonly orgChartButton: Locator;
 
   readonly sitesButton: Locator;
   readonly navigateOnApplication: Locator;
@@ -17,7 +18,7 @@ export class SideNavBarComponent extends BaseComponent {
   readonly clickOnManageFeature: Locator;
   readonly clickOnFeedSideMenu: Locator;
   readonly clickingOnHome: Locator;
-
+  readonly favoritePeopleSection: Locator;
   //analytics section
   readonly analyticsButton: Locator;
   readonly appAnalyticsButton: Locator;
@@ -38,10 +39,12 @@ export class SideNavBarComponent extends BaseComponent {
   readonly manageRolesButton: Locator;
   readonly manageSubscriptionsButton: Locator;
   readonly manageUsersButton: Locator;
+  readonly peopleButton: Locator;
 
   //social campaigns section
   readonly socialCampaignsElement: Locator;
   readonly moreElement: Locator;
+  readonly favoriteButton: Locator;
 
   //recognition section
   readonly recognitionLink: Locator;
@@ -49,41 +52,47 @@ export class SideNavBarComponent extends BaseComponent {
   readonly homeNavMenu: Locator;
   readonly manageNavMenu: Locator;
 
+  //content moderation section
+  readonly clickOnContentModeration: Locator;
+
   constructor(page: Page) {
     super(page);
-    this.createSection = page.locator('span', { hasText: 'Create' });
-    this.feedLink = page.locator('p', { hasText: 'Feed' });
-    this.homeLink = page.locator('p:text-is("Home")');
-    this.sitesButton = page.getByRole('button', { name: 'Sites' });
-    this.navigateOnApplication = page.getByRole('menuitem', { name: 'Application settings', exact: true });
-    this.clickOnManageFeature = page.locator('[aria-label="Manage features"]').first();
+    this.clickOnContentModeration = page.locator('[href="/manage/content-moderation"][data-testid="main-nav-item"]');
+    this.createSection = page.getByRole('button', { name: 'Icon' });
+    this.feedLink = page.locator('[href="/feed"][data-testid="main-nav-item"]');
+    this.homeLink = page.locator('[href="/home"][data-testid="main-nav-item"]');
+    this.sitesButton = page.locator('[href="/sites/featured"][data-testid="main-nav-item"]');
+    this.navigateOnApplication = page.locator('[aria-label="Application settings"]');
+    this.clickOnManageFeature = page.locator('[aria-label="Manage"]').first();
     this.clickOnFeedSideMenu = this.page.getByTestId('icon-test').nth(1);
     this.rolesButton = page.getByRole('menuitem', { name: 'Roles' });
     this.clickingOnHome = page.getByRole('menuitem', { name: 'User mode' });
-
     //analytics section
     this.analyticsButton = page.getByRole('menuitem', { name: 'Analytics', exact: true });
     this.appAnalyticsButton = page.getByRole('menuitem', { name: 'App', exact: true });
-    this.campaignsButton = page.getByRole('menuitem', { name: 'Campaigns', exact: true });
-    this.recognitionButton = page.getByRole('menuitem', { name: 'Recognition', exact: true });
-
+    this.campaignsButton = page.locator('[href="/manage/campaigns"][data-testid="main-nav-item"]');
+    this.recognitionButton = page.locator('[href="/analytics/recognition/overview"][data-testid="main-nav-item"]');
     //application settings section
-    this.applicationSettings = page.getByRole('menuitem', { name: 'Application settings', exact: true });
-    this.manageAppSetupButton = page.getByRole('menuitem', { name: 'Application', exact: true });
-    this.manageAccountButton = page.getByRole('menuitem', { name: 'Account', exact: true });
-    this.manageAppsAndLinksButton = page.getByRole('menuitem', { name: 'Apps & links', exact: true });
-    this.manageCompanyValuesButton = page.getByRole('menuitem', { name: 'Company values ', exact: true });
-    this.manageExpertiseButton = page.getByRole('menuitem', { name: 'Expertise', exact: true });
-    this.manageHomeDefaultsButton = page.getByRole('menuitem', { name: 'Home defaults', exact: true });
-    this.managePerceptionThemesButton = page.getByRole('menuitem', { name: 'Perception themes', exact: true });
-    this.manageTopicsButton = page.getByRole('menuitem', { name: 'Topics', exact: true });
-    this.manageAudiencesButton = page.getByRole('menuitem', { name: 'Audiences', exact: true });
-    this.manageRolesButton = page.getByRole('menuitem', { name: 'Roles', exact: true });
-    this.manageSubscriptionsButton = page.getByRole('menuitem', { name: 'Subscriptions', exact: true });
-    this.manageUsersButton = page.getByRole('menuitem', { name: 'Users', exact: true });
+    this.applicationSettings = page.locator('[aria-label="Application settings"]');
+    this.manageAppSetupButton = page.locator('[href="/manage/app/setup/general"][data-testid="main-nav-item"]');
+    this.manageAccountButton = page.locator('[href="/manage/account"][data-testid="main-nav-item"]');
+    this.manageAppsAndLinksButton = page.locator('[href="/manage/apps-and-links"][data-testid="main-nav-item"]');
+    this.manageCompanyValuesButton = page.locator('[href="/manage/company-values"][data-testid="main-nav-item"]');
+    this.manageExpertiseButton = page.locator('[href="/manage/expertise"][data-testid="main-nav-item"]');
+    this.manageHomeDefaultsButton = page.locator('[href="/manage/home-defaults"][data-testid="main-nav-item"]');
+    this.managePerceptionThemesButton = page.locator('[href="/manage/perception-themes"][data-testid="main-nav-item"]');
+    this.manageTopicsButton = page.locator('[href="/manage/topics"][data-testid="main-nav-item"]');
+    this.manageAudiencesButton = page.locator('[href="/audiences/org"][data-testid="main-nav-item"]');
+    this.manageRolesButton = page.locator('[href="/manage/roles"][data-testid="main-nav-item"]');
+    this.manageSubscriptionsButton = page.locator('[href="/subscriptions/org"][data-testid="main-nav-item"]');
+    this.manageUsersButton = page.locator('[href="/manage/users"][data-testid="main-nav-item"]');
 
-    this.socialCampaignsElement = page.locator('p', { hasText: 'Social campaigns' });
+    this.socialCampaignsElement = page.locator('[href="/campaigns"][data-testid="main-nav-item"]');
     this.moreElement = page.locator('p', { hasText: 'More' });
+    this.favoritePeopleSection = page.locator('p', { hasText: 'Favorites' });
+    this.orgChartButton = page.getByRole('menuitem', { name: 'Org chart Org chart' });
+    this.peopleButton = page.locator('[href="/people"][data-testid="main-nav-item"]');
+    this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites Favorites' });
 
     //recognition section
     this.recognitionLink = page.getByRole('menuitem', { name: 'Recognition Recognition' });
@@ -108,7 +117,7 @@ export class SideNavBarComponent extends BaseComponent {
    */
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('side navbar: clicking Global Feed button on side navbar', async () => {
-      if (await this.verifier.isTheElementVisible(this.feedLink)) {
+      if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
         await this.clickOnElement(this.homeLink);
@@ -236,6 +245,11 @@ export class SideNavBarComponent extends BaseComponent {
       await this.clickOnElement(this.analyticsButton);
     });
   }
+  async clickOnFavoritePeopleSection(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking Favourite People Section`, async () => {
+      await this.clickOnElement(this.favoritePeopleSection);
+    });
+  }
 
   async openManageCampaigns(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `side navbar: opening Manage Campaigns`, async () => {
@@ -249,6 +263,18 @@ export class SideNavBarComponent extends BaseComponent {
     });
   }
 
+  async clickOnOrgChartButton(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking Org chart button`, async () => {
+      await this.hoverOverElementInJavaScript(this.peopleButton);
+      await this.clickOnElement(this.orgChartButton);
+    });
+  }
+
+  async clickOnFavorite(options?: TestOptions): Promise<void> {
+    await test.step(options?.stepInfo || `side navbar: clicking on Favorite`, async () => {
+      await this.clickOnElement(this.favoriteButton);
+    });
+  }
   /**
    * Clicks on Recognition Link under home menu of side navigation bar
    * @param options - The options for the step
@@ -280,7 +306,7 @@ export class SideNavBarComponent extends BaseComponent {
 
   async verifyingCreateButtonIsVisible(): Promise<void> {
     await test.step('Verifying Create button is visible', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.createSection.first());
+      await this.verifier.verifyTheElementIsVisible(this.createSection);
     });
   }
 }

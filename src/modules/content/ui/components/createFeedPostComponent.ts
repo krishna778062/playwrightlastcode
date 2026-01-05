@@ -11,6 +11,7 @@ export interface FeedPostOptions {
   attachments?: {
     files: string[];
   };
+  embedUrl?: string;
 }
 
 export interface FeedPostResult {
@@ -31,6 +32,7 @@ export interface FeedPostApiResponse {
 }
 
 export interface ICreateFeedPostActions {
+  clickPostWithoutWaitingForResponse(): Promise<void>;
   createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
   editPost: (currentText: string, newText: string) => Promise<void>;
   editPostWithTopicAndUserName: (params: {
@@ -41,12 +43,14 @@ export interface ICreateFeedPostActions {
   }) => Promise<void>;
   createPost: (text: string) => Promise<void>;
   uploadFiles: (files: string[]) => Promise<void>;
+  uploadFilesToReply: (files: string[], postText: string) => Promise<void>;
   removeAttachedFile: (index?: number) => Promise<void>;
   clickPostButton: () => Promise<void>;
   openPostOptionsMenu: (postText: string) => Promise<void>;
   clickEditOption: () => Promise<void>;
   updatePostText: (text: string) => Promise<void>;
   clickUpdateButton: () => Promise<void>;
+  clickReplyUpdateButton: (postText: string) => Promise<void>;
   searchForSiteName: (siteName: string) => Promise<void>;
   clickBrowseFilesButton: () => Promise<void>;
   searchForFileInLibrary: (fileName: string) => Promise<void>;
@@ -54,14 +58,25 @@ export interface ICreateFeedPostActions {
   clickAttachButton: () => Promise<void>;
   addFileToPost: (filePath: string) => Promise<void>;
   waitForFileToAppear: () => Promise<void>;
+  verifyIntranetAndBoxTabsVisible: () => Promise<void>;
+  clickBoxFilesTab: () => Promise<void>;
+  clickBoxFolder: (folderName: string) => Promise<void>;
+  selectBoxFile: (fileName: string) => Promise<void>;
+  verifyPostCreationCancelButtonVisible: () => Promise<void>;
+  clickPostCreationCancelButton: () => Promise<void>;
+  verifyPostCreationEditorClosed: () => Promise<void>;
+  clickRecognitionTab: () => Promise<void>;
 }
 
 export interface ICreateFeedPostAssertions {
   verifyEditorVisible: () => Promise<void>;
+  verifyReplyEditorVisible: (postText: string) => Promise<void>;
   verifyNoResultMessage: () => Promise<void>;
   verifyFileIsAttached: (fileName: string) => Promise<void>;
   verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
   verifyUpdateButtonDisabled: () => Promise<void>;
+  verifyPostButtonDisabled: () => Promise<void>;
+  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
 }
 
 export class CreateFeedPostComponent
@@ -70,10 +85,14 @@ export class CreateFeedPostComponent
 {
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
   readonly questionButton = this.page.locator("button:has-text('Question')");
+  readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
   readonly fileUploadInput = this.page.locator("input[type='file']");
   readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
   readonly deleteFileIcon = this.page.locator("button[class*='delete']");
   readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+  readonly cancelButton = this.page
+    .locator("div[class*='PostFormShareContainer']")
+    .getByRole('button', { name: 'Cancel' });
 
   // Toolbar formatting buttons
   readonly toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
@@ -136,6 +155,19 @@ export class CreateFeedPostComponent
   readonly fileSearchInput = this.page.locator('input[class*="SearchForm-input"]');
   readonly attachButton = this.page.getByRole('button', { name: 'Attach' });
   readonly uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
+  readonly feedPlaceholderText = (expectedPlaceholder: string) =>
+    this.page.locator('span').filter({ hasText: expectedPlaceholder });
+  // Box file browsing section
+  readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
+  readonly filePickerDialog = this.page.getByRole('dialog', { name: 'File manager' });
+  readonly filePickerTabs = this.page.locator('[role="tab"]');
+  readonly boxBreadcrumb = this.page.locator('.Breadcrumb--mediaManager, .Breadcrumb');
+  readonly boxFolderLocator = (folderName: string) =>
+    this.page
+      .locator('table tbody tr')
+      .locator('div.type--fauxLink, div[role="button"]')
+      .filter({ hasText: new RegExp(`^${folderName}$`, 'i') });
+  readonly boxTableRows = this.page.locator('table tbody tr');
 
   /**
    * Gets a locator for a file checkbox in the file library by finding the row containing the file name
@@ -197,6 +229,11 @@ export class CreateFeedPostComponent
       // Add post content
       await this.createPost(options.text);
 
+      // Handle embed URL if provided
+      if (options.embedUrl) {
+        await this.addEmbedUrl(options.embedUrl);
+      }
+
       // Handle attachments if provided
       if (options.attachments) {
         await this.uploadFiles(options.attachments.files);
@@ -224,17 +261,43 @@ export class CreateFeedPostComponent
     });
   }
 
+  async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
+    return await test.step(`Creating and publishing feed post with text: ${text}`, async () => {
+      await this.createPost(text);
+      await this.addTopicMention(topic);
+
+      // Publish the post and get the response
+      const postResponse = await this.createFeedPost();
+
+      // Parse JSON body
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+
+      // Fetch the post id from the response
+      const postId = feedResponseBody.result.feedId;
+      console.log('postId', postId);
+
+      return {
+        postText: text,
+        attachmentCount: 0,
+        postId,
+      };
+    });
+  }
+
   /**
    * Edits an existing post with new text
    * @param currentText - Current text of the post to edit
    * @param newText - New text to update the post with
    */
-  async editPost(currentText: string, newText: string): Promise<void> {
+  async editPost(currentText: string, newText: string, embedUrl?: string): Promise<void> {
     await test.step(`Editing post from "${currentText}" to "${newText}"`, async () => {
       await this.openPostOptionsMenu(currentText);
       await this.clickEditOption();
       await this.verifyEditorVisible();
       await this.updatePostText(newText);
+      if (embedUrl) {
+        await this.addEmbedUrl(embedUrl);
+      }
       await this.clickUpdateButton();
       // Note: Post verification should be done at test/page level to avoid duplication
     });
@@ -294,12 +357,53 @@ export class CreateFeedPostComponent
         );
         responsePromises.push(responsePromise);
       }
-      await this.fileUploadInput.setInputFiles(filePaths);
+      const fileUploadInputCount = await this.fileUploadInput.count();
+      if (fileUploadInputCount > 1) {
+        await this.fileUploadInput.nth(1).setInputFiles(filePaths);
+      } else {
+        await this.fileUploadInput.setInputFiles(filePaths);
+      }
+
       await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       /*
           If files are more than 10, verify the count of attached files is 10
           because atmax 10 files are uploaded else verify the count of attached files is the number of files uploaded
       */
+      if (filePaths.length > 10) {
+        await expect(this.attachedFiles).toHaveCount(10);
+      } else {
+        await expect(this.attachedFiles).toHaveCount(filePaths.length);
+      }
+
+      // Wait for all upload requests to complete
+      await Promise.all(responsePromises);
+    });
+  }
+
+  /**
+   * Uploads files to a reply editor for a specific post
+   * @param filePaths - Array of file paths to upload
+   * @param postText - The text of the post to which the reply belongs (used for context, not for scoping)
+   */
+  async uploadFilesToReply(filePaths: string[], postText: string): Promise<void> {
+    await test.step('Upload files to reply editor', async () => {
+      // Setup request promises for upload requests
+      const responsePromises = [];
+      for (let i = 0; i < filePaths.length; i++) {
+        const responsePromise = this.page.waitForResponse(
+          response =>
+            response.request().url().includes('X-Amz-SignedHeaders=host') &&
+            response.request().method() === 'PUT' &&
+            response.status() === 200,
+          { timeout: 35000 }
+        );
+        responsePromises.push(responsePromise);
+      }
+
+      const fileUploadInput = this.page.locator("input[type='file']").last();
+
+      await fileUploadInput.setInputFiles(filePaths);
+      await this.page.waitForSelector(this.fileItemNameSelector, { state: 'visible', timeout: TIMEOUTS.VERY_LONG });
       if (filePaths.length > 10) {
         await expect(this.attachedFiles).toHaveCount(10);
       } else {
@@ -344,6 +448,19 @@ export class CreateFeedPostComponent
   async clickPostButton(): Promise<void> {
     await test.step('Click post button', async () => {
       await this.clickOnElement(this.postButton);
+      await this.page.waitForResponse(
+        response =>
+          response.url().includes(API_ENDPOINTS.feed.create) &&
+          response.request().method() === 'POST' &&
+          response.status() === 201,
+        { timeout: 20_000 }
+      );
+    });
+  }
+
+  async clickPostWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click post button without waiting for response', async () => {
+      await this.clickOnElement(this.postButton);
     });
   }
 
@@ -387,12 +504,57 @@ export class CreateFeedPostComponent
     });
   }
 
+  async clickReplyUpdateButton(postText: string): Promise<void> {
+    await test.step(`Click update button in reply editor for post ${postText}`, async () => {
+      const updateButton = this.updateButton.last();
+      await this.clickOnElement(updateButton);
+    });
+  }
+
   /**
    * Verifies that the post editor is visible
    */
   async verifyEditorVisible(): Promise<void> {
     await test.step('Verify editor is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedEditor);
+    });
+  }
+
+  async verifyReplyEditorVisible(): Promise<void> {
+    await test.step('Verify reply editor is visible', async () => {
+      const editorLocator = this.feedEditor.last();
+      await this.verifier.verifyTheElementIsVisible(editorLocator);
+    });
+  }
+
+  /**
+   * Verifies that the Cancel button is visible in the post creation editor
+   */
+  async verifyPostCreationCancelButtonVisible(): Promise<void> {
+    await test.step('Verify Cancel button is visible in post creation editor', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.cancelButton, {
+        assertionMessage: 'Cancel button should be visible in post creation editor',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the post creation editor
+   */
+  async clickPostCreationCancelButton(): Promise<void> {
+    await test.step('Click Cancel button in post creation editor', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the post creation editor is closed (not visible)
+   */
+  async verifyPostCreationEditorClosed(): Promise<void> {
+    await test.step('Verify post creation editor is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.feedEditor, {
+        assertionMessage: 'Post creation editor should be closed (not visible)',
+      });
     });
   }
 
@@ -419,15 +581,11 @@ export class CreateFeedPostComponent
 
       // Check if the site name appears in the dropdown
       const siteLocator = this.addSiteNameFromList(siteName);
-      const isVisible = await siteLocator.isVisible().catch(() => false);
-      console.log(`Site mention dropdown for "${siteName}" is visible: ${isVisible}`);
-
-      if (isVisible) {
-        await siteLocator.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      try {
         await this.clickOnElement(siteLocator);
         console.log(`Successfully added site mention: @${siteName}`);
-      } else {
-        console.log(`Site mention "${siteName}" not found in dropdown, continuing without it`);
+      } catch (error) {
+        console.log(`Error adding site mention: @${siteName}: ${error}`);
         // Just press Enter to continue without the mention
         await this.feedEditor.press('Enter');
       }
@@ -444,6 +602,32 @@ export class CreateFeedPostComponent
       await this.clickOnElement(this.addtopicfromList(topicName));
     });
   }
+
+  async removeSiteMention(siteName: string): Promise<void> {
+    await test.step(`Removing site mention: @${siteName}`, async () => {
+      // Find the site mention node in the editor
+      // Site mentions are rendered as spans with data-type="site" and data-label containing the site name
+      const siteMentionNode = this.feedEditor
+        .locator('span[data-type="site"]')
+        .filter({ hasText: new RegExp(siteName) })
+        .first();
+
+      // Check if the mention exists
+      const isVisible = await siteMentionNode.isVisible().catch(() => false);
+
+      if (isVisible) {
+        // Click on the mention to select it, then delete
+        await this.clickOnElement(siteMentionNode);
+        // Press Backspace or Delete to remove the mention
+        await this.feedEditor.press('Backspace');
+        // Sometimes we need to press it twice or use Delete
+        await this.feedEditor.press('Delete');
+      } else {
+        console.log(`Site mention @${siteName} not found in editor, skipping removal`);
+      }
+    });
+  }
+
   async createFeedPost(): Promise<Response> {
     return await test.step(`Creating feed post and wait for api response`, async () => {
       const postResponse = await this.performActionAndWaitForResponse(
@@ -524,6 +708,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Clicks the Recognition tab in the composer to open recognition form
+   */
+  async clickRecognitionTab(): Promise<void> {
+    await test.step('Click Recognition tab', async () => {
+      await this.clickOnElement(this.recognitionTab);
+    });
+  }
+
   async verifyQuestionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify question button is not visible', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.questionButton);
@@ -558,6 +751,20 @@ export class CreateFeedPostComponent
       await this.verifier.verifyTheElementIsVisible(this.noResultsText, {
         timeout: 5000,
         assertionMessage: 'Expected "No results" message to be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the feed placeholder text matches the expected value
+   * @param expectedPlaceholder - The expected placeholder text
+   */
+  async verifyFeedPlaceholderText(expectedPlaceholder: string): Promise<void> {
+    await test.step(`Verify feed placeholder text is "${expectedPlaceholder}"`, async () => {
+      const placeholderLocator = this.feedPlaceholderText(expectedPlaceholder);
+      await this.verifier.verifyTheElementIsVisible(placeholderLocator, {
+        assertionMessage: `Feed placeholder should display "${expectedPlaceholder}"`,
+        timeout: 20000,
       });
     });
   }
@@ -703,6 +910,15 @@ export class CreateFeedPostComponent
     });
   }
 
+  /**
+   * Verifies that the Post button is disabled
+   */
+  async verifyPostButtonDisabled(): Promise<void> {
+    await test.step('Verify Post button is disabled', async () => {
+      await expect(this.postButton).toBeDisabled();
+    });
+  }
+
   async addFileToPost(filePath: string): Promise<void> {
     await test.step(`Add file to post: ${filePath}`, async () => {
       await this.fileUploadInput.first().setInputFiles([filePath]);
@@ -726,40 +942,12 @@ export class CreateFeedPostComponent
    */
   async verifyFeedRestrictionMessageVisible(expectedText: string): Promise<void> {
     await test.step('Verify feed restriction message is visible on dashboard', async () => {
-      // Wait for page to load
-      await this.page.waitForLoadState('domcontentloaded');
+      // Try to find the message using getByText first
+      const messageLocator = this.page.getByText(expectedText, { exact: false });
 
-      // Use filter with hasText to find paragraph containing the message text
-      // hasText checks if the element or its children contain the text
-      let messageLocator = this.page.locator('p').filter({ hasText: expectedText });
-      let messageCount = await messageLocator.count();
-
-      // If not found with filter, try getByText as fallback
-      if (messageCount === 0) {
-        messageLocator = this.page.getByText(expectedText, { exact: false });
-        messageCount = await messageLocator.count();
-      }
-
-      // If still not found, try partial phrases as fallback
-      if (messageCount === 0) {
-        const partialPhrases = [
-          'site managers on this site',
-          'only available for site managers',
-          'feed posts are only',
-        ];
-
-        for (const phrase of partialPhrases) {
-          messageLocator = this.page.locator('p').filter({ hasText: phrase });
-          messageCount = await messageLocator.count();
-          if (messageCount > 0) {
-            break;
-          }
-        }
-      }
-      // Verify the restriction message text is visible on the page
+      // Verify the restriction message text is visible
       await this.verifier.verifyTheElementIsVisible(messageLocator, {
         assertionMessage: `Restriction message "${expectedText}" should be visible on dashboard`,
-        timeout: 10000,
       });
     });
   }
@@ -888,6 +1076,116 @@ export class CreateFeedPostComponent
         await this.clickOrderListButton();
       } else if (formatType === 'dotBullet') {
         await this.clickBulletListButton();
+      }
+    });
+  }
+
+  /**
+   * Verifies that both Intranet files and Box files tabs are displayed
+   */
+  async verifyIntranetAndBoxTabsVisible(): Promise<void> {
+    await test.step('Verify Intranet files and Box files tabs are displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.intranetFilesTab, {
+        assertionMessage: 'Intranet files tab should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.boxFilesTab, {
+        assertionMessage: 'Box files tab should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Box files tab
+   */
+  async clickBoxFilesTab(): Promise<void> {
+    await test.step('Click Box files tab', async () => {
+      await this.clickOnElement(this.boxFilesTab);
+      // Wait for Box files content to load - verify breadcrumb or table appears
+      const breadcrumbVisible = await this.boxBreadcrumb.isVisible().catch(() => false);
+      const tableVisible = await this.boxTableRows
+        .first()
+        .isVisible()
+        .catch(() => false);
+      if (!breadcrumbVisible && !tableVisible) {
+        // Try breadcrumb first, then table
+        await this.verifier
+          .verifyTheElementIsVisible(this.boxBreadcrumb, {
+            assertionMessage: 'Box files breadcrumb should be visible after clicking tab',
+          })
+          .catch(async () => {
+            await this.verifier.verifyTheElementIsVisible(this.boxTableRows.first(), {
+              assertionMessage: 'Box files table should be visible after clicking tab',
+            });
+          });
+      }
+    });
+  }
+
+  /**
+   * Clicks on a Box folder
+   * @param folderName - Name of the folder to click
+   */
+  async clickBoxFolder(folderName: string): Promise<void> {
+    await test.step(`Click Box folder: ${folderName}`, async () => {
+      // Find the folder in the table - look for the div with the folder name
+      const folderNameDiv = this.boxFolderLocator(folderName).first();
+
+      await this.verifier.verifyTheElementIsVisible(folderNameDiv, {
+        assertionMessage: `Box folder "${folderName}" should be visible`,
+        timeout: TIMEOUTS.VERY_SHORT,
+      });
+
+      // Click on the folder name div
+      await this.clickOnElement(folderNameDiv);
+
+      // Wait for folder contents to load - verify table rows appear or breadcrumb updates
+      const tableVisible = await this.boxTableRows
+        .first()
+        .isVisible()
+        .catch(() => false);
+      const breadcrumbVisible = await this.boxBreadcrumb.isVisible().catch(() => false);
+      if (!tableVisible && !breadcrumbVisible) {
+        // Try table first, then breadcrumb
+        await this.verifier
+          .verifyTheElementIsVisible(this.boxTableRows.first(), {
+            assertionMessage: 'Folder contents table should be visible after clicking folder',
+            timeout: TIMEOUTS.VERY_SHORT,
+          })
+          .catch(async () => {
+            await this.verifier.verifyTheElementIsVisible(this.boxBreadcrumb, {
+              assertionMessage: 'Folder breadcrumb should be visible after clicking folder',
+              timeout: TIMEOUTS.VERY_SHORT,
+            });
+          });
+      }
+    });
+  }
+
+  /**
+   * Selects a file from Box
+   * @param fileName - Name of the file to select (empty string to select first available file)
+   */
+  async selectBoxFile(fileName?: string): Promise<void> {
+    await test.step(`Select Box file: ${fileName || 'first available'}`, async () => {
+      if (fileName) {
+        const checkbox = this.getFileCheckboxLocator(fileName);
+        await this.verifier.verifyTheElementIsVisible(checkbox, {
+          assertionMessage: `Checkbox for file "${fileName}" should be visible`,
+        });
+
+        // Check if checkbox is already selected
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          // Click the checkbox using JavaScript to ensure it works
+          await checkbox.check();
+        }
+      } else {
+        const file = this.filePickerDialog.getByRole('checkbox', { name: '.pdf' }).first();
+        await this.verifier.verifyTheElementIsVisible(file, {
+          assertionMessage: `Box file ".pdf" should be visible`,
+          timeout: TIMEOUTS.VERY_SHORT,
+        });
+        await file.check();
       }
     });
   }

@@ -1,5 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
 export class AddTopicComponent extends BaseComponent {
@@ -20,11 +21,24 @@ export class AddTopicComponent extends BaseComponent {
     });
   }
 
-  async clickOnAddButton(): Promise<void> {
-    await test.step('Clicking on add button', async () => {
-      await this.clickOnElement(this.addButton, { force: true });
-      await this.page.waitForTimeout(3000);
-      console.log('my add button got clicked');
+  async clickOnAddButton(): Promise<string> {
+    return await test.step('Clicking on add button and wait for API response', async () => {
+      const topicResponse = await this.performActionAndWaitForResponse(
+        () => this.clickOnElement(this.addButton, { force: true, delay: 5_000 }),
+        response =>
+          response.url().includes(API_ENDPOINTS.content.createTopic) &&
+          response.request().method() === 'POST' &&
+          response.status() === 200,
+        {
+          timeout: 20_000,
+        }
+      );
+      const topicResponseJson = await topicResponse.json();
+      return topicResponseJson.result.topic_id;
     });
+  }
+
+  async clickOnAddButtonForDuplicateTopic(): Promise<void> {
+    await this.clickOnElement(this.addButton);
   }
 }

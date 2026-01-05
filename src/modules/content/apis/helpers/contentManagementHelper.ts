@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
 
-import { MANAGE_CONTENT_TEST_DATA } from '../../test-data/manage-content.test-data';
-import { SiteManagementService } from '../services/SiteManagementService';
+import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
+import { log } from '@core/utils/logger';
 
 import { EventSyncPayload, RsvpPayload } from '@/src/core/types/contentManagement.types';
 import { getTodayDateIsoString, getTomorrowDateIsoString } from '@/src/core/utils/dateUtil';
@@ -11,7 +11,10 @@ import {
   ContentManagementService,
 } from '@/src/modules/content/apis/services/ContentManagementService';
 import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
+import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { ContentSortBy, DateField } from '@/src/modules/content/constants';
+import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
+import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
@@ -39,38 +42,72 @@ export class ContentManagementHelper {
    * Gets content ID from content list response
    * If no content is found, gets a site from site service and creates a page
    * @param options - Optional parameters for content filtering
+   * @param options.accessType - Filter content by site access type ('public', 'private', 'unlisted'). Defaults to 'public'.
    * @returns Promise with siteId and contentId
    */
   async getContentId(options?: {
+    siteId?: string;
     size?: number;
     status?: string;
     sortBy?: string;
+    accessType?: SITE_TYPES;
   }): Promise<{ siteId: string; contentId: string; contentType: string }> {
+    // Default to 'public' if not specified
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const response = await this.contentManagementService.getContentList(options);
 
     if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
-      const randomIndex = Math.floor(Math.random() * response.result.listOfItems.length);
-      const randomContent = response.result.listOfItems[randomIndex];
-      return {
-        siteId: randomContent.site.siteId,
-        contentId: randomContent.contentId || randomContent.id,
-        contentType: randomContent.type,
-      };
+      // Filter content by site access type
+      let filteredContent = response.result.listOfItems.filter((content: any) => {
+        const site = content.site;
+        const siteAccess = site.access?.toLowerCase() || '';
+
+        if (accessType === SITE_TYPES.PUBLIC) {
+          return site.isPublic || siteAccess === SITE_TYPES.PUBLIC;
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          return site.isPrivate || siteAccess === SITE_TYPES.PRIVATE;
+        } else if (accessType === SITE_TYPES.UNLISTED) {
+          return !site.isListed || siteAccess === SITE_TYPES.UNLISTED;
+        }
+        return true; // If accessType doesn't match, return all content
+      });
+
+      if (options?.siteId) {
+        filteredContent = response.result.listOfItems.filter((content: any) => content.site.siteId === options.siteId);
+      }
+
+      if (filteredContent.length > 0) {
+        const randomIndex = Math.floor(Math.random() * filteredContent.length);
+        const randomContent = filteredContent[randomIndex];
+        return {
+          siteId: randomContent.site.siteId,
+          contentId: randomContent.contentId || randomContent.id,
+          contentType: randomContent.type,
+        };
+      }
     }
 
     // No content found, get a site from site service and create a page
-    console.log('No content found, getting site from site service and creating a page...');
 
-    // Get a site from the site list using the site service directly
-    const sitesResponse = await this.siteManagementService.getListOfSites();
+    // Get sites filtered by access type
+    const sitesResponse = await this.siteManagementService.getListOfSites({
+      filter: accessType.toLowerCase(),
+    });
 
     if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
-      throw new Error('No sites found in site service');
+      throw new Error(`No ${accessType} sites found in site service`);
     }
 
-    // Get a random site
-    const randomSiteIndex = Math.floor(Math.random() * sitesResponse.result.listOfItems.length);
-    const randomSite = sitesResponse.result.listOfItems[randomSiteIndex];
+    // Filter for active sites only
+    const activeSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive);
+
+    if (activeSites.length === 0) {
+      throw new Error(`No active ${accessType} sites found in site service`);
+    }
+
+    // Get a random active site
+    const randomSiteIndex = Math.floor(Math.random() * activeSites.length);
+    const randomSite = activeSites[randomSiteIndex];
     const siteId = randomSite.siteId;
 
     // Create a page in the selected site
@@ -92,20 +129,154 @@ export class ContentManagementHelper {
     };
   }
 
+  /**
+   * Gets an array of content items with siteId, contentId, and contentType
+   * Similar to getContentId but returns an array of matching content items up to the specified count
+   * @param count - Number of content items to return
+   * @param options - Optional parameters for content filtering
+   * @param options.accessType - Filter content by site access type ('public', 'private', 'unlisted'). Defaults to 'public'.
+   * @returns Promise with array of objects containing siteId, contentId, and contentType (up to count items)
+   */
+  async getContentItems(
+    count: number,
+    options?: {
+      size?: number;
+      status?: string;
+      sortBy?: string;
+      accessType?: SITE_TYPES;
+    }
+  ): Promise<Array<{ siteId: string; contentId: string; contentType: string }>> {
+    // Default to 'public' if not specified
+    const accessType = options?.accessType || SITE_TYPES.PUBLIC;
+    const response = await this.contentManagementService.getContentList(options);
+
+    if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
+      // Filter content by site access type
+      const filteredContent = response.result.listOfItems.filter((content: any) => {
+        const site = content.site;
+        const siteAccess = site.access?.toLowerCase() || '';
+
+        if (accessType === SITE_TYPES.PUBLIC) {
+          return site.isPublic || siteAccess === SITE_TYPES.PUBLIC;
+        } else if (accessType === SITE_TYPES.PRIVATE) {
+          return site.isPrivate || siteAccess === SITE_TYPES.PRIVATE;
+        } else if (accessType === SITE_TYPES.UNLISTED) {
+          return !site.isListed || siteAccess === SITE_TYPES.UNLISTED;
+        }
+        return true; // If accessType doesn't match, return all content
+      });
+
+      if (filteredContent.length > 0) {
+        // Map to content items and limit to count
+        const contentItems = filteredContent.map((content: any) => ({
+          siteId: content.site.siteId,
+          contentId: content.contentId || content.id,
+          contentType: content.type,
+        }));
+
+        // If we have enough items, return up to count
+        if (contentItems.length >= count) {
+          return contentItems.slice(0, count);
+        }
+
+        // We have some items but not enough, create the remaining ones
+        const itemsNeeded = count - contentItems.length;
+        const createdItems = await this.createContentItems(itemsNeeded, accessType);
+        return [...contentItems, ...createdItems];
+      }
+    }
+
+    // No content found, create the requested number of content items
+    const createdItems = await this.createContentItems(count, accessType);
+    return createdItems;
+  }
+
+  /**
+   * Helper method to create content items when not enough are found
+   * @param count - Number of content items to create
+   * @param accessType - Site access type for filtering sites
+   * @returns Array of created content items
+   */
+  private async createContentItems(
+    count: number,
+    accessType: SITE_TYPES
+  ): Promise<Array<{ siteId: string; contentId: string; contentType: string }>> {
+    // Get sites filtered by access type
+    const sitesResponse = await this.siteManagementService.getListOfSites({
+      filter: accessType.toLowerCase(),
+    });
+
+    if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
+      throw new Error(`No ${accessType} sites found in site service`);
+    }
+
+    // Filter for active sites only
+    const activeSites = sitesResponse.result.listOfItems.filter((site: any) => site.isActive);
+
+    if (activeSites.length === 0) {
+      throw new Error(`No active ${accessType} sites found in site service`);
+    }
+
+    const createdItems: Array<{ siteId: string; contentId: string; contentType: string }> = [];
+
+    // Create the requested number of pages
+    for (let i = 0; i < count; i++) {
+      // Get a random active site for each content item
+      const randomSiteIndex = Math.floor(Math.random() * activeSites.length);
+      const randomSite = activeSites[randomSiteIndex];
+      const siteId = randomSite.siteId;
+
+      // Create a page in the selected site
+      const pageResult = await this.createPage({
+        siteId,
+        contentInfo: {
+          contentType: 'page',
+          contentSubType: 'general',
+        },
+        options: {
+          waitForSearchIndex: false,
+        },
+      });
+
+      createdItems.push({
+        siteId: pageResult.siteId,
+        contentId: pageResult.contentId,
+        contentType: 'page',
+      });
+    }
+
+    return createdItems;
+  }
+
+  async makeContentMustRead(
+    contentId: string,
+    options: {
+      audienceType?: MustReadAudienceType | string;
+      duration?: MustReadDuration | string;
+    } = {
+      audienceType: MustReadAudienceType.SITE_MEMBERS_AND_FOLLOWERS,
+      duration: MustReadDuration.NINETY_DAYS,
+    }
+  ): Promise<any> {
+    const mustReadResponse = await this.contentManagementService.makeContentMustRead(contentId, options);
+    return mustReadResponse;
+  }
+
   async getContentCreatedAtDetails(
     sortBy: ContentSortBy,
-    options?: { size?: number; filter?: string; status?: string }
+    options?: { size?: number; filter?: string; status?: string; contribution?: string }
   ): Promise<string[] | null> {
     const size = options?.size || 1000;
     const filter = options?.filter || 'owned';
     const status = options?.status || 'published';
+    const contribution = options?.contribution || 'all';
 
     const siteListResponse = await this.contentManagementService.getContentList({
       sortBy: sortBy,
       size: size,
-      contribution: 'all',
       filter: filter, // Match curl command parameter
       status: status, // Match curl command parameter
+      contribution: contribution,
     });
 
     // Determine which date field to use based on sort type
@@ -140,23 +311,51 @@ export class ContentManagementHelper {
       }
 
       if (targetDate) {
-        const date = new Date(targetDate);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
+        // Extract date directly from ISO string (YYYY-MM-DD) to avoid timezone conversion
+        // API returns: "2025-11-30T23:59:00.000Z" -> extract "2025-11-30"
+        const dateUTCString = targetDate.split('T')[0];
 
-        // Check if the date is today using UTC comparison
-        if (date.toISOString().split('T')[0] === today.toISOString().split('T')[0] && date <= today) {
+        // Validate the date string format
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTCString)) {
+          console.warn(`Invalid date string format: ${targetDate}`);
+          continue;
+        }
+
+        // Get today and yesterday dates using local timezone to match UI behavior
+        // The UI uses the browser's local timezone to determine "Today" vs "Yesterday"
+        const now = new Date();
+        // Convert API UTC date to local date for comparison
+        const apiDate = new Date(targetDate);
+        const apiLocalDateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`;
+
+        // Get today's local date string
+        const todayLocalDateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        // Get yesterday's local date string
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayLocalDateString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+        // Debug: Log comparison for debugging
+        console.log(
+          `Item ${i}: Comparing apiLocalDateString="${apiLocalDateString}" with todayLocalDateString="${todayLocalDateString}" and yesterdayLocalDateString="${yesterdayLocalDateString}" (UTC: dateUTCString="${dateUTCString}")`
+        );
+
+        // Check if the date is today using local date string comparison
+        // This matches the UI behavior which uses local timezone
+        if (apiLocalDateString === todayLocalDateString) {
           dates.push('Today');
         }
-        // Check if the date is yesterday using UTC comparison
-        else if (date.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0] && date <= today) {
+        // Check if the date is yesterday using local date string comparison
+        else if (apiLocalDateString === yesterdayLocalDateString) {
           dates.push('Yesterday');
         }
-        // For other dates, return formatted date
+        // For other dates, return formatted date using UTC components
         else {
           const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
-          const formattedDate = `${monthNames[date.getUTCMonth()]} ${date.getUTCDate()}, ${date.getUTCFullYear()}`;
+          // Parse the UTC date string (YYYY-MM-DD) to get exact date components
+          const [year, month, day] = dateUTCString.split('-').map(Number);
+          const formattedDate = `${monthNames[month - 1]} ${day}, ${year}`;
           dates.push(formattedDate);
         }
       } else {
@@ -231,6 +430,17 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async addContentIntoHomeCarousel(contentId: string): Promise<any> {
+    return await test.step('Adding content into home carousel via API post request', async () => {
+      return await this.contentManagementService.addContentIntoHomeCarousel(contentId);
+    });
+  }
+  async addSiteCarouselItem(siteId: string, contentId: string): Promise<any> {
+    return await test.step('Adding site carousel item via API post request', async () => {
+      return await this.contentManagementService.addSiteCarouselItem(siteId, contentId);
+    });
+  }
+
   /**
    * Creates a new page in an existing site
    * @param siteId - The ID of the existing site
@@ -269,6 +479,74 @@ export class ContentManagementHelper {
     }
 
     const pageResult = await this.contentManagementService.addNewPageContent(siteId, {
+      title: finalPageName,
+      body,
+      bodyHtml,
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      contentType: contentInfo.contentType,
+      contentSubType: contentInfo.contentSubType,
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+      ...(options.publishAt && { publishAt: options.publishAt }),
+      ...(options.publishTo && { publishTo: options.publishTo }),
+    });
+
+    if (options.waitForSearchIndex) {
+      await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+        apiClient: this.contentManagementService.httpClient,
+        searchTerm: finalPageName,
+        objectType: 'content',
+      });
+    }
+
+    const createdContent = {
+      siteId,
+      contentId: pageResult.pageId,
+      pageName: finalPageName,
+      authorName: pageResult.authorName,
+      contentDescription: finalContentDescription,
+      publishAt: pageResult.publishAt,
+      publishTo: pageResult.publishTo,
+      isScheduled: pageResult.isScheduled,
+    };
+    this.content.push({ siteId, contentId: pageResult.pageId });
+    return { ...createdContent };
+  }
+
+  async createDraftPage(params: {
+    siteId: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+      waitForSearchIndex?: boolean;
+      publishAt?: string;
+      publishTo?: string;
+      listOfTopics?: string[];
+    };
+  }) {
+    const { siteId, contentInfo, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+    const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+    const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+    const { body, bodyHtml } = buildBodyAndBodyHtml(finalContentDescription, 'page');
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
+    const pageResult = await this.contentManagementService.saveDraftPageContent(siteId, {
       title: finalPageName,
       body,
       bodyHtml,
@@ -375,6 +653,8 @@ export class ContentManagementHelper {
       contentId: eventResult.eventId,
       eventName: finalEventName,
       authorName: eventResult.authorName,
+      startsAt: eventResult.startsAt,
+      endsAt: eventResult.endsAt,
       contentDescription: finalContentDescription,
       ...(eventResult.eventSyncDetails && { eventSyncDetails: eventResult.eventSyncDetails }),
       ...(eventResult.hasRsvp !== undefined && { hasRsvp: eventResult.hasRsvp }),
@@ -384,6 +664,9 @@ export class ContentManagementHelper {
     return { ...createdContent };
   }
 
+  async updateContentPublishDate(siteId: string, contentId: string, publishAt: string): Promise<void> {
+    await this.contentManagementService.updateContentDetails(siteId, contentId, publishAt);
+  }
   /**
    * Deletes a specific content item
    * @param siteId - The site ID where the content is located
@@ -393,13 +676,10 @@ export class ContentManagementHelper {
     if (contentId && siteId) {
       try {
         await this.contentManagementService.deleteContent(siteId, contentId);
-        console.log(`Content successfully deleted: ${contentId} from site: ${siteId}`);
       } catch (error) {
-        console.error(`Failed to delete content ${contentId} from site ${siteId}:`, error);
+        log.error(`Failed to delete content ${contentId} from site ${siteId}`, error);
         throw error;
       }
-    } else {
-      console.log('No content ID or site ID provided for deletion');
     }
   }
 
@@ -410,6 +690,15 @@ export class ContentManagementHelper {
    */
   async createTopic(topicName: string): Promise<{ topicId: string; name: string }> {
     return await this.contentManagementService.createTopic(topicName);
+  }
+
+  /**
+   * Deletes one or more topics by their IDs
+   * @param topicIds - Array of topic IDs to delete
+   * @returns Promise that resolves when topics are deleted
+   */
+  async deleteTopic(topicIds: string[]): Promise<void> {
+    return await this.contentManagementService.deleteTopic(topicIds);
   }
 
   /**
@@ -433,5 +722,580 @@ export class ContentManagementHelper {
         await this.contentManagementService.deleteContent(siteId, contentId);
       }
     }
+  }
+
+  /**
+   * Gets the must read content list
+   * @param peopleId - The people ID of the user
+   * @param options - Optional parameters for must read content filtering
+   * @returns Promise with the content list response
+   */
+  async getMustReadContentList(
+    peopleId: string,
+    options?: {
+      size?: number;
+      sortBy?: string;
+      isMustRead?: boolean;
+    }
+  ) {
+    return await this.contentManagementService.getMustReadContentList({
+      peopleId,
+      size: options?.size || 16,
+      isMustRead: options?.isMustRead !== undefined ? options.isMustRead : true,
+    });
+  }
+
+  /**
+   * Gets the first must read content item details for navigation
+   * @param peopleId - The people ID of the user
+   * @param options - Optional parameters for must read content filtering
+   * @returns Promise with siteId, contentId, and contentType of the first must read content
+   */
+  async getFirstMustReadContentDetails(
+    peopleId: string,
+    options?: {
+      size?: number;
+      sortBy?: string;
+      isMustRead?: boolean;
+    }
+  ): Promise<{ siteId: string; contentId: string; contentType: string }> {
+    const mustReadContentList = await this.getMustReadContentList(peopleId, options);
+
+    // Verify that we have at least one must read content
+    if (!mustReadContentList.result?.listOfItems || mustReadContentList.result.listOfItems.length === 0) {
+      throw new Error(
+        'No must read content found. Please ensure there is at least one must read content in the system.'
+      );
+    }
+
+    // Get the first content item from the list
+    const firstContent = mustReadContentList.result.listOfItems[0];
+    const siteId = firstContent.site.siteId;
+    const contentId = firstContent.contentId || firstContent.id;
+    const contentType = firstContent.type.toLowerCase();
+
+    return { siteId, contentId, contentType };
+  }
+
+  /**
+   * Creates a new page in a site and returns the full API response
+   * @param siteId - The ID of the site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object
+   * @returns The full page creation response
+   */
+  async createPageWithCompleteResponse(params: {
+    siteId: string;
+    contentInfo: { contentType: string; contentSubType: string };
+    options?: {
+      pageName?: string;
+      contentDescription?: string;
+      listOfTopics?: string[];
+    };
+  }): Promise<any> {
+    return await test.step('Creating page and getting complete response', async () => {
+      const { siteId, contentInfo, options = {} } = params;
+      const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+      const finalPageName = options.pageName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Page`;
+      const finalContentDescription = options.contentDescription || 'AutomatePageDescription';
+      const contentText = finalContentDescription;
+
+      // Get topic IDs for the topics if provided
+      let topicObjects: { id: string; name: string }[] = [];
+      if (options.listOfTopics && options.listOfTopics.length > 0) {
+        const topicList = await this.contentManagementService.getTopicList();
+        topicObjects = options.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+      }
+
+      // Build payload matching the service method structure exactly
+      const payload = {
+        contentSubType: contentInfo.contentSubType,
+        listOfFiles: [],
+        publishAt: new Date().toISOString(),
+        body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"${contentText}"}]}]}`,
+        imgCaption: '',
+        publishingStatus: 'immediate',
+        bodyHtml: `<p indentation="0" textAlign="left" class="">${contentText}</p>`,
+        imgLayout: 'small',
+        title: finalPageName,
+        language: 'en-US',
+        isFeedEnabled: true,
+        listOfTopics: topicObjects,
+        category: {
+          id: pageCategory.categoryId,
+          name: pageCategory.name,
+        },
+        contentType: contentInfo.contentType,
+        isNewTiptap: false,
+      };
+
+      const response = await this.contentManagementService.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
+        {
+          data: {
+            contentSubType: payload.contentSubType,
+            listOfFiles: payload.listOfFiles,
+            publishAt: payload.publishAt,
+            body: payload.body,
+            imgCaption: payload.imgCaption,
+            publishingStatus: payload.publishingStatus,
+            bodyHtml: payload.bodyHtml,
+            imgLayout: payload.imgLayout,
+            title: payload.title,
+            language: payload.language,
+            isFeedEnabled: payload.isFeedEnabled,
+            listOfTopics: payload.listOfTopics,
+            category: {
+              id: payload.category.id,
+              name: payload.category.name,
+            },
+            contentType: payload.contentType,
+            isNewTiptap: payload.isNewTiptap,
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Page creation failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      // Track content for cleanup
+      this.content.push({ siteId, contentId: json.result.id });
+
+      return json;
+    });
+  }
+
+  /**
+   * Creates a new event in a site and returns the full API response
+   * @param siteId - The ID of the site
+   * @param contentInfo - The content type information
+   * @param options - Optional configuration object
+   * @returns The full event creation response
+   */
+  async createEventWithCompleteResponse(params: {
+    siteId: string;
+    contentInfo: { contentType: string };
+    options?: {
+      eventName?: string;
+      contentDescription?: string;
+      location?: string;
+      listOfTopics?: string[];
+    };
+  }): Promise<any> {
+    return await test.step('Creating event and getting complete response', async () => {
+      const { siteId, contentInfo, options = {} } = params;
+      const finalEventName = options.eventName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Event`;
+      const finalContentDescription = options.contentDescription || 'AutomateEventDescription';
+      const finalLocation = options.location || 'Gurgaon';
+      const contentText = finalContentDescription;
+
+      // Get topic IDs for the topics if provided
+      let topicObjects: { id: string; name: string }[] = [];
+      if (options.listOfTopics && options.listOfTopics.length > 0) {
+        const topicList = await this.contentManagementService.getTopicList();
+        topicObjects = options.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+      }
+
+      const response = await this.contentManagementService.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
+        {
+          data: {
+            listOfFiles: [],
+            publishAt: new Date().toISOString(),
+            body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"indentation":0,"textAlign":"left","className":"","data-sw-sid":null},"content":[{"type":"text","text":"${contentText}"}]}]}`,
+            imgCaption: '',
+            startsAt: getTodayDateIsoString(),
+            isAllDay: false,
+            publishingStatus: 'immediate',
+            endsAt: getTomorrowDateIsoString(),
+            timezoneIso: 'Asia/Kolkata',
+            bodyHtml: `<p indentation="0" textAlign="left" class="">${contentText}</p>`,
+            imgLayout: 'small',
+            directions: [],
+            location: finalLocation,
+            title: finalEventName,
+            language: 'en-US',
+            isFeedEnabled: true,
+            listOfTopics: topicObjects,
+            contentType: contentInfo.contentType,
+            isNewTiptap: false,
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Event creation failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      // Track content for cleanup
+      this.content.push({ siteId, contentId: json.result.id });
+
+      return json;
+    });
+  }
+
+  /**
+   * Creates a new album in a site and returns the full API response
+   * @param siteId - The ID of the site
+   * @param imageName - The name of the image file to upload
+   * @param options - Optional configuration object
+   * @returns The full album creation response
+   */
+  async createAlbumWithCompleteResponse(params: {
+    siteId: string;
+    imageName: string;
+    options?: {
+      albumName?: string;
+      contentDescription?: string;
+      listOfTopics?: string[];
+    };
+  }): Promise<any> {
+    return await test.step('Creating album and getting complete response', async () => {
+      const { siteId, imageName, options = {} } = params;
+      const fileId = await this.imageUploaderService.uploadImageAndGetFileId(imageName);
+      const finalAlbumName = options.albumName || `${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}Album`;
+      const finalContentDescription = options.contentDescription || 'AutomateAlbumDescription';
+      const contentText = finalContentDescription;
+
+      // Get topic IDs for the topics if provided
+      let topicObjects: { id: string; name: string }[] = [];
+      if (options.listOfTopics && options.listOfTopics.length > 0) {
+        const topicList = await this.contentManagementService.getTopicList();
+        topicObjects = options.listOfTopics.map(topicName => {
+          const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+          return {
+            id: topic?.topic_id || '',
+            name: topicName,
+          };
+        });
+      }
+
+      const response = await this.contentManagementService.httpClient.post(
+        API_ENDPOINTS.site.url + '/' + siteId + API_ENDPOINTS.content.publish,
+        {
+          data: {
+            listOfFiles: [],
+            publishAt: new Date().toISOString(),
+            body: `{"type":"doc","content":[{"type":"paragraph","attrs":{"Paragraphclass":"","textAlign":"left","indent":null},"content":[{"type":"text","text":"${contentText}"}]}],"hasInlineImages":true}`,
+            imgCaption: '',
+            publishingStatus: 'immediate',
+            bodyHtml: `<p>${contentText}</p>`,
+            imgLayout: 'small',
+            title: finalAlbumName,
+            language: 'en-US',
+            isFeedEnabled: true,
+            listOfTopics: topicObjects,
+            contentType: 'album',
+            isNewTiptap: false,
+            coverImageMediaId: fileId,
+            listOfAlbumMedia: [{ id: fileId, description: '' }],
+          },
+        }
+      );
+
+      const json = await response.json();
+      if (json.status !== 'success' || !json.result?.id) {
+        throw new Error(`Album creation failed. Response: ${JSON.stringify(json)}`);
+      }
+
+      // Track content for cleanup
+      this.content.push({ siteId, contentId: json.result.id });
+
+      return json;
+    });
+  }
+
+  /**
+   * Creates a page template
+   * @param templateData - Template creation payload
+   * @returns Promise with the template creation response
+   */
+  async createTemplate(templateData: {
+    siteId: string;
+    name: string;
+    title: string;
+    subType: string;
+    language: string;
+    category: { id: string; name: string };
+    body: {
+      type: string;
+      content: Array<{
+        type: string;
+        attrs?: Record<string, any>;
+        content?: Array<{ type: string; text?: string; [key: string]: any }>;
+        [key: string]: any;
+      }>;
+    };
+    imgLayout?: string;
+    listOfTopics?: Array<{ id: string; name: string }>;
+  }): Promise<any> {
+    return await test.step(`Creating page template via API: ${templateData.name}`, async () => {
+      return await this.contentManagementService.createTemplate(templateData);
+    });
+  }
+
+  /**
+   * Creates a page template with simplified parameters
+   * Handles category retrieval, topic mapping, and body structure building internally
+   * @param params - Parameters for template creation
+   * @param params.siteId - The site ID where the template will be created
+   * @param params.options - Optional configuration for template creation
+   * @param params.options.name - Template name (default: 'Testing 1')
+   * @param params.options.title - Template title (default: 'Testing-1')
+   * @param params.options.subType - Template sub type (default: 'knowledge')
+   * @param params.options.language - Template language (default: 'en-US')
+   * @param params.options.text - Template text content (will be wrapped in ProseMirror structure)
+   * @param params.options.body - Template body content (ProseMirror format) - if provided, text will be ignored
+   * @param params.options.imgLayout - Image layout (default: 'wide')
+   * @param params.options.listOfTopics - Array of topic names to include (will be mapped to IDs)
+   * @returns Promise with the template creation response
+   */
+  async createPageTemplate(params: {
+    siteId: string;
+    options?: {
+      name?: string;
+      title?: string;
+      subType?: string;
+      language?: string;
+      text?: string;
+      body?: {
+        type: string;
+        content: Array<{
+          type: string;
+          attrs?: Record<string, any>;
+          content?: Array<{ type: string; text?: string; [key: string]: any }>;
+          [key: string]: any;
+        }>;
+      };
+      imgLayout?: string;
+      listOfTopics?: string[];
+    };
+  }) {
+    const { siteId, options = {} } = params;
+    const pageCategory = await this.contentManagementService.getPageCategoryID(siteId);
+
+    // Get topic IDs for the topics if provided
+    let topicObjects: { id: string; name: string }[] = [];
+    if (options.listOfTopics && options.listOfTopics.length > 0) {
+      const topicList = await this.contentManagementService.getTopicList();
+      topicObjects = options.listOfTopics.map(topicName => {
+        const topic = topicList.result?.listOfItems?.find(t => t.name === topicName);
+        return {
+          id: topic?.topic_id || '',
+          name: topicName,
+        };
+      });
+    }
+
+    // Build body structure - use provided body or build from text
+    let body;
+    if (options.body) {
+      body = options.body;
+    } else {
+      const textContent = options.text || 'Default template content';
+      body = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            attrs: {
+              indentation: 0,
+              textAlign: 'left',
+              className: '',
+              'data-sw-sid': null,
+            },
+            content: [
+              {
+                type: 'text',
+                text: textContent,
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    // Build template data
+    const templateData = {
+      siteId,
+      name: options.name || `Template ${faker.company.buzzAdjective()} ${faker.company.buzzNoun()}`,
+      title: options.title || `Template-${faker.company.buzzAdjective()}-${faker.company.buzzNoun()}`,
+      subType: options.subType || 'knowledge',
+      language: options.language || 'en-US',
+      category: {
+        id: pageCategory.categoryId,
+        name: pageCategory.name,
+      },
+      body,
+      imgLayout: options.imgLayout || 'wide',
+      ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
+    };
+
+    const templateResult = await this.createTemplate(templateData);
+    const templateId = templateResult.result?.id;
+
+    // Track template for cleanup
+    if (templateId) {
+      this.content.push({ siteId, contentId: templateId });
+    }
+
+    return templateResult;
+  }
+
+  /**
+   * Finds a site with a page category that has more than 16 pages, or creates pages to reach that count
+   * @param options - Optional parameters
+   * @param options.minPageCount - Minimum page count required (default: 17)
+   * @param options.maxSitesToCheck - Maximum number of sites to check (default: 10)
+   * @returns Promise with site info, category info, and page count
+   */
+  async getSiteWithPageCategoryHavingMoreThan16Pages(
+    options: {
+      minPageCount?: number;
+      maxSitesToCheck?: number;
+    } = {}
+  ): Promise<{
+    siteId: string;
+    siteName: string;
+    categoryId: string;
+    categoryName: string;
+    pageCount: number;
+  }> {
+    const minPageCount = options.minPageCount ?? 17;
+    const maxSitesToCheck = options.maxSitesToCheck ?? 10;
+
+    return await test.step(`Finding site with page category having more than ${minPageCount - 1} pages`, async () => {
+      // Get list of sites
+      const sitesResponse = await this.siteManagementService.getListOfSites({
+        size: maxSitesToCheck,
+        canManage: true,
+        filter: 'active',
+      });
+
+      if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
+        throw new Error('No sites found');
+      }
+
+      let bestCategory: {
+        siteId: string;
+        siteName: string;
+        categoryId: string;
+        categoryName: string;
+        pageCount: number;
+      } | null = null;
+      let highestPageCount = 0;
+
+      // Iterate through sites
+      for (const site of sitesResponse.result.listOfItems) {
+        const siteId = site.siteId;
+        const siteName = site.name;
+
+        if (!siteId) {
+          log.debug(`Skipping site without ID: ${siteName || 'Unknown'}`);
+          continue;
+        }
+
+        try {
+          // Get page categories for this site
+          const categoriesResponse = await this.contentManagementService.getPageCategoriesList(siteId, {
+            size: 999,
+            sortBy: 'createdNewest',
+          });
+
+          if (!categoriesResponse.result?.listOfItems || categoriesResponse.result.listOfItems.length === 0) {
+            log.debug(`No page categories found for site ${siteId}`);
+            continue;
+          }
+
+          // Find category with pageCount > minPageCount, or track the highest
+          for (const category of categoriesResponse.result.listOfItems) {
+            const pageCount = category.pageCount || 0;
+
+            // If we find one with more than minPageCount, use it immediately
+            if (pageCount >= minPageCount) {
+              log.info(`Found category with ${pageCount} pages in site ${siteName}`);
+              return {
+                siteId,
+                siteName,
+                categoryId: category.id,
+                categoryName: category.name,
+                pageCount,
+              };
+            }
+
+            // Track the category with highest page count
+            if (pageCount > highestPageCount) {
+              highestPageCount = pageCount;
+              bestCategory = {
+                siteId,
+                siteName,
+                categoryId: category.id,
+                categoryName: category.name,
+                pageCount,
+              };
+            }
+          }
+        } catch (error) {
+          log.warn(`Error checking site ${siteId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          continue;
+        }
+      }
+
+      // If we found a category but it has <= minPageCount, create more pages
+      if (bestCategory) {
+        const pagesToCreate = minPageCount - bestCategory.pageCount;
+        log.info(
+          `Category "${bestCategory.categoryName}" in site "${bestCategory.siteName}" has ${bestCategory.pageCount} pages. Creating ${pagesToCreate} more pages.`
+        );
+
+        // Get the category info for creating pages
+        const pageCategory = {
+          categoryId: bestCategory.categoryId,
+          name: bestCategory.categoryName,
+        };
+
+        // Create pages to reach minPageCount
+        for (let i = 0; i < pagesToCreate; i++) {
+          await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
+            title: `Test Page ${Date.now()}_${i}`,
+            bodyHtml: `<p>Auto-generated page for testing category with >16 pages</p>`,
+            contentType: 'page',
+            contentSubType: 'knowledge',
+            category: {
+              id: pageCategory.categoryId,
+              name: pageCategory.name,
+            },
+          });
+        }
+
+        // Update page count
+        bestCategory.pageCount = minPageCount;
+
+        log.info(
+          `Created ${pagesToCreate} pages. Category "${bestCategory.categoryName}" now has ${bestCategory.pageCount} pages.`
+        );
+
+        return bestCategory;
+      }
+
+      throw new Error(
+        `No page category found with at least ${minPageCount} pages after checking ${sitesResponse.result.listOfItems.length} sites.`
+      );
+    });
   }
 }

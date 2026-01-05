@@ -5,34 +5,43 @@ import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
 
+initializeRewardConfig('primary');
+
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
-initializeRewardConfig('primary');
+const isCI = !!process.env.CI;
+const headless = isCI; // true in CI, false locally
+const screenWidth = process.env.SCREEN_WIDTH ? parseInt(process.env.SCREEN_WIDTH, 10) : 1920;
+const screenHeight = process.env.SCREEN_HEIGHT ? parseInt(process.env.SCREEN_HEIGHT, 10) : 1080;
+const projectViewport = isCI ? { width: screenWidth, height: screenHeight } : null;
+
+const commonLaunchArgs = [
+  '--start-maximized',
+  `--window-size=${screenWidth},${screenHeight}`,
+  '--disable-gpu',
+  '--no-sandbox',
+  '--disable-dev-shm-usage',
+  '--use-fake-ui-for-media-stream',
+  '--use-fake-device-for-media-stream',
+];
+
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests'),
-  testIgnore: '**/reward-settings/**',
+  testIgnore: '**/tests/reward-settings/**',
   workers: process.env.CI ? 3 : 5,
-  timeout: 180_000,
-  expect: {
-    timeout: 10_000,
-  },
   projects: [
     {
       name: 'Reward',
+      expect: {
+        timeout: 15 * 1000, // 15 seconds for ALL expect() assertions
+      },
       use: {
         ...desktopChromeNoScale,
-        headless: !!process.env.CI,
-        viewport: { width: 1920, height: 1080 },
+        headless,
+        viewport: projectViewport,
         launchOptions: {
-          args: [
-            '--start-maximized',
-            '--disable-gpu',
-            '--no-sandbox',
-            '--disable-dev-shm-usage',
-            '--use-fake-ui-for-media-stream',
-            '--use-fake-device-for-media-stream',
-          ],
+          args: commonLaunchArgs,
         },
         baseURL: getRewardTenantConfigFromCache().frontendBaseUrl,
       },

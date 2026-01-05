@@ -66,7 +66,7 @@ test.describe(
     test(
       'verify hotjar analytics configuration with valid site id and version',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -127,7 +127,7 @@ test.describe(
     test(
       'verify hotjar analytics validation with blank site id and version fields',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -155,7 +155,7 @@ test.describe(
     test(
       'verify hotjar analytics validation with site id minimum length is 4 digits and maximum length is 7 digits',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -198,7 +198,7 @@ test.describe(
     test(
       'verify saving google analytics and hotjar together',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -237,7 +237,7 @@ test.describe(
     test(
       'verify saving google analytics',
       {
-        tag: [TestPriority.P0, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {

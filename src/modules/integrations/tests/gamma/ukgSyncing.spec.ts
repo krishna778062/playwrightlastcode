@@ -8,6 +8,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { GammaIntegrationsFeatureTags, IntegrationsSuiteTags } from '@/src/modules/integrations/constants/testTags';
 import { SYNCING } from '@/src/modules/integrations/test-data/gamma-data-file';
+import { UKG_CREDS } from '@/src/modules/integrations/test-data/gamma-data-file';
 import { UkgSyncPage } from '@/src/modules/integrations/ui/pages/ukgSyncPage';
 
 test.describe(
@@ -27,7 +28,7 @@ test.describe(
     test(
       'uKGPro option should not be in syncing dropdown, if not enabled at People Data and validations at App level on connection',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async () => {
         tagTest(test.info(), {
@@ -57,7 +58,7 @@ test.describe(
     test(
       'uKGPro option should be in syncing dropdown, if enabled successfully at People Data',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
@@ -66,10 +67,10 @@ test.describe(
         await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
         await ukgSyncPage.addUkgConnectionDetails(
           SYNCING.UKG_PRO,
-          SYNCING.USERNAME,
-          SYNCING.PASSWORD,
-          SYNCING.BASE_URL,
-          SYNCING.KEY
+          UKG_CREDS.USERNAME,
+          UKG_CREDS.PASSWORD,
+          UKG_CREDS.BASE_URL,
+          UKG_CREDS.KEY
         );
         await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
         await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
@@ -84,7 +85,7 @@ test.describe(
     test(
       'verify dropdown is getting displayed for Pay currency field with UKG as syncing source.',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1],
       },
       async () => {
         tagTest(test.info(), {

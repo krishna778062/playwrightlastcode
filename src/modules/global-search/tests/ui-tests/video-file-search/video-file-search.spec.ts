@@ -7,6 +7,7 @@ import { VIDEO_FILE_SEARCH_TEST_DATA as testData } from '@/src/modules/global-se
 import { searchTestFixtures as test } from '@/src/modules/global-search/tests/fixtures/searchTestFixture';
 import { IntranetFileListComponent } from '@/src/modules/global-search/ui/components/intranetFileListComponent';
 import { ResultListingComponent } from '@/src/modules/global-search/ui/components/resultsListComponent';
+import { VideoListItemComponent } from '@/src/modules/global-search/ui/components/videoListItemComponent';
 
 for (const fileType of testData.fileTypes) {
   test.describe(
@@ -19,42 +20,25 @@ for (const fileType of testData.fileTypes) {
       ],
     },
     () => {
-      let uploadedFileName: string;
-      let fileId: string;
-      let authorName: string;
-      let siteId: string;
-      let siteName: string;
-
-      test.beforeEach('Site and File Setup', async ({ appManagerFixture, publicSite }) => {
-        // Use the shared public site and upload video file using the new method
-        const videoResult = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
-          siteId: publicSite.siteId,
-          siteName: publicSite.siteName,
-          filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
-          options: { videoFile: true },
-        });
-
-        uploadedFileName = videoResult.uploadedFileName;
-        fileId = videoResult.fileId;
-        authorName = videoResult.authorName;
-        siteId = videoResult.siteId;
-        siteName = videoResult.siteName;
-      });
-
-      test.afterEach('Cleanup uploaded files', async ({ appManagerFixture }) => {
-        await appManagerFixture.intranetFileHelper.cleanup();
-      });
-
       test(
         `Verify search results for a new video file of type ${fileType.type}`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-15731',
             storyId: 'SEN-12300',
           });
+
+          // Setup: Upload video file
+          const { uploadedFileName, fileId, authorName, siteId, siteName } =
+            await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
+              siteId: publicSite.siteId,
+              siteName: publicSite.siteName,
+              filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
+              options: { videoFile: true },
+            });
 
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" and intent is to find the file`,
@@ -69,6 +53,9 @@ for (const fileType of testData.fileTypes) {
             siteId,
             fileId,
           });
+
+          // Cleanup
+          await appManagerFixture.intranetFileHelper.cleanup();
         }
       );
 
@@ -77,10 +64,19 @@ for (const fileType of testData.fileTypes) {
         {
           tag: [TestPriority.P1, TestGroupType.REGRESSION],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19543',
           });
+
+          // Setup: Upload video file
+          const { uploadedFileName, siteName } = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
+            siteId: publicSite.siteId,
+            siteName: publicSite.siteName,
+            filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
+            options: { videoFile: true },
+          });
+
           // Search for the video file
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(uploadedFileName, {
             stepInfo: `Searching with term "${uploadedFileName}" to verify video file appears in search results`,
@@ -121,6 +117,9 @@ for (const fileType of testData.fileTypes) {
           });
 
           await fileResultItem.verifyNameIsDisplayed(uploadedFileName);
+
+          // Cleanup
+          await appManagerFixture.intranetFileHelper.cleanup();
         }
       );
 
@@ -129,9 +128,17 @@ for (const fileType of testData.fileTypes) {
         {
           tag: [TestPriority.P0, TestGroupType.SMOKE],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, publicSite }) => {
           tagTest(test.info(), {
             zephyrTestId: 'SEN-19659',
+          });
+
+          // Setup: Upload video file
+          const { uploadedFileName, fileId } = await appManagerFixture.intranetFileHelper.uploadFileToExistingSite({
+            siteId: publicSite.siteId,
+            siteName: publicSite.siteName,
+            filePath: `src/modules/global-search/test-data/${fileType.fileName}`,
+            options: { videoFile: true },
           });
 
           /** Type in search input */
@@ -147,8 +154,75 @@ for (const fileType of testData.fileTypes) {
           await fileResult.verifyAutocompleteItemData(uploadedFileName, fileType.label);
 
           await fileResult.verifyAutocompleteNavigationToTitleLink(fileId, uploadedFileName, fileType.label);
+
+          // Cleanup
+          await appManagerFixture.intranetFileHelper.cleanup();
         }
       );
     }
   );
 }
+
+// Separate describe block for caption search test - no beforeEach/afterEach hooks
+test.describe(
+  'global Search - Video File Search with Captions functionality',
+  {
+    tag: [
+      GlobalSearchSuiteTags.GLOBAL_SEARCH,
+      GlobalSearchSuiteTags.FILE_SEARCH,
+      GlobalSearchSuiteTags.VIDEO_FILE_SEARCH,
+    ],
+  },
+  () => {
+    test(
+      'to verify video transcripts search',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION],
+        annotation: { type: 'known_failure', description: 'SEN-20179' },
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'SEN-17761',
+          isKnownFailure: true,
+          bugTicket: 'SEN-20179',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote:
+            'Not showing video when we try to search with video captions (Using exact match its showing)',
+        });
+
+        const captionSearchData = testData.captionSearch;
+        const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(
+          captionSearchData.searchTerm,
+          {
+            stepInfo: `Searching with term "${captionSearchData.searchTerm}" to find video with captions`,
+          }
+        );
+
+        await globalSearchResultPage.dismissSurveyPopupIfPresent();
+
+        await globalSearchResultPage.verifyAndClickSidebarFilter({
+          filterText: captionSearchData.filterText,
+          iconType: captionSearchData.iconType,
+        });
+
+        const fileResult = await globalSearchResultPage.getFileResultItemExactlyMatchingTheSearchTerm(
+          captionSearchData.expectedVideoTitle,
+          captionSearchData.fileType
+        );
+        const videoListItem = new VideoListItemComponent(fileResult.page, fileResult.rootLocator);
+        await videoListItem.verifyNameIsDisplayed(captionSearchData.expectedVideoTitle);
+
+        await videoListItem.verifyCaptionsTextIsDisplayed(captionSearchData.expectedCaptionsText);
+        await videoListItem.verifyCaptionsIconIsDisplayed();
+        await videoListItem.clickOnCaptionsIcon();
+
+        await videoListItem.verifyTimestampIsDisplayed(captionSearchData.expectedTimestamp);
+
+        await videoListItem.verifyCaptionTextForTimestamp(captionSearchData.expectedCaptionText);
+        await videoListItem.clickTimestamp(captionSearchData.expectedTimestamp);
+        await videoListItem.clickVideoPlayButton();
+      }
+    );
+  }
+);

@@ -46,13 +46,12 @@ export class GiveRecognitionDialogBox extends DialogBox {
 
   constructor(page: Page) {
     super(page);
-
-    this.dialog = page.locator('[role="dialog"]');
-    this.dialogTitle = this.dialog.locator('[data-testid="give-recognition-dialog-title"]');
+    this.dialog = page.locator('[role="dialog"][data-state="open"]');
+    this.dialogTitle = this.dialog.locator('h2 span');
     this.dialogDescription = this.dialog.locator('[data-testid="give-recognition-dialog-description"]');
-    this.dialogCancelButton = this.dialog.locator('button[data-testid="give-recognition-cancel"]');
+    this.dialogCancelButton = this.dialog.locator('button[aria-label="Close"]');
     this.dialogConfirmButton = this.dialog.locator('button[data-testid="give-recognition-confirm"]');
-    this.dialogCloseButton = this.dialog.locator('button[data-testid="give-recognition-close"]');
+    this.dialogCloseButton = this.dialog.locator('button[aria-label="Close"]');
     this.recipientInput = this.dialog.locator('input[data-testid="recipient-input"]');
     this.pointsInput = this.dialog.locator('input[data-testid="points-input"]');
     this.messageInput = this.dialog.locator('textarea[data-testid="message-input"]');
@@ -193,20 +192,30 @@ export class GiveRecognitionDialogBox extends DialogBox {
     await this.recognitionRecipientsInput.click();
     if (typeof userName === 'string') {
       await this.recognitionRecipientsInput.fill(userName);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(userName).click();
     } else {
-      await this.recognitionRecipientsInput.click();
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(userName).first().click();
     }
-    await this.suggesterContainer.waitFor({ state: 'visible' });
-    await this.getOption(userName).click();
   }
 
   /**
    * Select the peer recognition award for recognition
    */
-  async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<void> {
-    await this.selectPeerRecognitionInput.click();
-    await this.suggesterContainer.waitFor();
-    await this.getOption(awardName).click();
+  async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<string> {
+    if (typeof awardName === 'string') {
+      await this.selectPeerRecognitionInput.click();
+      await this.recognitionRecipientsInput.fill(awardName);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(awardName).click();
+    } else {
+      await this.selectPeerRecognitionInput.click();
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(awardName).first().click();
+    }
+    const text = await this.selectedAwardInRecognition.textContent();
+    return text || '';
   }
 
   /**

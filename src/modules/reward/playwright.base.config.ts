@@ -2,18 +2,20 @@ import { defineConfig } from '@playwright/test';
 
 import { TEST_RESULTS_DIR } from '@core/constants/paths';
 
-import { TIMEOUTS } from '@/src/core';
-
 export default defineConfig({
   forbidOnly: !!process.env.CI,
-  timeout: TIMEOUTS.VERY_LONG,
   retries: process.env.CI ? 1 : 0,
+  timeout: 3 * 60 * 1000, // 3 minutes per test
+  expect: {
+    timeout: 15000, // 15 seconds for ALL expect() assertions
+  },
   use: {
-    actionTimeout: 15_000,
-    navigationTimeout: 30_000,
     trace: process.env.CI ? 'retain-on-failure' : 'on',
     screenshot: process.env.CI ? 'only-on-failure' : 'on',
-    headless: process.env.CI ? true : true,
+    headless: !!process.env.CI,
+    viewport: null,
+    actionTimeout: 15 * 1000, // 15 seconds
+    navigationTimeout: 30_000,
   },
   reporter: [
     ['html', { open: process.env.CI ? 'never' : 'on-failure' }],

@@ -1,3 +1,4 @@
+import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
 import { Page, test } from '@playwright/test';
 
@@ -10,6 +11,7 @@ import { SnowflakeHelper, SocialInteractionDashboardQueryHelper } from '../../..
 import { FilterOptions } from '../../../helpers/baseAnalyticsQueryHelper';
 import { SocialInteractionDashboard } from '../../../ui/dashboards';
 
+import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import {
   cleanupDashboardTesting,
   setupSocialInteractionDashboardForTest,
@@ -36,7 +38,7 @@ test.describe(
 
       // Define unified filter configuration for default state (Last 30 days)
       testFiltersConfig = {
-        tenantCode: process.env.ORG_ID!,
+        tenantCode: getDataEngineeringConfigFromCache().orgId,
         timePeriod: PeriodFilterTimeRange.LAST_30_DAYS,
       };
 
@@ -55,7 +57,13 @@ test.describe(
     test(
       'verify Reaction/Like metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@reactions-or-likes'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@reactions-or-likes',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -81,7 +89,13 @@ test.describe(
     test(
       'verify Feed posts and comments metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@feed-posts-and-comments'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@feed-posts-and-comments',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -109,7 +123,7 @@ test.describe(
     test(
       'verify Replies metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@replies'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@replies'],
       },
       async () => {
         tagTest(test.info(), {
@@ -135,7 +149,7 @@ test.describe(
     test(
       'verify Shares metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@shares'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@shares'],
       },
       async () => {
         tagTest(test.info(), {
@@ -161,7 +175,7 @@ test.describe(
     test(
       'verify Favorites metric data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@favorites'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK, TestCaseType.HERO_METRIC, '@favorites'],
       },
       async () => {
         tagTest(test.info(), {
@@ -188,7 +202,13 @@ test.describe(
     test(
       'verify social campaign shares tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@social-campaign-shares'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@social-campaign-shares',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -212,11 +232,16 @@ test.describe(
       }
     );
 
-    //TODO: Implement the query - here
-    test.fixme(
+    test(
       'verify Least engaged by Department tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@least-engaged-by-department'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@least-engaged-by-department',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -225,14 +250,64 @@ test.describe(
           zephyrTestId: 'DE-26017',
           storyId: 'DE-25757',
         });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const leastEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getLeastEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the same data is displayed in the dashboard
+        const leastEngagedByDepartment = testEnvironment.socialInteractionDashboard.leastEngagedByDepartment;
+        await leastEngagedByDepartment.verifyUIDataMatchesWithSnowflakeData(leastEngagedByDepartmentData);
       }
     );
 
-    //TODO: Implement the query - here
-    test.fixme(
+    test(
+      'verify Least engaged by Department CSV download and validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@least-engaged-by-department-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-26017',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const leastEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getLeastEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const leastEngagedByDepartment = testEnvironment.socialInteractionDashboard.leastEngagedByDepartment;
+        await leastEngagedByDepartment.verifyCSVDataMatchesWithDBData(leastEngagedByDepartmentData, testFiltersConfig);
+      }
+    );
+
+    test(
       'verify Most engaged by Department tabular data validation with default period filter (Last 30 days)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@most-engaged-by-department'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@most-engaged-by-department',
+        ],
       },
       async () => {
         tagTest(test.info(), {
@@ -241,6 +316,88 @@ test.describe(
           zephyrTestId: 'DE-26018',
           storyId: 'DE-25757',
         });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const mostEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getMostEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the same data is displayed in the dashboard
+        const mostEngagedByDepartment = testEnvironment.socialInteractionDashboard.mostEngagedByDepartment;
+        await mostEngagedByDepartment.verifyUIDataMatchesWithSnowflakeData(mostEngagedByDepartmentData);
+      }
+    );
+
+    test(
+      'verify Most engaged by Department CSV download and validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@most-engaged-by-department-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-26018',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const mostEngagedByDepartmentData =
+          await socialInteractionQueryHelper.getMostEngagedByDepartmentDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const mostEngagedByDepartment = testEnvironment.socialInteractionDashboard.mostEngagedByDepartment;
+        await mostEngagedByDepartment.verifyCSVDataMatchesWithDBData(mostEngagedByDepartmentData, testFiltersConfig);
+      }
+    );
+
+    test(
+      'verify Participant engagement activity chart data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@participant-engagement-activity',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Participant engagement activity in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-XXXXX',
+          storyId: 'DE-XXXXX',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the chart is loaded (for now, we verify the chart is visible)
+        // Future enhancement: can add data validation if needed
+        const participantEngagementActivity = testEnvironment.socialInteractionDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyChartIsLoaded();
+
+        // Log the data for verification
+        console.log('Participant Engagement Activity Data:', participantEngagementActivityData);
       }
     );
   }

@@ -2,6 +2,8 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { EnterpriseSearchHelper } from '../../../apis/helpers/enterpriseSearchHelper';
+
 import { GlobalSearchSuiteTags } from '@/src/modules/global-search/constants/testTags';
 import {
   getLinkTileSearchTestData,
@@ -32,7 +34,7 @@ test.describe(
       test(
         `Verify Link Tile Search results for a new link tile with ${numberOfLinks} links`,
         {
-          tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+          tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
         },
         async ({ appManagerFixture, tileCleanupTracker }) => {
           tagTest(test.info(), {
@@ -49,8 +51,18 @@ test.describe(
             PREDEFINED_LINKS
           );
 
+          await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+            apiClient: appManagerFixture.tileManagementHelper.tileManagementService.httpClient,
+            searchTerm: testData.tileTitle,
+            objectType: 'tiles',
+          });
+
           const tileId = tileResponse.result.id;
           const tileTitle = testData.tileTitle;
+
+          // Track tile for cleanup immediately after creation
+          tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
+
           const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(tileTitle, {
             stepInfo: `Searching for tile "${tileTitle}" created with ID: ${tileId}`,
           });
@@ -69,9 +81,6 @@ test.describe(
           const links = PREDEFINED_LINKS.slice(0, numberOfLinks);
           await tileResultItem.verifyShowMoreButtonIsDisplayed(links.length);
           await tileResultItem.verifyTileLinkIsClickable(links);
-
-          // Track tile for automatic cleanup
-          tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
         }
       );
     });
@@ -94,9 +103,18 @@ test.describe(
           2,
           PREDEFINED_LINKS
         );
+        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+          apiClient: appManagerFixture.tileManagementHelper.tileManagementService.httpClient,
+          searchTerm: testData.tileTitle,
+          objectType: 'tiles',
+        });
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
+
+        // Track tile for cleanup immediately after creation
+        tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
+
         // Search for the tile
         const globalSearchResultPage = await appManagerFixture.navigationHelper.searchForTerm(tileTitle, {
           stepInfo: `Searching with term "${tileTitle}" to verify tile appears in search results`,
@@ -132,16 +150,13 @@ test.describe(
           expectedCountAfterFilter: 1,
         });
         await tileResult.verifyTileTitleIsDisplayed();
-
-        // Track tile for automatic cleanup
-        tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
       }
     );
 
     test(
       `verify Site Link Tile Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ tileCleanupTracker, appManagerFixture }) => {
         tagTest(test.info(), {
@@ -156,9 +171,17 @@ test.describe(
           2,
           PREDEFINED_LINKS
         );
+        await EnterpriseSearchHelper.waitForResultToAppearInApiResponse({
+          apiClient: appManagerFixture.tileManagementHelper.tileManagementService.httpClient,
+          searchTerm: testData.tileTitle,
+          objectType: 'tiles',
+        });
 
         const tileId = tileResponse.result.id;
         const tileTitle = testData.tileTitle;
+
+        // Track tile for cleanup immediately after creation
+        tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
 
         // Type in search input
         await appManagerFixture.navigationHelper.topNavBarComponent.typeInSearchBarInput(tileTitle, {
@@ -173,8 +196,6 @@ test.describe(
         await tileResult.verifyAutocompleteItemData(tileTitle, 'Tiles');
 
         await tileResult.verifyAutocompleteNavigationToTitleLink(tileId, tileTitle, 'Tiles');
-
-        tileCleanupTracker.tiles.push({ tileId, siteId: newSiteId });
       }
     );
   }

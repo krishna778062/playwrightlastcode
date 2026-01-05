@@ -15,7 +15,7 @@ test.describe('direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   test(
     'messaging: Real time conversation in a group chat',
     {
-      tag: [TestPriority.P1, TestGroupType.SMOKE],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ multiUserChatTestHelper, chatPages }) => {
       tagTest(test.info(), {
@@ -60,7 +60,7 @@ test.describe('direct Message between two static users', { tag: [CHAT_SUITE_TAGS
   test(
     'messaging: Real time conversation between static user in direct message',
     {
-      tag: [TestPriority.P1, TestGroupType.SMOKE],
+      tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
     async ({ multiUserChatTestHelper, chatPages }) => {
       tagTest(test.info(), {

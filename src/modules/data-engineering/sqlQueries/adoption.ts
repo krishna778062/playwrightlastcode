@@ -62,36 +62,61 @@ export const AdoptionSql = {
   /**
    * App Web Page Views Query Template
    * Returns page group data with view counts and percentages
+   * Used for UI table validation (aggregated without page_title)
    */
   APP_WEB_PAGE_VIEWS: `
-    select PAGES as "Web page group", 
-           TOTAL_PEOPLE as "Total people", 
-           TOTAL_VIEWS as "Page view count", 
-           PERCENT as "Percentage contribution to total page views"
-    from ( 
-        select case when rp.description='N/A' then 'Undefined' else rp.description end as 
-        PAGES,count(distinct case when u.status_code='US001' then 
-        ia.INTERACTED_BY_USER_CODE end) as TOTAL_PEOPLE,count(ia.code) as 
-        TOTAL_VIEWS, 
-        ROUND((TOTAL_VIEWS/SUM(TOTAL_VIEWS) over())*100) as WHOLE_VALUE, 
-        ROUND((TOTAL_VIEWS/SUM(TOTAL_VIEWS) over())*100,2) as PERCENT 
-        from SIMPPLR_COMMON_TENANT.UDL.REF_PAGE_GROUP rp join 
-        SIMPPLR_COMMON_TENANT.UDL.VW_INTERACTION ia on rp.code = ia.page_group_code 
-        inner join SIMPPLR_COMMON_TENANT.UDL.vw_user_as_is u on 
-        ia.interacted_by_user_code=u.code 
-        where ia.INTERACTION_DATETIME>='{startDate}' and 
-        ia.INTERACTION_DATETIME<='{endDate}'  
-        and ia.page_group_code!='PG102'  
-        and ia.INTERACTION_TYPE_CODE = 'IT001'  
-        and ia.tenant_code = '{tenantCode}'
-        {locationFilter}
-        {departmentFilter}
-        {segmentFilter}
-        {userCategoryFilter}
-        {companyNameFilter}
-        group by rp.description order by total_views desc
-    ) 
-  `,
+          select pd.product as "Product",case when pd.page_feature='N/A' then 'Undefined' else pd.page_feature end as "Page feature",case when pd.page_grouping='N/A' then 'Undefined' else pd.page_grouping end as "Page group",
+      count(interacted_by_user_code) as "Page view count",
+      count(distinct case when u.status_code='US001' then interacted_by_user_code end) as "Total people",
+      CONCAT(ROUND(("Page view count" / SUM("Page view count") OVER()) * 100, 1),'%') AS "Percentage contribution to total page views"
+      from udl.interaction i inner join udl.user u on i.interacted_by_user_code=u.code
+      inner join (select distinct user_code from udl.daily_user_adoption dua 
+      where reporting_date>='{startDate}'
+      and reporting_date<='{endDate}' and tenant_code='{tenantCode}') dua on dua.user_code=u.code
+      inner join udl.ref_page_detail pd on pd.code=i.page_detail_code
+      where i.tenant_code='{tenantCode}'
+      and u.tenant_code='{tenantCode}'
+      and i.interaction_type_code='IT001'
+      and date(interaction_datetime)>='{startDate}'
+      and date(interaction_datetime)<='{endDate}'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+      group by pd.product,pd.page_feature,pd.page_grouping
+      order by "Page view count" desc;
+    `,
+
+  /**
+   * App Web Page Views Query Template for CSV Validation
+   * Returns page data with page_title breakdown (more granular than UI)
+   * Used for CSV export validation where page_title column is included
+   */
+  APP_WEB_PAGE_VIEWS_FOR_CSV: `
+          select pd.product as "Product",case when pd.page_feature='N/A' then 'Undefined' else pd.page_feature end as "Page feature",case when pd.page_grouping='N/A' then 'Undefined' else pd.page_grouping end as "Page group",
+      case when pd.description='N/A' then 'Undefined' else pd.description end as "Page title",
+      count(interacted_by_user_code) as "Page view count",
+      count(distinct case when u.status_code='US001' then interacted_by_user_code end) as "Total people",
+      CONCAT(ROUND(("Page view count" / SUM("Page view count") OVER()) * 100, 1),'%') AS "Percentage contribution to total page views"
+      from udl.interaction i inner join udl.user u on i.interacted_by_user_code=u.code
+      inner join (select distinct user_code from udl.daily_user_adoption dua 
+      where reporting_date>='{startDate}'
+      and reporting_date<='{endDate}' and tenant_code='{tenantCode}') dua on dua.user_code=u.code
+      inner join udl.ref_page_detail pd on pd.code=i.page_detail_code
+      where i.tenant_code='{tenantCode}'
+      and u.tenant_code='{tenantCode}'
+      and i.interaction_type_code='IT001'
+      and date(interaction_datetime)>='{startDate}'
+      and date(interaction_datetime)<='{endDate}'
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
+      group by pd.product,pd.page_feature,pd.page_grouping,pd.description
+      order by "Page view count" desc;
+    `,
 
   /**
    * Debug query for App Web Page Views - 'App launch' record investigation

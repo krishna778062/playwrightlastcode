@@ -32,6 +32,7 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsSuiteTags.CONFLUENCE,
           IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
+          IntegrationsSuiteTags.HEALTH_CHECK,
         ],
       },
       async ({ adminPage, endUserPage }) => {
@@ -40,6 +41,16 @@ test.describe(
         });
 
         const supportAndTicketingPage = new SupportAndTicketingPage(adminPage);
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        //check if confluence is connected at app level
+        const isConfluenceConnectedAtAppLevel =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceConnectedAtAppLevel) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();

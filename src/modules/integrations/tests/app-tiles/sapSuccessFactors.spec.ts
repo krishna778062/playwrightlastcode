@@ -38,11 +38,11 @@ test.describe(
     test(
       'create and edit SAP SuccessFactors Display Time Off Balance tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24073',
+          zephyrTestId: ['INT-24135', 'INT-24139'],
           storyId: 'INT-23629',
         });
 
@@ -70,7 +70,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteDashboard, siteManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24070',
+          zephyrTestId: 'INT-29131',
           storyId: 'INT-23629',
         });
 
@@ -99,12 +99,12 @@ test.describe(
     test(
       'create and edit SAP SuccessFactors Apply for Time Off tile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24069',
+          zephyrTestId: ['INT-24229', 'INT-24220', 'INT-24225'],
           storyId: 'INT-23629',
         });
 
@@ -165,7 +165,7 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-24071',
+          zephyrTestId: 'INT-26496',
           storyId: 'INT-23629',
         });
 

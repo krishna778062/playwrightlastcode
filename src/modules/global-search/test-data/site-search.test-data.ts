@@ -19,3 +19,8 @@ export const SITE_SEARCH_TEST_DATA: SiteSearchTestCase[] = [
     label: SEARCH_RESULT_ITEM.SITE,
   },
 ];
+
+/**
+ * Exact match tooltip text template
+ */
+export const EXACT_MATCH_TOOLTIP_TEXT = 'Enabling this will show only the results that contain the term';

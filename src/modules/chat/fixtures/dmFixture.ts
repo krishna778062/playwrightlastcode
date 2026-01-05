@@ -66,26 +66,33 @@ export const dmTestFixture = test.extend<
           chatUserId: await userManagementService.getChatUserId(user.first_name, user.last_name),
         }))
       );
-      await use(usersWithChatIds);
 
-      // Cleanup: Deactivate users after worker is done
-      // Note: We call API directly without test.step() since we're in fixture teardown
-      for (const user of usersWithChatIds) {
-        if (user.userId) {
-          try {
-            console.log(`Deactivating user ${user.email} with userId: ${user.userId}`);
-            await userManagementService.httpClient.put(
-              PLATFORM_API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(user.userId),
-              {
-                data: {
-                  status: USER_STATUS.INACTIVE,
-                },
-              }
-            );
-          } catch (error) {
-            console.log(`Failed to deactivate user ${user.email}: ${error}`);
+      try {
+        await use(usersWithChatIds);
+      } finally {
+        // Cleanup: Deactivate users after worker is done
+        // Note: We call API directly without test.step() since we're in fixture teardown
+        // Using finally ensures this ALWAYS runs, even if tests fail
+        console.log('=== Starting user cleanup in endUsersForChat fixture (DM) ===');
+        for (const user of usersWithChatIds) {
+          if (user.userId) {
+            try {
+              console.log(`Deactivating user ${user.email} with userId: ${user.userId}`);
+              await userManagementService.httpClient.put(
+                PLATFORM_API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(user.userId),
+                {
+                  data: {
+                    status: USER_STATUS.INACTIVE,
+                  },
+                }
+              );
+              console.log(`✓ Successfully deactivated user ${user.email}`);
+            } catch (error) {
+              console.log(`✗ Failed to deactivate user ${user.email}: ${error}`);
+            }
           }
         }
+        console.log('=== User cleanup completed (DM) ===');
       }
     },
     { scope: 'worker' },

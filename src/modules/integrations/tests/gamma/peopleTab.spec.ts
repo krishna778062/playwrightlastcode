@@ -24,7 +24,7 @@ test.describe(
     test(
       'verify the workday source is displayed in provisioning dropdown during standard workday flow',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {
@@ -44,7 +44,7 @@ test.describe(
     test(
       'verify all fields are displayed when and syncing and provisioning source is selected from any merge vendor',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {
@@ -105,7 +105,7 @@ test.describe(
     test(
       'verify Sync check box is unchecked and disabled if field is not supported with external source "Azure"',
       {
-        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY],
+        tag: [TestPriority.P1, TestGroupType.SMOKE, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
 
       async () => {

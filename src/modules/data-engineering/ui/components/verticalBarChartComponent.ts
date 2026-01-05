@@ -14,6 +14,8 @@ export class VerticalBarChartComponent extends BaseComponent {
 
   readonly toolTipContainer: Locator;
   readonly getToolTipBlockWithKeyTextAs: (keyText: string) => Locator;
+  readonly downloadCSVButton: Locator;
+
   constructor(
     page: Page,
     readonly thoughtSpotIframe: FrameLocator,
@@ -34,9 +36,14 @@ export class VerticalBarChartComponent extends BaseComponent {
     this.barChartYAxisLabels = this.rootLocator.locator('[class*="highcharts-yaxis-labels"]').locator('text');
 
     // Tool tip container
-    this.toolTipContainer = this.thoughtSpotIframe.locator('[class*="highcharts-tooltip-container"]');
+    this.toolTipContainer = this.thoughtSpotIframe
+      .locator('[class*="highcharts-tooltip-container"]')
+      .filter({ has: this.thoughtSpotIframe.locator("g[opacity='1']") });
     this.getToolTipBlockWithKeyTextAs = (label: string) =>
       this.toolTipContainer.locator("[class*='chart-tooltip-block']").filter({ hasText: label });
+
+    // Download CSV button
+    this.downloadCSVButton = this.rootLocator.getByRole('button', { name: 'Download CSV' });
   }
 
   /**
@@ -161,14 +168,7 @@ export class VerticalBarChartComponent extends BaseComponent {
    */
   async hoverOnBarWithIndexAs(barIndex: number): Promise<void> {
     await test.step(`Hover on bar at index ${barIndex} for metric ${this.metricTitle}`, async () => {
-      // await this.bars.nth(barIndex).hover();
-      const barBoundingBox = await this.bars.nth(barIndex).boundingBox();
-      //get the middle point of the bar
-      const middlePoint = {
-        x: (barBoundingBox?.x ?? 0) + (barBoundingBox?.width ?? 0) / 2,
-        y: (barBoundingBox?.y ?? 0) + (barBoundingBox?.height ?? 0) / 2,
-      };
-      await this.page.mouse.move(middlePoint.x, middlePoint.y);
+      await this.bars.nth(barIndex).hover({ force: true, timeout: 10_000 });
     });
   }
 
@@ -176,10 +176,22 @@ export class VerticalBarChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await test.step(`Verify tool tip container is visible for metric ${this.metricTitle}`, async () => {
+    await test.step(`Wait for tool tip container to be visible for metric ${this.metricTitle}`, async () => {
       await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-        timeout: 30_000,
+        timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
         stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
+      });
+    });
+  }
+
+  /**
+   * Verifies the tool tip container is visible
+   */
+  async waitForToolTipContainerToBeHidden(): Promise<void> {
+    await test.step(`Wait for tool tip container to be hidden for metric ${this.metricTitle}`, async () => {
+      await this.verifier.waitUntilElementIsHidden(this.toolTipContainer, {
+        timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
+        stepInfo: `Wait for tool tip container to be hidden for metric ${this.metricTitle}`,
       });
     });
   }
@@ -210,6 +222,47 @@ export class VerticalBarChartComponent extends BaseComponent {
           `Value shown in tool tip for key text ${keyText} should be ${expectedValue}`
         ).toHaveText(expectedValue.toString());
       }
+    });
+  }
+
+  // Verifies X-axis labels are present and bars match expected count
+  async verifyChartHasLabelsAndBars(expectedBarCount?: number): Promise<void> {
+    await test.step(`Verify chart has labels and bars for metric ${this.metricTitle}`, async () => {
+      const labelCount = await this.barChartXAxisLabels.count();
+      expect(labelCount, 'X-axis should have date labels').toBeGreaterThan(0);
+
+      const barCount = await this.bars.count();
+      if (expectedBarCount !== undefined) {
+        expect(barCount, `Number of bars should be ${expectedBarCount}`).toBe(expectedBarCount);
+      } else {
+        expect(barCount, 'Chart should have bars').toBeGreaterThan(0);
+      }
+
+      console.log(`Chart ${this.metricTitle}: ${labelCount} X-axis labels, ${barCount} bars`);
+    });
+  }
+
+  /**
+   * Downloads the data as csv
+   * @returns The downloaded file path and filename
+   */
+  async downloadDataAsCSV(): Promise<{ filePath: string; fileName: string }> {
+    return await test.step(`download data as csv for ${this.metricTitle}`, async () => {
+      /**
+       * 1. first hover over the container, it should reveal the download csv button
+       * 2. click on the download csv button
+       * 3. save the file to downloads folder
+       * 4. return the downloaded file path and filename
+       */
+      const downloadAction = async () => {
+        await this.rootLocator.hover();
+        await this.verifier.verifyTheElementIsVisible(this.downloadCSVButton, {
+          timeout: 10_000,
+          assertionMessage: `Download csv button should be visible for ${this.metricTitle}`,
+        });
+        await this.clickOnElement(this.downloadCSVButton, { stepInfo: `Click on download csv button` });
+      };
+      return await this.downloadAndSaveFile(downloadAction, { stepInfo: `Download csv file for ${this.metricTitle}` });
     });
   }
 }

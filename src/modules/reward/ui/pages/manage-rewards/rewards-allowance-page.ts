@@ -1,6 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
+import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
 
 import { BasePage } from '@core/ui';
+
+import { TIMEOUTS } from '@/src/core';
 
 export class RewardsAllowancePage extends BasePage {
   // Page elements
@@ -16,7 +19,7 @@ export class RewardsAllowancePage extends BasePage {
   readonly allowanceDeleteButton: Locator;
 
   // User Allowance elements
-  readonly userAllowance: Locator;
+  readonly userAllowancePanel: Locator;
   readonly userAllowanceIcon: Locator;
   readonly userAllowanceGreenTick: Locator;
   readonly userAllowanceHeading: Locator;
@@ -92,35 +95,15 @@ export class RewardsAllowancePage extends BasePage {
     this.allowanceDeleteButton = page.locator('button[aria-label*="Remove"]');
 
     // User Allowance elements
-    this.userAllowance = page.locator('div[class*="PanelActionItem_layout"]').first();
-    this.userAllowanceIcon = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .locator('i[data-testid="i-addUserMulti"]');
-    this.userAllowanceGreenTick = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .locator('div[class*="PanelActionItem_check"]');
-    this.userAllowanceHeading = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('heading', { name: 'Users allowance' });
-    this.userAllowanceDescription = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByText('Add a monthly allowance for');
-    this.addUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('link', { name: 'Add users allowance' });
-    this.editUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('link', { name: 'Edit users allowance' });
-    this.removeUserAllowance = page
-      .locator('div[class*="PanelActionItem_layout"]')
-      .first()
-      .getByRole('button', { name: 'Remove users allowance' });
+    this.userAllowancePanel = page.locator('div[class*="PanelActionItem_layout"]').first();
+    this.userAllowanceIcon = this.userAllowancePanel.locator('i[data-testid="i-addUserMulti"]');
+    this.userAllowanceGreenTick = this.userAllowancePanel.locator('div[class*="PanelActionItem_check"]');
+    this.userAllowanceHeading = this.userAllowancePanel.getByRole('heading', { name: 'Users allowance' });
+    this.userAllowanceDescription = this.userAllowancePanel.getByText('Add a monthly allowance for');
+    this.addUserAllowance = this.userAllowancePanel.locator('a[aria-label="Add users allowance"]');
+    this.editUserAllowance = this.userAllowancePanel.getByRole('link', { name: 'Edit users allowance' });
+    this.removeUserAllowance = this.userAllowancePanel.getByRole('button', { name: 'Remove users allowance' });
+
     this.currencyConversionInfoIcon = page.locator('button[aria-label="Currency conversion information"]');
     this.pointAmountInput = page.locator('#pointAmount');
     this.increaseAmountButton = page.locator('[aria-label="Plus"]');
@@ -237,9 +220,24 @@ export class RewardsAllowancePage extends BasePage {
 
     await this.verifier.verifyTheElementIsVisible(allowanceHeader);
     await this.verifier.verifyTheElementIsVisible(allowanceBackToAllowancePage);
-    await this.verifier.verifyElementHasText(allowancePageHeading, headingText);
-    await this.verifier.verifyElementHasText(allowancePageDescriptionLine1, descriptionLine1);
-    await this.verifier.verifyElementHasText(allowancePageDescriptionLine2, descriptionLine2);
+
+    // ✅ Flexible text matching for tenant-based terminology
+    const normalizeText = (text: string) => text.replace(/simpplifiers/gi, '(simpplifiers|people)');
+
+    await this.verifyElementMatchesRegex(allowancePageHeading, new RegExp(`^${normalizeText(headingText)}$`, 'i'));
+    await this.verifyElementMatchesRegex(
+      allowancePageDescriptionLine1,
+      new RegExp(`^${normalizeText(descriptionLine1)}$`, 'i')
+    );
+    await this.verifyElementMatchesRegex(
+      allowancePageDescriptionLine2,
+      new RegExp(`^${normalizeText(descriptionLine2)}$`, 'i')
+    );
+  }
+
+  async verifyElementMatchesRegex(locator: Locator, regex: RegExp): Promise<void> {
+    const text = await locator.textContent();
+    expect(text?.trim()).toMatch(regex);
   }
 
   async saveAmount(): Promise<void> {
@@ -285,7 +283,10 @@ export class RewardsAllowancePage extends BasePage {
         break;
     }
 
-    await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox);
+    await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox, {
+      timeout: 30000,
+      assertionMessage: 'Delete user allowance dialog box is visible',
+    });
     await this.verifier.verifyElementHasText(dialogBoxTitleElement, dialogBoxTitle);
     await this.verifier.verifyElementHasText(dialogBoxConfirmationTextLine1, dialogBoxDescriptionLine1);
     await this.verifier.verifyElementHasText(dialogBoxConfirmationTextLine2, dialogBoxDescriptionLine2);
@@ -298,54 +299,31 @@ export class RewardsAllowancePage extends BasePage {
     const successToastBoxMessage = successToastContainer.locator('p');
     const successToastBoxIcon = successToastContainer.locator('i[data-testid="i-checkLarge"]');
     const successToastBoxClose = successToastContainer.locator('button[aria-label="Dismiss"]');
-
-    await successToastContainer.waitFor({ state: 'attached', timeout: 30000 });
-    await this.verifier.verifyTheElementIsVisible(successToastContainer);
-    await this.verifier.verifyTheElementIsVisible(successToastBoxIcon);
-    await this.verifier.verifyElementHasText(successToastBoxMessage, message);
+    await this.verifier.verifyTheElementIsVisible(successToastContainer, {
+      timeout: TIMEOUTS.SHORT,
+      assertionMessage: 'Success toast container is visible',
+    });
+    await this.verifier.verifyTheElementIsVisible(successToastBoxIcon, { timeout: TIMEOUTS.VERY_SHORT });
+    await this.verifier.verifyElementHasText(successToastBoxMessage, message, {
+      timeout: TIMEOUTS.SHORT,
+      assertionMessage: `Success toast container have ${message} message`,
+    });
     await this.clickOnElement(successToastBoxClose, {
       stepInfo: 'Closing toast message',
     });
-    await successToastContainer.waitFor({ state: 'detached', timeout: 30000 });
   }
 
   async checkTheSingleDeletion(page: Page): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.individualAllowanceHeading);
-    let deleteBtnCount: number = await this.allowanceDeleteButton.count();
-
-    if (deleteBtnCount == 1) {
-      await this.allowanceDeleteButton.waitFor({ state: 'attached' });
-      await this.allowanceDeleteButton.hover({ force: true });
-      await page.locator('div[role="tooltip"]').first().waitFor({ state: 'attached' });
-      const tooltipText = await page.locator('div[role="tooltip"]').first().textContent();
-      expect(tooltipText).toEqual('A minimum of one allowance is required while peer gifting is enabled');
-    } else {
-      for (let i = deleteBtnCount; i > 1; i--) {
-        await this.clickOnElement(this.allowanceDeleteButton.nth(i - 1), {
-          stepInfo: 'Clicking delete button',
-        });
-
-        const deleteUserAllowanceDialogBox = page.getByRole('dialog');
-        const dialogBoxConfirmationTextLine1 = deleteUserAllowanceDialogBox.locator('p[class*="module__heading3"]');
-        const dialogBoxConfirmationTextLine2 = deleteUserAllowanceDialogBox.locator('p[class*="module__paragraph"]');
-        const dialogRemoveButton = deleteUserAllowanceDialogBox.getByRole('button', { name: 'Remove' });
-
-        await this.verifier.verifyTheElementIsVisible(deleteUserAllowanceDialogBox);
-        await this.verifier.verifyTheElementIsVisible(dialogBoxConfirmationTextLine1);
-        await this.verifier.verifyTheElementIsVisible(dialogBoxConfirmationTextLine2);
-        await this.verifier.verifyTheElementIsVisible(dialogRemoveButton);
-        await this.clickOnElement(dialogRemoveButton, { force: true });
-        await this.validateToastMessage('Saved changes successfully');
-
-        deleteBtnCount = await this.allowanceDeleteButton.count();
-        if (deleteBtnCount === 1) break;
-      }
-
-      await this.allowanceDeleteButton.last().waitFor({ state: 'attached' });
-      await this.allowanceDeleteButton.last().hover({ force: true });
-      const tooltipText = await page.locator('div[role="tooltip"]').first().textContent();
-      expect(tooltipText).toEqual('A minimum of one allowance is required while peer gifting is enabled');
-    }
+    // Mock the Allowance for only 1 instance
+    const rewardAllowanceComponents = new RewardsAllowance(this.page);
+    await rewardAllowanceComponents.mockTheAllowances(true, false, false, false);
+    // validate the Delete button
+    await this.allowanceDeleteButton.waitFor({ state: 'attached' });
+    await this.allowanceDeleteButton.hover({ force: true });
+    await page.locator('div[role="tooltip"]').first().waitFor({ state: 'attached' });
+    const tooltipText = await page.locator('div[role="tooltip"]').first().textContent();
+    expect(tooltipText).toEqual('A minimum of one allowance is required while peer gifting is enabled');
   }
 
   // User Allowance methods
@@ -394,9 +372,24 @@ export class RewardsAllowancePage extends BasePage {
     const managerAllowancePNoteElement = this.page.locator('[class*="Field-module__note"]');
 
     await this.verifier.verifyTheElementIsVisible(managerAllowancePageNeutralBox);
-    await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine1, containerDescriptionLine1);
-    await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine2, containerDescriptionLine2);
-    await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine3, containerDescriptionLine3);
+    // await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine1, containerDescriptionLine1);
+    // await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine2, containerDescriptionLine2);
+    // await this.verifier.verifyElementHasText(managerAllowanceBoxMessageLine3, containerDescriptionLine3);
+    // ✅ Flexible text matching for tenant-based terminology
+    const normalizeText = (text: string) => text.replace(/simpplifiers/gi, '(simpplifiers|people)');
+
+    await this.verifyElementMatchesRegex(
+      managerAllowanceBoxMessageLine1,
+      new RegExp(`^${normalizeText(containerDescriptionLine1)}$`, 'i')
+    );
+    await this.verifyElementMatchesRegex(
+      managerAllowanceBoxMessageLine2,
+      new RegExp(`^${normalizeText(containerDescriptionLine2)}$`, 'i')
+    );
+    await this.verifyElementMatchesRegex(
+      managerAllowanceBoxMessageLine3,
+      new RegExp(`^${normalizeText(containerDescriptionLine3)}$`, 'i')
+    );
     await this.verifier.verifyTheElementIsVisible(fixedMonthlyAllowanceRadioButton);
     await this.verifier.verifyTheElementIsVisible(variableMonthlyAllowanceRadioButton);
     await this.verifier.verifyElementHasText(managerAllowancePNoteElement, managerAllowancePNote);

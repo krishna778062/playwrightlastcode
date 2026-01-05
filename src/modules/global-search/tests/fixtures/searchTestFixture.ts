@@ -49,7 +49,11 @@ async function createSearchApiFixture(apiContext: APIRequestContext): Promise<Se
   const contentManagementHelper = new ContentManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const feedManagementHelper = new FeedManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const siteManagementHelper = new SiteManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
-  const tileManagementHelper = new TileManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
+  const tileManagementHelper = new TileManagementHelper(
+    apiContext,
+    getEnvConfig().apiBaseUrl,
+    getEnvConfig().frontendBaseUrl
+  );
   const appManagementService = new AppsManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const linkManagementService = new LinkManagementService(apiContext, getEnvConfig().apiBaseUrl);
   const externalSearchManagementService = new ExternalSearchManagementService(apiContext, getEnvConfig().apiBaseUrl);
@@ -164,10 +168,14 @@ export const searchTestFixtures = test.extend<
 
       await use({ siteName: publicSite.siteName, siteId: publicSite.siteId });
 
-      // Note: Cleanup is handled by the siteManagementHelper fixture
-      console.log(
-        `🧹 Public site cleanup will be handled by siteManagementHelper fixture for site: ${publicSite.siteName} with ID: ${publicSite.siteId}`
-      );
+      // Cleanup: Explicitly deactivate the site
+      console.log(`🧹 Starting cleanup for site: ${publicSite.siteName} (${publicSite.siteId})`);
+      try {
+        const response = await siteManagementHelper.siteManagementService.deactivateSite(publicSite.siteId);
+        console.log(`✅ Deactivation response:`, JSON.stringify(response));
+      } catch (error) {
+        console.warn(`❌ Failed to deactivate site ${publicSite.siteName}:`, error);
+      }
     },
     { scope: 'worker' },
   ],

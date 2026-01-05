@@ -10,7 +10,7 @@ export class ManageRecognitionPage extends BasePage {
   readonly header: Locator;
   readonly automatedAwards: any; // This would need to be properly defined
   readonly rewards: any; // This would need to be properly defined
-  readonly dailogContainerForm: any; // This would need to be properly defined
+  readonly dialogContainerForm: any; // This would need to be properly defined
 
   // Components
   readonly rewardsAllowance: RewardsAllowance;
@@ -40,10 +40,10 @@ export class ManageRecognitionPage extends BasePage {
       },
     };
 
-    this.dailogContainerForm = {
-      dailogHeader: page.locator('[role="dialog"] h2'),
-      dailogSaveBtn: page.getByRole('button', { name: 'Save' }),
-      dailogCancelBtn: page.getByRole('button', { name: 'Cancel' }),
+    this.dialogContainerForm = {
+      dialogHeader: page.locator('[role="dialog"] h2').first(),
+      dialogSaveBtn: page.getByRole('button', { name: 'Save' }),
+      dialogCancelBtn: page.getByRole('button', { name: 'Cancel' }),
     };
   }
 

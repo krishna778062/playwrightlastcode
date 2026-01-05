@@ -33,6 +33,7 @@ test.describe(
           },
           options: {
             contentDescription: testData.description,
+            waitForSearchIndex: true,
           },
         });
 
@@ -58,12 +59,18 @@ test.describe(
     test(
       `Verify Content Search results for a new ${testData.content}`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
+        annotation: { type: 'known_failure', description: 'SEN-18939' },
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-12432',
           storyId: 'SEN-12295',
+          isKnownFailure: true,
+          bugTicket: 'SEN-18939',
+          bugReportedDate: '2025-12-31',
+          knownFailurePriority: 'Medium',
+          knownFailureNote: 'Failing to show content description in global search page',
         });
 
         // 4. UI Search for the page
@@ -137,7 +144,7 @@ test.describe(
     test(
       `verify Page Autocomplete functionality`,
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@healthcheck'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from 'playwright/test';
+import { Locator, Page, test } from 'playwright/test';
 
 import { BaseComponent } from '@/src/core';
 
@@ -30,6 +30,12 @@ export class NotificationCustomizationItem extends BaseComponent {
       const isExpanded = await this.accordionTriggerButton.getAttribute('aria-expanded');
       if (isExpanded === 'false') {
         await this.clickOnElement(this.expandOrCollapseButton, { stepInfo: 'Expand the menu item' });
+
+        // Wait for template options to be visible after expansion
+        await this.verifier.verifyTheElementIsVisible(this.customizationTemplateOptions.first(), {
+          assertionMessage: 'Template options should be visible after expansion',
+          timeout: 10_000,
+        });
       }
     });
   }
@@ -54,10 +60,19 @@ export class NotificationCustomizationItem extends BaseComponent {
   async selectTemplateOption(templateOption: string): Promise<void> {
     await test.step('Select template option', async () => {
       const customizationTemplateToSelect = this.customizationTemplateOptions.filter({ hasText: templateOption });
-      await expect(
-        customizationTemplateToSelect,
-        `Customization template ${templateOption} should be visible`
-      ).toBeVisible();
+
+      // Wait for the template option to be visible
+      await this.verifier.verifyTheElementIsVisible(customizationTemplateToSelect, {
+        assertionMessage: `Customization template ${templateOption} should be visible`,
+        timeout: 10_000,
+      });
+
+      // Wait for the template option to be enabled before clicking
+      await this.verifier.verifyTheElementIsEnabled(customizationTemplateToSelect, {
+        assertionMessage: `Customization template ${templateOption} should be enabled`,
+        timeout: 10_000,
+      });
+
       await this.clickOnElement(customizationTemplateToSelect, {
         stepInfo: `Select template option ${templateOption}`,
       });

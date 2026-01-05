@@ -80,11 +80,22 @@ export class IdentityManagementHelper {
   }
 
   /**
+   * Gets the list of people (alias for getListOfPeople)
+   * @param searchTerm - Optional search term to filter by
+   * @returns The people list response
+   */
+  async getPeopleList(searchTerm?: string) {
+    return await this.identityService.getListOfPeople(searchTerm);
+  }
+
+  /**
    * Gets complete user information by email address (optimized single API call)
    * @param email - The email address to search for
    * @returns Promise<{userId: string, fullName: string, user: Person}> - Complete user info
    */
-  async getUserInfoByEmail(email: string): Promise<{ userId: string; fullName: string; user: Person }> {
+  async getUserInfoByEmail(
+    email: string
+  ): Promise<{ userId: string; fullName: string; user: Person; firstName: string; lastName: string }> {
     const peopleListResponse = await this.identityService.getListOfPeople(email);
     const user = peopleListResponse.result.listOfItems.find(item => item.email === email);
     if (!user) {
@@ -94,6 +105,8 @@ export class IdentityManagementHelper {
     return {
       userId: user.user_id,
       fullName,
+      firstName: user.first_name,
+      lastName: user.last_name,
       user,
     };
   }

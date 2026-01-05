@@ -4,6 +4,7 @@ import { frontlineTestFixture as test } from '@frontline/fixtures/frontlineFixtu
 import { ManageQRPage } from '@frontline/pages/manageQRPage';
 
 import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
 import { FileUtil } from '@core/utils/fileUtil';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
@@ -39,13 +40,15 @@ test.describe(
         } catch (error) {
           console.warn(`Cleanup failed for QR: ${qrDetails.qrCodeId}`, error);
         }
+        // Reset qrCodeId after cleanup to prevent it from being used in the next test
+        qrDetails.qrCodeId = undefined;
       }
     });
 
     test(
       '[FL-434] Verify content QR share option via Standard User',
       {
-        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE],
+        tag: [TestPriority.P1, FrontlineFeatureTags.QR_CODE, TestGroupType.HEALTHCHECK],
       },
       async ({ endUserHomePage }) => {
         tagTest(test.info(), {
