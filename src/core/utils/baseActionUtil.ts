@@ -580,7 +580,6 @@ export class BaseActionUtil {
       // 5. Save to downloads folder
       const filePath = FileUtil.getDownloadsFilePath(fileName);
       await download.saveAs(filePath);
-
       console.log(`Downloaded file: ${fileName}`);
 
       return {
