@@ -17,8 +17,9 @@
 name: Production Healthcheck (v2)
 
 on:
-  schedule:
-    - cron: '0 8 * * *'
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   - cron: '0 8 * * *'
 
   workflow_dispatch:
     inputs:

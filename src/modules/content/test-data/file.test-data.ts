@@ -105,6 +105,12 @@ export const FILE_TEST_DATA = {
         );
       },
     },
+    GIF1: {
+      fileName: 'Gif1.gif',
+      getPath: (specDir: string) => {
+        return FileUtil.getFilePath(specDir, '..', '..', '..', '..', 'test-data', 'static-files', 'images', 'Gif1.gif');
+      },
+    },
   },
 
   /**
