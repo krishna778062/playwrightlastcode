@@ -224,10 +224,7 @@ test.describe(
       }
     );
 
-    /**
-     * Need to be fixed, the api is giving 500
-     */
-    test.fixme(
+    test(
       'verify user can create, edit and delete a feed post with file attachment on content feed CONT-19540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19540'],
