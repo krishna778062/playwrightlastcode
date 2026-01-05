@@ -9,7 +9,7 @@ const tenantConfig = getDataEngineeringConfigFromCache();
 
 import { defineConfig, devices } from '@playwright/test';
 
-import baseConfig from '../../../playwright.base.config';
+import baseConfig from './playwright.data-engineering.base.config';
 
 import { PROJECT_ROOT } from '@/src/core/constants/paths';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -32,7 +32,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         headless: process.env.CI ? true : false,
-        viewport: { width: 1920, height: 1080 },
+        viewport: { width: 1728, height: 992 },
+        deviceScaleFactor: 2,
       },
     },
   ],

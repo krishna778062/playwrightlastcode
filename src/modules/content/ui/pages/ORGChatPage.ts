@@ -4,15 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IORGChartPageActions {
-  typeInSearchBarInput: (name: string) => Promise<void>;
-  clickOnViewProfileButton: () => Promise<void>;
-  clickOnViewProfileButtonInOGRChart: (name: string) => Promise<void>;
-}
-
-export interface IORGChartPageAssertions {}
-
-export class ORGChartPage extends BasePage implements IORGChartPageActions, IORGChartPageAssertions {
+export class ORGChartPage extends BasePage {
   //COMPONENTS
 
   //LOCATORS
@@ -32,15 +24,6 @@ export class ORGChartPage extends BasePage implements IORGChartPageActions, IORG
       assertionMessage: 'Search bar input should be visible',
     });
   }
-
-  get actions(): IORGChartPageActions {
-    return this;
-  }
-
-  get assertions(): IORGChartPageAssertions {
-    return this;
-  }
-
   searchListOptions(name: string): Locator {
     return this.page.locator('a').filter({ hasText: name });
   }

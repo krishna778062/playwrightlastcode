@@ -10,24 +10,24 @@ on:
         type: choice
         options:
           - 'chat'
+          - 'content'
           - 'platforms'
           - 'global-search'
           - 'reward'
           - 'reward-settings'
-          - 'integrations-workday'
-          - 'integrations-okta'
-          - 'integrations-azuresso'
           - 'integrations-primary'
-          - 'de'
-          - 'de-api'
-          - 'de-api-abac'
+          - 'integrations-workday'
+          - 'integrations-azuresso'
+          - 'integrations-api'
           - 'frontline'
           - 'recognition'
-          - 'only-peer-to-peer'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
           - 'comms-planner'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
       priority_filter:
         description: 'Select test cases by priority'
         required: true
@@ -52,15 +52,17 @@ on:
         default: 'qa'
         type: choice
         options:
+          - 'dev'
+          - 'test'
           - 'qa'
           - 'uat'
-          - 'test'
-          - 'dev'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
           - 'prodUS'
           - 'prodEU'
           - 'prodCA'
           - 'prodAU'
-          - 'uatEU'
       workers:
         description: 'Number of parallel workers to run tests'
         required: true
@@ -78,6 +80,12 @@ on:
         default: 'all'
         type: string
 
+      is_browserstack:
+        description: 'Do you want to run tests on Browserstack'
+        required: true
+        default: false
+        type: boolean
+
 permissions:
   contents: read
   id-token: write
@@ -85,12 +93,18 @@ permissions:
 
 jobs:
   test-and-upload:
-    timeout-minutes: 60
+    timeout-minutes: 180
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ inputs.module_name || 'chat' }}
+      TEST_ENV: ${{ inputs.environment || 'qa' }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack configuration (used by browserstack.yml)
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ github.ref_name }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -121,8 +135,6 @@ jobs:
 
       - name: Run playwright tests
         id: run-tests
-        env:
-          TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
@@ -146,13 +158,46 @@ jobs:
           echo "Debug: Priority=$PRIORITY, TestType=$TEST_TYPE, FeatureTags=$FEATURE_TAGS"
           echo "Debug: All tags to filter: ${ALL_TAGS[*]}"
 
+          # Map short module names to config paths (for data-engineering modules)
+          MODULE="${{ inputs.module_name }}"
+          case "$MODULE" in
+            "de")
+              CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering.config.ts"
+              MODULE_ENV="data-engineering"
+              ;;
+            "de-api")
+              CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering-api.config.ts"
+              MODULE_ENV="data-engineering"
+              ;;
+            "de-api-abac")
+              CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts"
+              MODULE_ENV="data-engineering"
+              ;;
+            "integrations-api")
+              CONFIG_PATH="src/modules/integrations/playwright.integrations-api.config.ts"
+              MODULE_ENV="integrations"
+              ;;
+            *)
+              CONFIG_PATH="src/modules/$MODULE/playwright.$MODULE.config.ts"
+              MODULE_ENV="$MODULE"
+              ;;
+          esac
+
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            npm run test:${{ inputs.module_name || 'chat' }} -- --workers=${{ inputs.workers }}
+            if [ "${{ inputs.is_browserstack }}" = true ]; then
+              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=$MODULE_ENV npx browserstack-node-sdk playwright test --config=$CONFIG_PATH --workers=${{ inputs.workers }}
+            else
+              npm run test:${{ inputs.module_name }} -- --workers=${{ inputs.workers }}
+            fi
           else
             GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
             echo "Running tests with grep filter: $GREP_REGEX"
-            npm run test:${{ inputs.module_name || 'chat' }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            if [ "${{ inputs.is_browserstack }}" = true ]; then
+              NODE_TLS_REJECT_UNAUTHORIZED=0 MODULE_NAME=$MODULE_ENV npx browserstack-node-sdk playwright test --config=$CONFIG_PATH --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            else
+              npm run test:${{ inputs.module_name }} -- --grep="$GREP_REGEX" --workers=${{ inputs.workers }}
+            fi
           fi
 
       - name: Upload test report to github artifact backup

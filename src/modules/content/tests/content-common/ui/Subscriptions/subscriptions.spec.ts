@@ -19,7 +19,7 @@ test.describe(
     });
 
     test(
-      'verify Add subscription button',
+      'verify Add subscription button CONT-23093',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23093'],
       },
@@ -66,8 +66,8 @@ test.describe(
         const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, selectedSite.siteId);
-        await manageSiteSetUpPage.actions.clickOnSubscriptionButton();
-        await manageSiteSetUpPage.assertions.verifyAddSubscriptionPageIsLoaded();
+        await manageSiteSetUpPage.clickOnSubscriptionButton();
+        await manageSiteSetUpPage.verifyAddSubscriptionPageIsLoaded();
       }
     );
   }

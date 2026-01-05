@@ -25,7 +25,7 @@ test.describe(
       const siteDashboard = new SiteDashboardPage(page, siteId);
       await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
       // Verify that restriction message is visible on dashboard
-      await siteDashboard.assertions.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
+      await siteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
     };
     const createdPostIds: string[] = [];
 
@@ -146,7 +146,7 @@ test.describe(
     );
 
     test(
-      'verify Site Owner and Site Manager can create feed post on Public Site Dashboard when feed permission is set to managersOnly',
+      'verify Site Owner and Site Manager can create feed post on Public Site Dashboard when feed permission is set to managersOnly CONT-41198',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41198'],
       },
@@ -191,16 +191,16 @@ test.describe(
         await siteDashboard.verifyThePageIsLoaded();
 
         // Verify "Share your thoughts" button is visible
-        await siteDashboard.assertions.verifyFeedSectionIsVisible();
+        await siteDashboard.verifyFeedSectionIsVisible();
 
         // Click "Share your thoughts" button
-        await siteDashboard.actions.clickShareThoughtsButton();
+        await siteDashboard.clickShareThoughtsButton();
 
         // Generate post text
         const siteManagerPostText = TestDataGenerator.generateRandomText('Site Manager Post', 3, true);
 
         // Create feed post
-        const siteManagerCreateFeedPostComponent = siteDashboard['createFeedPostComponent'];
+        const siteManagerCreateFeedPostComponent = siteDashboard.createFeedPostComponent;
         const siteManagerPostResult = await siteManagerCreateFeedPostComponent.createAndPost({
           text: siteManagerPostText,
         });
@@ -211,8 +211,8 @@ test.describe(
         }
 
         // Verify post is successfully created and visible on dashboard
-        await siteDashboard.assertions.validatePostText(siteManagerPostResult.postText);
-        await siteDashboard['listFeedComponent'].waitForPostToBeVisible(siteManagerPostResult.postText);
+        await siteDashboard.validatePostText(siteManagerPostResult.postText);
+        await siteDashboard.listFeedComponent.waitForPostToBeVisible(siteManagerPostResult.postText);
 
         // ==================== SCENARIO 2: Site Owner can create feed post ====================
         // Make the user a Site Owner in last because once the user role is set to Site Owner, the after that we cannot change the role of the user
@@ -229,16 +229,16 @@ test.describe(
         await siteDashboard.verifyThePageIsLoaded();
 
         // Verify "Share your thoughts" button is visible
-        await siteDashboard.assertions.verifyFeedSectionIsVisible();
+        await siteDashboard.verifyFeedSectionIsVisible();
 
         // Click "Share your thoughts" button
-        await siteDashboard.actions.clickShareThoughtsButton();
+        await siteDashboard.clickShareThoughtsButton();
 
         // Generate post text
         const siteOwnerPostText = TestDataGenerator.generateRandomText('Site Owner Post', 3, true);
 
         // Create feed post
-        const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
+        const createFeedPostComponent = siteDashboard.createFeedPostComponent;
         const siteOwnerPostResult = await createFeedPostComponent.createAndPost({
           text: siteOwnerPostText,
         });
@@ -249,8 +249,8 @@ test.describe(
         }
 
         // Verify post is successfully created and visible on dashboard
-        await siteDashboard.assertions.validatePostText(siteOwnerPostResult.postText);
-        await siteDashboard['listFeedComponent'].waitForPostToBeVisible(siteOwnerPostResult.postText);
+        await siteDashboard.validatePostText(siteOwnerPostResult.postText);
+        await siteDashboard.listFeedComponent.waitForPostToBeVisible(siteOwnerPostResult.postText);
       }
     );
   }

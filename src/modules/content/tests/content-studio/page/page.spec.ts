@@ -44,12 +44,12 @@ test.describe(
           ContentType.PAGE,
           { isFromStudio: true }
         )) as ContentStudioPageCreationPage;
-        await pageCreationPage.assertions.verifyThePageIsLoaded();
-        await pageCreationPage.actions.clickAddCoverImageIcon();
-        await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('Upload');
-        await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('Browse');
-        await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('URL');
-        await pageCreationPage.assertions.verifyCoverImageModalTabIsVisible('Unsplash');
+        await pageCreationPage.verifyThePageIsLoaded();
+        await pageCreationPage.clickAddCoverImageIcon();
+        await pageCreationPage.verifyCoverImageModalTabIsVisible('Upload');
+        await pageCreationPage.verifyCoverImageModalTabIsVisible('Browse');
+        await pageCreationPage.verifyCoverImageModalTabIsVisible('URL');
+        await pageCreationPage.verifyCoverImageModalTabIsVisible('Unsplash');
       }
     );
 
@@ -78,13 +78,13 @@ test.describe(
           { isFromStudio: true }
         )) as ContentStudioPageCreationPage;
 
-        await pageCreationPage.assertions.verifyThePageIsLoaded();
-        await pageCreationPage.actions.clickAddCoverImageIcon();
-        await pageCreationPage.actions.clickOnOptionsButtonAndSelectAddCoverImageTab('Browse');
-        await pageCreationPage.assertions.verifyopenMediaManagerDialogIsVisible();
-        await pageCreationPage.actions.clickOnopenMediaManagerDialog();
-        await pageCreationPage.actions.selectAndAttachImageFromMediaManager();
-        await pageCreationPage.assertions.verifyUploadedCoverImagePreviewIsVisible();
+        await pageCreationPage.verifyThePageIsLoaded();
+        await pageCreationPage.clickAddCoverImageIcon();
+        await pageCreationPage.clickOnOptionsButtonAndSelectAddCoverImageTab('Browse');
+        await pageCreationPage.verifyopenMediaManagerDialogIsVisible();
+        await pageCreationPage.clickOnopenMediaManagerDialog();
+        await pageCreationPage.selectAndAttachImageFromMediaManager();
+        await pageCreationPage.verifyUploadedCoverImagePreviewIsVisible();
       }
     );
 
@@ -113,24 +113,24 @@ test.describe(
           { isFromStudio: true }
         )) as ContentStudioPageCreationPage;
 
-        await pageCreationPage.assertions.verifyThePageIsLoaded();
+        await pageCreationPage.verifyThePageIsLoaded();
 
-        await pageCreationPage.actions.clickAddCoverImageIcon();
-        await pageCreationPage.assertions.verifyToolbarIsVisible();
-        await pageCreationPage.actions.clickEditCover();
-        await pageCreationPage.assertions.verifyEditPageCoverPanelIsVisible();
-        await pageCreationPage.actions.clickCoverLayoutSection();
-        await pageCreationPage.assertions.verifyLayoutOptionsAreVisible();
-        await pageCreationPage.actions.selectBackgroundOverlayLayout();
-        await pageCreationPage.actions.clickAddImage();
+        await pageCreationPage.clickAddCoverImageIcon();
+        await pageCreationPage.verifyToolbarIsVisible();
+        await pageCreationPage.clickEditCover();
+        await pageCreationPage.verifyEditPageCoverPanelIsVisible();
+        await pageCreationPage.clickCoverLayoutSection();
+        await pageCreationPage.verifyLayoutOptionsAreVisible();
+        await pageCreationPage.selectBackgroundOverlayLayout();
+        await pageCreationPage.clickAddImage();
 
-        await pageCreationPage.assertions.verifyAllCoverImageModalTabsAreVisible();
+        await pageCreationPage.verifyAllCoverImageModalTabsAreVisible();
 
-        await pageCreationPage.actions.clickSelectColorTab();
-        await pageCreationPage.assertions.verifyColorPaletteIsVisible();
-        await pageCreationPage.actions.selectBrandColor(0);
-        await pageCreationPage.assertions.verifyCoverColorIsApplied();
-        await pageCreationPage.assertions.verifyPageTitleOverCoverIsVisible();
+        await pageCreationPage.clickSelectColorTab();
+        await pageCreationPage.verifyColorPaletteIsVisible();
+        await pageCreationPage.selectBrandColor(0);
+        await pageCreationPage.verifyCoverColorIsApplied();
+        await pageCreationPage.verifyPageTitleOverCoverIsVisible();
       }
     );
   }

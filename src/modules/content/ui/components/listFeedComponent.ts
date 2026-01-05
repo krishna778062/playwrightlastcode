@@ -5,110 +5,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
 
-export interface IListFeedComponentActions {
-  openPostOptionsMenu: (postText: string) => Promise<void>;
-  clickDeleteOption: () => Promise<void>;
-  clickReportPostOption: () => Promise<void>;
-  clickReportReplyOption: () => Promise<void>;
-  confirmDelete: () => Promise<void>;
-  clickInlineImagePreview: (postText: string) => Promise<void>;
-  closeImagePreview: () => Promise<void>;
-  markPostAsFavourite: () => Promise<void>;
-  removePostFromFavourite: (postText: string) => Promise<void>;
-  clickInfoIcon: (fileId: string) => Promise<void>;
-  addReplyToPost: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
-  addReplyToPostWithInappropriateContent: (
-    replyText: string,
-    postId: string,
-    mentionUserName?: string
-  ) => Promise<string>;
-  submitReplyAndGetResponse: () => Promise<{ feedId: string }>;
-  clickReplyShowMoreButton: () => Promise<void>;
-  clickLoadMoreRepliesButton: () => Promise<void>;
-  clickEditButton: () => Promise<void>;
-  clickOnInfoIcon: (fileId: string) => Promise<void>;
-  clickPostTimestamp: (postText: string) => Promise<void>;
-  clickShareOnComment: () => Promise<void>;
-  clickShareOnPost: (postText: string) => Promise<void>;
-  clickShareButtonForPost: (postText: string) => Promise<void>;
-  clickViewPostLink: () => Promise<void>;
-  openReplyOptionsMenu: (replyText: string) => Promise<void>;
-  clickReplyEditOption: () => Promise<void>;
-  clickReplyDeleteOption: () => Promise<void>;
-  clickShareIcon: (postText: string) => Promise<void>;
-  likeFeedPost: (postText: string) => Promise<void>;
-  unlikeFeedPost: (postText: string) => Promise<void>;
-  likeFeedReply: (replyText: string) => Promise<void>;
-  unlikeFeedReply: (replyText: string) => Promise<void>;
-  hoverOnReactionButton: (postText: string) => Promise<void>;
-  clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
-  verifyReactionButtonTextContent: (postText: string, reactionName: string) => Promise<void>;
-  clickReactionCountButton: (postText: string) => Promise<void>;
-  closeReactionModal: () => Promise<void>;
-  clickViewPostLinkInShareModal: () => Promise<void>;
-  clickViewPostLinkInPostDetailPage: () => Promise<void>;
-  clickOnReplyButton: (postText: string) => Promise<void>;
-  clickCancelButton: (postText: string) => Promise<void>;
-  openReplyEditorForPost: (postText: string) => Promise<void>;
-}
-
-export interface IListFeedComponentAssertions {
-  getPostTimestamp: (postText: string) => Promise<string>;
-  verifyTimestampFormat: (postText: string) => Promise<void>;
-  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
-  verifyPostIsNotVisible: (expectedText: string) => Promise<void>;
-  verifyInlineImagePreviewVisible: () => Promise<void>;
-  verifyPostIsFavorited: (postText: string) => Promise<void>;
-  verifyPostIsNotFavorited: (postText: string) => Promise<void>;
-  validatePostText: (postText: string) => Promise<void>;
-  validatePostNotVisible: (postText: string) => Promise<void>;
-  verifyImageButtonIsNotVisible: () => Promise<void>;
-  verifyReplyIsVisible: (replyText: string) => Promise<void>;
-  verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
-  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
-  verifyPostsIFollow: () => Promise<void>;
-  verifySortByRecentActivity: () => Promise<void>;
-  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
-  verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
-  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
-  verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
-  getVisibleReplyCount: (postText: string) => Promise<number>;
-  verifyReplyCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
-  verifyShareModalIsVisible: () => Promise<void>;
-  verifyShareModalIsClosed: () => Promise<void>;
-  verifyVideoControls: (postText: string) => Promise<void>;
-  verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
-  verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyReactionButtonIsNotVisible: () => Promise<void>;
-  verifyReactionButtonIsVisible: () => Promise<void>;
-  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
-  verifyThePageIsLoadedWithTimelineMode: () => Promise<void>;
-  verifyThePageIsLoadedWithTimelineModeOnContentPage: () => Promise<void>;
-  verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
-  verifyReactionModalIsVisible: () => Promise<void>;
-  verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
-  verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
-  verifyDeletedPostMessage: (postText: string) => Promise<void>;
-  verifyRemovedContentMessage: (postText: string) => Promise<void>;
-  verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
-  verifyShareCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyReplyTimestamp: (replyText: string) => Promise<void>;
-  verifyBoxLogoOnReplyAttachment: (replyText: string) => Promise<void>;
-  verifyCancelButtonVisible: (postText: string) => Promise<void>;
-  verifyReplyEditorVisible: (postText: string) => Promise<void>;
-  verifyReplyEditorClosed: (postText: string) => Promise<void>;
-  verifyLikeCountOnPost: (postText: string) => Promise<void>;
-  verifyLikeCountOnReply: (replyText: string) => Promise<void>;
-  verifyPostIsAtTop: (postText: string) => Promise<void>;
-}
-
-export class ListFeedComponent
-  extends BaseComponent
-  implements IListFeedComponentActions, IListFeedComponentAssertions
-{
+export class ListFeedComponent extends BaseComponent {
   // Post options section
   readonly deleteButton: Locator;
   readonly deleteConfirmDialog: Locator;
@@ -144,6 +41,8 @@ export class ListFeedComponent
   readonly postsIFollow: Locator;
   readonly sortByRecentActivity: Locator;
   readonly embedUrlLocator: (embedUrl: string) => Locator;
+  readonly replyEmbedUrlPreviewLocator: (embedUrl: string) => Locator;
+  readonly embedUrlPreviewLocator: Locator;
   readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
   readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
   readonly shareSocialCampaignButton = (description: string) =>
@@ -262,6 +161,9 @@ export class ListFeedComponent
       .locator('xpath=./ancestor::div[3]')
       .locator("button[aria-label='Open image in lightbox']");
 
+  readonly getReplyImagePreviewLocator = (): Locator =>
+    this.page.getByTestId('replyContent').getByRole('button', { name: 'Open image in lightbox' }).first();
+
   /**
    * Gets a locator for the post options menu
    * @param postText - The text of the post to find options menu for
@@ -328,6 +230,11 @@ export class ListFeedComponent
       .filter({ hasText: `${userName}View in org chart` })
       .first();
 
+  readonly siteNameLocator = (postText: string, siteName: string): Locator =>
+    this.page.getByRole('link', { name: siteName }).first();
+
+  readonly feedPostContainer: Locator;
+
   constructor(page: Page) {
     super(page);
     this.favoriteButton = this.page.getByRole('button', { name: 'Favorite this post' }).first();
@@ -359,6 +266,9 @@ export class ListFeedComponent
     this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
     this.replyCancelButton = this.page.getByRole('button', { name: 'Cancel' }).first();
     this.embedUrlLocator = (embedUrl: string): Locator => this.page.getByRole('link', { name: embedUrl }).first();
+    this.replyEmbedUrlPreviewLocator = (embedUrl: string): Locator =>
+      this.replyContainer.getByTestId('replyContent').locator('iframe');
+    this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
 
@@ -377,14 +287,7 @@ export class ListFeedComponent
     this.reactionCountButton = this.page.getByRole('button', { name: 'reactions' });
     this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
     this.siteImageLocator = this.page.locator('.imageAnchor img');
-  }
-
-  get actions(): IListFeedComponentActions {
-    return this;
-  }
-
-  get assertions(): IListFeedComponentAssertions {
-    return this;
+    this.feedPostContainer = this.page.locator("[class*='PostInner']");
   }
 
   /**
@@ -512,6 +415,15 @@ export class ListFeedComponent
     });
   }
 
+  async clickReplyImagePreview(replyText: string): Promise<void> {
+    await test.step('Click on reply image preview', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getReplyImagePreviewLocator(), {
+        assertionMessage: 'Reply image preview should be visible',
+      });
+      await this.clickOnElement(this.getReplyImagePreviewLocator());
+    });
+  }
+
   /**
    * Closes the image preview lightbox
    */
@@ -605,6 +517,25 @@ export class ListFeedComponent
     });
   }
 
+  async validatePostIsVisibleWithText(postText: string): Promise<void> {
+    await test.step(`Validating post is visible with text: "${postText}"`, async () => {
+      const postContainer = await this.getPostContainerLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post container "${postText}" should be visible`,
+        timeout: 30000,
+      });
+    });
+  }
+
+  /**
+   * Gets the post container locator for a given post text
+   * @param postText - The text of the post to get the container for
+   * @returns Locator for the post container
+   */
+  async getPostContainerLocator(postText: string): Promise<Locator> {
+    return this.feedPostContainer.filter({ hasText: postText }).first();
+  }
+
   /**
    * Validates that a post is not visible
    * @param postText - The text content of the post that should not be visible
@@ -633,6 +564,15 @@ export class ListFeedComponent
     });
   }
 
+  async clickSiteNameOnPost(postText: string, siteName: string): Promise<void> {
+    await test.step(`Click site name on post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteNameLocator(postText, siteName), {
+        assertionMessage: `Site name "${postText}" should be visible on post`,
+      });
+      await this.clickOnElement(this.siteNameLocator(postText, siteName));
+    });
+  }
+
   async verifyImageButtonIsNotVisible(): Promise<void> {
     await test.step('Verify image button is not visible', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.imageButton);
@@ -641,18 +581,7 @@ export class ListFeedComponent
 
   async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
-      // Click reply button
-      //add API wait for response
-      const replyApiPromise = this.page.waitForResponse(
-        response =>
-          response.url().includes(API_ENDPOINTS.feed.rudderstack) &&
-          response.request().method() === 'POST' &&
-          response.status() === 200
-      );
-
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
-
-      await replyApiPromise;
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
@@ -789,6 +718,69 @@ export class ListFeedComponent
     });
   }
 
+  async addEmbedUrlToReply(embedUrl: string): Promise<void> {
+    if (embedUrl) {
+      await test.step(`Adding embedded URL to reply: ${embedUrl}`, async () => {
+        await this.typeInElement(this.replyEditor, ` ${embedUrl}`);
+      });
+    }
+  }
+
+  /**
+   * Adds a reply to a post with embedded URL
+   * @param replyText - The text content for the reply
+   * @param postId - The ID of the post to reply to
+   * @param embedUrl - The URL to embed in the reply
+   * @param mentionUserName - Optional user name to mention
+   * @returns Promise<string> - The reply text
+   */
+  async addReplyToPostWithEmbedUrl(
+    replyText: string,
+    postId: string,
+    embedUrl: string,
+    mentionUserName?: string
+  ): Promise<string> {
+    await test.step(`Add reply to post with embedded URL`, async () => {
+      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
+      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
+        assertionMessage: `Reply input should be visible`,
+      });
+
+      // Enter reply text
+      await this.fillInElement(this.replyEditor, replyText);
+
+      if (mentionUserName) {
+        replyText = replyText + ` @${mentionUserName}`;
+        await this.fillInElement(this.replyEditor, replyText);
+        await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      }
+
+      // Add embedded URL
+      await this.addEmbedUrlToReply(embedUrl);
+
+      // Submit reply
+      await this.clickOnReplyButton(postId);
+    });
+    return replyText;
+  }
+
+  async verifyEmbedUrlPreviewIsVisible(embedUrl: string): Promise<void> {
+    await test.step(`Verify embed URL preview is visible: ${embedUrl}`, async () => {
+      const embedUrlPreviewLocator = this.embedUrlPreviewLocator;
+      await this.verifier.verifyTheElementIsVisible(embedUrlPreviewLocator, {
+        assertionMessage: `Embed URL preview should be visible for embed URL "${embedUrl}"`,
+      });
+    });
+  }
+
+  async verifyEmbedUrlPreviewIsVisibleInReply(embedUrl: string, replyText: string): Promise<void> {
+    await test.step(`Verify embed URL preview is visible in reply: ${embedUrl}`, async () => {
+      const embedUrlPreviewLocator = this.replyEmbedUrlPreviewLocator(embedUrl);
+      await this.verifier.verifyTheElementIsVisible(embedUrlPreviewLocator, {
+        assertionMessage: `Embed URL preview should be visible in reply "${replyText}"`,
+      });
+    });
+  }
   /**
    * Verifies that a reply is visible under a specific post
    * @param postText - The text of the original post
@@ -1100,7 +1092,7 @@ export class ListFeedComponent
    */
   async clickReplyEditOption(): Promise<void> {
     await test.step('Click reply edit option', async () => {
-      await this.clickOnElement(this.editButton);
+      await this.clickByInjectingJavaScript(this.editButton);
     });
   }
 
@@ -1109,7 +1101,7 @@ export class ListFeedComponent
    */
   async clickReplyDeleteOption(): Promise<void> {
     await test.step('Click reply delete option', async () => {
-      await this.clickOnElement(this.deleteButton);
+      await this.clickByInjectingJavaScript(this.deleteButton);
     });
   }
 
@@ -1535,6 +1527,19 @@ export class ListFeedComponent
       await this.waitForPostToBeVisible(postText);
       await this.verifier.verifyTheElementIsVisible(this.getShareIconLocator(postText), {
         assertionMessage: `Share icon should be visible for post/comment "${postText}"`,
+      });
+    });
+  }
+
+  async verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void> {
+    await test.step('Verify user name mention is visible on feed post', async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${standardUserFullName}` });
+      await this.verifier.verifyTheElementIsVisible(userMentionLink, {
+        assertionMessage: 'User name mention should be visible on feed post',
       });
     });
   }

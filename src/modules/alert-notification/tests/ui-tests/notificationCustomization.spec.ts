@@ -2091,7 +2091,7 @@ test.describe(
     test(
       'tc029 - Verify test email is sent with translated subject line for selected language',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P0, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
@@ -2099,7 +2099,7 @@ test.describe(
           storyId: 'INT-24252',
         });
         const emailUtils = new EmailUtils(process.env.MAILOSAUR_API_KEY!, process.env.MAILOSAUR_SERVER_ID!);
-        const randomTestEmail = await emailUtils.generateUniqueEmailAddress(); //with mailosaur domain and server key
+        const randomTestEmail = await emailUtils.generateUniqueEmailAddress('notificationcustomization'); //with mailosaur domain and server key
         // Generate unique English subject for the customization
         const englishSubject = NotificationTestDataGenerator.generateCustomSubjectLine(
           TEMPLATE_DATA.MUST_READ.SINGLE_TEMPLATE

@@ -46,9 +46,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   });
 
   test(
-    'in Zeus to verify the Edit topic - negative scenario',
+    'in Zeus to verify the Edit topic - negative scenario CONT-38095',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS, '@CONT-38095'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -57,21 +57,21 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         storyId: 'CONT-38095',
       });
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.actions.clickOnAddTopic();
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.clickOnAddTopic();
       const topicName = faker.lorem.words(2);
-      await manageTopicsPage.actions.fillTopicName(topicName);
-      await manageTopicsPage.actions.clickOnAddButton();
-      await manageTopicsPage.actions.clickOnEditTopic();
-      await manageTopicsPage.actions.editTopicName(`${topicName}--__`);
-      await manageTopicsPage.actions.clickOnUpdateButton();
-      await manageTopicsPage.assertions.verifyErroToastMessage();
+      await manageTopicsPage.fillTopicName(topicName);
+      await manageTopicsPage.clickOnAddButton();
+      await manageTopicsPage.clickOnEditTopic();
+      await manageTopicsPage.editTopicName(`${topicName}--__`);
+      await manageTopicsPage.clickOnUpdateButton();
+      await manageTopicsPage.verifyErroToastMessage();
     }
   );
   test(
-    'to verify search topics',
+    'to verify search topics CONT-21059',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS, '@CONT-21059'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -80,22 +80,22 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         storyId: 'CONT-21059',
       });
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.actions.clickOnAddTopic();
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.clickOnAddTopic();
       const topicName = faker.lorem.words(2);
-      await manageTopicsPage.actions.fillTopicName(topicName);
-      await manageTopicsPage.actions.clickOnAddButton();
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicName);
-      await manageTopicsPage.actions.searchingTopicInSearchBar(`${topicName}--__`);
-      await manageTopicsPage.assertions.verifyingNothingToShowHereText();
+      await manageTopicsPage.fillTopicName(topicName);
+      await manageTopicsPage.clickOnAddButton();
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName);
+      await manageTopicsPage.searchingTopicInSearchBar(`${topicName}--__`);
+      await manageTopicsPage.verifyingNothingToShowHereText();
     }
   );
   test(
-    'to verify topic details page in content',
+    'to verify topic details page in content CONT-21076',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_CONTENT],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_CONTENT, '@CONT-21076'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -163,17 +163,17 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       console.log(`Created album via API: ${albumName} with ID: ${albumInfo.contentId} in site: ${siteId}`);
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openingSearchedTopic(topicName);
-      await topicDetailsPage.assertions.verifyingCreatedContentInTopicDetailsPage(albumName, eventName, randomPageName);
-      await topicDetailsPage.actions.clickAndVerifyTheCreatedAlbum(albumName);
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.openingSearchedTopic(topicName);
+      await topicDetailsPage.verifyingCreatedContentInTopicDetailsPage(albumName, eventName, randomPageName);
+      await topicDetailsPage.clickAndVerifyTheCreatedAlbum(albumName);
     }
   );
   test(
-    'to verify topic details page in home & site feed',
+    'to verify topic details page in home & site feed CONT-40817',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED, '@CONT-40817'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -202,33 +202,33 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       console.log(`Created home feed via API: ${feedText} with ID: ${feedInfo.result.feedId}`);
 
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openingSearchedTopic(topicName);
-      await topicDetailsPage.actions.clickOnFeedTab();
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.openingSearchedTopic(topicName);
+      await topicDetailsPage.clickOnFeedTab();
 
       // Verify the created feed is visible in the feed tab
-      await topicDetailsPage.assertions.verifyingCreatedFeedInTopicDetailsPage(feedText);
-      await topicDetailsPage.actions.clickingOnUsername();
-      await profileScreenPage.assertions.verifyingUserNameOnProfileScreenPage();
+      await topicDetailsPage.verifyingCreatedFeedInTopicDetailsPage(feedText);
+      await topicDetailsPage.clickingOnUsername();
+      await profileScreenPage.verifyingUserNameOnProfileScreenPage();
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openingSearchedTopic(topicName);
-      await topicDetailsPage.actions.clickOnFeedTab();
-      await topicDetailsPage.actions.hoveringOnFeed();
-      await topicDetailsPage.assertions.verifyingEllipsesOptions();
-      await topicDetailsPage.assertions.verifyingFavoriteOption();
-      await topicDetailsPage.actions.likingTheFeed();
-      await topicDetailsPage.actions.replyingToTheFeed();
-      await topicDetailsPage.actions.clickingOnShareButton();
-      await topicDetailsPage.actions.clickingOnSharePostButton();
-      await topicDetailsPage.assertions.verifyingSharePostToastMessage('Shared post successfully');
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.openingSearchedTopic(topicName);
+      await topicDetailsPage.clickOnFeedTab();
+      await topicDetailsPage.hoveringOnFeed();
+      await topicDetailsPage.verifyingEllipsesOptions();
+      await topicDetailsPage.verifyingFavoriteOption();
+      await topicDetailsPage.likingTheFeed();
+      await topicDetailsPage.replyingToTheFeed();
+      await topicDetailsPage.clickingOnShareButton();
+      await topicDetailsPage.clickingOnSharePostButton();
+      await topicDetailsPage.verifyingSharePostToastMessage('Shared post successfully');
     }
   );
 
   test(
-    'verify cancel behaviour of delete topic',
+    'verify cancel behaviour of delete topic CONT-40977',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-40977'],
     },
@@ -242,16 +242,16 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
       await manageTopicsPage.loadPage();
       const topicName = await manageTopicsPage.getTopicNameFromList();
-      await manageTopicsPage.actions.clickOnDeleteTopic();
-      await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
-      await manageTopicsPage.actions.clickCancelButton();
-      await manageTopicsPage.assertions.verifyTopicIsVisible(topicName);
+      await manageTopicsPage.clickOnDeleteTopic();
+      await manageTopicsPage.verifyDeleteTopicPopupIsVisible();
+      await manageTopicsPage.clickCancelButton();
+      await manageTopicsPage.verifyTopicIsVisible(topicName);
     }
   );
   test(
-    'verify standard user is able to add/list topic in Content',
+    'verify standard user is able to add/list topic in Content CONT-25968',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25969'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25968'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -272,9 +272,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       });
       const contentPage = new ContentPreviewPage(appManagerFixture.page, siteInfo.siteId, pageInfo.contentId, 'page');
       await contentPage.loadPage();
-      await contentPage.actions.clickShareThoughtsButton();
+      await contentPage.clickShareThoughtsButton();
       const feedPage = new FeedPage(appManagerFixture.page);
-      const postResultPage = await feedPage.actions.createAndPostWithTopic(
+      const postResultPage = await feedPage.postEditor.createAndPostWithTopic(
         `test topic ${topicNames[0]}`,
         topicNames[0]
       );
@@ -290,9 +290,9 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         'album'
       );
       await contentAlbumPage.loadPage();
-      await contentAlbumPage.actions.clickShareThoughtsButton();
+      await contentAlbumPage.clickShareThoughtsButton();
       const feedAlbumPage = new FeedPage(appManagerFixture.page);
-      const postResultAlbum = await feedAlbumPage.actions.createAndPostWithTopic(
+      const postResultAlbum = await feedAlbumPage.postEditor.createAndPostWithTopic(
         `test topic ${topicNames[1]}`,
         topicNames[1]
       );
@@ -311,22 +311,22 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
         'event'
       );
       await contentEventPage.loadPage();
-      await contentEventPage.actions.clickShareThoughtsButton();
+      await contentEventPage.clickShareThoughtsButton();
       const feedEventPage = new FeedPage(appManagerFixture.page);
-      const postResultEvent = await feedEventPage.actions.createAndPostWithTopic(
+      const postResultEvent = await feedEventPage.postEditor.createAndPostWithTopic(
         `test topic ${topicNames[2]}`,
         topicNames[2]
       );
       console.log('Created feed via API for Event:', postResultEvent);
 
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
-      await manageTopicsPage.assertions.searchAndVerifyMultipleTopics(topicNames);
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.searchAndVerifyMultipleTopics(topicNames);
     }
   );
 
   test(
-    'managing Topic Follow/Unfollow Status',
+    'managing Topic Follow/Unfollow Status CONT-41028',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-41028'],
     },
@@ -341,21 +341,21 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.loadPage();
 
       // Open topic options dropdown and verify Follow option is visible
-      await manageTopicsPage.actions.openTopicOptionsDropdown();
-      await manageTopicsPage.assertions.verifyFollowOptionIsVisible();
+      await manageTopicsPage.openTopicOptionsDropdown();
+      await manageTopicsPage.verifyFollowOptionIsVisible();
 
       // Click on Follow option
-      await manageTopicsPage.actions.clickOnFollowTopic();
-      await manageTopicsPage.assertions.verifyUnfollowOptionIsVisible();
+      await manageTopicsPage.clickOnFollowTopic();
+      await manageTopicsPage.verifyUnfollowOptionIsVisible();
 
       // Click on Unfollow option
-      await manageTopicsPage.actions.clickOnUnfollowTopic();
-      await manageTopicsPage.assertions.verifyFollowOptionIsVisible();
+      await manageTopicsPage.clickOnUnfollowTopic();
+      await manageTopicsPage.verifyFollowOptionIsVisible();
     }
   );
 
   test(
-    'verify topic gets deleted',
+    'verify topic gets deleted CONT-21066',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-21066'],
     },
@@ -372,27 +372,27 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const topicName = await manageTopicsPage.getTopicNameFromList();
 
       // Step 7: Click on option menu dropdown and click on Delete
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.actions.openTopicOptionsDropdown();
-      await manageTopicsPage.actions.clickOnDeleteTopic();
-      await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.openTopicOptionsDropdown();
+      await manageTopicsPage.clickOnDeleteTopic();
+      await manageTopicsPage.verifyDeleteTopicPopupIsVisible();
 
       // Step 8: Click Delete confirm button
-      await manageTopicsPage.actions.clickDeleteConfirmButton();
+      await manageTopicsPage.clickDeleteConfirmButton();
 
       // Step 9: Verify the toast message
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
-      await manageTopicsPage.assertions.verifyTopicIsNotVisible(topicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
+      await manageTopicsPage.verifyTopicIsNotVisible(topicName);
       await manageTopicsPage.loadPage();
 
       // Step 10: Verify topic is deleted from manage topics page
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.assertions.verifyingNothingToShowHereText();
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.verifyingNothingToShowHereText();
     }
   );
 
   test(
-    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI',
+    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI CONT-31145',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-31145'],
     },
@@ -409,18 +409,18 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       topicName = faker.lorem.words(2);
 
       // Click on "Add topic" button
-      topicId = await manageTopicsPage.actions.createTopic(topicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      topicId = await manageTopicsPage.createTopic(topicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
-      await manageTopicsPage.actions.createDuplicateTopic(topicName);
+      await manageTopicsPage.createDuplicateTopic(topicName);
 
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DUPLICATE_NOT_ALLOWED);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.DUPLICATE_NOT_ALLOWED);
       manualCleanupNeeded = true;
     }
   );
 
   test(
-    'manage Topics View topic list',
+    'manage Topics View topic list CONT-20590',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20590'],
     },
@@ -433,27 +433,27 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
       await manageTopicsPage.loadPage();
-      await manageTopicsPage.assertions.verifyTopicListIsVisible();
+      await manageTopicsPage.verifyTopicListIsVisible();
       topicName = faker.lorem.words(2);
-      const existingTopicName = await manageTopicsPage.actions.getTopicNameFromList();
-      await manageTopicsPage.actions.searchingTopicInSearchBar(existingTopicName);
-      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(existingTopicName);
+      const existingTopicName = await manageTopicsPage.getTopicNameFromList();
+      await manageTopicsPage.searchingTopicInSearchBar(existingTopicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(existingTopicName);
 
-      topicId = await manageTopicsPage.actions.createTopic(topicName.toLowerCase());
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
-      await manageTopicsPage.assertions.verifyTopicIsVisible(topicName.toLowerCase());
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicName.toLowerCase());
-      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(topicName.toLowerCase());
-      await manageTopicsPage.actions.editTopic(topicName.toUpperCase());
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
-      await manageTopicsPage.assertions.verifyTopicIsVisible(topicName.toUpperCase());
-      await manageTopicsPage.actions.deleteTopic();
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
+      topicId = await manageTopicsPage.createTopic(topicName.toLowerCase());
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      await manageTopicsPage.verifyTopicIsVisible(topicName.toLowerCase());
+      await manageTopicsPage.searchingTopicInSearchBar(topicName.toLowerCase());
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName.toLowerCase());
+      await manageTopicsPage.editTopic(topicName.toUpperCase());
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
+      await manageTopicsPage.verifyTopicIsVisible(topicName.toUpperCase());
+      await manageTopicsPage.deleteTopic();
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
     }
   );
 
   test(
-    'application should allow to add/edit/delete topic when merge and delete action',
+    'application should allow to add/edit/delete topic when merge and delete action CONT-20591',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20591'],
     },
@@ -467,24 +467,24 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
       await manageTopicsPage.loadPage();
       const firstTopicName = faker.lorem.words(2);
-      await manageTopicsPage.actions.createTopic(firstTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      await manageTopicsPage.createTopic(firstTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       const secondTopicName = faker.lorem.words(2);
-      await manageTopicsPage.actions.createTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
-      await manageTopicsPage.actions.searchingTopicInSearchBar(firstTopicName);
-      await manageTopicsPage.actions.mergeTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
-      await manageTopicsPage.assertions.verifyingNothingToShowHereText();
-      await manageTopicsPage.actions.searchingTopicInSearchBar(secondTopicName);
-      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(secondTopicName);
-      await manageTopicsPage.actions.deleteTopic();
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
+      await manageTopicsPage.createTopic(secondTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      await manageTopicsPage.searchingTopicInSearchBar(firstTopicName);
+      await manageTopicsPage.mergeTopic(secondTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
+      await manageTopicsPage.verifyingNothingToShowHereText();
+      await manageTopicsPage.searchingTopicInSearchBar(secondTopicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.deleteTopic();
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
     }
   );
 
   test(
-    'verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums',
+    'verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums CONT-24165',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-24165'],
     },
@@ -527,27 +527,26 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       });
 
       // Create and publish the album
-      const { albumId, siteId } =
-        await albumCreationPage.actions.createWithTopicInDescriptionAndPublish(albumCreationOptions);
+      const { albumId, siteId } = await albumCreationPage.createWithTopicInDescriptionAndPublish(albumCreationOptions);
 
       const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, siteId, albumId, ContentType.ALBUM);
-      await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+      await contentPreviewPage.verifyContentPublishedSuccessfully(
         albumCreationOptions.title,
         "Created album successfully - it's published"
       );
-      await contentPreviewPage.actions.handlePromotionPageStep();
+      await contentPreviewPage.handlePromotionPageStep();
 
       // Navigate to "manage/topics" page
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
       await manageTopicsPage.loadPage();
-      await manageTopicsPage.actions.searchingTopicInSearchBar(topicNameWithSpecialChars);
-      await manageTopicsPage.assertions.verifyTopicAppearsAtTop(topicNameWithSpecialChars);
+      await manageTopicsPage.searchingTopicInSearchBar(topicNameWithSpecialChars);
+      await manageTopicsPage.verifyTopicAppearsAtTop(topicNameWithSpecialChars);
       await appManagerFixture.contentManagementHelper.deleteContent(siteId, albumId);
     }
   );
 
   test(
-    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic',
+    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic CONT-25971',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-25971'],
     },
@@ -561,48 +560,48 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Navigate to manage/topics page
       await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.actions.clickOnTopics();
+      await applicationScreenPage.clickOnTopics();
       await manageTopicsPage.loadPage();
 
       // Create first topic with random alphabetic string
       const firstTopicName = faker.string.alpha({ length: 5 });
-      topicId = await manageTopicsPage.actions.createTopic(firstTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      topicId = await manageTopicsPage.createTopic(firstTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       const editedTopicName = `${firstTopicName.slice(0, 2)} ${firstTopicName.slice(2)}`;
-      await manageTopicsPage.actions.editTopic(editedTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
+      await manageTopicsPage.editTopic(editedTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
 
       // Follow the topic
-      await manageTopicsPage.actions.openTopicOptionsDropdown();
-      await manageTopicsPage.actions.clickOnFollowTopic();
+      await manageTopicsPage.openTopicOptionsDropdown();
+      await manageTopicsPage.clickOnFollowTopic();
 
       // Create second topic "UI-test"
       const secondTopicName = faker.string.alpha({ length: 5 });
-      const secondTopicId = await manageTopicsPage.actions.createTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
+      const secondTopicId = await manageTopicsPage.createTopic(secondTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
       // Search for the edited topic "me rge"
-      await manageTopicsPage.actions.searchingTopicInSearchBar(editedTopicName);
-      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(editedTopicName);
+      await manageTopicsPage.searchingTopicInSearchBar(editedTopicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(editedTopicName);
 
       // Merge "me rge" into "UI-test"
-      await manageTopicsPage.actions.openTopicOptionsDropdown();
-      await manageTopicsPage.actions.mergeTopic(secondTopicName);
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
+      await manageTopicsPage.openTopicOptionsDropdown();
+      await manageTopicsPage.mergeTopic(secondTopicName);
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
 
       // Reload page to see merged topic
       await manageTopicsPage.loadPage();
 
       // Search for "UI-test" topic
-      await manageTopicsPage.actions.searchingTopicInSearchBar(secondTopicName);
-      await manageTopicsPage.assertions.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.searchingTopicInSearchBar(secondTopicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(secondTopicName);
 
       // Delete "UI-test" topic
-      await manageTopicsPage.actions.openTopicOptionsDropdown();
-      await manageTopicsPage.actions.clickOnDeleteTopic();
-      await manageTopicsPage.assertions.verifyDeleteTopicPopupIsVisible();
-      await manageTopicsPage.actions.clickDeleteConfirmButton();
-      await manageTopicsPage.assertions.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
+      await manageTopicsPage.openTopicOptionsDropdown();
+      await manageTopicsPage.clickOnDeleteTopic();
+      await manageTopicsPage.verifyDeleteTopicPopupIsVisible();
+      await manageTopicsPage.clickDeleteConfirmButton();
+      await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
 
       // Cleanup is not needed as topics are deleted in the test
       manualCleanupNeeded = false;

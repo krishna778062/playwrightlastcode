@@ -11,72 +11,7 @@ import { CarouselComponent } from '@/src/modules/content/ui/components/carouselC
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 
-export interface ISiteDashboardActions {
-  navigateToManageSite: () => Promise<void>;
-  clickOnFeedLink: () => Promise<void>;
-  clickOnOptionsMenu: (commentText: string) => Promise<void>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  deletePost: (postText: string) => Promise<void>;
-  clickOnEditCarousel: () => Promise<void>;
-  clickOnAddTile: () => Promise<void>;
-  clickOnEditDashboard: () => Promise<void>;
-  enterSearchCarouselInput: (text: string) => Promise<void>;
-  selectCarouselItem: (text: string) => Promise<void>;
-  clickDoneButton: () => Promise<void>;
-  clickOnSocialCampaignTile: () => Promise<void>;
-  clickOnCustomSCTile: () => Promise<void>;
-  enterTileTitle: (tileTitle: string) => Promise<void>;
-  setCustomSCTitle: (title: string) => Promise<void>;
-  clickAddToHomeButton: () => Promise<string>;
-  clickAddToSiteButton: (siteId: string) => Promise<string>;
-  clickShareThoughtsButton: () => Promise<void>;
-  clickQuestionButton: () => Promise<void>;
-  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
-  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  clickOnDismissButton: () => Promise<void>;
-}
-
-export interface ISiteDashboardAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyDashboardUrl: (siteId: string) => Promise<void>;
-  verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
-  verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
-  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
-  verifyAddContentButtonIsNotVisible: () => Promise<void>;
-  verifyAddContentButtonIsVisible: () => Promise<void>;
-  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
-  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
-  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
-  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
-  verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
-  verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
-  verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
-  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
-  verifyFeedSectionIsVisible: () => Promise<void>;
-  verifyFeedSectionIsNotVisible: () => Promise<void>;
-  verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
-  validatePostText: (postText: string) => Promise<void>;
-  validatePostNotVisible: (postText: string) => Promise<void>;
-  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
-  verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
-  verifyTimestampFormat: (postText: string) => Promise<void>;
-  verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
-  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
-  verifyCommentIconIsNotVisible: () => Promise<void>;
-  verifyTopPicksBlockIsVisible: () => Promise<void>;
-  verifyPopularContentBlockIsVisible: () => Promise<void>;
-  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
-  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
-  verifyCelebrationBlockIsVisible: () => Promise<void>;
-}
-
-export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
+export class SiteDashboardPage extends BaseSitePage {
   // Locators for site and category verification
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
@@ -94,16 +29,11 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
+  readonly createFeedPostComponent: CreateFeedPostComponent;
+  readonly createQuestionComponent: CreateQuestionComponent;
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
   private addTileComponent: AddTileComponent;
-  private createQuestionComponent: CreateQuestionComponent;
-  private createFeedPostComponent: CreateFeedPostComponent;
-  // Actions
-  get actions(): ISiteDashboardActions {
-    return this;
-  }
-
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.listFeedComponent = new ListFeedComponent(page);
@@ -157,14 +87,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
-  // Assertions
-  get assertions(): ISiteDashboardAssertions {
-    return this;
-  }
-
-  /**
-   * Verifies that the site dashboard page is loaded
-   */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');

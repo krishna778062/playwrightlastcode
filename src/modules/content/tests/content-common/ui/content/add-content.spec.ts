@@ -45,8 +45,8 @@ test.describe(
       // Verify role assignment in Manage Users page
       manageUsersPage = new ManageUsersPage(appManagerFixture.page);
       await manageUsersPage.loadPage();
-      await manageUsersPage.actions.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
-      await manageUsersPage.assertions.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
+      await manageUsersPage.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
+      await manageUsersPage.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
     });
 
     test.afterEach('Cleanup after test', async ({ appManagerFixture }) => {
@@ -62,7 +62,7 @@ test.describe(
     });
 
     test(
-      'verify the Unlisted Sites Manager is able to add content from home dashboard on any unlisted site',
+      'verify the Unlisted Sites Manager is able to add content from home dashboard on any unlisted site CONT-30521',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30521'],
       },
@@ -85,7 +85,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -100,17 +100,17 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
 
     test(
-      'verify the Application Manager is able to add content from home dashboard on any unlisted site',
+      'verify the Application Manager is able to add content from home dashboard on any unlisted site CONT-39680',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39680'],
       },
@@ -134,7 +134,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -149,16 +149,17 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
-        await contentPreviewPage.actions.handlePromotionPageStep();
+
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
     test(
-      'verify the App Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level',
+      'verify the App Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level CONT-39774',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39774'],
       },
@@ -186,7 +187,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -202,17 +203,17 @@ test.describe(
         );
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
     test(
-      'verify the unlisted site Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level',
+      'verify the unlisted site Manager be able to add content from home dashboard on any unlisted site when Content submission is disabled at site level CONT-39775',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39775'],
       },
@@ -242,7 +243,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -257,18 +258,18 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
 
     // Additional test for disabled content submission
     test(
-      'verify the App Manager not able to add content from home dashboard on any unlisted site when specific Content type is disabled at site level',
+      'verify the App Manager not able to add content from home dashboard on any unlisted site when specific Content type is disabled at site level CONT-39777',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39777'],
       },
@@ -295,7 +296,7 @@ test.describe(
     );
     // Additional test for disabled content submission
     test(
-      'verify the unlisted site Manager not able to add content from home dashboard on any unlisted site when Content submission is disabled at site level',
+      'verify the unlisted site Manager not able to add content from home dashboard on any unlisted site when Content submission is disabled at site level CONT-39780',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-39780'],
       },

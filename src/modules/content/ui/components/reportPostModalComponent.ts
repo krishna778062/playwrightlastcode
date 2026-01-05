@@ -2,23 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
-export interface IReportPostModalActions {
-  enterReportReason: (reason: string) => Promise<void>;
-  clickReportButton: () => Promise<void>;
-  clickCancelButton: () => Promise<void>;
-}
-
-export interface IReportPostModalAssertions {
-  verifyModalVisible: () => Promise<void>;
-  verifyReportButtonDisabled: () => Promise<void>;
-  verifyReportButtonEnabled: () => Promise<void>;
-  verifyModalClosed: () => Promise<void>;
-}
-
-export class ReportPostModalComponent
-  extends BaseComponent
-  implements IReportPostModalActions, IReportPostModalAssertions
-{
+export class ReportPostModalComponent extends BaseComponent {
   // Locators
   readonly modalContainer: Locator;
   readonly reportReasonInput: Locator;
@@ -40,17 +24,7 @@ export class ReportPostModalComponent
 
     // Initialize cancel button
     this.cancelButton = this.modalContainer.getByRole('button', { name: 'Cancel' }).first();
-  }
-
-  get actions(): IReportPostModalActions {
-    return this;
-  }
-
-  get assertions(): IReportPostModalAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Verifies that the report modal is visible
    */
   async verifyModalVisible(): Promise<void> {
