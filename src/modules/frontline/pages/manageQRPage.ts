@@ -1280,29 +1280,35 @@ export class ManageQRPage extends BasePage {
   }
 
   async downloadQRFromTable(qrName: string): Promise<string> {
-    const qrRow = this.qrRowLocator.filter({ hasText: qrName });
-    const downloadIcon = qrRow.getByLabel('Download');
+    return await test.step(`Download QR from table for "${qrName}"`, async () => {
+      const qrRow = this.qrRowLocator.filter({ hasText: qrName });
+      const downloadIcon = qrRow.getByLabel('Download');
 
-    // First wait for the row to be visible and scroll it into view
-    await this.verifier.waitUntilElementIsVisible(qrRow, {
-      timeout: TIMEOUTS.SHORT,
-      stepInfo: `Wait for QR row to be visible for QR: ${qrName}`,
+      // First wait for the row to be visible and scroll it into view
+      await this.verifier.waitUntilElementIsVisible(qrRow, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: `Wait for QR row to be visible for QR: ${qrName}`,
+      });
+
+      await qrRow.scrollIntoViewIfNeeded();
+
+      await this.verifier.waitUntilElementIsVisible(downloadIcon, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
+      });
+
+      // Set up download listener BEFORE clicking to avoid race condition
+      const downloadPromise = this.page.waitForEvent('download', { timeout: TIMEOUTS.MEDIUM });
+
+      // Click with noWaitAfter to prevent Playwright from waiting for post-click actions
+      await downloadIcon.click({ noWaitAfter: true });
+
+      // Wait for download event
+      const download = await downloadPromise;
+      const downloadPath = await download.path();
+
+      return await QRCodeUtil.processDownloadedFile(downloadPath!, qrName);
     });
-
-    await qrRow.scrollIntoViewIfNeeded();
-
-    await this.verifier.waitUntilElementIsVisible(downloadIcon, {
-      timeout: TIMEOUTS.SHORT,
-      stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
-    });
-
-    const result = await this.downloadFileWithCleanup(() => downloadIcon.click(), {
-      stepInfo: `Download QR from table for "${qrName}"`,
-      cleanup: false,
-      timeout: TIMEOUTS.MEDIUM,
-    });
-
-    return await QRCodeUtil.processDownloadedFile(result.downloadPath, qrName);
   }
 
   async verifyQRCodeExpiredMessage(page: Page, expectedMessage: string): Promise<void> {
