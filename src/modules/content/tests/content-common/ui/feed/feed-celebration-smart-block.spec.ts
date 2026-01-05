@@ -52,7 +52,7 @@ test.describe(
         // Set birth month and day (using current month and a day)
         const today = new Date();
         const birthMonth = today.getMonth() + 1;
-        const birthDay = today.getDate() + Math.floor(Math.random() * 7);
+        const birthDay = today.getDate() + 1;
 
         await appManagerNavigationHelper.topNavBarComponent.openViewProfile({
           stepInfo: 'Opening app manager view profile from profile icon',

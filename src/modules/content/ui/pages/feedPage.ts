@@ -22,269 +22,7 @@ import { ShareComponent } from '@/src/modules/content/ui/components/shareCompone
 
 export { FeedPostOptions, FeedPostResult, QuestionOptions, QuestionResult };
 
-export interface IFeedActions {
-  reloadFeedDetailPage(postText: string): Promise<void>;
-  verifyThePageIsLoaded(): Promise<void>;
-  // High-level user flows
-  createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
-  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  deletePost: (postText: string) => Promise<void>;
-  // Content creation flow
-  createPostWithAttachments: (text: string, files?: string[]) => Promise<FeedPostResult>;
-  createfeedWithMentionUserNameAndTopic: (params: {
-    text: string;
-    userName: string;
-    topicName: string;
-    siteName: string | string[];
-    embedUrl: string;
-  }) => Promise<FeedPostResult>;
-  editPostWithTopicAndUserName: (params: {
-    currentText: string;
-    newText: string;
-    topicName: string;
-    userName: string;
-  }) => Promise<void>;
-  markPostAsFavourite: () => Promise<void>;
-  removePostFromFavourite: (postText: string) => Promise<void>;
-  clickInfoIcon: (fileId: string) => Promise<void>;
-  verifyPreviewModalIsOpened: () => Promise<void>;
-  clickDeleteButton: () => Promise<void>;
-  clickShowMoreButton: () => Promise<void>;
-  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
-  uploadImage: (fileName: string) => Promise<string>;
-  clickOnUploadButton: (fileId: string) => Promise<void>;
-  clickOnCloseButton: () => Promise<void>;
-  clickOnInfoIconOnImage: () => Promise<void>;
-  clickOnEditVersionButton: () => Promise<void>;
-  openReplyEditorForPost: (postText: string) => Promise<void>;
-  clickReplyOnContentComment: (commentText: string) => Promise<void>;
-  addReplyToPost: (replyText: string, postId: string) => Promise<void>;
-  clickReplyShowMoreButton: () => Promise<void>;
-  clickLoadMoreRepliesButton: () => Promise<void>;
-  clickOnDeleteReplyButton: () => Promise<void>;
-  verifyCancelButtonVisible: (postText: string) => Promise<void>;
-  clickCancelButton: (postText: string) => Promise<void>;
-  verifyReplyEditorVisible: (postText: string) => Promise<void>;
-  verifyReplyEditorClosed: (postText: string) => Promise<void>;
-  clickShareThoughtsButton: () => Promise<void>;
-  enterQuestionTitle: (title: string) => Promise<void>;
-  clickAskQuestionButton: () => Promise<string>;
-  clickQuestionButton: () => Promise<void>;
-  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
-  clickOnShowOption: (optionValue: string) => Promise<void>;
-  clickOnSortByOption: (optionValue: string) => Promise<void>;
-  selectShareOptionAsSiteFeed: () => Promise<void>;
-  clickShareButtonForPost: (postText: string) => Promise<void>;
-  verifyPostIsAtTop: (postText: string) => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
-  clickShareButton: () => Promise<void>;
-  searchForSiteName: (siteName: string) => Promise<void>;
-  enterFeedPostText: (text: string) => Promise<void>;
-  clickBrowseFilesButton: () => Promise<void>;
-  searchForFileInLibrary: (fileName: string) => Promise<void>;
-  selectFileFromLibrary: (fileName: string) => Promise<void>;
-  clickAttachButton: () => Promise<void>;
-  clickPostButton: () => Promise<void>;
-  clickOnCommentIcon: () => Promise<void>;
-  clickOnCommentOptionsMenu: (commentText: string) => Promise<void>;
-  openPostOptionsMenu: (postText: string) => Promise<void>;
-  clickEditOption: () => Promise<void>;
-  clickCopyLinkOption: () => Promise<void>;
-  createPost: (text: string) => Promise<void>;
-  updatePostText: (text: string) => Promise<void>;
-  removeAttachedFile: (index?: number) => Promise<void>;
-  clickUpdateButton: () => Promise<void>;
-  addFileToPost: (filePath: string) => Promise<void>;
-  waitForFileToAppear: () => Promise<void>;
-  uploadFiles: (files: string[]) => Promise<void>;
-  applyFormattingAndEnterText: (
-    formatType: 'bold' | 'italic' | 'underline' | 'strike' | 'numberBullet' | 'dotBullet',
-    text: string
-  ) => Promise<void>;
-  addLink: (linkText: string, linkUrl: string) => Promise<void>;
-  selectEmoji: (emojiIndex?: number) => Promise<void>;
-  createAndPostWithTopic: (text: string, topic: string) => Promise<FeedPostResult>;
-  clickPostTimestamp: (postText: string) => Promise<void>;
-  shareFeedPost: (params: {
-    postText: string;
-    mentionUserName?: string;
-    shareMessage: string;
-    postIn: 'Home Feed' | 'Site Feed';
-  }) => Promise<void>;
-  verifyPostIsNotVisible: (postText: string) => Promise<void>;
-  clickShareButtonOnPost: (postText: string) => Promise<void>;
-  attemptImagePasteInShareModal: () => Promise<void>;
-  clickShareOnComment: () => Promise<void>;
-  clickShareOnPost: (postText: string) => Promise<void>;
-  addUserNameMentionInShareDialog: (userName: string) => Promise<void>;
-  addSiteMentionInShareDialog: (siteName: string) => Promise<void>;
-  addTopicMentionInShareDialog: (topicName: string) => Promise<void>;
-  addEmbeddedUrlInShareDialog: (embedUrl: string) => Promise<void>;
-  enterSiteNameInShareDialog: (siteName: string) => Promise<void>;
-  clickShareButtonInShareDialog: () => Promise<void>;
-  verifyViewPostLinkInShareDialog: () => Promise<void>;
-  clickViewPostLink: () => Promise<void>;
-  verifyFeedDetailPageLoaded: () => Promise<void>;
-  verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
-  verifyPostTextOnDetailPage: (postText: string) => Promise<void>;
-  verifyShareCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
-  likeFeedPost: (postText: string) => Promise<void>;
-  unlikeFeedPost: (postText: string) => Promise<void>;
-  likeFeedReply: (replyText: string) => Promise<void>;
-  unlikeFeedReply: (replyText: string) => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  hoverOnReactionButton: (postText: string) => Promise<void>;
-  clickReactionEmoji: (postText: string, reactionName: string) => Promise<void>;
-  verifyReactionButtonTextContent(postText: string, reactionName: string): Promise<void>;
-  clickReactionCountButton: (postText: string) => Promise<void>;
-  verifyReactionModalIsVisible: () => Promise<void>;
-  verifyReactionModalTabExists: (emojiName: string) => Promise<void>;
-  verifyUsersInReactionModalTab: (emojiName: string, expectedUsers: string[]) => Promise<void>;
-  closeReactionModal: () => Promise<void>;
-  clickUsernameInReactionModal: (username: string) => Promise<void>;
-  fillShareDialogWithMentionsAndTopics: (params: {
-    shareMessage: string;
-    userNames?: string[];
-    siteNames?: string[];
-    topicNames?: string[];
-    embedUrl?: string;
-  }) => Promise<void>;
-  clickShareIconOnPost: (postText: string) => Promise<void>;
-  enterSiteNameForShare: (siteName: string) => Promise<void>;
-  clickViewPostLinkInShareModal(): Promise<void>;
-  clickViewPostLinkInPostDetailPage(): Promise<void>;
-  reloadPage(): Promise<void>;
-  addReplyToPostWithEmbedUrl(replyText: string, postId: string, embedUrl: string): Promise<void>;
-  clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void>;
-  addSiteName(siteName: string): Promise<void>;
-  removeSiteMention(siteName: string): Promise<void>;
-  clickContentInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
-  clickEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
-  clickOnGiveRecognition(): Promise<void>;
-  hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
-  hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
-  verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
-  verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
-  clickFollowButtonOnHover: (userName: string) => Promise<void>;
-  clickFollowingButtonOnHover: (userName: string) => Promise<void>;
-  verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
-  clickOnSideToRemoveProfilePopover(): Promise<void>;
-  clickSiteNameOnPost: (postText: string, siteName: string) => Promise<void>;
-  clickPostWithoutWaitingForResponse(): Promise<void>;
-  clickInlineImagePreview: (postText: string) => Promise<void>;
-  closeImagePreview: () => Promise<void>;
-}
-
-export interface IFeedAssertions {
-  // High-level verification flows
-  verifyPostDetails: (postText: string, expectedAttachmentCount: number) => Promise<void>;
-  verifyThePageIsLoaded(): Promise<void>;
-  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
-  verifyPostIsNotVisible(text: string): Promise<void>;
-  verifyPostIsNotFavorited: (postText: string) => Promise<void>;
-  verifyPostIsFavorited: (postText: string) => Promise<void>;
-  validatePostText: (postText: string) => Promise<void>;
-  verifyImageButtonIsNotVisible: () => Promise<void>;
-  verifyPostIsNotVisible: (postText: string) => Promise<void>;
-  verifyReplyIsVisible: (replyText: string) => Promise<void>;
-  verifyReplyIsNotVisible: (replyText: string) => Promise<void>;
-  verifyVersionImageIsDisplayed: (fileId: string) => Promise<void>;
-  verifyVersionNumber: (expectedVersionNumber: string) => Promise<void>;
-  verifyToastMessage: (message: string) => Promise<void>;
-  verifyPostsIFollow: () => Promise<void>;
-  verifySortByRecentActivity: () => Promise<void>;
-  verifyAskQuestionButtonIsNotDisabled: () => Promise<void>;
-  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
-  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
-  verifyCampaignLinkNotDisplayed: (linkText: string, description: string) => Promise<void>;
-  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
-  verifySocialCampaignShareButtonIsVisible: (description: string) => Promise<void>;
-  verifyQuestionButtonIsNotVisible: () => Promise<void>;
-  verifyNoResultMessage: () => Promise<void>;
-  verifyFileIsAttached: (fileName: string) => Promise<void>;
-  verifyQuestionButtonIsVisible: () => Promise<void>;
-  verifyFeedSectionIsVisible: () => Promise<void>;
-  verifyFeedSectionIsNotVisible: () => Promise<void>;
-  verifySmartFeedBlocksAreNotVisible: () => Promise<void>;
-  verifyUserDisplayedInCelebrationBlock: (userName: string) => Promise<void>;
-  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
-  verifyContentVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
-  verifyContentNotVisibleInRecentlyPublishedBlock: (contentTitle: string) => Promise<void>;
-  verifyTopPicksBlockIsVisible: () => Promise<void>;
-  verifyPopularContentBlockIsVisible: () => Promise<void>;
-  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
-  verifyCelebrationBlockIsVisible: () => Promise<void>;
-  verifyEventInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
-  verifyEventNotInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
-  verifyEventVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
-  verifyEventNotVisibleInUpcomingEventsBlock: (eventTitle: string) => Promise<void>;
-  verifyCommentOptionsMenuVisible: (expectedOptions: string[]) => Promise<void>;
-  verifyAttachedFileCount: (count: number) => Promise<void>;
-  verifyUpdateButtonDisabled: () => Promise<void>;
-  verifyLikeCountOnPost: (postText: string) => Promise<void>;
-  verifyLikeCountOnReply: (replyText: string) => Promise<void>;
-  verifyPageNotFoundVisibility: (options?: { stepInfo?: string; timeout?: number }) => Promise<void>;
-  verifyReplyCount: (postText: string, expectedCount: number, replyText?: string) => Promise<void>;
-  clickPostTimestamp: (postText: string) => Promise<void>;
-  getVisibleReplyCount: (postText: string) => Promise<number>;
-  verifySiteImageInFeedCard: (contentTitle: string, siteId: string, siteImageFileId: string) => Promise<void>;
-  verifyPostIsAtTop: (postText: string) => Promise<void>;
-  verifyNoAttachmentsInShareModal: () => Promise<void>;
-  verifyShareModalIsFunctional: () => Promise<void>;
-  verifyShareModalIsOpen: () => Promise<void>;
-  verifyViewPostLinkInShareDialog: () => Promise<void>;
-  verifyFeedDetailPageLoaded: () => Promise<void>;
-  verifyVideoLinkUnfurled: (embedUrl: string) => Promise<void>;
-  verifyPostTextOnDetailPage: (postText: string) => Promise<void>;
-  verifyShareCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyLikesCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyRepliesCount: (postText: string, expectedCount: number) => Promise<void>;
-  verifyEmbededUrlIsVisible: (embedUrl: string) => Promise<void>;
-  verifyEmbedUrlPreviewIsVisible: (embedUrl: string) => Promise<void>;
-  verifyEmbedUrlPreviewIsVisibleInReply: (embedUrl: string, replyText: string) => Promise<void>;
-  verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyShareIconIsVisible: (postText: string) => Promise<void>;
-  verifyReactionButtonIsNotVisible: () => Promise<void>;
-  verifyReactionButtonIsVisible: () => Promise<void>;
-  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
-  verifyCommentIconIsVisible: () => Promise<void>;
-  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
-  verifyVideoControls: (postText: string) => Promise<void>;
-  verifyEmbededUrlIsNotUnfurled: (embedUrl: string, postText: string) => Promise<void>;
-  verifyDeletedPostMessage: (postText: string) => Promise<void>;
-  verifyRemovedContentMessage: (postText: string) => Promise<void>;
-  verifyPostCannotBeInteracted: (postText: string) => Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-  verifyToastMessageIsVisibleWithText: (message: string) => Promise<void>;
-  verifyShareModalIsVisible(): Promise<void>;
-  verifyShareModalIsClosed: () => Promise<void>;
-  verifyTimestampFormat: (postText: string) => Promise<void>;
-  verifyRecognitionPostVisible: (message?: string) => Promise<void>;
-  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
-  verifyCommentIconIsNotVisible: () => Promise<void>;
-  hoverOnProfileIconInPost: (postText: string, userName: string) => Promise<void>;
-  hoverOnProfileIconInReply: (replyText: string, userName: string) => Promise<void>;
-  verifyFollowButtonVisibleOnHover: (userName: string) => Promise<void>;
-  verifyFollowingButtonVisibleOnHover: (userName: string) => Promise<void>;
-  verifyUserNameVisibleOnHover: (userName: string) => Promise<void>;
-  verifyOnlyCopyLinkOptionVisible: (postText: string) => Promise<void>;
-  verifyReplyOptionsMenuNotVisible: (replyText: string) => Promise<void>;
-  verifyUserNameMentionIsVisible(postText: string, standardUserFullName: string): Promise<void>;
-  verifyInlineImagePreviewVisible: () => Promise<void>;
-}
-
-export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions {
-  private createFeedPostComponent: CreateFeedPostComponent;
-  private listFeedComponent: ListFeedComponent;
-  private filePreviewComponent: FilePreviewComponent;
-  private createQuestionComponent: CreateQuestionComponent;
-  private shareComponent: ShareComponent;
-
+export class FeedPage extends BasePage {
   /** Component for creating and editing feed posts */
   readonly postEditor: CreateFeedPostComponent;
 
@@ -386,23 +124,23 @@ export class FeedPage extends BasePage implements IFeedActions, IFeedAssertions 
   async reloadFeedDetailPage(postText: string): Promise<void> {
     await test.step('Reload feed detail page', async () => {
       await this.page.reload();
-      await this.assertions.waitForPostToBeVisible(postText);
+      await this.feedList.waitForPostToBeVisible(postText);
     });
   }
 
   // High-level user flow methods
   async createAndPost(options: FeedPostOptions): Promise<FeedPostResult> {
-    return await this.createFeedPostComponent.createAndPost(options);
+    return await this.postEditor.createAndPost(options);
   }
 
   async createAndPostWithTopic(text: string, topic: string): Promise<FeedPostResult> {
-    return await this.createFeedPostComponent.createAndPostWithTopic(text, topic);
+    return await this.postEditor.createAndPostWithTopic(text, topic);
   }
 
   async createAndPostQuestion(options: QuestionOptions): Promise<QuestionResult> {
-    return await this.createQuestionComponent.createAndPostQuestion(options);
+    return await this.questionEditor.createAndPostQuestion(options);
   }
-  
+
   async getPostContainerLocator(postText: string): Promise<Locator> {
     return this.feedPostContainer.filter({ hasText: postText }).first();
   }

@@ -341,12 +341,10 @@ test.describe(
       let siteDetails = await appManagerFixture.siteManagementHelper.getSiteDetails(siteId);
       let siteImageUrl = siteDetails.result?.img;
       if (!siteImageUrl) {
-        await siteDashboardPage.actions.uploadSiteImage(FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname));
-        await siteDashboardPage.assertions.verifyToastMessage(
-          FEED_TEST_DATA.TOAST_MESSAGES.SET_SITE_IMAGE_SUCCESSFULLY
-        );
+        await siteDashboardPage.uploadSiteImage(FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname));
+        await siteDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SET_SITE_IMAGE_SUCCESSFULLY);
         await siteDashboardPage.page.reload();
-        await siteDashboardPage.assertions.verifyThePageIsLoaded();
+        await siteDashboardPage.verifyThePageIsLoaded();
         siteDetails = await appManagerFixture.siteManagementHelper.getSiteDetails(siteId);
         siteImageUrl = siteDetails.result?.img;
       }
@@ -377,12 +375,12 @@ test.describe(
 
       await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
       await contentPreviewPage.verifyThePageIsLoaded();
-      await contentPreviewPage.actions.clickShareThoughtsButton();
+      await contentPreviewPage.clickShareThoughtsButton();
 
       createdFeedText = FEED_TEST_DATA.POST_TEXT.COMMENT;
 
       const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-      const feedResponse = await createFeedPostComponent.actions.createAndPost({ text: createdFeedText });
+      const feedResponse = await createFeedPostComponent.createAndPost({ text: createdFeedText });
       createdFeedId = feedResponse.postId || '';
     });
 
@@ -424,10 +422,10 @@ test.describe(
         const feedDetailPage = new FeedPage(appManagerFixture.page, createdFeedId);
         await feedDetailPage.loadFeedDetailPage({ stepInfo: 'Load feed detail page to verify shared content' });
         await feedDetailPage.verifyFeedDetailPageLoaded();
-        await feedDetailPage.assertions.waitForPostToBeVisible(createdFeedText);
+        await feedDetailPage.feedList.waitForPostToBeVisible(createdFeedText);
 
         // Verify that the feed card for the shared content is displayed
-        await feedDetailPage.actions.reloadFeedDetailPage(createdFeedText);
+        await feedDetailPage.reloadFeedDetailPage(createdFeedText);
 
         // Verify that the site image is rendered as the fallback image in the feed card
         // This verifies that the image shown is the same as the site's iconImage
