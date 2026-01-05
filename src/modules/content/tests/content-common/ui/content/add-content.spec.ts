@@ -73,7 +73,8 @@ test.describe(
           storyId: 'CONT-30521',
         });
 
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
+        const siteId =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_UNLISTED_SITE_NAME);
         const siteName = DEFAULT_UNLISTED_SITE_NAME;
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
@@ -120,9 +121,8 @@ test.describe(
           zephyrTestId: 'CONT-39680',
           storyId: 'CONT-39680',
         });
-
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
         const siteName = DEFAULT_UNLISTED_SITE_NAME;
+        const siteId = await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(siteName);
         console.log('siteName :   ', siteName);
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,

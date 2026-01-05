@@ -406,6 +406,8 @@ export class SiteManagementHelper {
       canManage?: boolean;
       filter?: string;
       includeDeactivated?: boolean;
+      accessType?: SITE_TYPES;
+      waitForSearchIndex?: boolean;
     }
   ): Promise<string> {
     return await test.step(`Searching for site "${siteName}" and activating if needed`, async () => {
@@ -421,12 +423,24 @@ export class SiteManagementHelper {
         item => item.item.title.toLowerCase() === siteName.toLowerCase()
       );
 
-      if (!matchingSite) {
-        throw new Error(`Site with name "${siteName}" not found in search results`);
-      }
+      let siteId: string;
+      let isActive: boolean;
 
-      const siteId = matchingSite.item.id;
-      const isActive = matchingSite.item.isActive;
+      if (!matchingSite) {
+        const createdSite = await this.creationHelper.createSiteByAccessType(
+          options?.accessType || SITE_TYPES.PUBLIC,
+          siteName,
+          {
+            waitForSearchIndex: options?.waitForSearchIndex,
+          }
+        );
+        siteId = createdSite.siteId;
+        // Newly created sites are active by default
+        isActive = true;
+      } else {
+        siteId = matchingSite.item.id;
+        isActive = matchingSite.item.isActive;
+      }
 
       // If site is not active, activate it
       if (!isActive) {
