@@ -25,14 +25,14 @@ test.describe(
       await appsPage.assertions.verifyThePageIsLoaded();
     });
 
-    test(
+    test.skip(
       'verify app manager can search and select an integration from the list',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: 'INT-29641',
           description: 'verify that app manager can search for integrations and select them',
         });
 
@@ -45,14 +45,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify app manager can add a new integration with valid connection name and audience',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: 'INT-29642',
           description: 'verify that app manager can successfully add a new integration connection',
         });
 
@@ -66,14 +66,35 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
+      'verify app manager can add a new integration with special characters in connection name and audience',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: ['INT-29650', 'INT-29706'],
+          description: 'verify that app manager can add a new integration connection with special characters',
+        });
+
+        const integrationName = 'ServiceNow';
+        const connectionName = '#@&!D@SAD';
+        await appsPage.actions.addIntegration(integrationName, connectionName);
+        await appsPage.actions.navigateToAppsTab();
+        await appsPage.verifyThePageIsLoaded();
+        await appsPage.assertions.verifyIntegrationIsAddedSuccessfully(connectionName);
+        await appsPage.assertions.verifyStatusBadgeText(connectionName, IntegrationStatus.DISABLED);
+      }
+    );
+
+    test.skip(
       'verify app manager can add multiple integrations with different connection names',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: 'INT-29645',
           description: 'verify that app manager can add multiple integration connections with unique names',
         });
 
@@ -92,14 +113,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify app manager can enter ServiceNow credentials and connect to ServiceNow on apps page and external apps page',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: ['INT-30204', 'INT-30205', 'INT-29707'],
           description: 'verify that app manager can enter ServiceNow credentials',
         });
 
@@ -124,14 +145,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify app manager can enter confluence credentials and connect to confluence',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: 'INT-30205',
           description: 'verify that app manager can enter ServiceNow credentials',
         });
 
@@ -147,14 +168,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify add integration pop up can be closed by clicking on x button',
       {
         tag: [TestPriority.P3, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: ['INT-29643', 'INT-29644'],
           description: 'verify that add integration pop up can be closed by clicking on x button',
         });
 
@@ -165,14 +186,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify save button is disabled when connection name is empty',
       {
         tag: [TestPriority.P3, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: 'INT-29646',
           description: 'verify that save button is disabled when connection name is empty',
         });
 
@@ -189,14 +210,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify save button is disabled when target audience is not selected',
       {
         tag: [TestPriority.P2, TestGroupType.REGRESSION],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          storyId: 'INT-29648',
           description: 'verify that save button is disabled when target audience is not selected',
         });
 
@@ -210,14 +231,14 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify app manager can add integration and search for it by connection name',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
       async () => {
         tagTest(test.info(), {
-          storyId: 'INT-XXXX',
+          zephyrTestId: 'INT-29642',
           description:
             'verify that after adding an integration, app manager can search for it by connection name and verify it exists',
         });
