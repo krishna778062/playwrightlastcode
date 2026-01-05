@@ -408,9 +408,9 @@ export class PeopleTabComponent extends BaseComponent {
         this.integrationSelectionDialog(),
         'expecting integration selection dialog to be visible'
       ).toBeVisible();
+      await this.page.waitForTimeout(1000);
       await expect(this.integrationSearchInput(), 'expecting search input to be visible').toBeVisible();
       await this.integrationSearchInput().fill(sourceName);
-      // Wait a moment for search results to appear
       await this.page.waitForTimeout(500);
     });
   }
