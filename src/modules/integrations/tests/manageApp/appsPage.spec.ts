@@ -16,7 +16,7 @@ let appsPage: AppsPage;
 test.describe(
   'apps page - integration management',
   {
-    tag: [IntegrationsSuiteTags.APPS_PAGE, IntegrationsSuiteTags.INTEGRATIONS],
+    tag: [IntegrationsSuiteTags.APPS_PAGE, IntegrationsSuiteTags.INTEGRATIONS, IntegrationsSuiteTags.PHOENIX],
   },
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {
