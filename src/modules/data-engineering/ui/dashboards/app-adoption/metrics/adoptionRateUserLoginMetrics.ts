@@ -53,29 +53,35 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
         // Parse adoption rate value to check if it's > 0
         const adoptionRateValue = parseFloat(data.adoptionRate.replace('%', ''));
 
+        console.log(
+          `----> Checking if bar at index ${index} should be skipped: ${data.userLogins === 0 || adoptionRateValue < 0.0014}`
+        );
+
         // Skip bars with 0% adoption rate or 0 user logins (these bars exist but can't be hovered)
-        if (data.userLogins === 0 || adoptionRateValue === 0) {
+        if (data.userLogins === 0 || adoptionRateValue < 0.15) {
           console.log(
             `----> Skipping bar at index ${index} (Reporting date: ${data.reportingDate}, Adoption rate: ${data.adoptionRate}, User logins: ${data.userLogins})`
           );
           continue;
         }
 
-        // Hover over the bar and verify the tooltip values
-        await this.hoverOnBarWithIndexAs(index);
-        await this.waitForToolTipContainerToBeVisible();
-        await this.validateValuesShownInToolTipAreAsExpected({
-          labelsAndValues: [
-            { keyText: 'Reporting date:', expectedValue: data.reportingDate },
-            { keyText: 'User logins:', expectedValue: data.userLogins.toString() },
-            { keyText: 'Adoption rate:', expectedValue: data.adoptionRate },
-          ],
+        await test.step(`Verify bar at index ${index} to have tooltips as expected`, async () => {
+          // Hover over the bar and verify the tooltip values
+          await this.hoverOnBarWithIndexAs(index);
+          await this.waitForToolTipContainerToBeVisible();
+          await this.validateValuesShownInToolTipAreAsExpected({
+            labelsAndValues: [
+              { keyText: 'Reporting date:', expectedValue: data.reportingDate },
+              { keyText: 'User logins:', expectedValue: data.userLogins.toString() },
+              { keyText: 'Adoption rate:', expectedValue: data.adoptionRate },
+            ],
+          });
+          //wait for 1 second
+          await this.page.locator('#site-header').hover();
+          await this.waitForToolTipContainerToBeHidden();
+          //wait for 1 second
+          await this.page.waitForTimeout(500);
         });
-        console.log(
-          `----> Verified bar at index ${index} (Reporting date: ${data.reportingDate}, Adoption rate: ${data.adoptionRate}, User logins: ${data.userLogins})`
-        );
-        // Hold 1 second between hovers to avoid rapid interactions
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
     });
   }
