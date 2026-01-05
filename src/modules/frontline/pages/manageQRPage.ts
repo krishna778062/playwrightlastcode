@@ -1284,6 +1284,14 @@ export class ManageQRPage extends BasePage {
     const qrRow = this.qrRowByText.filter({ hasText: qrName });
     const downloadIcon = qrRow.locator(this.downloadIcon);
 
+    // First wait for the row to be visible and scroll it into view
+    await this.verifier.waitUntilElementIsVisible(qrRow, {
+      timeout: TIMEOUTS.SHORT,
+      stepInfo: `Wait for QR row to be visible for QR: ${qrName}`,
+    });
+
+    await qrRow.scrollIntoViewIfNeeded();
+
     await this.verifier.waitUntilElementIsVisible(downloadIcon, {
       timeout: TIMEOUTS.SHORT,
       stepInfo: `Wait for download icon to be visible for QR: ${qrName}`,
