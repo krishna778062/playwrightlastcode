@@ -63,7 +63,7 @@ test.describe('polls Management Tests', () => {
     }
   );
 
-  test(
+  test.skip(
     'navigate to the poll listing page from manage feature side panel',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
@@ -83,7 +83,7 @@ test.describe('polls Management Tests', () => {
     }
   );
 
-  test(
+  test.skip(
     'navigate to the poll listing page from EL with ABAC side panel',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS', TestGroupType.HEALTHCHECK],

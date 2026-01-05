@@ -135,6 +135,14 @@ on:
         type: number
         default: 200
 
+      release_tag:
+        description: |
+          Release tag for BrowserStack tracking (e.g., 25.01-qa.1).
+          If empty, uses git_ref or 'untagged' as fallback.
+        required: false
+        type: string
+        default: ''
+
 # ============================================================================
 # PERMISSIONS
 # ============================================================================
@@ -464,6 +472,10 @@ jobs:
       CI_BRANCH: ${{ github.ref_name }}
       BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
       BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      # Release tag for tracking (fallback to git ref or 'untagged' if empty)
+      RELEASE_TAG: ${{ inputs.release_tag || needs.determine-config.outputs.checkout_ref || 'untagged' }}
+      # Trigger type for BrowserStack tagging
+      TRIGGER_TYPE: ${{ inputs.trigger_type }}
 
     # ========================================================================
     # EXECUTION STEPS
@@ -552,7 +564,63 @@ jobs:
           sudo apt-get install -y ghostscript imagemagick graphicsmagick
 
       # ────────────────────────────────────────────────────────────────────
-      # STEP 8: RUN TESTS
+      # STEP 8: GENERATE BROWSERSTACK BUILD NAME
+      # Purpose: Create descriptive build name for BrowserStack tracking
+      # Format: "{Type}-{Tag/Branch}-{Module}-{Env}"
+      # Examples:
+      #   - Release-25.01-Rewards-QA (for release regression)
+      #   - Daily-develop-Chat-test (for daily regression)
+      #   - Healthcheck-Platforms-prodUS (for prod healthcheck)
+      # ────────────────────────────────────────────────────────────────────
+      - name: Generate BrowserStack build name
+        run: |
+          TRIGGER="${{ inputs.trigger_type }}"
+          TAG="${RELEASE_TAG}"
+          MODULE="${MODULE_NAME}"
+          ENV="${TEST_ENV}"
+          BRANCH="${CI_BRANCH}"
+
+          # Capitalize first letter of module for cleaner display
+          MODULE_CAP="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
+
+          # Generate build name based on trigger type
+          case "$TRIGGER" in
+            "daily_cron")
+              # Daily regression: Daily-{branch}-{Module}-{env}
+              BUILD_NAME="Daily-${BRANCH}-${MODULE_CAP}-${ENV}"
+              ;;
+            "qa_release")
+              # QA release: Release-{tag}-{Module}-QA
+              BUILD_NAME="Release-${TAG}-${MODULE_CAP}-QA"
+              ;;
+            "uat_release")
+              # UAT release: Release-{tag}-{Module}-UAT
+              BUILD_NAME="Release-${TAG}-${MODULE_CAP}-UAT"
+              ;;
+            "prod_healthcheck")
+              # Prod healthcheck: Healthcheck-{Module}-{env}
+              BUILD_NAME="Healthcheck-${MODULE_CAP}-${ENV}"
+              ;;
+            "manual")
+              # Manual: Manual-{tag/branch}-{Module}-{env}
+              BUILD_NAME="Manual-${TAG}-${MODULE_CAP}-${ENV}"
+              ;;
+            *)
+              BUILD_NAME="${TRIGGER}-${TAG}-${MODULE_CAP}-${ENV}"
+              ;;
+          esac
+
+          echo "=========================================="
+          echo "BROWSERSTACK BUILD NAME"
+          echo "=========================================="
+          echo "📛 $BUILD_NAME"
+          echo "=========================================="
+
+          # Export for browserstack.yml to use
+          echo "BROWSERSTACK_BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 9: RUN TESTS
       # Purpose: Execute Playwright tests for the current module
       #
       # Module-Specific Handling:
@@ -570,18 +638,29 @@ jobs:
         id: run-tests
         run: |
           # ================================================================
-          # TEST EXECUTION SCRIPT (Simplified - No Filters)
+          # TEST EXECUTION SCRIPT
           # ================================================================
-          # This runs ALL tests for the module.
-          # For filtered runs (P0, smoke, etc.), use manual-regression-v2.yml
+          # - Full regression: Runs ALL tests for the module
+          # - Prod healthcheck: Runs only @healthcheck tagged tests
+          # - For other filtered runs, use manual-regression-v2.yml
           # ================================================================
 
           MODULE="${{ matrix.module }}"
           WORKERS="${{ inputs.workers }}"
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
+          TRIGGER_TYPE="${{ inputs.trigger_type }}"
 
           # Set TLS config for test environments (some use self-signed certs)
           export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+          # ────────────────────────────────────────────────────────────
+          # Determine grep filter based on trigger type
+          # ────────────────────────────────────────────────────────────
+          GREP_FILTER=""
+          if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
+            GREP_FILTER='--grep="@healthcheck"'
+            echo "🏥 Production Healthcheck: Filtering by @healthcheck tag"
+          fi
 
           echo "=========================================="
           echo "EXECUTING TESTS"
@@ -589,6 +668,8 @@ jobs:
           echo "Module: $MODULE"
           echo "Workers: $WORKERS"
           echo "BrowserStack: $IS_BROWSERSTACK"
+          echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Grep Filter: ${GREP_FILTER:-'(none - full regression)'}"
           echo ""
 
           # ────────────────────────────────────────────────────────────
@@ -604,6 +685,7 @@ jobs:
 
           # ────────────────────────────────────────────────────────────
           # Module-specific test execution
+          # Note: GREP_FILTER is applied for prod_healthcheck (@healthcheck)
           # ────────────────────────────────────────────────────────────
           case "$MODULE" in
             
@@ -614,8 +696,9 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "reward")
               echo "📦 Running Reward tests (excluding @rewards-db and P3)..."
-              $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts \
-                --grep-invert="@rewards-db|P3" \
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
                 --workers=3
               ;;
             
@@ -626,8 +709,9 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "reward-settings")
               echo "📦 Running Reward Settings tests (excluding @rewards-db and P3)..."
-              $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts \
-                --grep-invert="@rewards-db|P3" \
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
                 --workers=1
               ;;
             
@@ -637,20 +721,23 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "de")
               echo "📦 Running Data Engineering UI tests..."
-              $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "de-api")
               echo "📦 Running Data Engineering API tests..."
-              $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "de-api-abac")
               echo "📦 Running Data Engineering API ABAC tests..."
-              $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             # ──────────────────────────────────────────────────────────
@@ -659,26 +746,30 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "content")
               echo "📦 Running Content tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "content-settings")
               echo "📦 Running Content Settings tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "content-studio")
               echo "📦 Running Content Studio tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "content-abac")
               echo "📦 Running Content ABAC tests..."
-              $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             # ──────────────────────────────────────────────────────────
@@ -686,14 +777,16 @@ jobs:
             # ──────────────────────────────────────────────────────────
             "recognition")
               echo "📦 Running Recognition tests..."
-              $RUN_CMD --config=src/modules/recognition/playwright.recognition.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/recognition/playwright.recognition.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             "privateRecognition")
               echo "📦 Running Private Recognition tests..."
-              $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
             
             # ──────────────────────────────────────────────────────────
@@ -702,8 +795,9 @@ jobs:
             # ──────────────────────────────────────────────────────────
             *)
               echo "📦 Running $MODULE tests..."
-              $RUN_CMD --config=src/modules/$MODULE/playwright.$MODULE.config.ts \
-                --workers="$WORKERS"
+              eval $RUN_CMD --config=src/modules/$MODULE/playwright.$MODULE.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
               ;;
           esac
 

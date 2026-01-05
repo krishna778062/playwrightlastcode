@@ -209,18 +209,21 @@ export class SiteManagementHelper {
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.PRIVATE:
         return await this.createPrivateSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       case SITE_TYPES.UNLISTED:
         return await this.createUnlistedSite({
           siteName: options.siteName,
           category: options.category,
           overrides: options.overrides,
+          waitForSearchIndex: options.waitForSearchIndex,
         });
       default:
         throw new Error(`Invalid access type: ${options.accessType}`);
@@ -431,6 +434,14 @@ export class SiteManagementHelper {
    */
   getSiteCount(): number {
     return this.sites.length;
+  }
+
+  async activateSite(allEmployeesSiteId: string) {
+    return await this.siteManagementService.activateSite(allEmployeesSiteId);
+  }
+
+  async deactivateSite(siteId: string) {
+    return await this.siteManagementService.deactivateSite(siteId);
   }
 
   async getCategoryList(options: { size?: number; sortBy?: string } = {}): Promise<any> {

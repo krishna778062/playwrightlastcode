@@ -58,6 +58,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           sortBy: 'alphabetical',
           term: category,
         },
+        timeout: 30000,
       });
       const json = await response.json();
       if (!json.result?.listOfItems?.length) throw new Error('Category not found');
@@ -320,7 +321,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         {
           message: `Video file "${fileName}" to appear in search results for site ${siteId}`,
         }
-      ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
+      ).toPass({ intervals: [10_000, 20_000, 40_000, 60_000], timeout: 60_000 });
     });
     log.debug('fileID', { fileId: file.item.fileId });
     return { fileId: file.item.fileId, authorName: file.item.owner.name };
