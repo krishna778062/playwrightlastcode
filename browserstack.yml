@@ -8,14 +8,24 @@ accessKey: ${BROWSERSTACK_ACCESS_KEY}
 # ======================
 # BrowserStack Reporting
 # ======================
-# Dynamic build/project names from CI environment
-# Note: These env vars MUST be set before running tests
-buildName: ${MODULE_NAME} - ${TEST_ENV}
+# All values are set at runtime by the workflow
+# See regression-unified-template.yml for build name generation logic
+#
+# Build name format examples:
+#   - Daily: "Daily-develop-Chat-test"
+#   - QA Release: "Release-25.01-Rewards-QA"
+#   - UAT Release: "Release-25.01-Platforms-UAT"
+#   - Prod Healthcheck: "Healthcheck-Chat-prodUS"
+#   - Manual: "Manual-25.01-Rewards-qa"
+#
+buildName: ${BROWSERSTACK_BUILD_NAME}
 projectName: ${MODULE_NAME}
 buildIdentifier: '#${BUILD_NUMBER}'
 sessionName: '${MODULE_NAME} - ${TEST_ENV}'
-CUSTOM_TAG_1: ${MODULE_NAME}
-CUSTOM_TAG_2: ${TEST_ENV}
+CUSTOM_TAG_1: ${RELEASE_TAG}
+CUSTOM_TAG_2: ${MODULE_NAME}
+CUSTOM_TAG_3: ${TEST_ENV}
+CUSTOM_TAG_4: ${TRIGGER_TYPE}
 
 # ======================
 # Test Observability Only
