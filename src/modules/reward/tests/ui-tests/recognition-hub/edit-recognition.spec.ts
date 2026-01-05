@@ -389,7 +389,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5354 Verify user can edit points within the 24hr pending period',
+    '[RC-5354] Verify user can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -434,7 +434,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
-
+      await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition published');
+      await manageRecognition.dismissTheToastMessage();
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
       const recognitionPostId = String(body.id);
@@ -461,12 +462,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await expect(giveRecognitionModal.doneButton).toBeEnabled();
       await giveRecognitionModal.doneButton.click({ force: true });
       await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
+      await manageRecognition.dismissTheToastMessage();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
       await recognitionHub.deleteTheFirstRecognitionPost();
+      await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition deleted');
+      await manageRecognition.dismissTheToastMessage();
     }
   );
 
@@ -587,7 +591,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5355 Verify user can not edit points after the 24hr pending period',
+    '[RC-5355] Verify user can not edit points after the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -604,11 +608,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
-      await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
-        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
-      });
       const recognitionGiverName = getRewardTenantConfigFromCache().endUserName;
       await manageRecognitionPage.loadPage();
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
