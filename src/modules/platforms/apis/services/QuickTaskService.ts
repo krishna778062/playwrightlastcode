@@ -50,7 +50,13 @@ export class QuickTaskService {
     }
 
     // Try different possible endpoints to get current user info
-    const possibleEndpoints = ['/v1/user/me', '/v1/users/me', '/v1/identity/user/me'];
+    const possibleEndpoints = [
+      '/v1/w-task/user/me',
+      '/v1/w-task/users/me',
+      '/v1/user/me',
+      '/v1/users/me',
+      '/v1/identity/user/me',
+    ];
 
     for (const endpoint of possibleEndpoints) {
       try {
@@ -146,39 +152,42 @@ export class QuickTaskService {
     futureDate.setDate(futureDate.getDate() + DEFAULT_FUTURE_DAYS_OFFSET);
     const dueDate = futureDate.toISOString().split('T')[0] + ' 00:00';
 
+    // Get the current logged-in user ID (from API context)
+    // Try to get from cache first, otherwise get from API or task creation
     let currentUserId: string;
-    try {
-      currentUserId = await this.getCurrentUserId();
-    } catch (error) {
-      const response = await this.createTask({
-        title: `Task ${faker.word.noun()} ${Date.now()}`,
-        priority,
-        dueDate,
-        description: `Description ${faker.lorem.sentence()}`,
-        assignedTo: {
-          users: [],
-        },
-      });
+    if (this.cachedUserId) {
+      currentUserId = this.cachedUserId;
+    } else {
+      // Try to get user ID from API endpoints first
+      try {
+        currentUserId = await this.getCurrentUserId();
+      } catch (error) {
+        // If API endpoints fail, create a temporary task to get assignedBy.id (current logged-in user)
+        const tempTask = await this.createTask({
+          title: `Temp ${Date.now()}`,
+          priority,
+          dueDate,
+          description: 'temp',
+          assignedTo: {
+            users: [],
+          },
+        });
 
-      if (this.cachedUserId) {
-        try {
-          await this.httpClient.patch(`/v1/w-task/tasks/${response.result._id}`, {
-            data: {
-              assignedTo: {
-                users: [{ id: this.cachedUserId }],
-              },
-            },
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          });
-        } catch (updateError) {
-          // Silently fail - task was created but assignment update failed
+        const assignedById = (tempTask.result as any).assignedBy?.id;
+        if (!assignedById) {
+          await this.deleteTask(tempTask.result._id).catch(() => {});
+          throw new Error('Could not determine current logged-in user ID');
         }
+
+        this.cachedUserId = assignedById;
+        currentUserId = assignedById;
+
+        // Delete the temporary task
+        await this.deleteTask(tempTask.result._id).catch(() => {});
       }
-      return response;
     }
 
+    // Create the task directly with the logged-in user ID in the payload
     return this.createTask({
       title: `Task ${faker.word.noun()} ${Date.now()}`,
       priority,

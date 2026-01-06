@@ -18,11 +18,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [integrations-primary, integrations-workday, integrations-azuresso]
+        module: [integrations-primary, integrations-workday, integrations-azuresso, integrations-api]
         environment: [qa]
+        test_category: [ui, api]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
-      MODULE_NAME: ${{ matrix.module }}
+      MODULE_NAME: ${{ matrix.module }}-${{ matrix.test_category }}
       SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
     steps:
       - name: Record Start Time
@@ -76,7 +77,13 @@ jobs:
           TEST_ENV: ${{ matrix.environment }}
         run: |
           # Run integrations regression tests
-          npm run test:${{ matrix.module }} -- --workers=6
+          if [ "${{ matrix.test_category }}" = "api" ]; then
+            # API tests use fewer workers
+            npm run test:integrations-api -- --workers=4
+          else
+            # UI tests use the tenant-specific config
+            npm run test:${{ matrix.module }} -- --workers=6
+          fi
 
       - name: Upload test report to github artifact backup
         if: always()
