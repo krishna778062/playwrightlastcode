@@ -53,8 +53,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [
-            reward-browserstack, # Testing BrowserStack integration
+        # DISABLED: reward-browserstack removed - BrowserStack disabled to preserve quota
+        module:
+          [
             chat,
             platforms,
             global-search,
@@ -74,7 +75,7 @@ jobs:
             employee-listening,
             form-designer,
             comms-planner,
-          ] # Add -browserstack suffix to use BrowserStack Test Observability
+          ]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ matrix.module }}
