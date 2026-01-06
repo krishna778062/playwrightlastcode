@@ -215,6 +215,8 @@ export class ContentManagementService implements IContentManagementServices {
         );
       }
 
+      // Build update payload matching the working curl request structure
+      // Include all properties that the API accepts (based on successful curl test)
       const updatePayload: any = {
         authoredBy: authoredById,
         contentSubType: contentSubType,
@@ -222,28 +224,25 @@ export class ContentManagementService implements IContentManagementServices {
         publishAt: formattedPublishAt,
         body: bodyString,
         imgCaption: contentItem.imgCaption || '',
+        isRestricted: contentItem.isRestricted || false,
         publishingStatus: contentItem.isScheduled ? 'scheduled' : 'immediate',
         listOfInlineImages: contentItem.listOfInlineImages || [],
         listOfInlineVideos: contentItem.listOfInlineVideos || [],
         summary: contentItem.summary || null,
+        readTimeInMin: contentItem.readTimeInMin || 1,
+        publishTo: contentItem.publishTo || null,
         bodyHtml: contentItem.bodyHtml || '',
         imgLayout: contentItem.imgLayout || 'small',
         isMaximumWidth: contentItem.isMaximumWidth || false,
-        isQuestionAnswerEnabled:
-          contentItem.isQuestionAnswerEnabled !== undefined ? contentItem.isQuestionAnswerEnabled : true,
+        targetAudience: contentItem.targetAudience || [],
         title: contentItem.title || '',
+        language: contentItem.language || 'en-US',
         isFeedEnabled: contentItem.isFeedEnabled !== undefined ? contentItem.isFeedEnabled : true,
         listOfTopics: contentItem.listOfTopics || [],
         category: { id: categoryId, name: contentItem.category?.name || 'Uncategorized' },
         manualTransEnabled: contentItem.manualTransEnabled || false,
         contentType: contentItem.type || contentItem.contentType || 'page',
-        isRestricted: contentItem.isRestricted || false,
-        language: contentItem.language || 'en-US',
       };
-
-      // Only include optional fields if they have values (avoid sending null/undefined/read-only fields)
-      // readTimeInMin, publishTo, and targetAudience are likely read-only or not allowed in updates
-      // so we exclude them to avoid "Additional properties" errors
 
       const response = await this.httpClient.put(API_ENDPOINTS.content.updateDetails(siteId, contentId), {
         data: updatePayload,

@@ -169,7 +169,11 @@ export class ManageContentComponent extends BaseComponent {
     this.validationViewAllButton = page.getByRole('button', { name: 'View all' });
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
-    this.checkBoxOfContent = page.locator('.ManageContentListItem-checkbox').first();
+    // Locator for all checkboxes in content list items (not just first)
+    // Structure: .ManageContentListItem > .ManageContentListItem-checkbox > input[type="checkbox"][aria-label="Select"]
+    this.checkBoxOfContent = page
+      .locator('.ManageContentListItem')
+      .locator('input[type="checkbox"][aria-label="Select"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
     this.validationRequiredInfoBox = page.locator('.InfoBox').first();
     this.selectContentByNumberOfItemsButton = (option: number) => page.locator('[type="checkbox"]').nth(option);
@@ -179,7 +183,13 @@ export class ManageContentComponent extends BaseComponent {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
   }
   getGlobalSearchResultPageName(pageName: string): Locator {
-    return this.page.locator(`h2:has-text("${pageName}")`).first();
+    // Scope to search results region to avoid matching links in AI summary "Sources" section
+    // The search results are in a region with "Results for" in the name
+    // Search result links can have names like "B2B synergiesEvent" or "B2B synergiesEvent Result 1"
+    const escapedName = pageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchResultsRegion = this.page.getByRole('region').filter({ hasText: /Results for/ });
+    // Match links that start with the page name (handles both "B2B synergiesEvent" and "B2B synergiesEvent Result 1")
+    return searchResultsRegion.getByRole('link', { name: new RegExp(`^${escapedName}`, 'i') }).first();
   }
   getContentNameLocator(text: string): Locator {
     // Match by aria-label (most reliable) within the content list item

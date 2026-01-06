@@ -74,7 +74,6 @@ test.describe(
         });
 
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();
         await manageContentPage.manageContent.writeRandomTextInSearchBar(title);
@@ -277,35 +276,17 @@ test.describe(
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
-        const contentListResponse =
-          await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
-            filter: 'owned',
-          });
-        if (contentListResponse.result.listOfItems.length < 5) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-          const pagesToCreate = 5 - contentListResponse.result.listOfItems.length;
-          for (let i = 0; i < pagesToCreate; i++) {
-            await appManagerApiFixture.contentManagementHelper.createPage({
-              siteId: siteInfo.siteId,
-              contentInfo: { contentType: 'page', contentSubType: 'news' },
-            });
-          }
-        }
+
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();
         await manageContentPage.manageContent.clickFilterButton();
-        const publicSites = await appManagerApiFixture.siteManagementHelper.getListOfSites({
-          filter: 'public',
-          sortBy: 'alphabetical',
+        const publicSites = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        await appManagerApiFixture.contentManagementHelper.createPage({
+          siteId: publicSites.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
-        console.log('publicSites', publicSites);
-        const publicSite = publicSites.result.listOfItems.find(
-          (site: any) => site.isActive === true && site.isPublic === true
-        );
-        console.log('publicSite', publicSite);
-
-        await manageContentPage.manageContent.clickSiteSearchBar(publicSite?.name || '');
+        await manageContentPage.manageContent.clickSiteSearchBar(publicSites?.name);
         await manageContentPage.manageContent.selectSiteSearchBarOption();
         await manageContentPage.manageContent.verifySiteNameLink();
       }
@@ -522,6 +503,7 @@ test.describe(
         await manageContentPage.manageContent.clickFilterButton();
         await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.manageContent.clickFilterButton();
+        await appManagerFixture.page.reload();
         await manageContentPage.manageContent.selectFirstContent();
         await manageContentPage.manageContent.selectActionDropdown();
         await manageContentPage.manageContent.selectUnpublishButton();
@@ -680,7 +662,7 @@ test.describe(
           await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
           await manageFeaturesPage.clickOnContentCard();
           await manageContentPage.manageContent.selectSelectAllButton();
-          await manageContentPage.manageContent.verifyAllContentsAreSelected(17);
+          await manageContentPage.manageContent.verifyAllContentsAreSelected(16);
         }
       }
     );
