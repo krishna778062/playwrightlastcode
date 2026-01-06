@@ -152,8 +152,7 @@ export class SiteQueryHelper {
       const matchesRequirements =
         site.hasPages === requiredHasPages &&
         site.hasEvents === requiredHasEvents &&
-        site.hasAlbums === requiredHasAlbums &&
-        site.isActive === true;
+        site.hasAlbums === requiredHasAlbums;
 
       if (matchesRequirements) {
         log.debug(`Found matching site: ${site.name} (${site.siteId})`);
@@ -477,14 +476,29 @@ export class SiteQueryHelper {
         size: options?.size,
         sortBy: options?.sortBy,
       });
-      log.debug('Deactivated site list response', { response: siteListResponse });
 
-      const site = siteListResponse.result.listOfItems.find(
+      // Filter sites by access type and get a random one
+      const sitesByAccessType = siteListResponse.result.listOfItems.filter(
         (site: any) => site.access.toLowerCase() === accessType.toLowerCase()
       );
+
+      log.debug('Deactivated site list response', { response: sitesByAccessType });
+
+      let site: any = null;
+
+      if (sitesByAccessType.length === 0) {
+        log.debug('No deactivated sites found for access type, will create one');
+      } else {
+        // Get a random site from the filtered list
+        const randomIndex = Math.floor(Math.random() * sitesByAccessType.length);
+        site = sitesByAccessType[randomIndex];
+        log.debug('Random deactivated site selected', { site, totalMatches: sitesByAccessType.length });
+      }
+
       log.debug('Deactivated site', { site });
 
       if (!site) {
+        log.debug('Not Creating a new site');
         const createdSite = await this.creationHelper.createSite({
           accessType: accessType,
           waitForSearchIndex: true,

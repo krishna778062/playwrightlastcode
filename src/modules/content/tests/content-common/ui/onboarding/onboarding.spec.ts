@@ -113,12 +113,9 @@ test.describe('onboarding', () => {
       await homeDashboardPage.clickOnAddContentTileOption();
       await homeDashboardPage.clickingOnOnboardingTab();
 
-      const isButtonDisabled = await homeDashboardPage.isAddToHomeButtonDisabled();
-      if (!isButtonDisabled) {
-        await homeDashboardPage.clickingOnAddToHomeButton();
-        await homeDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY);
-        await homeDashboardPage.clickingOnDoneButton();
-      }
+      await homeDashboardPage.clickingOnAddToHomeButton();
+      await homeDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY);
+      await homeDashboardPage.clickingOnDoneButton();
 
       await homeDashboardPage.clickOnEditDashboardButton();
       await homeDashboardPage.clickOnAddTileButton();

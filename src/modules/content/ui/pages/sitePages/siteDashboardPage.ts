@@ -47,7 +47,8 @@ export class SiteDashboardPage extends BaseSitePage {
     this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
-    this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+    this.siteLink = (siteName: string) =>
+      this.page.getByLabel('Categories').getByRole('link', { name: siteName, exact: true });
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.dashboardFeedLink = this.page.getByRole('tab', { name: 'Dashboard & feed' });
     this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });

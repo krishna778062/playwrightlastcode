@@ -57,27 +57,40 @@ export class HomeDashboardPage extends BasePage {
     });
   }
   async clickOnEditDashboardButton(): Promise<void> {
-    await this.clickByInjectingJavaScript(this.editDashboardButton);
+    await test.step('Click on Edit dashboard button', async () => {
+      await this.clickByInjectingJavaScript(this.editDashboardButton);
+    });
   }
   async clickOnAddTileButton(): Promise<void> {
-    await this.clickOnElement(this.addTileButton);
+    await test.step('Click on Add tile button', async () => {
+      await this.clickOnElement(this.addTileButton);
+    });
   }
   async clickOnAddContentTileOption(): Promise<void> {
-    await this.addTileComponent.clickingOnAddContentTileOption();
+    await test.step('Click on Add content tile option', async () => {
+      await this.addTileComponent.clickingOnAddContentTileOption();
+    });
   }
   async selectingPagesAsContentType(): Promise<void> {
-    await this.addContentTileComponent.selectingPagesAsContentType();
+    await test.step('Selecting pages as content type', async () => {
+      await this.addContentTileComponent.selectingPagesAsContentType();
+    });
   }
   async namingTheTile(tileName: string): Promise<void> {
-    await this.addContentTileComponent.namingTheTile(tileName);
+    await test.step('Naming the tile', async () => {
+      await this.addContentTileComponent.namingTheTile(tileName);
+    });
   }
   async clickingOnAddToHomeButton(): Promise<void> {
     await test.step('Click on Add to home button', async () => {
+      await this.verifier.verifyTheElementIsEnabled(this.addToHomeButton);
       await this.clickOnElement(this.addToHomeButton);
     });
   }
   async verifyToastMessage(toastMessage: string): Promise<void> {
-    await this.baseActionUtil.verifyToastMessageIsVisibleWithText(toastMessage);
+    await test.step('Verify toast message is visible with text', async () => {
+      await this.baseActionUtil.verifyToastMessageIsVisibleWithText(toastMessage);
+    });
   }
   async clickingOnDoneButton(): Promise<void> {
     await test.step('Click on Done button', async () => {

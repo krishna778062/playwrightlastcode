@@ -12,6 +12,8 @@ export class SiteCategoriesPage extends BasePage {
   readonly categoryListingTable: Locator;
   readonly deleteButton: Locator;
   readonly confirmButton: Locator;
+  readonly searchCategoryTextbox: Locator;
+  readonly searchButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SITE_CATEGORIES_PAGE);
@@ -22,6 +24,8 @@ export class SiteCategoriesPage extends BasePage {
     this.categoryListingTable = page.locator('table, .table, [role="table"], .category-list, .listing');
     this.deleteButton = page.locator('*:has-text("Delete")');
     this.confirmButton = page.locator('button:has-text("Confirm"), button:has-text("Delete"), button:has-text("Yes")');
+    this.searchCategoryTextbox = page.getByRole('textbox', { name: 'Search site categories…' });
+    this.searchButton = page.getByRole('button', { name: 'Search', exact: true });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify Site Categories page is loaded', async () => {
@@ -144,28 +148,15 @@ export class SiteCategoriesPage extends BasePage {
    * Verifies that category was created successfully
    * @param partialCategoryName - Partial category name to verify
    */
-  async verifyCategoryCreatedSuccessfully(partialCategoryName: string): Promise<void> {
-    await test.step(`Verify category created: ${partialCategoryName.substring(0, 50)}...`, async () => {
-      // Target only the category listing table area
-      const categoryElement = this.categoryListingTable
-        .filter({ hasText: partialCategoryName.substring(0, 30) })
-        .first();
-
-      console.log(`Looking for category with text: "${partialCategoryName.substring(0, 30)}..."`);
-
-      try {
-        await this.verifier.verifyTheElementIsVisible(categoryElement, {
-          assertionMessage: `Category with partial text '${partialCategoryName.substring(0, 30)}...' should be visible`,
-          timeout: 15000,
-        });
-      } catch (error) {
-        // Debug: Check what's actually visible in the listing when assertion fails
-        const allTextInListing = await this.categoryListingTable.textContent();
-        console.log(`Current listing content: ${allTextInListing?.substring(0, 200)}...`);
-        throw error;
-      }
-
-      console.log(`Category found and verified in listing!`);
+  async verifyCategoryCreatedSuccessfully(categoryName: string): Promise<void> {
+    await test.step(`Verify category created: ${categoryName.substring(0, 50)}...`, async () => {
+      await this.clickOnElement(this.searchCategoryTextbox);
+      await this.fillInElement(this.searchCategoryTextbox, categoryName);
+      await this.clickOnElement(this.searchButton);
+      await this.verifier.verifyTheElementIsVisible(this.categoryListingTable.filter({ hasText: categoryName }), {
+        assertionMessage: `Category with partial text '${categoryName}' should be visible in listing`,
+        timeout: 15000,
+      });
     });
   }
 

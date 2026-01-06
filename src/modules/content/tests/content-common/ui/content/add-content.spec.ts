@@ -11,7 +11,6 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
-import { DEFAULT_UNLISTED_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { ManageUsersPage } from '@/src/modules/content/ui/pages/manageUsersPage';
@@ -73,9 +72,8 @@ test.describe(
           storyId: 'CONT-30521',
         });
 
-        const siteId =
-          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_UNLISTED_SITE_NAME);
-        const siteName = DEFAULT_UNLISTED_SITE_NAME;
+        const { siteId, name } = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
+        const siteName = name;
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -121,8 +119,8 @@ test.describe(
           zephyrTestId: 'CONT-39680',
           storyId: 'CONT-39680',
         });
-        const siteName = DEFAULT_UNLISTED_SITE_NAME;
-        const siteId = await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(siteName);
+        const { siteId, name } = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
+        const siteName = name;
         console.log('siteName :   ', siteName);
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
