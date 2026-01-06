@@ -30,7 +30,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           zephyrTestId: ['INT-1670', 'INT-11425', 'INT-11427', 'INT-11162', 'INT-11165'],
-          storyId: ['INT-10943', 'INT-10959'],
+          storyId: 'INT-10943',
         });
         await peopleTab.selectProvisioningSource(PEOPLE_TAB.OPTION_NONE);
         await peopleTab.selectSyncingSource(PEOPLE_TAB.OPTION_NONE);
