@@ -43,6 +43,7 @@ jobs:
             de-api-abac,
             reward,
             reward-settings,
+            reward-workAnniversary,
             recognition,
             privateRecognition,
             frontline,
