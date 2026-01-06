@@ -44,7 +44,6 @@ export class EnterpriseSearchHelper {
           const valueToSearch = valueToFind || searchTerm;
 
           // For feeds, try multiple possible field names
-          // For sites, use includes() to match how validateSiteInSearchResults works
           let resultItem;
           if (objectType === 'feed') {
             resultItem = result.find(
@@ -55,8 +54,6 @@ export class EnterpriseSearchHelper {
                 eachItem.item.textHtml?.includes(valueToSearch) ||
                 eachItem.item.textJson?.includes(valueToSearch)
             );
-          } else if (objectType === 'site') {
-            resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck]?.includes(valueToSearch));
           } else {
             resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
           }
@@ -126,8 +123,6 @@ export class EnterpriseSearchHelper {
                 eachItem.item.textHtml?.includes(valueToSearch) ||
                 eachItem.item.textJson?.includes(valueToSearch)
             );
-          } else if (objectType === 'site') {
-            resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck]?.includes(valueToSearch));
           } else {
             resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
           }
