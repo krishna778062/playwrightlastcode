@@ -38,6 +38,7 @@ export class RecurringAwardPage extends BasePage {
   awardCreationForm: AwardCreationForm;
   whoCanWinThisAwardSelectInput: Locator;
   whoCanNominateThisAwardSelectInput: Locator;
+  awardDelegateSelectInput: Locator;
   anonymousRadioButton: Locator;
   visibleRadioButton: Locator;
   delegateGuidanceInput: Locator;
@@ -75,6 +76,7 @@ export class RecurringAwardPage extends BasePage {
   readonly awardSchedulePreviewTable: Locator;
   readonly awardSchedulePreviewTableCells: Locator;
   readonly awardFrequencyAndScheduleLabel: Locator;
+  awardTimeZoneSelectInput: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION) {
     super(page, pageUrl);
@@ -90,6 +92,7 @@ export class RecurringAwardPage extends BasePage {
     this.noRecurringAwardsMessage = page.locator('div[class*="DataGrid-module__emptyWrapper"] h3');
     this.whoCanWinThisAwardSelectInput = page.getByTestId('field-Who can win this award').getByTestId('SelectInput');
     this.whoCanNominateThisAwardSelectInput = page.getByTestId('field-Who can nominate').getByTestId('SelectInput');
+
     this.anonymousRadioButton = page.getByRole('radio', { name: 'Anonymous Nominating employee' });
     this.visibleRadioButton = page.getByRole('radio', { name: 'Visible Award delegate can' });
     this.delegateGuidanceInput = page.getByRole('textbox', { name: 'Delegate guidance' });
@@ -144,6 +147,10 @@ export class RecurringAwardPage extends BasePage {
     this.awardSchedulePreviewTableCells = this.awardSchedulePreviewTable.locator(
       'header + div div div div div div div div p'
     );
+    this.awardDelegateSelectInput = page
+      .getByTestId('field-Award delegate')
+      .locator('#react-select-2-input[role="combobox"]');
+    this.awardTimeZoneSelectInput = page.getByTestId('field-Award timezone').locator('input[role="combobox"]');
   }
 
   /**
@@ -244,7 +251,12 @@ export class RecurringAwardPage extends BasePage {
       await this.awardCreationForm.skeletonButton.waitFor({ state: 'detached' });
       await this.enterAwardName(awardName);
       await this.enterAwardDescription(description);
-      await expect(this.awardCreationForm.nextButton).toBeEnabled();
+      await this.page.waitForTimeout(200);
+      await expect(
+        this.awardCreationForm.defaultAwardBadge,
+        'expecting default award badge to be visible'
+      ).toBeVisible();
+      await this.awardCreationForm.defaultAwardBadge.click();
       await this.awardCreationForm.nextButton.click();
       await expect(this.awardCreationForm.nextButton).toBeVisible();
       await expect(
@@ -1112,6 +1124,123 @@ export class RecurringAwardPage extends BasePage {
       }
     });
   }
+  /**
+   * Select multiple delegates for the award
+   * @param count - Number of delegates to select
+   * @returns Array of selected delegate names
+   */
+  async selectMultipleDelegates(count: number): Promise<string[]> {
+    const pickedDelegateArray: string[] = [];
+    await test.step(`Selecting ${count} delegates`, async () => {
+      const extraField = this.page.locator('[data-testid*="delegate"]').first();
+      const extraFieldSelectOptions = this.page.locator('[role="option"]').first();
+      const selectedDelegateInCreateAwardPage = this.page.locator('[class*="SelectedDelegate"]');
+
+      for (let i = 0; i < count; i++) {
+        await extraField.click();
+        await expect(extraFieldSelectOptions).toBeVisible();
+        await extraFieldSelectOptions.click();
+        await this.page.waitForTimeout(300);
+      }
+
+      // Store selected delegate names in an array
+      const labels = selectedDelegateInCreateAwardPage;
+      const labelCount = await labels.count();
+      for (let i = 0; i < labelCount; i++) {
+        const name = await labels.nth(i).textContent();
+        if (name) {
+          pickedDelegateArray.push(name.trim());
+        }
+      }
+    });
+    return pickedDelegateArray;
+  }
+
+  /**
+   * Deselect all selected delegates
+   */
+  async deselectAllDelegates(): Promise<void> {
+    await test.step('Deselecting all selected delegates', async () => {
+      const selectedDelegateInCreateAwardPage = this.page.locator('[class*="SelectedDelegate"]');
+      const removeButton = this.page.locator('button[aria-label*="Remove"]');
+      const removeButtons = await removeButton.all();
+      for (const button of removeButtons.reverse()) {
+        await expect(button).toBeVisible();
+        await button.click();
+        await this.page.waitForTimeout(200);
+      }
+      await expect(selectedDelegateInCreateAwardPage).toHaveCount(0);
+    });
+  }
+
+  /**
+   * Fill out recurring award form page 2 with award configuration
+   * @param whoCanWin - Who can win this award option
+   * @param awardType - Type of award (Nomination or Direct)
+   * @param whoCanNominate - Who can nominate option (for Nomination type)
+   * @param awardFrequency - Frequency of award (monthly or quarterly)
+   * @param awardTimeZone - Time zone for the award
+   */
+  async fillRecurringAwardConfigureForm(
+    whoCanWin: string,
+    awardType: string,
+    whoCanNominate: string,
+    awardFrequency: string,
+    awardTimeZone: string
+  ): Promise<void> {
+    await test.step('Filling out recurring award form - page 2', async () => {
+      await this.whoCanWinThisAwardSelectInput.selectOption(whoCanWin);
+      if (awardType.includes('Nomination')) {
+        await this.whoCanNominateThisAwardSelectInput.selectOption(whoCanNominate);
+      } else {
+        // Use the existing delegate award option button locator
+        await expect(this.delegateAwardOptionButton, 'expecting delegate award option to be visible').toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.delegateAwardOptionButton.click({ force: true });
+      }
+      if (awardFrequency.includes('monthly')) {
+        await this.awardMonthlyFrequencyButton.check();
+      } else if (awardFrequency.includes('quarterly')) {
+        await this.awardQuarterlyFrequencyButton.check();
+      }
+      await this.selectAwardTimeZone(awardTimeZone);
+      await this.awardCreationForm.nextButton.click();
+    });
+  }
+
+  async selectAwardTimeZone(timeZone: string): Promise<void> {
+    await test.step(`Selecting award timezone: ${timeZone}`, async () => {
+      // Click on the Award timezone dropdown to open it
+      await expect(this.awardTimeZoneSelectInput, 'expecting award timezone select input to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.awardTimeZoneSelectInput.click();
+
+      // Wait for dropdown menu to be visible
+      await this.page.waitForSelector('[role="listbox"], [role="menu"], [data-testid*="menu"]', {
+        state: 'visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Type the timezone to filter/search in the dropdown
+      await this.awardTimeZoneSelectInput.fill(timeZone);
+      await this.page.waitForTimeout(500); // Wait for filtering to complete
+
+      // Find and click the option that matches the timeZone parameter
+      const timeZoneOption = this.page
+        .locator('[role="menuitem"], [role="option"]')
+        .filter({ hasText: timeZone })
+        .first();
+      await expect(timeZoneOption, `expecting timezone option "${timeZone}" to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await timeZoneOption.click();
+
+      // Wait for the selection to be applied
+      await this.page.waitForTimeout(300);
+    });
+  }
 
   /**
    * Set the custom range for the custom recurring award.
@@ -1262,6 +1391,350 @@ export class RecurringAwardPage extends BasePage {
       }
       await expect(rangeValueInput).toHaveValue('27');
       await expect(plusButton).toBeDisabled();
+    });
+  }
+
+  /**
+   * Click create button and navigate to recurring awards listing
+   */
+  async clickCreateButton(): Promise<void> {
+    await test.step('Clicking create button', async () => {
+      await this.awardCreationForm.createButton.click();
+      const continueButton = this.page.getByRole('button', { name: 'Continue' });
+      await expect(continueButton).toBeVisible();
+      await continueButton.click({ force: true });
+      await this.page.waitForTimeout(3000);
+      await expect(this.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECURRING_RECOGNITION);
+      await this.verifyThePageIsLoaded();
+      await this.page.waitForTimeout(5000);
+    });
+  }
+
+  /**
+   * Select Scheduled tab in recurring awards listing
+   */
+  async selectActiveTab(): Promise<void> {
+    await test.step('Selecting Active tab', async () => {
+      const activeTab = this.page.getByRole('tab', { name: 'Active', exact: true });
+      await activeTab.click();
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Verify award name in recurring awards listing table
+   * @param awardName - Name of the award to verify
+   */
+  async verifyAwardNameInTable(awardName: string): Promise<void> {
+    await test.step(`Verifying award name ${awardName} in table`, async () => {
+      const awardCell = this.page.locator(`text=${awardName}`);
+      const showMoreButton = this.page.getByTestId('show-more-button');
+
+      // Check if award name is visible, if not, click show more button until it appears
+      let isAwardVisible = false;
+      const maxRetries = 10; // Maximum number of times to click show more button
+      let retryCount = 0;
+
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+      while (!isAwardVisible && retryCount < maxRetries) {
+        // Check if award name is visible
+        const isVisible = await awardCell.isVisible().catch(() => false);
+
+        if (isVisible) {
+          isAwardVisible = true;
+          break;
+        }
+
+        // If award is not visible, check if show more button exists and is visible
+        try {
+          const showMoreButtonVisible = await showMoreButton.isVisible();
+
+          if (!showMoreButtonVisible) {
+            // Show more button is not available, stop trying
+            console.log('Show more button is not available. Stopping search.');
+            break;
+          }
+
+          // Click show more button and wait for new items to load
+          await showMoreButton.click();
+          await this.page.waitForTimeout(1000); // Wait for new items to load
+          retryCount++;
+        } catch {
+          // Show more button doesn't exist, stop trying
+          console.log('Show more button does not exist. Stopping search.');
+          break;
+        }
+      }
+      await this.page.waitForTimeout(1000);
+      // After clicking show more (or if it was already visible), verify the award name
+      await expect(awardCell, `expecting award "${awardName}" to be visible in table`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(awardCell).toContainText(awardName);
+    });
+  }
+
+  /**
+   * Get delegate text from table for a specific award
+   * @param awardName - Name of the award
+   * @returns Delegate text content
+   */
+  async getDelegateTextFromTable(awardName: string): Promise<string | null> {
+    const awardCell = this.page.locator('table tbody tr').filter({ hasText: awardName });
+    const delegateCell = awardCell.locator('td').nth(1);
+    return await delegateCell.textContent();
+  }
+
+  /**
+   * Verify delegate text matches pattern for multiple delegates
+   * @param awardName - Name of the award
+   * @param expectedDelegates - Array of expected delegate names
+   */
+  async verifyMultipleDelegatesInTable(awardName: string, expectedDelegates: string[]): Promise<void> {
+    await test.step('Verifying multiple delegates in recurring award listing page', async () => {
+      const awardDelegateText = await this.getDelegateTextFromTable(awardName);
+      expect(awardDelegateText).toMatch(/& \d+ others/);
+      for (const delegate of expectedDelegates) {
+        expect(awardDelegateText).toContain(delegate);
+        break;
+      }
+    });
+  }
+
+  /**
+   * Verify delegate text does not match pattern for single delegate
+   * @param awardName - Name of the award
+   */
+  async verifySingleDelegateInTable(awardName: string): Promise<void> {
+    await test.step('Verifying single delegate in recurring award listing page', async () => {
+      const awardDelegateText = await this.getDelegateTextFromTable(awardName);
+      expect(awardDelegateText).not.toMatch(/& \d+ others/);
+    });
+  }
+
+  /**
+   * Delete recurring award by name
+   * @param awardName - Name of the award to delete
+   */
+  async deleteRecurringAward(awardName: string): Promise<void> {
+    await test.step(`Deleting recurring award: ${awardName}`, async () => {
+      // Find the table row that contains the award name
+      const awardRow = this.page.locator('table tbody tr').filter({ hasText: awardName });
+
+      // Find the "Show more" button within that specific row
+      const threeDotsButton = awardRow.getByRole('button', { name: 'Show more' });
+
+      await expect(threeDotsButton, 'expecting three dots button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await threeDotsButton.click();
+      await expect(this.page.getByRole('menuitem', { name: 'Edit' })).toBeVisible();
+      await expect(this.page.getByRole('menuitem', { name: 'Deactivate' })).toBeVisible();
+      await this.page.getByRole('menuitem', { name: 'Delete' }).click();
+      await this.page.waitForTimeout(500);
+      const deleteButton = this.page.getByRole('button', { name: 'Delete' }).last();
+      await deleteButton.click();
+    });
+  }
+
+  /**
+   * Click edit button for a recurring award
+   * @param awardName - Name of the award to edit
+   */
+  async clickEditAward(awardName: string): Promise<void> {
+    await test.step(`Clicking edit button for award: ${awardName}`, async () => {
+      const awardRow = this.page.locator('table tbody tr').filter({ hasText: awardName });
+
+      // Find the "Show more" button within that specific row
+      const threeDotsButton = awardRow.getByRole('button', { name: 'Show more' });
+
+      await expect(threeDotsButton, 'expecting three dots button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await threeDotsButton.click();
+      await this.page.getByRole('menuitem', { name: 'Edit' }).click();
+      await this.awardCreationForm.nextButton.waitFor({ state: 'visible' });
+      await this.awardCreationForm.nextButton.click();
+    });
+  }
+
+  /**
+   * Click edit button for Award frequency and schedule section
+   */
+  async clickEditAwardFrequencyAndSchedule(): Promise<void> {
+    await test.step('Clicking edit button for Award frequency and schedule section', async () => {
+      // Find the heading first to ensure the section is visible
+      const heading = this.page.getByRole('heading', { name: 'Award frequency and schedule' });
+      await expect(heading, 'expecting Award frequency and schedule heading to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Find the Edit button that is a sibling of the heading
+      // Use a filter locator to find the container that has both the heading and Edit button
+      const sectionWithHeading = this.page.locator('*').filter({ has: heading });
+      const editButton = sectionWithHeading.getByRole('button', { name: 'Edit' }).first();
+
+      await expect(editButton, 'expecting Edit button for frequency section to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await editButton.click();
+      // Wait for the form to load
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  /**
+   * Click save changes button
+   */
+  async clickSaveChangesButton(): Promise<void> {
+    await test.step('Clicking save changes button', async () => {
+      const saveChangesButton = this.page.getByRole('button', { name: 'Save changes' });
+      await saveChangesButton.click();
+      await this.page.waitForTimeout(1000);
+      const continueButton = this.page.getByRole('button', { name: 'Continue' });
+      const isContinueButtonVisible = await continueButton.isVisible().catch(() => false);
+
+      if (isContinueButtonVisible) {
+        await expect(continueButton, 'expecting continue button to be visible').toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await continueButton.click({ force: true });
+        await this.page.waitForTimeout(1000);
+      }
+      await this.verifyThePageIsLoaded();
+      await this.page.waitForTimeout(3000);
+    });
+  }
+
+  /**
+   * Select badge by index
+   * @param index - Index of the badge to select (0-based)
+   */
+  async selectBadgeByIndex(index: number): Promise<void> {
+    await test.step(`Selecting badge at index ${index}`, async () => {
+      await this.awardCreationForm.defaultAwardBadge.nth(index).click();
+    });
+  }
+
+  /**
+   * Clear timezone field
+   */
+  async clearTimezoneField(): Promise<void> {
+    await test.step('Clearing timezone field', async () => {
+      const clearButton = this.page.locator('button[aria-label*="Clear"]').first();
+      await expect(clearButton, 'expecting clear button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await clearButton.click();
+      await this.page.waitForTimeout(300);
+    });
+  }
+
+  /**
+   * Verify error message for empty timezone field
+   */
+  async verifyTimezoneErrorMessage(): Promise<void> {
+    await test.step('Verifying error message for empty timezone field', async () => {
+      const errorMessage = this.page.getByText('Please fill out this field');
+      await expect(errorMessage, 'expecting error message to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify timezone guidance text for nomination award
+   */
+  async verifyNominationTimezoneGuidanceText(): Promise<void> {
+    await test.step('Verifying nomination timezone guidance text', async () => {
+      const guidanceText = this.page.getByText('Nominations will open and close with respect to this timezone', {
+        exact: false,
+      });
+      await expect(guidanceText, 'expecting nomination timezone guidance text to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify timezone guidance text for direct award
+   */
+  async verifyDirectAwardTimezoneGuidanceText(): Promise<void> {
+    await test.step('Verifying direct award timezone guidance text', async () => {
+      const guidanceText = this.page.getByText('Used for the award due date.');
+      await expect(guidanceText, 'expecting direct award timezone guidance text to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Verify create button is not visible
+   */
+  async verifyCreateButtonNotVisible(): Promise<void> {
+    await test.step('Verifying create button is not visible', async () => {
+      await expect(this.awardCreationForm.createButton, 'expecting create button to not be visible').not.toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  /**
+   * Verify create button is visible
+   */
+  async verifyCreateButtonVisible(): Promise<void> {
+    await test.step('Verifying create button is visible', async () => {
+      // Wait for navigation to Preview & confirm page (page 3) where Create button appears
+      const previewConfirmButton = this.page.getByRole('button', { name: 'Preview & confirm' });
+      await expect(previewConfirmButton, 'expecting Preview & confirm step to be active').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      // Wait for Create button to appear on the Preview & confirm page
+      await expect(this.awardCreationForm.createButton, 'expecting create button to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Select single delegate for the award
+   * @returns Array with selected delegate name
+   */
+  async selectSingleDelegate(): Promise<string[]> {
+    return await this.selectMultipleDelegates(1);
+  }
+
+  /**
+   * Fill recurring award form page 2 without timezone (for testing timezone validation)
+   * @param whoCanWin - Who can win this award option
+   * @param awardType - Type of award (Nomination or Direct)
+   * @param whoCanNominate - Who can nominate option (for Nomination type)
+   * @param awardFrequency - Frequency of award (monthly or quarterly)
+   */
+  async fillRecurringAwardFormPageTwoWithoutTimezone(
+    whoCanWin: string,
+    awardType: string,
+    whoCanNominate: string,
+    awardFrequency: string
+  ): Promise<void> {
+    await test.step('Filling out recurring award form - page 2 (without timezone)', async () => {
+      await this.whoCanWinThisAwardSelectInput.selectOption(whoCanWin);
+      if (awardType.includes('Nomination')) {
+        await this.whoCanNominateThisAwardSelectInput.selectOption(whoCanNominate);
+      } else {
+        // Use the existing delegate award option button locator
+        await expect(this.delegateAwardOptionButton, 'expecting delegate award option to be visible').toBeVisible({
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.delegateAwardOptionButton.click({ force: true });
+      }
+      if (awardFrequency.includes('monthly')) {
+        await this.awardMonthlyFrequencyButton.check();
+      } else if (awardFrequency.includes('quarterly')) {
+        await this.awardQuarterlyFrequencyButton.check();
+      }
+      // Note: Timezone is not filled here for validation testing
     });
   }
 }

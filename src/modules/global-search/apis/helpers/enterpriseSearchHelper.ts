@@ -64,7 +64,9 @@ export class EnterpriseSearchHelper {
         {
           message: `${objectType} result for search term ${searchTerm} to appear in api response`,
         }
-      ).toPass({ intervals: [20000, 40000, 70000], timeout });
+      ).toPass({ intervals: [20000], timeout: 120_000 });
+
+      //TODO: We should run a deep check to see if the result item is site and then match the title
     });
 
     return foundItem;
