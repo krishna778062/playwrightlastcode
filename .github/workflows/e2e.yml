@@ -21,7 +21,6 @@ on:
           - 'integrations-azuresso'
           - 'integrations-api'
           - 'frontline'
-          - 'integrations'
           - 'newsletter'
           - 'recognition'
           - 'alert-notification'
