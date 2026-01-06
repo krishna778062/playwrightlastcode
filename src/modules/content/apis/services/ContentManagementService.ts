@@ -269,7 +269,7 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
-        contentSubType: 'news',
+        contentSubType: overrides.contentSubType || 'news',
         contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,

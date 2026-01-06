@@ -13,6 +13,7 @@ export class SiteDetailsPage extends BasePage {
   readonly searchBar = this.page.locator("[aria-label='Search…']");
   readonly searchIcon = this.page.locator('.SearchField-submit');
   readonly clickingOnCheckbox = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+  readonly contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
   private targetAudienceComponent: TargetAudienceComponent;
 
   constructor(page: Page, siteId: string) {
@@ -42,10 +43,8 @@ export class SiteDetailsPage extends BasePage {
     });
   }
 
-  async openContentDetailsPage(): Promise<void> {
-    await this.clickOnElement(this.clickingOnCheckbox);
-    await this.page.keyboard.press('Tab');
-    await this.page.keyboard.press('Enter');
+  async openContentDetailsPage(pageName: string): Promise<void> {
+    await this.clickOnElement(this.contentLink(pageName));
   }
 
   async ViewSite(): Promise<void> {
