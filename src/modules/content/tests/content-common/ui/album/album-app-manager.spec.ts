@@ -68,6 +68,8 @@ test.describe(
             'Verify admin is able to create and publish a new album with all fields populated from home page',
           zephyrTestId: 'CONT-11065',
           storyId: 'CONT-11065',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43081',
         });
 
         await appManagerFixture.homePage.verifyThePageIsLoaded();

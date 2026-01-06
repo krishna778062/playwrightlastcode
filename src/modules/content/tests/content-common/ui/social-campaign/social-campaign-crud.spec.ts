@@ -888,7 +888,6 @@ test.describe(
 
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.clickOnEditDashboard();
         await applicationManagerHomePage.clickOnEditCarousel();
         await applicationManagerHomePage.enterSearchCarouselInput(campaignOptions.linkText);
         await applicationManagerHomePage.selectCarouselItem(campaignOptions.linkText);

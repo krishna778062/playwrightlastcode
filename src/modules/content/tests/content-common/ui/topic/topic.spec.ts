@@ -495,6 +495,8 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
           'Verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums',
         zephyrTestId: 'CONT-24165',
         storyId: 'CONT-24165',
+        isKnownFailure: true,
+        bugTicket: 'CONT-43081',
       });
 
       // Generate random alphanumeric string with special characters

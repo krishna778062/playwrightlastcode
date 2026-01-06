@@ -97,6 +97,8 @@ test.describe(
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
             storyId: testData.storyId,
+            isKnownFailure: true,
+            bugTicket: 'CONT-43081',
           });
 
           // Initialize preview page

@@ -33,6 +33,7 @@ export class ManageContentPage extends BasePage {
   readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
   readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
   readonly validateOption: Locator = this.page.getByText('Validate');
+  readonly contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
 
   // Convenience accessors for commonly used component locators
   readonly editButton: Locator;
@@ -99,10 +100,10 @@ export class ManageContentPage extends BasePage {
   /**
    * Orchestration method: Opens content details page via keyboard navigation
    */
-  async openContentDetailsPage(): Promise<void> {
-    await this.clickOnElement(this.clickingOnCheckbox);
-    await this.page.keyboard.press('Tab');
-    await this.page.keyboard.press('Enter');
+  async openContentDetailsPage(pageName: string): Promise<void> {
+    await test.step('Open content details page via keyboard navigation', async () => {
+      await this.clickOnElement(this.contentLink(pageName));
+    });
   }
 
   /**

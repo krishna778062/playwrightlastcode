@@ -101,6 +101,8 @@ test.describe(
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
             storyId: testData.storyId,
+            isKnownFailure: true,
+            bugTicket: 'CONT-39965',
           });
 
           // Initialize preview page for app manager

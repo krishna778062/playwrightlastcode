@@ -28,6 +28,7 @@ test.describe(
           zephyrTestId: 'CONT-41476',
           storyId: 'CONT-41476',
           isKnownFailure: true,
+          bugTicket: 'SEN-20198',
         });
 
         const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];

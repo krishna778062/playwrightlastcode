@@ -403,7 +403,7 @@ test.describe(
     /**
      * Album becomes unavailable due to which test is failing
      */
-    test.fixme(
+    test(
       'to verify validate option in manage content CONT-33591',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.CONTENT_VALIDATE_OPTION, '@CONT-33591'],
@@ -438,22 +438,19 @@ test.describe(
         console.log(
           `Created page via API: Test Page Title with ID: ${pageInfo.contentId} and name ${pageInfo.pageName} in ${DEFAULT_PUBLIC_SITE_NAME} site: ${allEmployeesSiteId}`
         );
+        const siteInfo =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
+        const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo);
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();
-        await manageContentPage.manageContent.writeRandomTextInSearchBar(randomPageName);
-        await manageContentPage.manageContent.searchIcon();
-        await appManagerFixture.page.reload();
         await manageContentPage.checkValidateOptionInBulkActions();
-        await manageContentPage.openContentDetailsPage();
+        await manageContentPage.openContentDetailsPage(randomPageName);
         await contentPreviewPage.verifyValidateOptionOnContentPreviewPage();
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.clickOnSitesCard();
-        await manageSitePage.searchForSite(DEFAULT_PUBLIC_SITE_NAME);
-        await manageSitePage.clickOnSite();
+        await siteDetailsPage.loadPage();
         await siteDetailsPage.clickOnContentTab();
         await siteDetailsPage.typeContentInSearchBar(randomPageName);
         await siteDetailsPage.clickSearchIcon();
-        await siteDetailsPage.openContentDetailsPage();
+        await siteDetailsPage.openContentDetailsPage(randomPageName);
         await contentPreviewPage.verifyValidateOptionOnContentPreviewPage();
       }
     );

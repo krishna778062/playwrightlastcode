@@ -72,7 +72,9 @@ export class ContentPreviewPage extends BasePage {
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
       page,
-      siteId && contentId && contentType ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType) : ''
+      siteId && contentId && contentType
+        ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType.toLowerCase())
+        : ''
     );
     this.promotePageModal = new PromotePageModal(page);
     this.mustReadModalComponent = new MustReadModalComponent(page);
