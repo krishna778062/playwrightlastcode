@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -462,7 +463,7 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19567'],
       },
-      async ({ standardUserFixture, standardUserApiFixture }) => {
+      async ({ standardUserFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify user can create comments with inline images and replies on content, validate visibility in feeds, and verify comments and replies disappear after content deletion',
@@ -480,23 +481,17 @@ test.describe(
         const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
         await test.step('Setup: Get site and content', async () => {
-          testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+          testSiteId = publicSite.siteId;
 
-          const contentListResponse =
-            await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({
-              siteId: testSiteId,
-              sortBy: 'publishedNewest',
-              size: 1,
-              status: 'published',
-            });
+          const pageResponse = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: testSiteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          });
 
-          if (contentListResponse.result.listOfItems.length === 0) {
-            throw new Error(`No published content found in "${DEFAULT_PUBLIC_SITE_NAME}" site.`);
-          }
-
-          const latestContent = contentListResponse.result.listOfItems[0];
-          testContentId = latestContent.contentId || latestContent.id;
-          testContentType = latestContent.type.toLowerCase();
+          testContentId = pageResponse.contentId;
+          testContentType = 'page';
         });
 
         // ==================== COMMENT CREATION WITH INLINE IMAGE ====================
