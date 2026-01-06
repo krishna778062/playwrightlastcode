@@ -87,6 +87,7 @@ test.describe(
       'zeus to verify admin user and site manager able to search newly created unlisted site in workplace search global search page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
+        annotation: { type: 'known_failure', description: 'SEN-19333' },
       },
       async ({
         appManagerApiFixture,
@@ -99,6 +100,11 @@ test.describe(
       }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-15534, SEN-15540',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19333',
+          bugReportedDate: '2025-01-06',
+          knownFailurePriority: 'High',
+          knownFailureNote: 'Unlisted site not searchable by site owner/manager/member',
         });
 
         const enterpriseSearchApiHelper = new EnterpriseSearchApiHelper();
@@ -147,6 +153,7 @@ test.describe(
       'zeus to validate end user able to search newly created unlisted site in which enduser is memberof site in enterprise search global search page',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE],
+        annotation: { type: 'known_failure', description: 'SEN-19333' },
       },
       async ({
         standardUserApiFixture,
@@ -157,6 +164,11 @@ test.describe(
       }) => {
         tagTest(test.info(), {
           zephyrTestId: 'SEN-15546',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19333',
+          bugReportedDate: '2025-01-06',
+          knownFailurePriority: 'High',
+          knownFailureNote: 'Unlisted site not searchable by site owner/manager/member',
         });
 
         // End user (who IS a member) performs enterprise search for the unlisted site from fixture

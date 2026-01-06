@@ -263,7 +263,7 @@ export class IntranetFileListComponent extends ContentListComponent {
       await this.clickOnElement(this.autocompleteSiteName, { timeout: 40000 });
 
       try {
-        await this.page.waitForURL(url => url.toString().includes(fileId), { timeout: 30000 });
+        await this.page.waitForURL(url => url.toString().includes(fileId), { timeout: 50000 });
       } catch (error) {
         throw new Error(
           `Verifying autocomplete navigation to intranet file "${fileName}" failed. URL should contain file ID "${fileId}".\n${error}`

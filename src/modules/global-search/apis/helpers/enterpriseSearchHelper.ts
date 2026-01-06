@@ -67,7 +67,7 @@ export class EnterpriseSearchHelper {
         {
           message: `${objectType} result for search term ${searchTerm} to appear in api response`,
         }
-      ).toPass({ intervals: [20000], timeout: 140_000 });
+      ).toPass({ intervals: [20000], timeout: 120_000 });
 
       //TODO: We should run a deep check to see if the result item is site and then match the title
     });
@@ -105,25 +105,17 @@ export class EnterpriseSearchHelper {
             data: { page_size: 10, exact_match: true, search_term: searchTerm },
           });
           const responseBody = await response.json();
-          console.log('responseBody', responseBody);
-
-          // Safety check: ensure response structure is valid
-          // If list_items is empty, undefined, or null, item has disappeared (success case)
           if (!responseBody?.data?.list_items || responseBody.data.list_items.length === 0) {
             console.log('list_items is empty or missing - item has disappeared from search results');
-            return; // Success - item is no longer in results
+            return;
           }
 
-          // Filter the list items which have the correct object_type
-          // If list_items is empty array, filter returns empty array, which is correct behavior
           const result = (responseBody.data.list_items || []).filter(
             (eachItem: any) => eachItem?.item?.object_type === objectType
           );
-          // Find the specific item by checking the specified field for the value
+
           const valueToSearch = valueToFind || searchTerm;
 
-          // For feeds, try multiple possible field names
-          // For sites, use includes() to match how validateSiteInSearchResults works
           let resultItem;
           if (objectType === 'feed') {
             resultItem = result.find(
@@ -139,8 +131,6 @@ export class EnterpriseSearchHelper {
           } else {
             resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
           }
-
-          console.log('Checking if result item is absent:', resultItem);
           expect(resultItem).toBeUndefined();
         },
         {

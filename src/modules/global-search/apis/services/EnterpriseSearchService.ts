@@ -23,12 +23,6 @@ export class EnterpriseSearchService {
    * @param options - Optional search parameters
    * @returns The search response
    */
-  /**
-   * Performs an enterprise search with the given search term and filters
-   * @param searchTerm - The search term to query
-   * @param options - Optional search parameters
-   * @returns The search response
-   */
   async search(
     searchTerm: string,
     options?: {
