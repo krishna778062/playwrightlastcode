@@ -49,8 +49,6 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
       await newsletterHomePage.loadPage();
       await newsletterHomePage.verifyThePageIsLoaded();
       await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-      //const newsletterName = `Test_Newsletter_${Date.now()}`;
-      //await newsletterHomePage.createNewsletter(newsletterName);
     }
   );
 
@@ -175,7 +173,6 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
       const filtersComponent = new NewsletterFiltersComponent(appManagerPage);
       await filtersComponent.openFiltersPanel();
       await filtersComponent.selectStatus('Failed to send');
-      //await filtersComponent.selectRecipients('All org');
       await filtersComponent.assertStatusOptionExists('Failed to send');
 
       await newsletterHomePage.assertTableHasResults();
