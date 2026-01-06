@@ -42,6 +42,7 @@ export const PLATFORM_API_ENDPOINTS = {
     v2IdentityProfileQuestionsVerify: '/v2/identity/profile-questions/verify',
     v2IdentityUsersSetPassword: '/v2/identity/users/set-password',
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
+    v1IdentityAccountsSecurityQuestions: 'v1/identity/accounts/securityQuestions',
     roles: '/v1/identity/accounts/roles/list',
     expertises: '/v1/identity/expertises',
     endorseUser: (userId: string) => `/v1/identity/people/profile/${userId}/endorse`,

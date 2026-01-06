@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { expect } from '@playwright/test';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { ContentTestSuite } from '@content/constants/testSuite';
@@ -59,11 +60,11 @@ test.describe(
       await feedPage.verifyThePageIsLoaded();
     });
 
-    test.afterEach(async ({ appManagerFixture }) => {
+    test.afterEach(async ({ appManagerApiFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
       if (createdPostId) {
         try {
-          await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
+          await appManagerApiFixture.feedManagementHelper.deleteFeed(createdPostId);
         } catch (error) {
           console.log('Failed to cleanup feed via API:', error);
         }
@@ -74,7 +75,7 @@ test.describe(
     });
 
     test(
-      'verify user can create, edit and delete a feed post with attachments',
+      'verify user can create, edit and delete a feed post with attachments CONT-19533',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments', '@healthcheck'],
       },
@@ -125,7 +126,7 @@ test.describe(
     );
 
     test(
-      'verify user can create, edit and delete a feed post with file attachment on site feed',
+      'verify user can create, edit and delete a feed post with file attachment on site feed CONT-19544',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19544'],
       },
@@ -224,7 +225,7 @@ test.describe(
     );
 
     test(
-      'verify user can create, edit and delete a feed post with file attachment on content feed',
+      'verify user can create, edit and delete a feed post with file attachment on content feed CONT-19540',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19540'],
       },
@@ -342,7 +343,7 @@ test.describe(
     );
 
     test(
-      'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site',
+      'verify End User should not be able to search an Private and Unlisted site if he is not a member of a site CONT-24150',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-24150'],
       },
@@ -399,7 +400,7 @@ test.describe(
     );
 
     test(
-      'verify user is able to add video to a feed post using "Browse files"',
+      'verify user is able to add video to a feed post using "Browse files" CONT-36599',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-36599'],
       },
@@ -459,7 +460,7 @@ test.describe(
     );
 
     test(
-      'in Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option',
+      'in Zeus, Verify User is able to share a Feed post with a video and message using "Post in SITE FEED" option CONT-28219',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28219'],
       },
@@ -545,7 +546,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option',
+      'in Zeus Verify User is able to Share a Feed post with a video and message using "Post in HOME FEED" option CONT-28215',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-28215'],
       },
@@ -621,7 +622,209 @@ test.describe(
     );
 
     test(
-      'sU : Verify site owner or manager can edit or delete comments from other users',
+      'in Zeus Verify User is able to Share a Feed post with image and mention using "Post in HOME FEED" option',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19561'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User is able to Share a Feed post with image and mention using "Post in HOME FEED" option',
+          zephyrTestId: 'CONT-19561',
+          storyId: 'CONT-19561',
+        });
+
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserFullName = standardUserInfo.fullName;
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        await endUserFeedPage.verifyThePageIsLoaded();
+
+        // Create Post with image1.jpg
+        await test.step('Create post with image attachment', async () => {
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+
+          // Create post with image attachment
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [imagePath],
+            },
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify global post is created
+          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+          await endUserFeedPage.assertions.verifyPostDetails(postText, 1); // 1 attachment
+        });
+
+        // Share Post with mention and "Post in Home Feed" option
+        await test.step('Share post with mention using Post in Home Feed option', async () => {
+          const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+          // Share the post with mention and "Post in Home Feed" option
+          await endUserFeedPage.actions.shareFeedPost({
+            postText: createdPostText,
+            mentionUserName: standardUserFullName,
+            shareMessage: shareMessage,
+            postIn: 'Home Feed',
+          });
+
+          // Verify success message
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        });
+
+        // Verify shared post is visible on Home Feed
+        await test.step('Verify shared post with message, mention, and inline image preview', async () => {
+          // Reload page to see the shared post
+          await endUserFeedPage.reloadPage();
+
+          // Verify shared post is visible
+          const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+
+          // Verify share message is displayed
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+
+          await endUserFeedPage.actions.clickInlineImagePreview(shareMessage);
+          await endUserFeedPage.assertions.verifyInlineImagePreviewVisible();
+          await endUserFeedPage.actions.closeImagePreview();
+        });
+      }
+    );
+
+    test(
+      'in Zeus, Verify User is able to share Global Feed Post with image and mention to Public Site Feed using Share button and delete it',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19562'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus, Verify User is able to share Global Feed Post with image and mention to Public Site Feed using Share button and delete it',
+          zephyrTestId: 'CONT-19562',
+          storyId: 'CONT-19562',
+        });
+
+        // Get Standard User1's full name for mention
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserFullName = standardUserInfo.fullName;
+
+        const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
+        const publicSiteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(publicSiteName);
+
+        await standardUserFixture.homePage.loadPage();
+        await standardUserFixture.homePage.verifyThePageIsLoaded();
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+        const endUserFeedPage = new FeedPage(standardUserFixture.page);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+        await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+        await test.step('Create post with image attachment on Global Feed', async () => {
+          await endUserFeedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await endUserFeedPage.actions.createAndPost({
+            text: postText,
+            attachments: {
+              files: [imagePath],
+            },
+          });
+
+          createdPostText = postResult.postText;
+          createdPostId = postResult.postId || '';
+
+          // Verify global post is created successfully
+          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+          await endUserFeedPage.assertions.verifyPostDetails(postText, 1);
+        });
+
+        await test.step('Share post to Site Feed with mention', async () => {
+          await endUserFeedPage.actions.shareFeedPost({
+            postText: createdPostText,
+            mentionUserName: standardUserFullName,
+            shareMessage: shareMessage,
+            postIn: 'Site Feed',
+          });
+
+          await endUserFeedPage.actions.enterSiteNameForShare(publicSiteName);
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          await shareComponent.actions.clickShareButton();
+
+          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        });
+
+        await test.step('Verify shared post with mention is visible on Global Feed', async () => {
+          await endUserFeedPage.reloadPage();
+
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+        });
+
+        await test.step('Verify shared post is visible on Site Feed', async () => {
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.assertions.validatePostText(shareMessage);
+
+          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+        });
+
+        await test.step('Delete the post from Global Feed', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+          await endUserFeedPage.actions.deletePost(createdPostText);
+        });
+
+        await test.step('Verify deleted post is not visible on Site Feed', async () => {
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify deletion' });
+          await siteDashboardPage.reloadPage();
+          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
+        });
+
+        await test.step('Verify deleted post is not visible on Home Feed', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.actions.verifyThePageIsLoaded();
+
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
+
+          await endUserFeedPage.assertions.verifyPostIsNotVisible(createdPostText);
+        });
+      }
+    );
+
+    test(
+      'sU : Verify site owner or manager can edit or delete comments from other users CONT-26611',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
       },
@@ -667,7 +870,7 @@ test.describe(
     );
 
     test(
-      'sU : Verify that application should not allow user to view the Private or unlisted site content comment using link',
+      'sU : Verify that application should not allow user to view the Private or unlisted site content comment using link CONT-26362',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26362'],
       },
@@ -760,7 +963,7 @@ test.describe(
     );
 
     test(
-      'in Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post',
+      'in Zeus, verify that a user is not allowed to add any attachment or media while sharing a Feed post CONT-26727',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-26727'],
       },
@@ -858,7 +1061,7 @@ test.describe(
     );
 
     test(
-      'in Zeus, Verify User is able to view "THIS POST HAS BEEN DELETED" message when User doesn\'t have access to the Feed post shared on Private or Unlisted Site',
+      'in Zeus, Verify User is able to view "THIS POST HAS BEEN DELETED" message when User doesn\'t have access to the Feed post shared on Private or Unlisted Site CONT-26801',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26801'],
       },
@@ -971,7 +1174,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from home feed',
+      'verify user can create and share recognition from home feed CONT-28581',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28581'],
       },
@@ -1042,7 +1245,7 @@ test.describe(
     );
 
     test.describe(
-      'inappropriate content warning tests',
+      'inappropriate content warning tests CONT-28090',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION],
       },
@@ -1074,13 +1277,6 @@ test.describe(
           endUserInfo = endUser;
           siteManagerInfo = siteManager;
           pageContent = page;
-
-          // Pre-assign Site Manager role (needed for CONT-42996)
-          await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-            siteId: publicSiteId,
-            userId: siteManagerInfo.userId,
-            role: SitePermission.MANAGER,
-          });
 
           // Set feed posting permission
           const manageSitePage = new ManageSitePage(appManagerFixture.page);
@@ -1174,9 +1370,9 @@ test.describe(
         };
 
         test(
-          'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User',
+          'verify warning popup appears when inappropriate content is submitted for App Manager and Standard User CONT-42996',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28090', '@inappropriate-content-warning'],
           },
           async ({ appManagerFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1207,9 +1403,9 @@ test.describe(
         );
 
         test(
-          'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
+          'verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager CONT-42996',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42996', '@inappropriate-content-warning'],
           },
           async ({ appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1217,6 +1413,13 @@ test.describe(
                 'Verify warning popup appears when inappropriate content is submitted for Site Manager and Site Content Manager',
               zephyrTestId: 'CONT-42996',
               storyId: 'CONT-42996',
+            });
+
+            // Assign Site Manager role
+            await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+              siteId: publicSiteId,
+              userId: siteManagerInfo.userId,
+              role: SitePermission.MANAGER,
             });
 
             // Assign Site Content Manager role
@@ -1247,9 +1450,9 @@ test.describe(
         );
 
         test(
-          'verify warning popup appears when inappropriate content is submitted for Site Member',
+          'verify warning popup appears when inappropriate content is submitted for Site Member CONT-42997',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42997', '@inappropriate-content-warning'],
           },
           async ({ appManagerApiFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1276,9 +1479,9 @@ test.describe(
           }
         );
         test(
-          'verify warning popup appears when inappropriate content is submitted for Site Owner',
+          'verify warning popup appears when inappropriate content is submitted for Site Owner CONT-42999',
           {
-            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999'],
+            tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-42999', '@inappropriate-content-warning'],
           },
           async ({ appManagerApiFixture, standardUserFixture }) => {
             tagTest(test.info(), {
@@ -1307,7 +1510,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from site feed',
+      'verify user can create and share recognition from site feed CONT-28582',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28582'],
       },
@@ -1383,7 +1586,7 @@ test.describe(
     );
 
     test(
-      'verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment',
+      'verify user cancels inappropriate content warning and can edit toxic content in Feed post or Comment CONT-28091',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28091'],
       },
@@ -1441,7 +1644,7 @@ test.describe(
           await homeFeedPage.actions.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostButton();
+          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1488,7 +1691,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1537,7 +1740,7 @@ test.describe(
           await createFeedPostComponent.actions.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
@@ -1604,8 +1807,6 @@ test.describe(
           ),
         ]);
 
-        // Group 4: Role-Based Users - Sequential role assignment, sequential context testing
-        // Note: These must run sequentially (not in parallel) because they all use the same standardUserFixture.page
         // Site Content Manager
         await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
           siteId: publicSiteId,
@@ -1656,14 +1857,11 @@ test.describe(
           inappropriatePostText,
           editedPostText
         );
-
-        // Note: Follower role is not a separate permission in SitePermission enum
-        // Followers are typically members who follow a site, so we test as Member above
       }
     );
 
     test(
-      'verify user can create and share recognition from home feed to site feed',
+      'verify user can create and share recognition from home feed to site feed CONT-28583',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28583'],
       },
@@ -1746,7 +1944,7 @@ test.describe(
     );
 
     test(
-      'verify inappropriate content warning when sharing feed posts/comments',
+      'verify inappropriate content warning when sharing feed posts/comments CONT-28474',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28474'],
       },
@@ -1972,7 +2170,7 @@ test.describe(
     );
 
     test(
-      'verify user can create and share recognition from site feed to home feed',
+      'verify user can create and share recognition from site feed to home feed CONT-28584',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-28584'],
       },
@@ -2050,7 +2248,7 @@ test.describe(
     );
 
     test(
-      'in Zeus verify user submits inappropriate content while sharing a content to home dashboard and site dashboard',
+      'in Zeus verify user submits inappropriate content while sharing a content to home dashboard and site dashboard CONT-28476',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28476'],
       },
@@ -2181,7 +2379,7 @@ test.describe(
     );
 
     test(
-      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed',
+      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed CONT-24122',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24122'],
       },
@@ -2331,7 +2529,7 @@ test.describe(
     );
 
     test(
-      'verify user is able to see Follow button on hovering profile icon on Home Feed',
+      'verify user is able to see Follow button on hovering profile icon on Home Feed CONT-20094',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20094'],
       },
@@ -2388,6 +2586,62 @@ test.describe(
         // Click Following button in reply and verify Follow button is visible
         await endUserFeedPage.actions.clickFollowingButtonOnHover(appManagerFullName);
         await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
+      }
+    );
+
+    test(
+      'verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19560'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
+          zephyrTestId: 'CONT-19560',
+          storyId: 'CONT-19560',
+        });
+
+        const siteName = DEFAULT_PUBLIC_SITE_NAME;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+
+        feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        await feedPage.actions.clickShareThoughtsButton();
+
+        await feedPage.actions.enterFeedPostText(postText);
+
+        const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+        await feedPage.actions.uploadFiles([imagePath]);
+
+        await feedPage.actions.selectShareOptionAsSiteFeed();
+
+        await feedPage.actions.enterSiteNameForShare(siteName);
+
+        await feedPage.actions.clickPostButton();
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.actions.clickSiteNameOnPost(postText, siteName);
+
+        siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+
+        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
+
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.assertions.verifyPostDetails(postText, 1);
+
+        await feedPage.assertions.verifyThePageIsLoaded();
+        await feedPage.assertions.waitForPostToBeVisible(postText);
+
+        await feedPage.actions.deletePost(postText);
       }
     );
 
@@ -2463,6 +2717,115 @@ test.describe(
           await endUserFeedPage.actions.openPostOptionsMenu(replyText);
 
           await endUserFeedPage.assertions.verifyReplyOptionsMenuNotVisible(replyText);
+        });
+      }
+    );
+
+    test(
+      'verify Admin can create, edit and delete a feed post with multiple file attachments on Home Feed CONT-24135',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-24135'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Admin is able to Add, Edit, and Delete Feed Post with File Attachments on Home Feed',
+          zephyrTestId: 'CONT-24135',
+          storyId: 'CONT-24135',
+        });
+
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
+
+        // ==================== CREATE FEED POST ====================
+        await test.step('Create feed post with multiple file attachments', async () => {
+          await adminFeedPage.actions.clickShareThoughtsButton();
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          const filePaths = [
+            FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname), // image1.jpg
+            FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname), // image3.jpg
+            FILE_TEST_DATA.IMAGES.IMAGE4.getPath(__dirname), // image4.jpg
+            FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname), // favicon.png
+            FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname), // sample.docx
+            FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname), // sample.xlsx
+            FILE_TEST_DATA.DOCUMENTS.FILES_PREVIEW_BEHAVE_DOC_1_PDF.getPath(__dirname), // sample.pdf
+          ];
+
+          await createFeedPostComponent.createPost(initialPostText);
+
+          await createFeedPostComponent.uploadFiles(filePaths);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(filePaths.length);
+
+          const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
+          if (deleteIcons.length > 0) {
+            await deleteIcons[0].hover();
+            await expect(deleteIcons[0]).toBeVisible();
+          }
+
+          const postResponse = await createFeedPostComponent.createFeedPost();
+          const feedResponseBody = (await postResponse.json()) as any;
+          createdPostText = initialPostText;
+          createdPostId = feedResponseBody.result?.feedId || '';
+        });
+
+        // ==================== VERIFY POST CREATED ====================
+        await test.step('Verify feed post is created with file attachments', async () => {
+          await adminFeedPage.assertions.waitForPostToBeVisible(initialPostText);
+
+          await adminFeedPage.getPostTimestamp(initialPostText);
+
+          await adminFeedPage.assertions.verifyPostDetails(initialPostText, 7);
+        });
+
+        // ==================== EDIT FEED POST ====================
+        await test.step('Edit feed post and remove one attachment', async () => {
+          await adminFeedPage.actions.openPostOptionsMenu(initialPostText);
+
+          await adminFeedPage.actions.clickEditOption();
+
+          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+
+          await createFeedPostComponent.assertions.verifyUpdateButtonDisabled();
+
+          await createFeedPostComponent.assertions.verifyEditorVisible();
+
+          const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
+          if (deleteIcons.length > 0) {
+            await deleteIcons[0].hover();
+            await expect(deleteIcons[0]).toBeVisible();
+          }
+
+          const initialFileCount = await createFeedPostComponent.attachedFiles.count();
+          await createFeedPostComponent.removeAttachedFile(0);
+
+          await createFeedPostComponent.assertions.verifyAttachedFileCount(initialFileCount - 1);
+
+          await createFeedPostComponent.updatePostText(updatedPostText);
+
+          await createFeedPostComponent.clickUpdateButton();
+        });
+
+        // ==================== VERIFY POST UPDATED ====================
+        await test.step('Verify feed post is updated successfully', async () => {
+          await adminFeedPage.assertions.waitForPostToBeVisible(updatedPostText);
+
+          await adminFeedPage.assertions.verifyPostDetails(updatedPostText, 6);
+        });
+
+        // ==================== DELETE FEED POST ====================
+        await test.step('Delete feed post', async () => {
+          await adminFeedPage.actions.deletePost(updatedPostText);
+
+          await adminFeedPage.assertions.verifyPostIsNotVisible(updatedPostText);
+          createdPostId = '';
+          createdPostText = '';
         });
       }
     );

@@ -1,3 +1,4 @@
+import { getDbConfigFromCache } from '@rewards/config/dbConfig';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { Client, QueryResultRow } from 'pg';
@@ -21,11 +22,11 @@ export interface DatabaseConfig {
  */
 function getDatabaseConfig(customConfig?: Partial<DatabaseConfig>, database?: string): DatabaseConfig {
   // Use custom config if provided, otherwise fall back to environment variables
-  const host = customConfig?.host || process.env['DB_HOST'];
-  const port = customConfig?.port || parseInt(process.env['DB_PORT'] || '5432');
-  const user = customConfig?.user || process.env['DB_USER'];
-  const password = customConfig?.password || process.env['DB_PASSWORD'];
-  const dbName = customConfig?.database || database || process.env['DB_NAME'];
+  const host = customConfig?.host || process.env['DB_HOST'] || getDbConfigFromCache().host;
+  const port = customConfig?.port || parseInt(process.env['DB_PORT'] || '5432') || getDbConfigFromCache().port;
+  const user = customConfig?.user || process.env['DB_USER'] || getDbConfigFromCache().user;
+  const password = customConfig?.password || process.env['DB_PASSWORD'] || getDbConfigFromCache().password;
+  const dbName = customConfig?.database || database || process.env['DB_NAME'] || getDbConfigFromCache().database;
 
   // Validate required configuration
   if (!host) {
@@ -61,8 +62,8 @@ function getDatabaseConfig(customConfig?: Partial<DatabaseConfig>, database?: st
 /**
  * Connect to DB with custom configuration or environment variables
  */
-export async function connectToDB(database?: string, customConfig?: Partial<DatabaseConfig>): Promise<Client> {
-  const config = getDatabaseConfig(customConfig, database);
+export async function connectToDB(customConfig?: Partial<DatabaseConfig>): Promise<Client> {
+  const config = getDatabaseConfig(customConfig);
 
   const client = new Client({
     host: config.host,
@@ -87,16 +88,15 @@ export async function connectToDB(database?: string, customConfig?: Partial<Data
  */
 export async function executeQuery<T extends QueryResultRow = any>(
   query: string,
-  database?: string,
   customConfig?: Partial<DatabaseConfig>
 ): Promise<T[]> {
-  const client = await connectToDB(database, customConfig);
+  const client = await connectToDB(customConfig);
   try {
-    console.log(`Executing query on ${database || 'default'} database:`, query);
+    console.log(`Executing query on ${customConfig?.database || 'default'} database:`, query);
     const result = await client.query<T>(query);
     return result.rows;
   } catch (error) {
-    console.error(`Query failed on ${database || 'default'} database:`, error);
+    console.error(`Query failed on ${customConfig?.database || 'default'} database:`, error);
     console.error('Query was:', query);
     throw error;
   } finally {
@@ -110,16 +110,15 @@ export async function executeQuery<T extends QueryResultRow = any>(
 export async function writeData<T extends QueryResultRow = any>(
   query: string,
   returnQuery?: string,
-  database?: string,
   customConfig?: Partial<DatabaseConfig>
 ): Promise<T | null> {
   if (!query || query.trim().length === 0) {
     throw new Error('Query cannot be empty');
   }
 
-  const client = await connectToDB(database, customConfig);
+  const client = await connectToDB(customConfig);
   try {
-    console.log(`Executing write query on ${database || 'default'} database:`, query);
+    console.log(`Executing write query on ${customConfig?.database || 'default'} database:`, query);
     await client.query(query);
 
     // If returnQuery is provided, execute it to get the latest record
@@ -131,7 +130,7 @@ export async function writeData<T extends QueryResultRow = any>(
 
     return null;
   } catch (error) {
-    console.error(`Write query failed on ${database || 'default'} database:`, error);
+    console.error(`Write query failed on ${customConfig?.database || 'default'} database:`, error);
     console.error('Query was:', query);
     throw error;
   } finally {

@@ -131,6 +131,7 @@ from SIMPPLR_COMMON_TENANT.udl.vw_interaction as i
 inner join SIMPPLR_COMMON_TENANT.udl.vw_user_as_is as u
 on u.code=i.interacted_by_user_code
 where i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and u.status_code = 'US001'
 and i.is_system_feed='False' 
 and  i.TENANT_CODE = '{tenantCode}'
 {locationFilter}
@@ -154,27 +155,39 @@ FAVORITE_COUNT as "Favorites",
 TOTAL_COUNT as "Total engagement"
 from(
 select u.{userParameter} as NAME,
-count(distinct case when interaction_type_code='IT002'  then i.code end) as REACTIONS_COUNT,
-count(distinct case when interaction_type_code in('IT004','IT008') then  i.code end) as FEED_POST_COMMENT_COUNT,
-count(distinct case when interaction_type_code='IT007' then  i.code end) as REPLIES_COUNT,
-count(distinct case when interaction_type_code='IT003'  then  i.code end) as SHARE_COUNT,
-count(distinct case when interaction_type_code='IT006'  then  i.code end) as FAVORITE_COUNT,
-(REACTIONS_COUNT+FEED_POST_COMMENT_COUNT+REPLIES_COUNT+SHARE_COUNT+FAVORITE_COUNT) as TOTAL_COUNT
+count(distinct case when interaction_type_code='IT002' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false   then i.code end) as REACTIONS_COUNT,
+count(distinct case when interaction_type_code in('IT004','IT008') and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false then  i.code end) as FEED_POST_COMMENT_COUNT,
+count(distinct case when interaction_type_code='IT007' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false  then  i.code end) as REPLIES_COUNT,
+count(distinct case when interaction_type_code='IT003' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false  then  i.code end) as SHARE_COUNT,
+count(distinct case when interaction_type_code='IT006' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false  then  i.code end) as FAVORITE_COUNT,
+(count(distinct case when interaction_type_code='IT002' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false   then i.code end) +
+count(distinct case when interaction_type_code in('IT004','IT008') and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false then  i.code end) +
+count(distinct case when interaction_type_code='IT007' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false  then  i.code end) +
+count(distinct case when interaction_type_code='IT003' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false  then  i.code end) +
+count(distinct case when interaction_type_code='IT006' and interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and is_system_feed=false  then  i.code end)) as TOTAL_COUNT
 from SIMPPLR_COMMON_TENANT.udl.vw_interaction as i
-inner join SIMPPLR_COMMON_TENANT.udl.vw_user_as_is as u
+right join SIMPPLR_COMMON_TENANT.udl.vw_user_as_is as u
 on u.code=i.interacted_by_user_code
-where i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
-and i.is_system_feed=false 
-and  i.TENANT_CODE = '{tenantCode}'
+where 
+u.TENANT_CODE = '{tenantCode}'
+and u.status_code = 'US001'
 {locationFilter}
 {departmentFilter}
 {segmentFilter}
 {userCategoryFilter}
 {companyNameFilter}
-group by 1
-        having TOTAL_COUNT >= 0
-        ) 
-        order by "Total engagement" asc;
+group by 1) 
+order by "Total engagement" asc;
     `,
 
   Participant_Engagement_Activity: `

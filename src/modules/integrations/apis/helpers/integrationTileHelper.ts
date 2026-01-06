@@ -10,7 +10,6 @@ import { APIRequestContext, test } from '@playwright/test';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
-import { getEnvConfig } from '@/src/core/utils/getEnvConfig';
 import { TileManagementService } from '@/src/modules/integrations/apis/services/TileManagementService';
 import { getTenantConfig } from '@/src/modules/integrations/config/integration.config';
 
@@ -19,11 +18,24 @@ export class IntegrationTileHelper {
   readonly tileManagementService: TileManagementService;
   constructor(
     readonly appManagerApiContext: APIRequestContext,
-    readonly baseUrl: string
+    readonly baseUrl: string,
+    readonly frontendBaseUrl?: string
   ) {
     this.httpClient = new HttpClient(appManagerApiContext, baseUrl);
-    const { frontendBaseUrl } = getEnvConfig();
-    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl, frontendBaseUrl);
+    // Use provided frontendBaseUrl or fall back to getTenantConfig for backward compatibility
+    let resolvedFrontendBaseUrl = frontendBaseUrl;
+    if (!resolvedFrontendBaseUrl) {
+      try {
+        const tenantConfig = getTenantConfig();
+        resolvedFrontendBaseUrl = tenantConfig.frontendBaseUrl;
+      } catch {
+        // getTenantConfig might not be initialized in all contexts
+      }
+    }
+    if (!resolvedFrontendBaseUrl) {
+      throw new Error('frontendBaseUrl is required for IntegrationTileHelper');
+    }
+    this.tileManagementService = new TileManagementService(appManagerApiContext, baseUrl, resolvedFrontendBaseUrl);
   }
 
   /**

@@ -54,7 +54,7 @@ test.describe(
     });
 
     test(
-      'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
+      'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone CONT-33728',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete', '@healthcheck'],
       },
@@ -93,7 +93,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify SC Manager able to delete the expired Social Campaign(Audience)',
+      'in Zeus Verify SC Manager able to delete the expired Social Campaign(Audience) CONT-10526',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
       },
@@ -154,7 +154,7 @@ test.describe(
     );
 
     test(
-      'verify App Manager able to share Social Campaign(Audience) to Site feed',
+      'verify App Manager able to share Social Campaign(Audience) to Site feed CONT-10518',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
       },
@@ -206,7 +206,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify error messages on creating social campaign without required details',
+      'in Zeus Verify error messages on creating social campaign without required details CONT-19603',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
       },
@@ -237,7 +237,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify user able to create social campaign for selected(Twitter) social network',
+      'in Zeus Verify user able to create social campaign for selected(Twitter) social network CONT-19604',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19604', '@Social_Campaign_Creation'],
       },
@@ -273,7 +273,7 @@ test.describe(
     );
 
     test(
-      'verify Audience Description Is Not Displayed When Not Present',
+      'verify Audience Description Is Not Displayed When Not Present CONT-33857',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33857', '@Social_Campaign_Audience'],
       },
@@ -314,7 +314,7 @@ test.describe(
     );
 
     test(
-      'verify App Manager able to share Social Campaign to Home Feed',
+      'verify App Manager able to share Social Campaign to Home Feed CONT-10515',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10515'],
       },
@@ -361,7 +361,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to delete the expired Social Campaign(Audience)',
+      'in Zeus Verify App Manager able to delete the expired Social Campaign(Audience) CONT-14899',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14899', '@Social_Campaign_Expire'],
       },
@@ -422,7 +422,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
+      'in Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign CONT-14906',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14906', '@Social_Campaign_End_User_Restrictions'],
       },
@@ -462,7 +462,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option',
+      'in Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option CONT-26718',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26718'],
       },
@@ -509,7 +509,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
+      'in Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option CONT-26719',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26719'],
       },
@@ -562,7 +562,7 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
+      'in Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted CONT-26800',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26800'],
       },
