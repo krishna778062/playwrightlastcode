@@ -10,7 +10,7 @@ import { PROJECT_ROOT } from '@core/constants/paths';
 
 const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome'];
 
-initializeRecognitionConfig('rewardSettings');
+initializeRecognitionConfig('workAnniversary');
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'recognition', 'tests', 'ui-tests', 'work-anniversary'),

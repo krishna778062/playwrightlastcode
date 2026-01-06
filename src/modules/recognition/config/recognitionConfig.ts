@@ -273,7 +273,7 @@ export const config = {
       newUxEnabled: true,
     },
   },
-  rewardSettings: {
+  workAnniversary: {
     qa: {
       tenantName: 'Reward Settings QA',
       frontendBaseUrl: 'https://reward-settings.qa.simpplr.xyz',
