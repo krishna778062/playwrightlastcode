@@ -185,7 +185,7 @@ test.describe(
     test(
       'zeus to validate admin user, end user and site manager not able to search deleted public site in workplace search global search page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
       async ({
         appManagerApiFixture,
@@ -218,7 +218,7 @@ test.describe(
     test(
       'zeus to validate admin user, end user and site manager not able to search deleted private site in workplace search global search page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
       async ({
         appManagerApiFixture,
@@ -251,7 +251,7 @@ test.describe(
     test(
       'zeus to validate admin user, end user and site manager not able to search deleted unlisted site in workplace search global search page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@test'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE],
       },
       async ({
         appManagerApiFixture,

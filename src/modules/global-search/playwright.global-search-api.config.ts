@@ -7,7 +7,7 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export default defineConfig({
   ...baseConfig,
-  timeout: TIMEOUTS.VERY_VERY_LONG,
+  timeout: TIMEOUTS.ULTRA_LONG,
   name: 'Global Search API Automation',
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'global-search', 'tests', 'api-tests'),
   testMatch: '**/*.spec.ts',

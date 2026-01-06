@@ -246,10 +246,14 @@ export const searchTestFixtures = test.extend<
 
       await use({ siteName: privateSite.siteName, siteId: privateSite.siteId });
 
-      // Note: Cleanup is handled by the siteManagementHelper fixture
-      console.log(
-        `🧹 Private site cleanup will be handled by siteManagementHelper fixture for site: ${privateSite.siteName} with ID: ${privateSite.siteId}`
-      );
+      // Cleanup: Explicitly deactivate the site (runs even if test fails)
+      console.log(`🧹 Starting cleanup for private site: ${privateSite.siteName} (${privateSite.siteId})`);
+      try {
+        const response = await siteManagementHelper.siteManagementService.deactivateSite(privateSite.siteId);
+        console.log(`✅ Deactivation response:`, JSON.stringify(response));
+      } catch (error) {
+        console.warn(`❌ Failed to deactivate site ${privateSite.siteName}:`, error);
+      }
     },
     { scope: 'worker' },
   ],
@@ -278,17 +282,21 @@ export const searchTestFixtures = test.extend<
 
       await use({ siteName: unlistedSite.siteName, siteId: unlistedSite.siteId });
 
-      // Note: Cleanup is handled by the siteManagementHelper fixture
-      console.log(
-        `🧹 Unlisted site cleanup will be handled by siteManagementHelper fixture for site: ${unlistedSite.siteName} with ID: ${unlistedSite.siteId}`
-      );
+      // Cleanup: Explicitly deactivate the site (runs even if test fails)
+      console.log(`🧹 Starting cleanup for unlisted site: ${unlistedSite.siteName} (${unlistedSite.siteId})`);
+      try {
+        const response = await siteManagementHelper.siteManagementService.deactivateSite(unlistedSite.siteId);
+        console.log(`✅ Deactivation response:`, JSON.stringify(response));
+      } catch (error) {
+        console.warn(`❌ Failed to deactivate site ${unlistedSite.siteName}:`, error);
+      }
     },
     { scope: 'worker' },
   ],
 
   // Worker-scoped private site with end user as member - one site per worker to reduce unnecessary site creation
   privateSiteWithEndUserMember: [
-    async ({ siteManagementHelper }, use, workerInfo) => {
+    async ({ siteManagementHelper, appManagerApiContext }, use, workerInfo) => {
       console.log(`🔧 Creating privateSiteWithEndUserMember fixture for worker ${workerInfo.workerIndex}`);
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `Private_WithMember_${randomNum}`;
@@ -305,15 +313,19 @@ export const searchTestFixtures = test.extend<
         waitForSearchIndex: true,
       });
 
-      // Add end user as a member to the site
+      // Add end user as a member to the site using userId (not email)
       try {
+        const identityManagementHelper = new IdentityManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(endUserEmail);
         await siteManagementHelper.makeUserSiteMembership(
           privateSite.siteId,
-          endUserEmail,
+          endUserInfo.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        console.log(`Successfully added ${endUserEmail} as member to private site ${privateSite.siteName}`);
+        console.log(
+          `Successfully added ${endUserInfo.fullName} (${endUserEmail}) as member to private site ${privateSite.siteName}`
+        );
       } catch (error) {
         console.warn(`Failed to add ${endUserEmail} as member to private site ${privateSite.siteName}:`, error);
       }
@@ -324,17 +336,21 @@ export const searchTestFixtures = test.extend<
 
       await use({ siteName: privateSite.siteName, siteId: privateSite.siteId });
 
-      // Note: Cleanup is handled by the siteManagementHelper fixture
-      console.log(
-        `🧹 Private site with end user member cleanup will be handled by siteManagementHelper fixture for site: ${privateSite.siteName} with ID: ${privateSite.siteId}`
-      );
+      // Cleanup: Explicitly deactivate the site (runs even if test fails)
+      console.log(`🧹 Starting cleanup for private site with member: ${privateSite.siteName} (${privateSite.siteId})`);
+      try {
+        const response = await siteManagementHelper.siteManagementService.deactivateSite(privateSite.siteId);
+        console.log(`✅ Deactivation response:`, JSON.stringify(response));
+      } catch (error) {
+        console.warn(`❌ Failed to deactivate site ${privateSite.siteName}:`, error);
+      }
     },
     { scope: 'worker' },
   ],
 
   // Worker-scoped unlisted site with end user as member - one site per worker to reduce unnecessary site creation
   unlistedSiteWithEndUserMember: [
-    async ({ siteManagementHelper }, use, workerInfo) => {
+    async ({ siteManagementHelper, appManagerApiContext }, use, workerInfo) => {
       console.log(`🔧 Creating unlistedSiteWithEndUserMember fixture for worker ${workerInfo.workerIndex}`);
       const randomNum = Math.floor(Math.random() * 1000000 + 1);
       const siteName = `Unlisted_WithMember_${randomNum}`;
@@ -351,15 +367,19 @@ export const searchTestFixtures = test.extend<
         waitForSearchIndex: true,
       });
 
-      // Add end user as a member to the site
+      // Add end user as a member to the site using userId (not email)
       try {
+        const identityManagementHelper = new IdentityManagementHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+        const endUserInfo = await identityManagementHelper.getUserInfoByEmail(endUserEmail);
         await siteManagementHelper.makeUserSiteMembership(
           unlistedSite.siteId,
-          endUserEmail,
+          endUserInfo.userId,
           SitePermission.MEMBER,
           SiteMembershipAction.ADD
         );
-        console.log(`Successfully added ${endUserEmail} as member to unlisted site ${unlistedSite.siteName}`);
+        console.log(
+          `Successfully added ${endUserInfo.fullName} (${endUserEmail}) as member to unlisted site ${unlistedSite.siteName}`
+        );
       } catch (error) {
         console.warn(`Failed to add ${endUserEmail} as member to unlisted site ${unlistedSite.siteName}:`, error);
       }
@@ -370,10 +390,16 @@ export const searchTestFixtures = test.extend<
 
       await use({ siteName: unlistedSite.siteName, siteId: unlistedSite.siteId });
 
-      // Note: Cleanup is handled by the siteManagementHelper fixture
+      // Cleanup: Explicitly deactivate the site (runs even if test fails)
       console.log(
-        `🧹 Unlisted site with end user member cleanup will be handled by siteManagementHelper fixture for site: ${unlistedSite.siteName} with ID: ${unlistedSite.siteId}`
+        `🧹 Starting cleanup for unlisted site with member: ${unlistedSite.siteName} (${unlistedSite.siteId})`
       );
+      try {
+        const response = await siteManagementHelper.siteManagementService.deactivateSite(unlistedSite.siteId);
+        console.log(`✅ Deactivation response:`, JSON.stringify(response));
+      } catch (error) {
+        console.warn(`❌ Failed to deactivate site ${unlistedSite.siteName}:`, error);
+      }
     },
     { scope: 'worker' },
   ],
