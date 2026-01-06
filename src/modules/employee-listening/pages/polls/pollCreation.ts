@@ -131,7 +131,7 @@ export class AIPollCreationPage extends BasePage {
     this.saveDraftButton = this.page.getByRole('button', { name: 'Save draft' });
     this.browseAudiencesButton = this.page.getByRole('button', { name: 'Browse' });
     this.postButton = this.page.getByRole('button', { name: 'Post' });
-    this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
+    this.dismissButton = this.page.getByRole('dialog', { name: 'Survey participation prompt' }).getByLabel('Dismiss');
     this.activeTag = this.page.getByText('Active');
     this.sendingPollTag = this.page.getByText('Sending poll');
     this.quickPromptButtons = this.page.locator(
