@@ -241,7 +241,6 @@ export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions
         await this.clickOnElement(sharedDriveFolder);
       }
       await this.clickOnElement(this.linkFolderDialogInput.nth(3));
-      //await this.fillInElement(this.linkFolderDialogInput.first(), folderName);
       await this.clickOnElement(this.page.getByText(folderName, { exact: true }).first());
       await this.clickOnElement(this.linkNewFolderButton(linkFolderName));
       console.log(`Box folder "${linkFolderName}" linked`);

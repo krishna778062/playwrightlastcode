@@ -2716,11 +2716,11 @@ test.describe(
           storyId: 'CONT-20080',
         });
 
-        const siteName = 'All Employees';
         const fileName = 'V2.png';
         const folderName = 'AVISTA BOX FILES EDITOR';
 
-        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const publicSiteId = publicSite.siteId;
 
         // Create page objects once and reuse
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
