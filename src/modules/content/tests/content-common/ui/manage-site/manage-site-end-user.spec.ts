@@ -416,7 +416,7 @@ test.describe(
               `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
             );
 
-            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
+            if (siteDetails.result?.canEdit === true && siteDetails.result?.isManager === true) {
               selectedSite = { siteId: site.siteId, name: site.name };
               console.log(`✓ Found site where user can edit and is owner: ${site.siteId} (${site.name})`);
               break;

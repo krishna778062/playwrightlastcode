@@ -74,7 +74,8 @@ export class NewHomePage extends BasePage {
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.homeLayoutComponent = new HomeLayoutComponent(page);
     this.peopleButton = page.getByRole('menuitem', { name: 'People' });
-    this.carouselText = (text: string) => page.getByRole('link', { name: text, exact: true });
+    // Scope to main content area to exclude sidebar navigation links
+    this.carouselText = (text: string) => page.locator('#page-content').getByRole('link', { name: text, exact: true });
     this.recentlyVisitedSite = (siteName: string) => page.getByRole('link', { name: siteName }).first();
     this.profileSettingsButton = page.getByRole('button', { name: 'Profile settings' });
   }

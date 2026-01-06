@@ -166,7 +166,13 @@ export class SiteQueryHelper {
       ...options,
       waitForSearchIndex: options?.waitForSearchIndex,
     });
-    return { siteId: createdSite.siteId, name: createdSite.siteName };
+    // Fetch the site list to include in the response for consistency
+    const updatedSiteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    return {
+      siteId: createdSite.siteId,
+      name: createdSite.siteName,
+      siteListResponse: updatedSiteListResponse.result.listOfItems,
+    };
   }
 
   /**

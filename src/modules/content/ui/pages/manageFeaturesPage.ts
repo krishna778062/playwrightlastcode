@@ -29,6 +29,11 @@ export class ManageFeaturesPage extends BasePage {
     });
   }
 
+  async clickOnInsideSiteCard(): Promise<void> {
+    await test.step('Clicking on inside site card', async () => {
+      await this.clickOnElement(this.manageFeatureComponent.insideSiteCard);
+    });
+  }
   async clickOnSitesCard(): Promise<void> {
     await test.step('Clicking on sites card', async () => {
       await this.clickOnElement(this.manageFeatureComponent.sitesCard);

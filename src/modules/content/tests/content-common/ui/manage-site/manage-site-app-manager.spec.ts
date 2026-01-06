@@ -525,6 +525,7 @@ test.describe(
         await favoritesPage.verifyPeopleNamesAreDisplayed(peopleNames);
         await appManagerFixture.navigationHelper.clickOnOrgChartButton();
         await orgChartPage.typeInSearchBarInput(peopleNames[0]);
+        await orgChartPage.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
         await userProfilePage.clickOnFollowersTab();
         await userProfilePage.verifyContactInformation();
       }
@@ -540,8 +541,9 @@ test.describe(
           zephyrTestId: 'CONT-26503',
           storyId: 'CONT-26503',
         });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.clickOnSitesCard();
+        const manageSitePageAppManager = new ManageSitePage(appManagerFixture.page);
+        await manageSitePageAppManager.loadPage();
+        await manageSitePageAppManager.verifyThePageIsLoaded();
         const editSitePage = new EditSitePage(appManagerFixture.page);
         await manageSitesComponent.hoverOnFirstSiteNameAction();
         await editSitePage.clickOnEditOption();
@@ -658,8 +660,10 @@ test.describe(
           zephyrTestId: 'CONT-26574',
           storyId: 'CONT-26574',
         });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.clickOnSitesCard();
+
+        const manageSitePageAppManager = new ManageSitePage(appManagerFixture.page);
+        await manageSitePageAppManager.loadPage();
+        await manageSitePageAppManager.verifyThePageIsLoaded();
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',

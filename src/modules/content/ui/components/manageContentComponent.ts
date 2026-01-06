@@ -91,7 +91,7 @@ export class ManageContentComponent extends BaseComponent {
     // Filter out disabled checkboxes as they cannot be clicked
     this.firstContentCheckbox = page
       .locator('[type="checkbox"][aria-label="Select"][value="false"]:not([disabled])')
-      .nth(1);
+      .nth(0);
 
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');
@@ -182,7 +182,10 @@ export class ManageContentComponent extends BaseComponent {
     return this.page.locator(`h2:has-text("${pageName}")`).first();
   }
   getContentNameLocator(text: string): Locator {
-    return this.manageContentListItems.locator(`a:has-text("${text}")`).first();
+    // Match by aria-label (most reliable) within the content list item
+    // Structure: .ManageContentListItem > .ManageContentListItem-content > .ListingItem > .ListingItem-inner > h2 > a[aria-label="contentName"]
+    // Scope to h2 > a to be more specific and avoid matching links in other parts
+    return this.manageContentListItems.locator('h2').locator(`a[aria-label="${text}"]`).first();
   }
 
   createdAtDate(createdAtDate: string): Locator {
@@ -1066,9 +1069,12 @@ export class ManageContentComponent extends BaseComponent {
   }
   async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
     await test.step('Verifying all contents are deleted', async () => {
-      const contentNameLocator = this.getContentNameLocator(contentNames[0]);
+      const contentName = contentNames[0];
+      const contentNameLocator = this.getContentNameLocator(contentName);
+
+      // Fallback: if element is still in DOM, verify it's at least hidden
       await this.verifier.verifyTheElementIsNotVisible(contentNameLocator, {
-        assertionMessage: `Content ${contentNames[0]} should not be visible`,
+        assertionMessage: `Content ${contentName} should not be visible after deletion`,
       });
     });
   }
