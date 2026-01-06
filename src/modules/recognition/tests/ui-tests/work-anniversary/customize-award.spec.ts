@@ -1,10 +1,14 @@
 import { expect } from '@playwright/test';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
+import {
+  AutomatedAwardPage,
+  EditAutomatedAwardPage,
+  ManageRecognitionPage,
+  milestoneEndpointUrls,
+} from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
-import { AutomatedAwardPage, EditAutomatedAwardPage, milestoneEndpointUrls } from '@rewards-pages/work-anniversary';
 
-import { TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
+import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
 
 test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
@@ -13,6 +17,16 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
     await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+    // Check for error page first
+    const errorMessage = appManagerPage.getByText('Something went wrong', { exact: false });
+    const isErrorVisible = await errorMessage.isVisible().catch(() => false);
+    if (isErrorVisible) {
+      throw new Error('Page loaded with error: "Something went wrong - please try again later"');
+    }
+    await expect(manageRecognitionPage.header).toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
     const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
     await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     await threeDotsButton.click();

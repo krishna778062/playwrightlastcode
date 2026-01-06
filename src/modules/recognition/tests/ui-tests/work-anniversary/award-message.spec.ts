@@ -1,8 +1,12 @@
 import { expect } from '@playwright/test';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
+import {
+  AutomatedAwardPage,
+  EditAutomatedAwardPage,
+  ManageRecognitionPage,
+  milestoneEndpointUrls,
+} from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
-import { AutomatedAwardPage, EditAutomatedAwardPage, milestoneEndpointUrls } from '@rewards-pages/work-anniversary';
 
 import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';

@@ -1,7 +1,10 @@
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
+import {
+  automatedAwardMsgs,
+  AutomatedAwardPage,
+  ManageRecognitionPage,
+} from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
-import { ManageRecognitionPage } from '@rewards-pages/manage-recognition';
-import { automatedAwardMsgs, AutomatedAwardPage } from '@rewards-pages/work-anniversary';
 
 import { TestGroupType, TestPriority } from '@core/constants';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
