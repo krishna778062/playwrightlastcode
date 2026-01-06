@@ -18,8 +18,9 @@
 name: Daily Regression (v2)
 
 on:
-  schedule:
-    - cron: '0 6 * * *'
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   - cron: '0 6 * * *'
 
   workflow_dispatch:
     inputs:
@@ -59,6 +60,7 @@ on:
           - 'de-api-abac'
           - 'reward'
           - 'reward-settings'
+          - 'reward-workAnniversary'
           - 'recognition'
           - 'privateRecognition'
           - 'frontline'
@@ -82,8 +84,8 @@ jobs:
       trigger_type: daily_cron
       slack_prefix: Daily Regression
       git_ref: ${{ github.event_name == 'schedule' && '' || github.ref_name }}
-      # Empty for 'all' (use template default), otherwise single module as JSON array
-      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
+      modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
       # TEMPORARILY DISABLED: Preserving quota for QA release testing
       is_browserstack: ${{ inputs.is_browserstack || false }}
     secrets: inherit

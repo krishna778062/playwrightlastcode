@@ -9,7 +9,7 @@ import { Page } from '@playwright/test';
  * @param maxWaitMs optional maximum wait in ms (default 15 minutes) to protect against runaway waits
  * @returns the Date object of the moment when the wait finished (the target time)
  */
-export async function waitUntilNextDecadePlusOne(page?: Page, maxWaitMs = 15 * 60 * 1000): Promise<Date> {
+export async function waitUntilNext10thMinuteWithPlusOne(page?: Page, maxWaitMs = 15 * 60 * 1000): Promise<Date> {
   const now = new Date();
 
   const year = now.getFullYear();

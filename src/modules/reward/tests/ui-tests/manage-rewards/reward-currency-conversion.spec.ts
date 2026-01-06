@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test';
+import { getDbConfigFromCache } from '@rewards/config/dbConfig';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { getQuery } from '@rewards/utils/dbQuery';
@@ -62,6 +63,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-2236',
         storyId: 'RC-2236',
       });
+      tagTest(test.info(), {
+        description: 'Validate currency conversion page',
+        zephyrTestId: 'RC-3463',
+        storyId: 'RC-3169',
+      });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
       await currencyConversionPage.validateAllUIElements(apiData);
@@ -101,6 +107,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-4590',
         storyId: 'RC-4590',
       });
+      tagTest(test.info(), {
+        description: 'Validate if currency conversion page contains only Active users data',
+        zephyrTestId: 'RC-3915',
+        storyId: 'RC-3894',
+      });
 
       // Navigate to Currency conversion
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
@@ -117,7 +128,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
       // Match the DB count with the CSV count
       const rawQuery = getQuery('getTheEmailOfUsersWhichCurrencyIsNull');
       const queryToRun = rawQuery.replace(/tenantCode/g, tenantCode);
-      const dbRows: any[] = await executeQuery(queryToRun, 'reward');
+      const dbRows: any[] = await executeQuery(queryToRun, getDbConfigFromCache('reward'));
       const dbCount = dbRows.length;
       const csvCount = await CSVUtils.getRowCount(latestCsvPath);
       expect(dbCount, 'DB row count should match CSV row count').toBe(csvCount);

@@ -436,6 +436,14 @@ export class SiteManagementHelper {
     return this.sites.length;
   }
 
+  async activateSite(allEmployeesSiteId: string) {
+    return await this.siteManagementService.activateSite(allEmployeesSiteId);
+  }
+
+  async deactivateSite(siteId: string) {
+    return await this.siteManagementService.deactivateSite(siteId);
+  }
+
   async getCategoryList(options: { size?: number; sortBy?: string } = {}): Promise<any> {
     return await test.step('Getting list of categories via API', async () => {
       return await this.siteManagementService.getListOfCategories(options);
