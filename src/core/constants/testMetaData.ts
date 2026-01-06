@@ -9,7 +9,7 @@ export interface TestMetadata {
   description?: string;
   zephyrTestId?: string | string[]; //suppports both single zephyr id or list of zephyr ids
   customTags?: string[];
-  storyId?: string;
+  storyId?: string | string[];
   isKnownFailure?: boolean; // boolean flag to denote if this is a known failure
   bugTicket?: string | string[]; // bug ticket from Jira for known failures
   bugReportedDate?: string; // date when the bug was reported
