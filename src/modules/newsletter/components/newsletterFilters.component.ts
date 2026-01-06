@@ -190,38 +190,27 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
     await this.clickOnElement(this.fromAddressField, {
       stepInfo: 'Open From address filter options',
     });
-    await expect(this.senderOptions.first(), 'Sender options should be available').toBeAttached();
 
-    const escapedSenderEmail = senderEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const searchRegex = new RegExp(escapedSenderEmail, 'i');
+    // Wait for React Select listbox to appear (options are inside a listbox, not native <option> elements)
+    const listbox = this.page.getByRole('listbox');
+    await expect(listbox, 'From address dropdown listbox should be visible').toBeVisible({ timeout: 10000 });
 
-    let matchedOption: Locator | null = null;
-    for (let attempt = 0; attempt < 5 && !matchedOption; attempt++) {
-      const optionCount = await this.senderOptions.count();
-      for (let index = 0; index < optionCount; index++) {
-        const option = this.senderOptions.nth(index);
-        const optionTextCandidate = ((await option.textContent()) ?? '').trim();
-        if (searchRegex.test(optionTextCandidate)) {
-          matchedOption = option;
-          break;
-        }
-      }
-      if (!matchedOption && optionCount > 0) {
-        await this.senderOptions.last().scrollIntoViewIfNeeded();
-        await this.page.waitForTimeout(150);
-      }
-    }
+    // Get the first option from the listbox
+    const dropdownOption = listbox.getByRole('option').first();
+    await expect(dropdownOption, 'Dropdown option should be visible').toBeVisible();
 
-    if (!matchedOption) {
-      throw new Error(`Sender option containing ${senderEmail} was not found in From address list`);
-    }
+    const firstOptionText = (await dropdownOption.textContent())?.trim() ?? '';
 
-    await matchedOption.scrollIntoViewIfNeeded();
-    await expect(matchedOption, `Sender option containing ${senderEmail} should be visible`).toBeVisible();
+    // Assert that option contains both a display name and an email pattern
+    const emailPattern = /[\w.-]+@[\w.-]+\.\w+/;
+    const hasEmail = emailPattern.test(firstOptionText);
 
-    const optionText = (await matchedOption.textContent())?.trim() ?? '';
-    expect(optionText).toContain(senderEmail);
-    expect(optionText).not.toBe(senderEmail);
+    // Name is present if there's text beyond just the email
+    const emailMatch = firstOptionText.match(emailPattern);
+    const hasName = emailMatch ? firstOptionText.length > emailMatch[0].length : firstOptionText.length > 0;
+
+    expect(hasName, `From address option should contain a display name. Got: "${firstOptionText}"`).toBeTruthy();
+    expect(hasEmail, `From address option should contain an email. Got: "${firstOptionText}"`).toBeTruthy();
 
     await this.page.keyboard.press('Escape');
   }

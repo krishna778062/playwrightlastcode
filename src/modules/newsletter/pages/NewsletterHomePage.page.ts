@@ -65,9 +65,10 @@ export class NewsletterHomePagePage extends BasePage {
     this.searchClearButton = this.searchContainer.locator('button[aria-label="Clear"]');
     this.searchButton = this.searchContainer.getByRole('button', { name: 'Search' });
 
-    this.newsletterBlankTemplate = this.page.locator(
-      '[data-testid="thumbnail-item-wrapper"]:has-text("Blank Template")'
-    );
+    // Use heading with exact match to avoid matching "Custom Blank Template"
+    this.newsletterBlankTemplate = this.page
+      .getByRole('heading', { name: 'Blank template', exact: true })
+      .locator('xpath=ancestor::*[@data-testid="thumbnail-item-wrapper"]');
     this.newsletterCreateActionButton = this.page.getByRole('group').getByText('Create', { exact: true });
     this.newsletterNameInput = this.page.locator('#name');
     this.nextButton = this.page.getByRole('button', { name: 'Next' });

@@ -1,12 +1,10 @@
 import { NewsletterNewUxHomePage, NewsletterOldUxHomePage } from '@newsletter/pages/newsletterHomeAdapters';
 import { Page, test } from '@playwright/test';
 
-import { AppManagerApiClient } from '@core/api/clients/appManagerApiClient';
 import { LoginHelper } from '@core/helpers/loginHelper';
+import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
+import { OldUxHomePage } from '@core/pages/homePage/oldUxHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
-
-import { NewUxHomePage } from '@/src/core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@/src/core/pages/homePage/oldUxHomePage';
 
 const adaptHomePage = (homePage: NewUxHomePage | OldUxHomePage) => {
   if (homePage instanceof NewUxHomePage) {
@@ -18,7 +16,6 @@ const adaptHomePage = (homePage: NewUxHomePage | OldUxHomePage) => {
 export const newsletterFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
-  appManagerApiClient: AppManagerApiClient;
   enlManagerHomePage: NewUxHomePage | OldUxHomePage;
   enlManagerPage: Page;
   standardUserHomePage: NewUxHomePage | OldUxHomePage;
