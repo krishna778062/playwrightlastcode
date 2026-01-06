@@ -37,6 +37,16 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         zephyrTestId: 'RC-5348',
         storyId: 'RC-5348',
       });
+      tagTest(test.info(), {
+        description: 'Verify point deduction when adding new recipients to existing recognition',
+        zephyrTestId: 'RC-4060',
+        storyId: 'RC-4936',
+      });
+      tagTest(test.info(), {
+        description: 'Verify wallet balance got updated after recognition points is edited',
+        zephyrTestId: 'RC-4065',
+        storyId: 'RC-4936',
+      });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       let availablePoints: string;
       let recognitionPostId: string;
@@ -216,6 +226,11 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         description: 'Verify app manager can edit points within the 24hr pending period for multiple recipient',
         zephyrTestId: 'RC-5350',
         storyId: 'RC-5350',
+      });
+      tagTest(test.info(), {
+        description: 'Validate if new users are getting same points as old users while editing recognition',
+        zephyrTestId: 'RC-4059',
+        storyId: 'RC-4936',
       });
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
