@@ -55,7 +55,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().endUserName);
-      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectTheUserForRecognition(0);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
@@ -185,7 +185,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
         }
         await recognitionHub.clickOnGiveRecognition();
         const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-        await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+        await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || 0);
         await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition('1');
         await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
         await giveRecognitionModal.giftThePoints(1);
@@ -259,7 +259,7 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       }
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
-      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || '');
+      await giveRecognitionModal.selectTheUserForRecognition(recognizedUser || 0);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       const rewardPointsTextNew = await giveRecognitionModal.giftThePoints(1);
