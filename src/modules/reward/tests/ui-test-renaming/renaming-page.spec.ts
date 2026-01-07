@@ -1,7 +1,6 @@
-import { RecognitionSuitTags } from '@recognition/constants/testTags';
-import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
-import { RenamingPage } from '@recognition/ui/pages/manage/renamingPage';
+import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
+import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -9,7 +8,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('renaming page', () => {
-  let responseOfHarnessCall: any;
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -18,9 +16,9 @@ test.describe('renaming page', () => {
   });
 
   test(
-    '[RC-6963] Validate naming page of RnR renaming',
+    '[RC-6963, RC-6935] Validate naming page and option of RnR renaming',
     {
-      tag: [RecognitionSuitTags.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -75,7 +73,7 @@ test.describe('renaming page', () => {
     test(
       `[${testId}] Verify edit modal appears and default language input is disabled for ${cardType}`,
       {
-        tag: [RecognitionSuitTags.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -86,11 +84,10 @@ test.describe('renaming page', () => {
         const { page } = appManagerFixture;
         const renamingPage = new RenamingPage(page);
         await renamingPage.verifyThePageIsLoaded();
-
+        const isElementAlreadyCustomized = await renamingPage.isCardCustomized(cardType);
         await renamingPage.clickEditButtonByCardType(cardType);
         await renamingPage.verifyModalIsVisible();
-        await renamingPage.verifyDefaultLanguageInputIsDisabled();
-
+        await renamingPage.verifyDefaultLanguageInputIs(isElementAlreadyCustomized);
         await renamingPage.clickDialogCancelButton();
       }
     );

@@ -14,6 +14,10 @@ export class RenamingPage extends BasePage {
   readonly pointsEditButton: Locator;
   readonly rewardsStoreEditButton: Locator;
 
+  readonly recognitionCustomNameLabel: Locator;
+  readonly pointsCustomNameLabel: Locator;
+  readonly rewardsCustomNameLabel: Locator;
+
   readonly dialogContainer: Locator;
   readonly dialogTitle: Locator;
   readonly dialogNameInput: Locator;
@@ -32,6 +36,10 @@ export class RenamingPage extends BasePage {
     this.recognitionEditButton = page.getByRole('button', { name: 'Edit name for recognition' });
     this.pointsEditButton = page.getByRole('button', { name: 'Edit name for points' });
     this.rewardsStoreEditButton = page.getByRole('button', { name: 'Edit name for rewardsStore' });
+
+    this.recognitionCustomNameLabel = this.recognitionEditButton.locator('xpath=//parent::div//parent::div//span');
+    this.pointsCustomNameLabel = this.pointsEditButton.locator('xpath=//parent::div//parent::div//span');
+    this.rewardsCustomNameLabel = this.rewardsStoreEditButton.locator('xpath=//parent::div//parent::div//span');
 
     this.recognitionCard = this.container.locator('div').filter({ has: this.recognitionEditButton }).first();
     this.pointsCard = this.container.locator('div').filter({ has: this.pointsEditButton }).first();
@@ -190,12 +198,16 @@ export class RenamingPage extends BasePage {
     });
   }
 
-  async verifyDefaultLanguageInputIsDisabled(): Promise<void> {
+  async verifyDefaultLanguageInputIs(enabledOrDisabled: boolean): Promise<void> {
     await test.step('Verifying default language input is disabled', async () => {
       await expect(this.defaultLanguageInput, 'expecting default language input to be visible').toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
-      await expect(this.defaultLanguageInput, 'expecting default language input to be disabled').toBeDisabled();
+      if (enabledOrDisabled) {
+        await expect(this.defaultLanguageInput, 'expecting default language input to be disabled').toBeEnabled();
+      } else {
+        await expect(this.defaultLanguageInput, 'expecting default language input to be disabled').toBeDisabled();
+      }
     });
   }
 
@@ -221,20 +233,48 @@ export class RenamingPage extends BasePage {
     });
   }
 
-  // async validateTheHarnessFlagValue(flagName: string, expectedValue: boolean) {
-  //   await test.step(`Validating the harness flag ${flagName} is set to ${expectedValue}`, async () => {
-  //     const flagValue = await this.getHarnessFlagValue(flagName);
-  //     expect(flagValue).toBe(
-  //       expectedValue,
-  //       `Expected harness flag ${flagName} to be ${expectedValue}, but got ${flagValue}`
-  //     );
-  //   });
-  // }
-  //
-  // private async getHarnessFlagValue(flagName: string) {
-  //   return await this.page.evaluate((name) => {
-  //     //Simpplr.Settings.recognitionCustomLabels.recognition
-  //     // return window.harnessFlags ? window.harnessFlags[name] : undefined;
-  //   }, flagName);
-  // }
+  async validateTheHarnessFlagValue(flagName: string, expectedValue: boolean) {
+    await test.step(`Validating the harness flag ${flagName} is set to ${expectedValue}`, async () => {
+      const flagValue = await this.getHarnessFlagValue(flagName);
+      expect(flagValue, `Expected harness flag ${flagName} to be ${expectedValue}, but got ${flagValue}`).toBe(
+        expectedValue
+      );
+    });
+  }
+
+  private async getHarnessFlagValue(flagName: string): Promise<boolean> {
+    const apiUrlPattern = /\/api\/1\.0\/client\/env\/.*\/target\/.*\/evaluations\?cluster=2/;
+    const [response] = await Promise.all([
+      this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
+        timeout: TIMEOUTS.SHORT,
+      }),
+      this.page.reload(),
+      this.verifyThePageIsLoaded(),
+    ]);
+    const json = await response.json();
+    const flag = json.find((item: any) => item.flag === flagName);
+    if (!flag || typeof flag.value !== 'string') {
+      throw new Error(`Harness flag "${flagName}" not found in response`);
+    }
+    console.log(`Harness flag ${flagName} value:`, flag.value.toLowerCase());
+    return flag.value.toLowerCase() === 'true';
+  }
+
+  async isCardCustomized(cardType: 'recognition' | 'points' | 'rewardsStore'): Promise<boolean> {
+    let locator: Locator;
+    switch (cardType) {
+      case 'recognition':
+        locator = this.recognitionCustomNameLabel;
+        break;
+      case 'points':
+        locator = this.pointsCustomNameLabel;
+        break;
+      case 'rewardsStore':
+        locator = this.rewardsCustomNameLabel;
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+    return this.verifier.isTheElementVisible(locator, { timeout: TIMEOUTS.VERY_VERY_SHORT });
+  }
 }
