@@ -16,6 +16,7 @@ on:
           - 'reward'
           - 'reward-settings'
           - 'reward-workAnniversary'
+          - 'renaming'
           - 'integrations-primary'
           - 'integrations-workday'
           - 'integrations-azuresso'
