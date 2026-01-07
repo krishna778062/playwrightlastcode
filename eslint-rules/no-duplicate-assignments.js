@@ -20,7 +20,7 @@ module.exports = {
       category: 'Possible Errors',
       recommended: true,
     },
-    fixable: 'code',
+    fixable: null, // No auto-fix - must be fixed manually
     schema: [],
     messages: {
       duplicateAssignment: 'Duplicate assignment to "{{property}}". This line is identical to the previous assignment.',
@@ -86,13 +86,7 @@ module.exports = {
               node: currentStatement,
               messageId: 'duplicateAssignment',
               data: { property },
-              fix(fixer) {
-                // Remove the duplicate line (including the newline before it)
-                const tokenBefore = sourceCode.getTokenBefore(currentStatement);
-                const start = tokenBefore ? tokenBefore.range[1] : currentStatement.range[0];
-                const end = currentStatement.range[1];
-                return fixer.removeRange([start, end]);
-              },
+              // No auto-fix - must be fixed manually
             });
           }
         }
