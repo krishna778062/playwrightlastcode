@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
@@ -276,5 +277,93 @@ export class RenamingPage extends BasePage {
         throw new Error(`Invalid card type: ${cardType}`);
     }
     return this.verifier.isTheElementVisible(locator, { timeout: TIMEOUTS.VERY_VERY_SHORT });
+  }
+
+  async mockTheAppConfigAPIForTwoLanguages(numbers: number[]) {
+    await this.page.route('**/account/appConfig', async route => {
+      const originalResponse = await route.fetch();
+      const body = await originalResponse.json();
+
+      if (body?.result?.selectedLanguages.ids !== undefined) {
+        body.result.selectedLanguages.ids = numbers;
+      } else {
+        console.warn('⚠️ Could not find result.language.selectedLanguages.ids in response, leaving unchanged');
+      }
+      await route.fulfill({
+        response: originalResponse,
+        body: JSON.stringify(body),
+        headers: {
+          ...originalResponse.headers(),
+          'content-type': 'application/json',
+        },
+      });
+    });
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
+  }
+
+  async validateTheEditModalElements(customized: boolean) {
+    const editModal = new EditLabelModal(this.page);
+    const modalTitle = await editModal.getTheTitleOfTheModal();
+    expect(modalTitle).toContain('Edit program name & manage translations');
+    await this.verifier.isTheElementVisible(editModal.getCloseButton(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
+    await this.verifier.isTheElementVisible(editModal.getSaveButton(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
+    await this.verifier.isTheElementVisible(editModal.getCancelButton(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
+
+    await this.verifier.isTheElementVisible(editModal.getCustomLabel(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
+    await this.verifier.isTheElementVisible(editModal.getCustomLabelToggleSwitch(), {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+    });
+    if (customized) {
+      await expect(editModal.getCustomLabelToggleSwitch()).toBeChecked();
+    } else {
+      await expect(editModal.getCustomLabelToggleSwitch()).not.toBeChecked();
+    }
+
+    await this.verifier.verifyTheElementIsVisible(editModal.getCustomLabelInputBox(), {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+    });
+    await this.verifier.verifyTheElementIsVisible(editModal.getCustomLabelForAllLanguageCheckbox(), {
+      timeout: TIMEOUTS.VERY_VERY_SHORT,
+    });
+    const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelForAllLanguageCheckbox().isChecked();
+    if (isRecognitionForAllLanguagesChecked) {
+      await this.verifier.verifyTheElementIsVisible(editModal.getManualTranslationDisabledAlert(), {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
+      await editModal.getCustomLabelForAllLanguageCheckbox().check();
+      await this.verifier.verifyTheElementIsNotVisible(editModal.getManualTranslationDisabledAlert(), {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
+    } else {
+      await this.verifier.verifyTheElementIsNotVisible(editModal.getManualTranslationDisabledAlert(), {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
+      await editModal.getCustomLabelForAllLanguageCheckbox().check();
+      await this.verifier.verifyTheElementIsVisible(editModal.getManualTranslationDisabledAlert(), {
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
+    }
+  }
+
+  async validateTheEditModalWithMockedResult(): Promise<void> {
+    const editModal = new EditLabelModal(this.page);
+    const translationText = editModal.page.getByText('Translations (2 languages)', { exact: true });
+    const language1 = editModal.page.getByLabel('English - English (UK)');
+    const language2 = editModal.page.getByLabel('French - Français');
+    const languageAutoTranslationLabel = editModal.page.getByText(
+      'Automatic translations - powered by Google Translate'
+    );
+    await expect(translationText, 'expecting Translations text to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await expect(language1, 'expecting Language 1 heading to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await expect(language2, 'expecting Language 2 heading to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await expect(languageAutoTranslationLabel, 'expecting Language 2 heading to be visible').toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 }
