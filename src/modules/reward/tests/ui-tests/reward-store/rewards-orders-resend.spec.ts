@@ -55,6 +55,16 @@ test.describe('rewards store - Order history page', { tag: [REWARD_SUITE_TAGS.RE
         zephyrTestId: 'RC-3245',
         storyId: 'RC-3245',
       });
+      tagTest(test.info(), {
+        description: 'Validate order history resending with Primary email address',
+        zephyrTestId: 'RC-3241',
+        storyId: 'RC-3245',
+      });
+      tagTest(test.info(), {
+        description: 'Validate success toast message on successful reward order history Resending',
+        zephyrTestId: 'RC-3243',
+        storyId: 'RC-3245',
+      });
       const rewardsStore = new RewardsStore(appManagerFixture.page);
       // Navigate to rewards store and validate
       await rewardsStore.verifier.waitUntilPageHasNavigatedTo('/rewards-store/gift-cards');
