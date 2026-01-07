@@ -2,35 +2,21 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IContentModerationQueueActions {
-  clickQueuesTab(): Promise<void>;
-  dismissPost: (postText: string) => Promise<void>;
-  removePost: (postText: string) => Promise<void>;
-  dismissComment: (commentText: string) => Promise<void>;
-  removeComment: (commentText: string) => Promise<void>;
-}
-
-export interface IContentModerationQueueAssertions {
-  verifyPostInQueue: (postText: string) => Promise<void>;
-  verifyCommentInQueue: (commentText: string) => Promise<void>;
-  verifyPostNotInQueue: (postText: string) => Promise<void>;
-  verifyCommentNotInQueue: (commentText: string) => Promise<void>;
-}
-
-export class ContentModerationQueuePage
-  extends BasePage
-  implements IContentModerationQueueActions, IContentModerationQueueAssertions
-{
+export class ContentModerationQueuePage extends BasePage {
   // Locators
+  readonly moderationQueuePostContainer: Locator;
+  readonly moderatedPost: (text: string) => Locator;
   readonly queueContainer: (text: string) => Locator;
   readonly dismissButton: (text: string) => Locator;
   readonly removeButton: (text: string) => Locator;
   readonly queuesTab: Locator;
   readonly emptyQueueMessage: Locator;
+  readonly contentModerationPageHeading: Locator;
 
   constructor(page: Page) {
     super(page, '');
-
+    this.moderationQueuePostContainer = this.page.locator("[class*='ModerationQueue_postContainer']");
+    this.moderatedPost = (text: string) => this.moderationQueuePostContainer.filter({ hasText: text }).first();
     this.queueContainer = (text: string) => this.page.locator('div').filter({ hasText: text }).first();
     this.queuesTab = this.page.getByRole('tab', { name: 'Queue' });
 
@@ -47,14 +33,7 @@ export class ContentModerationQueuePage
         .first();
 
     this.emptyQueueMessage = this.page.getByText(/nothing to show|no items|queue is empty/i);
-  }
-
-  get actions(): IContentModerationQueueActions {
-    return this;
-  }
-
-  get assertions(): IContentModerationQueueAssertions {
-    return this;
+    this.contentModerationPageHeading = this.page.getByRole('heading', { name: 'Content Moderation' });
   }
 
   /**
@@ -63,8 +42,8 @@ export class ContentModerationQueuePage
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify content moderation queue page is loaded', async () => {
       // Wait for either the queue container or empty message to be visible
-      await this.verifier.verifyTheElementIsVisible(this.queueContainer('').or(this.emptyQueueMessage), {
-        assertionMessage: 'Content moderation queue page should be loaded',
+      await this.verifier.verifyTheElementIsVisible(this.contentModerationPageHeading, {
+        assertionMessage: 'Content moderation page heading should be visible',
       });
     });
   }
@@ -181,7 +160,7 @@ export class ContentModerationQueuePage
    */
   async verifyPostInQueue(postText: string): Promise<void> {
     await test.step(`Verify post is in moderation queue: ${postText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.queueContainer(postText), {
+      await this.verifier.verifyTheElementIsVisible(this.moderatedPost(postText), {
         assertionMessage: `Post "${postText}" should be visible in moderation queue`,
       });
     });
@@ -193,7 +172,7 @@ export class ContentModerationQueuePage
    */
   async verifyCommentInQueue(commentText: string): Promise<void> {
     await test.step(`Verify comment is in moderation queue: ${commentText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.queueContainer(commentText), {
+      await this.verifier.verifyTheElementIsVisible(this.moderatedPost(commentText), {
         assertionMessage: `Comment "${commentText}" should be visible in moderation queue`,
       });
     });
@@ -205,7 +184,7 @@ export class ContentModerationQueuePage
    */
   async verifyPostNotInQueue(postText: string): Promise<void> {
     await test.step(`Verify post is not in moderation queue: ${postText}`, async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.queueContainer(postText), {
+      await this.verifier.verifyTheElementIsNotVisible(this.moderatedPost(postText), {
         assertionMessage: `Post "${postText}" should not be visible in moderation queue`,
       });
     });
@@ -217,7 +196,7 @@ export class ContentModerationQueuePage
    */
   async verifyCommentNotInQueue(commentText: string): Promise<void> {
     await test.step(`Verify comment is not in moderation queue: ${commentText}`, async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.queueContainer(commentText), {
+      await this.verifier.verifyTheElementIsNotVisible(this.moderatedPost(commentText), {
         assertionMessage: `Comment "${commentText}" should not be visible in moderation queue`,
       });
     });

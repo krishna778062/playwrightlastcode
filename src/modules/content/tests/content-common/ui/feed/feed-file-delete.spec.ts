@@ -241,11 +241,11 @@ for (const testData of feedTestData) {
         } else if (testData.feedType === 'Site Feed') {
           siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.clickOnFeedLink();
         } else if (testData.feedType === 'Home Feed') {
           await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
         }
-        await appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
       });
 
       test.afterEach('Cleanup created posts', async ({ appManagerFixture }) => {
@@ -269,16 +269,16 @@ for (const testData of feedTestData) {
           });
 
           // Execute file deletion flow
-          await appManagerFeedPage.actions.clickInfoIcon(fileId);
-          await appManagerFeedPage.actions.verifyPreviewModalIsOpened();
-          await appManagerFeedPage.actions.clickShowMoreButton();
-          await appManagerFeedPage.actions.clickDeleteButton();
-          await appManagerFeedPage.assertions.verifyToastMessageIsVisibleWithText(
+          await appManagerFeedPage.feedList.clickInfoIcon(fileId);
+          await appManagerFeedPage.filePreview.verifyPreviewModalIsOpened();
+          await appManagerFeedPage.filePreview.clickShowMoreButton();
+          await appManagerFeedPage.filePreview.clickDeleteButton();
+          await appManagerFeedPage.feedList.verifyToastMessageIsVisibleWithText(
             MANAGE_SITE_TEST_DATA.TOAST_MESSAGES.DELETED_FILE_SUCCESSFULLY
           );
           //refresh the page
           await appManagerFeedPage.page.reload();
-          await appManagerFeedPage.assertions.verifyImageButtonIsNotVisible();
+          await appManagerFeedPage.feedList.verifyImageButtonIsNotVisible();
         }
       );
     }

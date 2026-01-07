@@ -4,168 +4,169 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
-import { NotificationType } from '@/src/modules/content/constants';
+import { ContentTestSuite, NotificationType } from '@/src/modules/content/constants';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { HomeDashboardPage } from '@/src/modules/content/ui/pages/homeDashboardPage';
 import { MySettingsNotificationsPage } from '@/src/modules/content/ui/pages/mySettingsNotificationsPage';
 
-test.describe('onboarding', () => {
-  let navigationHelper: NavigationHelper;
-  let mySettingsNotificationsPage: MySettingsNotificationsPage;
-  let homeDashboardPage: HomeDashboardPage;
+test.describe(
+  'onboarding',
+  {
+    tag: [ContentTestSuite.ONBOARDING],
+  },
+  () => {
+    let navigationHelper: NavigationHelper;
+    let mySettingsNotificationsPage: MySettingsNotificationsPage;
+    let homeDashboardPage: HomeDashboardPage;
 
-  test.beforeEach('Setup for onboarding test', async ({ appManagerFixture }) => {
-    await appManagerFixture.homePage.verifyThePageIsLoaded();
-    navigationHelper = appManagerFixture.navigationHelper;
-    mySettingsNotificationsPage = new MySettingsNotificationsPage(appManagerFixture.page);
-    homeDashboardPage = new HomeDashboardPage(appManagerFixture.page);
-  });
+    test.beforeEach('Setup for onboarding test', async ({ appManagerFixture }) => {
+      await appManagerFixture.homePage.verifyThePageIsLoaded();
+      navigationHelper = appManagerFixture.navigationHelper;
+      mySettingsNotificationsPage = new MySettingsNotificationsPage(appManagerFixture.page);
+      homeDashboardPage = new HomeDashboardPage(appManagerFixture.page);
+    });
 
-  test.afterEach(async ({}) => {});
+    test.afterEach(async ({}) => {});
 
-  test(
-    'verify UI of Share your post under My Setting CONT-19346',
-    {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19346'],
-    },
-    async ({ appManagerFixture: _appManagerFixture, standardUserFixture }) => {
-      tagTest(test.info(), {
-        description: 'Verify UI of Share your post under My Setting',
-        zephyrTestId: 'CONT-19346',
-        storyId: 'CONT-19346',
-      });
-
-      await navigationHelper.navigateToEmailNotificationSettingsPageViaSideNavBar();
-
-      await test.step('Verify My Settings Notifications page is loaded', async () => {
-        await mySettingsNotificationsPage.verifyThePageIsLoaded();
-      });
-
-      await test.step('Expand Browser Feed notifications section', async () => {
-        await mySettingsNotificationsPage.actions.expandBrowserFeedSection();
-      });
-
-      await test.step('Verify Share your post checkbox is available', async () => {
-        await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsVisible();
-      });
-
-      await test.step('Verify Share your post checkbox is ON by default', async () => {
-        await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsChecked();
-      });
-
-      await test.step('Test check/uncheck functionality and save', async () => {
-        // Check if checkbox is ON, if so uncheck it first, then check it again
-        const isChecked = await mySettingsNotificationsPage.actions.isShareYourPostCheckboxChecked();
-
-        if (isChecked) {
-          // Uncheck the checkbox
-          await mySettingsNotificationsPage.actions.uncheckShareYourPostCheckbox();
-          await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsUnchecked();
-
-          // Save and verify unchecked
-          await mySettingsNotificationsPage.actions.saveAndVerifyUnchecked();
-        }
-
-        // Check the checkbox again
-        await mySettingsNotificationsPage.actions.checkShareYourPostCheckbox();
-        await mySettingsNotificationsPage.assertions.verifyShareYourPostCheckboxIsChecked();
-
-        // Save and verify checked
-        await mySettingsNotificationsPage.actions.saveAndVerifyChecked();
-      });
-
-      await test.step('Verify and click on Overwrite settings button and confirm, then login as standard user', async () => {
-        await mySettingsNotificationsPage.assertions.verifyOverwriteSettingsButtonIsVisible();
-        await mySettingsNotificationsPage.actions.clickOnOverwriteSettingsButton();
-        await mySettingsNotificationsPage.actions.confirmOverwriteSettings();
-
-        const standardUserTopNavBar = new TopNavBarComponent(standardUserFixture.page);
-        const standardUserMySettingsPage = new MySettingsNotificationsPage(standardUserFixture.page);
-
-        const standardUserProfileDropdown = await standardUserTopNavBar.openProfileSettings({
-          stepInfo: 'Open profile settings dropdown for standard user',
+    test(
+      'verify UI of Share your post under My Setting CONT-19346',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-19346'],
+      },
+      async ({ appManagerFixture: _appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify UI of Share your post under My Setting',
+          zephyrTestId: 'CONT-19346',
+          storyId: 'CONT-19346',
         });
-        await standardUserProfileDropdown.clickOnMySettingsButton({
-          stepInfo: 'Click on My settings for standard user',
+
+        await navigationHelper.navigateToEmailNotificationSettingsPageViaSideNavBar();
+
+        await test.step('Verify My Settings Notifications page is loaded', async () => {
+          await mySettingsNotificationsPage.verifyThePageIsLoaded();
         });
-        await standardUserMySettingsPage.actions.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
-        await standardUserMySettingsPage.actions.clickOnFeedTab();
-        await standardUserMySettingsPage.assertions.verifyShareYourPostCheckboxIsChecked();
-      });
-    }
-  );
 
-  test(
-    'verify the onboarding tile on home dashboard as an app manager CONT-20883',
-    {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20883'],
-    },
-    async ({ appManagerFixture: _appManagerFixture }) => {
-      tagTest(test.info(), {
-        description: 'Verify the onboarding tile on home dashboard as an app manager [CONT-20883]',
-        zephyrTestId: 'CONT-20883',
-        storyId: 'CONT-20883',
-      });
+        await test.step('Expand Browser Feed notifications section', async () => {
+          await mySettingsNotificationsPage.expandBrowserFeedSection();
+        });
 
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickOnAddTileButton();
-      await homeDashboardPage.actions.clickOnAddContentTileOption();
-      await homeDashboardPage.actions.clickingOnOnboardingTab();
+        await test.step('Verify Share your post checkbox is available', async () => {
+          await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsVisible();
+        });
 
-      const isButtonDisabled = await homeDashboardPage.actions.isAddToHomeButtonDisabled();
-      if (!isButtonDisabled) {
-        await homeDashboardPage.actions.clickingOnAddToHomeButton();
-        await homeDashboardPage.assertions.verifyToastMessage(
-          FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY
-        );
-        await homeDashboardPage.actions.clickingOnDoneButton();
+        await test.step('Verify Share your post checkbox is ON by default', async () => {
+          await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsChecked();
+        });
+
+        await test.step('Test check/uncheck functionality and save', async () => {
+          // Check if checkbox is ON, if so uncheck it first, then check it again
+          const isChecked = await mySettingsNotificationsPage.isShareYourPostCheckboxChecked();
+
+          if (isChecked) {
+            // Uncheck the checkbox
+            await mySettingsNotificationsPage.uncheckShareYourPostCheckbox();
+            await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsUnchecked();
+
+            // Save and verify unchecked
+            await mySettingsNotificationsPage.saveAndVerifyUnchecked();
+          }
+
+          // Check the checkbox again
+          await mySettingsNotificationsPage.checkShareYourPostCheckbox();
+          await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsChecked();
+
+          // Save and verify checked
+          await mySettingsNotificationsPage.saveAndVerifyChecked();
+        });
+
+        await test.step('Verify and click on Overwrite settings button and confirm, then login as standard user', async () => {
+          await mySettingsNotificationsPage.verifyOverwriteSettingsButtonIsVisible();
+          await mySettingsNotificationsPage.clickOnOverwriteSettingsButton();
+          await mySettingsNotificationsPage.confirmOverwriteSettings();
+
+          const standardUserTopNavBar = new TopNavBarComponent(standardUserFixture.page);
+          const standardUserMySettingsPage = new MySettingsNotificationsPage(standardUserFixture.page);
+
+          const standardUserProfileDropdown = await standardUserTopNavBar.openProfileSettings({
+            stepInfo: 'Open profile settings dropdown for standard user',
+          });
+          await standardUserProfileDropdown.clickOnMySettingsButton({
+            stepInfo: 'Click on My settings for standard user',
+          });
+          await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
+          await standardUserMySettingsPage.clickOnFeedTab();
+          await standardUserMySettingsPage.verifyShareYourPostCheckboxIsChecked();
+        });
       }
+    );
 
-      await homeDashboardPage.actions.clickOnEditDashboardButton();
-      await homeDashboardPage.actions.clickOnAddTileButton();
-      await homeDashboardPage.actions.clickOnAddContentTileOption();
-      await homeDashboardPage.actions.clickingOnOnboardingTab();
-      await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
-    }
-  );
+    test(
+      'verify the onboarding tile on home dashboard as an app manager CONT-20883',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20883'],
+      },
+      async ({ appManagerFixture: _appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify the onboarding tile on home dashboard as an app manager [CONT-20883]',
+          zephyrTestId: 'CONT-20883',
+          storyId: 'CONT-20883',
+        });
 
-  test(
-    'verify addition of onboarding tile on home dashboard when it has already been added by App manager CONT-20886',
-    {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20886'],
-    },
-    async ({ appManagerFixture: _appManagerFixture }) => {
-      tagTest(test.info(), {
-        description:
-          'Verify addition of onboarding tile on home dashboard when it has already been added by App manager [CONT-20886]',
-        zephyrTestId: 'CONT-20886',
-        storyId: 'CONT-20886',
-      });
+        await homeDashboardPage.clickOnEditDashboardButton();
+        await homeDashboardPage.clickOnAddTileButton();
+        await homeDashboardPage.clickOnAddContentTileOption();
+        await homeDashboardPage.clickingOnOnboardingTab();
 
-      await test.step('Given I am a user with control over the home dashboard and the onboarding tile is already added to the home dashboard by App manager', async () => {
-        await homeDashboardPage.verifyThePageIsLoaded();
-      });
+        await homeDashboardPage.clickingOnAddToHomeButton();
+        await homeDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY);
+        await homeDashboardPage.clickingOnDoneButton();
 
-      await test.step('When I try to add the onboarding tile to the home dashboard again', async () => {
-        await homeDashboardPage.actions.clickOnEditDashboardButton();
-        await homeDashboardPage.actions.clickOnAddTileButton();
-        await homeDashboardPage.actions.clickOnAddContentTileOption();
-        await homeDashboardPage.actions.clickingOnOnboardingTab();
-      });
+        await homeDashboardPage.clickOnEditDashboardButton();
+        await homeDashboardPage.clickOnAddTileButton();
+        await homeDashboardPage.clickOnAddContentTileOption();
+        await homeDashboardPage.clickingOnOnboardingTab();
+        await homeDashboardPage.verifyAddToHomeButtonIsDisabled();
+      }
+    );
 
-      await test.step('Then I should receive a prompt in the "Add Tile Modal" and should reflect message, "This tile is already added to this dashboard. Edit dashboard to update or remove this tile."', async () => {
-        await homeDashboardPage.assertions.verifyTileAlreadyAddedMessage();
-      });
+    test(
+      'verify addition of onboarding tile on home dashboard when it has already been added by App manager CONT-20886',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20886'],
+      },
+      async ({ appManagerFixture: _appManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify addition of onboarding tile on home dashboard when it has already been added by App manager [CONT-20886]',
+          zephyrTestId: 'CONT-20886',
+          storyId: 'CONT-20886',
+        });
 
-      await test.step('And the option "Add to home" should be disabled', async () => {
-        await homeDashboardPage.assertions.verifyAddToHomeButtonIsDisabled();
-      });
+        await test.step('Given I am a user with control over the home dashboard and the onboarding tile is already added to the home dashboard by App manager', async () => {
+          await homeDashboardPage.verifyThePageIsLoaded();
+        });
 
-      await test.step('And I should be informed that the onboarding tile is already added to the home dashboard', async () => {
-        await homeDashboardPage.actions.closeAddContentTileDialog();
-        await homeDashboardPage.actions.clickingOnDoneButton();
-      });
-    }
-  );
-});
+        await test.step('When I try to add the onboarding tile to the home dashboard again', async () => {
+          await homeDashboardPage.clickOnEditDashboardButton();
+          await homeDashboardPage.clickOnAddTileButton();
+          await homeDashboardPage.clickOnAddContentTileOption();
+          await homeDashboardPage.clickingOnOnboardingTab();
+        });
+
+        await test.step('Then I should receive a prompt in the "Add Tile Modal" and should reflect message, "This tile is already added to this dashboard. Edit dashboard to update or remove this tile."', async () => {
+          await homeDashboardPage.verifyTileAlreadyAddedMessage();
+        });
+
+        await test.step('And the option "Add to home" should be disabled', async () => {
+          await homeDashboardPage.verifyAddToHomeButtonIsDisabled();
+        });
+
+        await test.step('And I should be informed that the onboarding tile is already added to the home dashboard', async () => {
+          await homeDashboardPage.closeAddContentTileDialog();
+          await homeDashboardPage.clickingOnDoneButton();
+        });
+      }
+    );
+  }
+);
