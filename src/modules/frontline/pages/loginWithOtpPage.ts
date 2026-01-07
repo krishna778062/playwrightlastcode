@@ -71,7 +71,6 @@ export class LoginWithOtpPage extends BasePage {
     this.countryCodeRequiredFor = page.getByText('Country code is required for mobile phone number');
     this.mobileText = page.getByText('Mobile', { exact: true });
     this.emailText = page.getByRole('textbox', { name: 'Email ID' });
-    this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
 
     this.sendOtpToVerifyButton = page.getByRole('button', { name: 'Send OTP to verify' });
     this.skipForNowButton = page.getByRole('button', { name: 'Skip for now' });
