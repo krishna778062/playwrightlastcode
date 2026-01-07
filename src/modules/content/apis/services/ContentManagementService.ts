@@ -637,14 +637,22 @@ export class ContentManagementService implements IContentManagementServices {
   async getContentList(
     options: {
       siteId?: string;
+      pageCategoryId?: string;
+      categoryId?: string; // Alias for pageCategoryId for backward compatibility
       size?: number;
       status?: string;
       filter?: string;
       sortBy?: string;
       contribution?: string;
+      type?: string;
     } = {}
   ) {
-    return await test.step('Getting content list ', async () => {
+    return await test.step('Getting content list', async () => {
+      // Extract CSRF token from cookies for UAT compatibility
+      const storageState = await this.context.storageState();
+      const cookies = storageState.cookies || [];
+      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
+
       const requestData: {
         size: number;
         status?: string;
@@ -652,13 +660,18 @@ export class ContentManagementService implements IContentManagementServices {
         contribution: string;
         filter: string;
         siteId?: string;
+        pageCategoryId?: string;
+        type?: string;
       } = {
         size: options.size || 16,
         sortBy: options.sortBy || 'publishedNewest',
         contribution: options.contribution || 'all',
         filter: options.filter || 'managing',
-        ...(options.status && { status: options.status }), // Only include status if explicitly provided
+        ...(options.status && { status: options.status }),
         ...(options.siteId && { siteId: options.siteId }),
+        ...(options.pageCategoryId && { pageCategoryId: options.pageCategoryId }),
+        ...(options.categoryId && !options.pageCategoryId && { pageCategoryId: options.categoryId }), // Support categoryId alias
+        ...(options.type && { type: options.type }),
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {

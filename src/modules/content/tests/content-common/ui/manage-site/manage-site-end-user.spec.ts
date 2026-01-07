@@ -279,6 +279,7 @@ test.describe(
           options: {
             pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateUniqueName('page'),
             contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
+            waitForSearchIndex: true,
           },
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
@@ -323,7 +324,7 @@ test.describe(
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
         await manageSiteStandardUserPage.searchSiteNameInSearchBar(siteNames[0]);
         const siteDashBoardPage = new SiteDashboardPage(standardUserFixture.page, firstSiteId);
-        await siteDashBoardPage.verifySiteNameIsDisplayed(siteNames[0]);
+        await siteDashBoardPage.verifySiteNameIsDisplayedAfterSearch(siteNames[0]);
       }
     );
     test(

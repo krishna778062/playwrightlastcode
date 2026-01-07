@@ -89,9 +89,7 @@ export class ManageContentComponent extends BaseComponent {
     this.placeHolderText = page.locator(`[placeholder="Search…"]`);
     // Scope to the first enabled checkbox in content list items to avoid matching other checkboxes on the page
     // Filter out disabled checkboxes as they cannot be clicked
-    this.firstContentCheckbox = page
-      .locator('[type="checkbox"][aria-label="Select"][value="false"]:not([disabled])')
-      .nth(0);
+    this.firstContentCheckbox = page.locator('input[type="checkbox"].ToggleField-input--checkbox').nth(1);
 
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');

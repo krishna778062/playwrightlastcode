@@ -19,7 +19,7 @@ export class SiteContentPage extends BaseSitePage {
     // Locator for page category link/button
     this.pageCategoryLink = (categoryName: string) =>
       this.page.getByLabel('Content', { exact: true }).getByRole('link', { name: categoryName, exact: true });
-    this.contentListContainer = this.page.locator('div.DraggableList > div > li').first();
+    this.contentListContainer = this.page.locator('div.DraggableList > div > li');
     this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   }
   async verifyThePageIsLoaded(): Promise<void> {
@@ -44,11 +44,11 @@ export class SiteContentPage extends BaseSitePage {
    */
   async verifyContentListLoaded(): Promise<void> {
     await test.step('Verify content list is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.contentListContainer, {
+      await this.verifier.verifyTheElementIsVisible(this.contentListContainer.first(), {
         assertionMessage: 'Content list should be visible',
       });
     });
-    //element list size should be 16
+
     const elementListSize = await this.contentListContainer.count();
     expect(elementListSize).toBe(16);
   }

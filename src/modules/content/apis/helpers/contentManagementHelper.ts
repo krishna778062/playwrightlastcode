@@ -1118,14 +1118,12 @@ export class ContentManagementHelper {
   /**
    * Finds a site with a page category that has more than 16 pages, or creates pages to reach that count
    * @param options - Optional parameters
-   * @param options.minPageCount - Minimum page count required (default: 17)
-   * @param options.maxSitesToCheck - Maximum number of sites to check (default: 10)
+   * @param options.minPageCount - Minimum page count required (default: 18)
    * @returns Promise with site info, category info, and page count
    */
   async getSiteWithPageCategoryHavingMoreThan16Pages(
     options: {
       minPageCount?: number;
-      maxSitesToCheck?: number;
     } = {}
   ): Promise<{
     siteId: string;
@@ -1134,15 +1132,14 @@ export class ContentManagementHelper {
     categoryName: string;
     pageCount: number;
   }> {
-    const minPageCount = options.minPageCount ?? 17;
-    const maxSitesToCheck = options.maxSitesToCheck ?? 10;
+    const minPageCount = options.minPageCount ?? 18;
 
-    return await test.step(`Finding site with page category having more than ${minPageCount - 1} pages`, async () => {
+    return await test.step(`Finding site with page category having maximum pages (minimum required: ${minPageCount})`, async () => {
       // Get list of sites
       const sitesResponse = await this.siteManagementService.getListOfSites({
-        size: maxSitesToCheck,
+        size: 40,
         canManage: true,
-        filter: 'active',
+        filter: 'mySites',
       });
 
       if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
@@ -1156,7 +1153,7 @@ export class ContentManagementHelper {
         categoryName: string;
         pageCount: number;
       } | null = null;
-      let highestPageCount = 0;
+      let maxPageCount = 0;
 
       // Iterate through sites
       for (const site of sitesResponse.result.listOfItems) {
@@ -1180,25 +1177,13 @@ export class ContentManagementHelper {
             continue;
           }
 
-          // Find category with pageCount > minPageCount, or track the highest
+          // Find category with maximum page count across all sites and categories
           for (const category of categoriesResponse.result.listOfItems) {
             const pageCount = category.pageCount || 0;
 
-            // If we find one with more than minPageCount, use it immediately
-            if (pageCount >= minPageCount) {
-              log.info(`Found category with ${pageCount} pages in site ${siteName}`);
-              return {
-                siteId,
-                siteName,
-                categoryId: category.id,
-                categoryName: category.name,
-                pageCount,
-              };
-            }
-
-            // Track the category with highest page count
-            if (pageCount > highestPageCount) {
-              highestPageCount = pageCount;
+            // Track the category with maximum page count
+            if (pageCount > maxPageCount) {
+              maxPageCount = pageCount;
               bestCategory = {
                 siteId,
                 siteName,
@@ -1214,39 +1199,48 @@ export class ContentManagementHelper {
         }
       }
 
-      // If we found a category but it has <= minPageCount, create more pages
+      log.info(`Best category: ${JSON.stringify(bestCategory)}`);
+
       if (bestCategory) {
-        const pagesToCreate = minPageCount - bestCategory.pageCount;
-        log.info(
-          `Category "${bestCategory.categoryName}" in site "${bestCategory.siteName}" has ${bestCategory.pageCount} pages. Creating ${pagesToCreate} more pages.`
-        );
+        //now check published pages count inside the category
+        const publishedPages = await this.contentManagementService.getContentList({
+          siteId: bestCategory.siteId,
+          pageCategoryId: bestCategory.categoryId,
+          status: 'published',
+          type: 'page',
+          filter: 'managing',
+          sortBy: 'activityNewest',
+          contribution: 'all',
+        });
+        const publishedPagesCount = publishedPages.result?.listOfItems?.length || 0;
 
-        // Get the category info for creating pages
-        const pageCategory = {
-          categoryId: bestCategory.categoryId,
-          name: bestCategory.categoryName,
-        };
+        log.info(`Published pages count: ${publishedPagesCount}`);
 
-        // Create pages to reach minPageCount
-        for (let i = 0; i < pagesToCreate; i++) {
-          await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
-            title: `Test Page ${Date.now()}_${i}`,
-            bodyHtml: `<p>Auto-generated page for testing category with >16 pages</p>`,
-            contentType: 'page',
-            contentSubType: 'knowledge',
-            category: {
-              id: pageCategory.categoryId,
-              name: pageCategory.name,
-            },
-          });
+        if (publishedPagesCount < minPageCount) {
+          const pagesToCreate = minPageCount - publishedPagesCount;
+          log.info(
+            `Creating ${pagesToCreate} more pages for category ${bestCategory.categoryName} in site ${bestCategory.siteName}`
+          );
+          const pageCategory = {
+            categoryId: bestCategory.categoryId,
+            name: bestCategory.categoryName,
+          };
+
+          for (let i = 0; i < pagesToCreate; i++) {
+            await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
+              title: `Test Page ${Date.now()}_${i}`,
+              bodyHtml: `<p>Auto-generated page for testing category with >18 pages</p>`,
+              contentType: 'page',
+              contentSubType: 'knowledge',
+              category: {
+                id: pageCategory.categoryId,
+                name: pageCategory.name,
+              },
+            });
+          }
+
+          bestCategory.pageCount = minPageCount;
         }
-
-        // Update page count
-        bestCategory.pageCount = minPageCount;
-
-        log.info(
-          `Created ${pagesToCreate} pages. Category "${bestCategory.categoryName}" now has ${bestCategory.pageCount} pages.`
-        );
 
         return bestCategory;
       }

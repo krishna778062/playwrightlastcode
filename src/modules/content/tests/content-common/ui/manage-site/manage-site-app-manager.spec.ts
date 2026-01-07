@@ -398,7 +398,7 @@ test.describe(
         const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
         await manageSiteAppManagerPage.searchSiteNameInSearchBar(siteNames[0]);
         const siteDashBoardPage = new SiteDashboardPage(appManagerFixture.page, firstSiteId);
-        await siteDashBoardPage.verifySiteNameIsDisplayed(siteNames[0]);
+        await siteDashBoardPage.verifySiteNameIsDisplayedAfterSearch(siteNames[0]);
       }
     );
     test(
@@ -692,6 +692,8 @@ test.describe(
           description: '',
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43937',
         });
 
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -1418,8 +1420,7 @@ test.describe(
           // Get a site with a page category that has more than 16 pages
           const categoryInfo =
             await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
-              minPageCount: 17,
-              maxSitesToCheck: 10,
+              minPageCount: 18,
             });
 
           // Click on the page category
@@ -1452,8 +1453,7 @@ test.describe(
         // Get a site with a page category that has more than 16 pages
         const categoryInfo =
           await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
-            minPageCount: 17,
-            maxSitesToCheck: 10,
+            minPageCount: 18,
           });
         const manageSitePageCategoryPage = new ManageSitePageCategoryPage(appManagerFixture.page, categoryInfo.siteId);
         await manageSitePageCategoryPage.loadPage();
