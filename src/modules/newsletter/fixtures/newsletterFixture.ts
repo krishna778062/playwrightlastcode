@@ -16,10 +16,6 @@ const adaptHomePage = (homePage: NewUxHomePage | OldUxHomePage) => {
 export const newsletterFixture = test.extend<{
   appManagerHomePage: NewUxHomePage | OldUxHomePage;
   appManagerPage: Page;
-  enlManagerHomePage: NewUxHomePage | OldUxHomePage;
-  enlManagerPage: Page;
-  standardUserHomePage: NewUxHomePage | OldUxHomePage;
-  standardUserPage: Page;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -36,46 +32,6 @@ export const newsletterFixture = test.extend<{
   appManagerPage: [
     async ({ appManagerHomePage }, use) => {
       await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  //recognition manager
-  enlManagerHomePage: [
-    async ({ page }, use) => {
-      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
-        email: String(process.env['ENL_MANAGER_USERNAME']),
-        password: String(process.env['ENL_MANAGER_PASSWORD']),
-      });
-      const newsletterHomePage = adaptHomePage(recognitionHomePage);
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await use(newsletterHomePage);
-    },
-    { scope: 'test' },
-  ],
-  enlManagerPage: [
-    async ({ enlManagerHomePage }, use) => {
-      await use(enlManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  //standard user
-  standardUserHomePage: [
-    async ({ page }, use) => {
-      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
-        email: process.env['STANDARD_USER_USERNAME'] || getEnvConfig().appManagerEmail,
-        password: process.env['STANDARD_USER_PASSWORD'] || getEnvConfig().appManagerPassword,
-      });
-      const newsletterHomePage = adaptHomePage(recognitionHomePage);
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await use(newsletterHomePage);
-    },
-    { scope: 'test' },
-  ],
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],

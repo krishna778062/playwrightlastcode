@@ -11,7 +11,7 @@ export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'newsletter', 'tests'),
   // Add newsletter-specific overrides here
-  workers: process.env.CI ? 1 : 1,
+  workers: 1,
   timeout: 180_000,
   expect: {
     timeout: 10_000,

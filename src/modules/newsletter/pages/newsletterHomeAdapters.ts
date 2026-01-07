@@ -4,35 +4,11 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
 import { OldUxHomePage } from '@core/pages/homePage/oldUxHomePage';
 
+// Simplified top nav selectors based on actual TopNavBarComponent usage
 const TOP_NAV_FALLBACK_SELECTOR = [
   'button[aria-label*="Profile settings" i]',
-  'button[aria-label*="Profile menu" i]',
-  'button[aria-label*="User menu" i]',
-  'button[aria-label*="Account menu" i]',
-  'button[aria-label*="User settings" i]',
-  '[data-testid="profile-settings-button"]',
-  '[data-testid="profileNavigation"] button',
-  '[data-testid="nav-profile-button"]',
-  '[data-testid="profileMenuButton"]',
-  '[data-testid="userMenuButton"]',
-  'button[data-testid*="profile" i]',
-  'button[data-testid*="userMenu" i]',
-  'button[class*="ProfileMenu"]',
-  'button[class*="profileMenu"]',
-  'button[class*="UserMenu"]',
-  'button[class*="userMenu"]',
   'button[aria-label*="Messaging" i]',
-  'button[aria-label*="Messages" i]',
-  'button[aria-label*="Message" i]',
-  'a[aria-label*="Messaging" i]',
-  'a[aria-label*="Messages" i]',
-  'a[aria-label*="Message" i]',
-  '[data-testid="message-button"]',
-  '[data-testid="messaging-button"]',
-  '[data-testid="messagingButton"]',
-  '[data-testid="nav-message-button"]',
-  '[data-testid="navMessagingButton"]',
-  'button[data-testid*="message" i]',
+  'button[aria-label*="Notifications" i]',
 ].join(', ');
 
 async function verifyWithFallback(
