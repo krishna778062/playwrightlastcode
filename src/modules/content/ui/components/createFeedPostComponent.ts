@@ -1243,7 +1243,7 @@ export class CreateFeedPostComponent
 
       if (isSearchVisible) {
         await this.fillInElement(this.audienceSearchInput, audienceName);
-        await this.clickOnElement(this.audienceSearchButton);
+        await this.clickOnElement(this.audienceSearchButton.first());
       }
 
       const audienceOption = this.getAudienceOption(audienceName);
