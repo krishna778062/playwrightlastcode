@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
-import baseConfig from '@recognition//playwright.base.config';
 import { getRewardTenantConfigFromCache, initializeRewardConfig } from '@rewards/config/rewardConfig';
+import baseConfig from '@rewards/playwright.base.config';
 import path from 'path';
 
 import { PROJECT_ROOT } from '@core/constants/paths';
@@ -10,13 +10,13 @@ const { deviceScaleFactor, ...desktopChromeNoScale } = devices['Desktop Chrome']
 
 const isCI = !!process.env.CI;
 const headless = isCI; // true in CI, false locally
-const screenWidth_RS = process.env.SCREEN_WIDTH ? parseInt(process.env.SCREEN_WIDTH, 10) : 1920;
-const screenHeight_RS = process.env.SCREEN_HEIGHT ? parseInt(process.env.SCREEN_HEIGHT, 10) : 1080;
-const projectViewport = isCI ? { width: screenWidth_RS, height: screenHeight_RS } : null;
+const screenWidth = process.env.SCREEN_WIDTH ? parseInt(process.env.SCREEN_WIDTH, 10) : 1920;
+const screenHeight = process.env.SCREEN_HEIGHT ? parseInt(process.env.SCREEN_HEIGHT, 10) : 1080;
+const projectViewport = isCI ? { width: screenWidth, height: screenHeight } : null;
 
-const commonLaunchArgs_RS = [
+const commonLaunchArgs = [
   '--start-maximized',
-  `--window-size=${screenWidth_RS},${screenHeight_RS}`,
+  `--window-size=${screenWidth},${screenHeight}`,
   '--disable-gpu',
   '--no-sandbox',
   '--disable-dev-shm-usage',
@@ -27,11 +27,11 @@ const commonLaunchArgs_RS = [
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-test-renaming'),
-  testIgnore: ['**/api-tests/**', '**/ui-setting-tests/**', '**/ui-tests/**'],
+  testIgnore: ['**/tests/ui-setting-tests/**', '**/tests/ui-tests/**'],
   workers: process.env.CI ? 3 : 5,
   projects: [
     {
-      name: 'Recognition Renaming',
+      name: 'Renaming',
       expect: {
         timeout: 15 * 1000, // 15 seconds for ALL expect() assertions
       },
@@ -40,7 +40,7 @@ export default defineConfig({
         headless,
         viewport: projectViewport,
         launchOptions: {
-          args: commonLaunchArgs_RS,
+          args: commonLaunchArgs,
         },
         baseURL: getRewardTenantConfigFromCache().frontendBaseUrl,
       },
