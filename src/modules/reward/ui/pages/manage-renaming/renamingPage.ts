@@ -354,16 +354,16 @@ export class RenamingPage extends BasePage {
       'Automatic translations - powered by Google Translate'
     );
     await expect(translationText, 'expecting Translations text to be visible').toBeVisible({
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: TIMEOUTS.VERY_SHORT,
     });
     await expect(language1, 'expecting Language 1 heading to be visible').toBeVisible({
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: TIMEOUTS.VERY_SHORT,
     });
     await expect(language2, 'expecting Language 2 heading to be visible').toBeVisible({
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: TIMEOUTS.VERY_SHORT,
     });
     await expect(languageAutoTranslationLabel, 'expecting Language 2 heading to be visible').toBeVisible({
-      timeout: TIMEOUTS.MEDIUM,
+      timeout: TIMEOUTS.VERY_SHORT,
     });
   }
 }
