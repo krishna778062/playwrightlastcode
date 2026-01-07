@@ -708,6 +708,7 @@ test.describe(
         await manageFeaturesPage.clickOnContentCard();
         await manageContentPage.manageContent.clickSortByButton();
         await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await appManagerFixture.page.reload();
         await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.albumName);
         await manageContentPage.manageContent.hoverOnFirstDropDownOption();

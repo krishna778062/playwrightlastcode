@@ -250,6 +250,7 @@ test.describe(
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
           isKnownFailure: true,
+          bugTicket: 'CONT-23736',
         });
         // Get or create a site where the standard user can manage content
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
