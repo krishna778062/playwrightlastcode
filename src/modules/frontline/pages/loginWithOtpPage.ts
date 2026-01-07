@@ -56,7 +56,7 @@ export class LoginWithOtpPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.selectOTPType = (otpType: string) => page.getByTestId('SelectInput').selectOption(`${otpType}`);
-    this.mobileInput = page.getByRole('textbox', { name: 'Mobiler' });
+    this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
     this.emailInput = page.getByRole('textbox', { name: 'Email ID' });
     this.optionalHeading = page.getByRole('heading', { name: 'Optional' });
     this.addMobileNumberOrEmailHeading = page.getByRole('heading', { name: 'Add mobile number or email' });
