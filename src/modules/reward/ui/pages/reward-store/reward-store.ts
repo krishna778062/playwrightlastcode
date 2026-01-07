@@ -8,6 +8,8 @@ import path from 'path';
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { TIMEOUTS } from '@/src/core';
+
 export class RewardsStore extends BasePage {
   readonly rewardStorePageNotFound: Locator;
   readonly header: Locator;
@@ -140,8 +142,11 @@ export class RewardsStore extends BasePage {
   }
 
   async searchForGiftCard(searchTerm: string) {
-    await this.searchField.waitFor({ state: 'visible', timeout: 15000 });
-    await this.searchField.fill(''); // clear any previous input
+    await this.verifier.waitUntilElementIsVisible(this.searchField, {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Waiting for search field to be visible',
+    });
+    await this.searchField.clear(); // clear any previous input
     await this.searchField.fill(searchTerm);
     await this.searchButton.click({ force: true });
   }

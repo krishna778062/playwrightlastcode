@@ -1,7 +1,8 @@
 import { Locator, Page } from '@playwright/test';
 
-export class DialogBox {
-  readonly page: Page;
+import { BasePage } from '@core/ui';
+
+export class DialogBox extends BasePage {
   readonly container: Locator;
   readonly title: Locator;
   readonly closeButton: Locator;
@@ -23,7 +24,7 @@ export class DialogBox {
   readonly shareButtonOnShareModal: Locator;
 
   constructor(page: Page) {
-    this.page = page;
+    super(page);
     this.container = page.locator('[role="dialog"][data-state="open"]');
     this.title = this.container.getByRole('heading');
     this.closeButton = this.container.locator('button[aria-label="Close"]');
@@ -45,5 +46,9 @@ export class DialogBox {
     this.shareToSlackCheckBox = page.locator('#shareToFeedAndSlack_shareToSlack');
     this.menuOptionShareModal = page.locator('[role="dialog"][role="menuitem"]');
     this.shareButtonOnShareModal = page.locator('[role="dialog"]').getByRole('button', { name: 'Share' });
+  }
+
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.container);
   }
 }

@@ -59,6 +59,9 @@ export const PEOPLE_TAB = {
   BAMBOO_HR_OPTION: 'BambooHR',
   GOOGLE_OPTION: 'Google Workspace',
   MICROSOFT_ENTRA_ID_OPTION: 'Microsoft Entra ID',
+  OKTA_OPTION: 'Okta',
+  SIMPPLR_SERVICES_OPTION: 'Simpplr User Services',
+  NAME_PRONUNCIATION_FIELD: 'Name pronunciation',
   BAMBOOHR_USERNAME: 'sandboxes@merge.dev',
   BAMBOOHR_PASSWORD: 'BWQ@wyq_nqh7brf1xae',
   BAMBOOHR_URL: 'https://mergedevtest.bamboohr.com/',
@@ -99,6 +102,7 @@ export const PEOPLE_TAB = {
     'Mobile phone',
     'Assistant',
   ],
+  DISABLED_FIELDS: ['About', 'Zoom', 'Slack ID', 'Microsoft Teams ID', 'Assistant', 'Extension', 'Name pronunciation'],
 } as const;
 
 export const UKG_CREDS = {
