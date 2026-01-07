@@ -258,7 +258,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyFileUploadInput = this.page.locator("input[type='file']");
     this.replyAttachedFiles = this.page.locator("div[class='FileItem-name']");
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
-    this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
+    this.postsIFollow = this.page.getByText('Posts I follow');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
@@ -581,7 +581,6 @@ export class ListFeedComponent extends BaseComponent {
 
   async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
     await test.step(`Add reply to post`, async () => {
-      await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
       });
@@ -1196,8 +1195,8 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: 'Reply button should be visible for the post',
       });
       await replyButton.click();
-      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
-        assertionMessage: 'Reply input should be visible',
+      await this.verifier.verifyTheElementIsVisible(this.replyEditor, {
+        assertionMessage: 'Reply editor should be visible',
       });
     });
   }
@@ -1228,9 +1227,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyReplyEditorVisible(postText: string): Promise<void> {
     await test.step(`Verify reply editor is visible for post: ${postText}`, async () => {
-      const replyInputContainer = this.replyInput;
-
-      await this.verifier.verifyTheElementIsVisible(replyInputContainer, {
+      await this.verifier.verifyTheElementIsVisible(this.replyEditor, {
         assertionMessage: `Reply editor should be visible for post "${postText}"`,
       });
     });
@@ -1238,9 +1235,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async verifyReplyEditorClosed(postText: string): Promise<void> {
     await test.step(`Verify reply editor is closed for post: ${postText}`, async () => {
-      const replyInputContainer = this.replyInput;
-
-      await this.verifier.verifyTheElementIsNotVisible(replyInputContainer, {
+      await this.verifier.verifyTheElementIsNotVisible(this.replyEditor, {
         assertionMessage: `Reply editor should be closed (not visible) for post "${postText}"`,
       });
     });

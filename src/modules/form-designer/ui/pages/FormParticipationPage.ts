@@ -4,6 +4,7 @@ import path from 'path';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
@@ -54,7 +55,7 @@ export class FormParticipationPage extends BasePage {
   readonly mandatoryFieldError2: (heading: string) => Locator;
 
   readonly submitButton: Locator;
-
+  readonly notificationBell: Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
@@ -118,6 +119,8 @@ export class FormParticipationPage extends BasePage {
       .first();
     this.multiSelectResponseOptions = (index: number) =>
       this.page.getByRole('textbox', { name: `Enter text for the property` }).nth(index);
+    // this.notificationBell = this.page.getByTestId('launcher');
+    this.notificationBell = this.page.locator('button[aria-label*=Notifications]').first();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -381,7 +384,7 @@ export class FormParticipationPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(this.ratingResponseNew(response), { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.ratingResponseNew(response));
       await this.clickOnElement(this.ratingResponseNew(response));
-      await this.clickOnElement(this.previewForm);
+      await this.page.keyboard.press('Tab');
       await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldErrorNew(heading), { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
@@ -396,8 +399,8 @@ export class FormParticipationPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(this.opinionResponse(response), { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.opinionResponse(response));
       await this.clickOnElement(this.opinionResponse(response));
-      await this.opinionResponse(response).blur();
-      await this.clickOnElement(this.previewForm);
+      await this.page.keyboard.press('Tab');
+      await this.opinionResponse(response).press('Tab');
       await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldErrorNew(heading), { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
@@ -577,7 +580,8 @@ export class FormParticipationPage extends BasePage {
   }
   async verifyEmailValidationMessage(heading: string, message: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.emailResponse, { timeout: TIMEOUTS.MEDIUM });
-    await this.clickOnElement(this.previewForm);
+    // await this.clickOnElement(this.previewForm);
+    await this.page.keyboard.press('Tab');
     await test.step('Verify email validation message', async () => {
       await this.verifier.verifyTheElementIsVisible(this.mandatoryFieldErrorAddress(heading, message), {
         timeout: TIMEOUTS.MEDIUM,
@@ -608,8 +612,10 @@ export class FormParticipationPage extends BasePage {
   }
   async verifyMultiSelectFieldResponse(response: string): Promise<void> {
     await test.step('Verify multi select field response', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.page.getByText(response), { timeout: TIMEOUTS.MEDIUM });
-      await test.expect(this.page.getByText(response)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(response).first(), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await test.expect(this.page.getByText(response).first()).toBeChecked({ timeout: TIMEOUTS.MEDIUM });
     });
   }
   async verifySingleSelectFieldResponse(response: string): Promise<void> {
@@ -656,6 +662,32 @@ export class FormParticipationPage extends BasePage {
       }
       await popup.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
       await test.expect(popup).toHaveURL(new RegExp(escaped), { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async clickOnNotificationBell(): Promise<void> {
+    await test.step('Click on notification bell', async () => {
+      const topNav = new TopNavBarComponent(this.page);
+      try {
+        await topNav.clickOnBellIconToOpenNotifications();
+      } catch {
+        // Fallback to direct JS click on bell if shared component click fails
+        await this.notificationBell.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+        await this.clickByInjectingJavaScript(this.notificationBell);
+      }
+    });
+  }
+  async verifyNotificationExistsForNewForm(): Promise<void> {
+    await test.step('Verify notification exists for new form', async () => {
+      const notificationText = this.page.getByText(formCreationConstants.FORM_NAME).first();
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const visible = await notificationText.isVisible({ timeout: TIMEOUTS.SHORT }).catch(() => false);
+        if (visible) break;
+        await this.page.reload({ waitUntil: 'domcontentloaded', timeout: TIMEOUTS.MEDIUM });
+      }
+      await this.verifier.verifyTheElementIsVisible(notificationText, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await notificationText.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Notification should be visible')
+        .toBe(true);
     });
   }
 

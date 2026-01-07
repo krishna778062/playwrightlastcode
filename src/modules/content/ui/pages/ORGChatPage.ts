@@ -25,7 +25,7 @@ export class ORGChartPage extends BasePage {
     });
   }
   searchListOptions(name: string): Locator {
-    return this.page.locator('a').filter({ hasText: name });
+    return this.page.locator('#term-list a').filter({ hasText: name });
   }
 
   async typeInSearchBarInput(name: string): Promise<void> {

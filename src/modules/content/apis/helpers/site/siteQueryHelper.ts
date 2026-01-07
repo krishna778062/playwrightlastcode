@@ -156,7 +156,9 @@ export class SiteQueryHelper {
 
       if (matchesRequirements) {
         log.debug(`Found matching site: ${site.name} (${site.siteId})`);
-        return { siteId: site.siteId, name: site.name, siteListResponse: siteListResponse.result.listOfItems };
+        // Filter to only include active sites in the response
+        const activeSites = siteListResponse.result.listOfItems.filter((s: any) => s.isActive === true);
+        return { siteId: site.siteId, name: site.name, siteListResponse: activeSites };
       } else {
         log.debug(`Site ${site.name} doesn't match requirements`);
       }
@@ -166,7 +168,15 @@ export class SiteQueryHelper {
       ...options,
       waitForSearchIndex: options?.waitForSearchIndex,
     });
-    return { siteId: createdSite.siteId, name: createdSite.siteName };
+    // Fetch the site list to include in the response for consistency
+    const updatedSiteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
+    // Filter to only include active sites in the response
+    const activeSites = updatedSiteListResponse.result.listOfItems.filter((s: any) => s.isActive === true);
+    return {
+      siteId: createdSite.siteId,
+      name: createdSite.siteName,
+      siteListResponse: activeSites,
+    };
   }
 
   /**

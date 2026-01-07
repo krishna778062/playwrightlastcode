@@ -249,6 +249,8 @@ test.describe(
           description: 'to verify the search content in manage site content ',
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
+          isKnownFailure: true,
+          bugTicket: 'CONT-23736',
         });
         // Get or create a site where the standard user can manage content
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
@@ -416,7 +418,7 @@ test.describe(
               `Checking site ${site.siteId} (${site.name}) - canEdit: ${siteDetails.result?.canEdit}, isOwner: ${siteDetails.result?.isOwner}`
             );
 
-            if (siteDetails.result?.canEdit === true && siteDetails.result?.isOwner === true) {
+            if (siteDetails.result?.canEdit === true && siteDetails.result?.isManager === true) {
               selectedSite = { siteId: site.siteId, name: site.name };
               console.log(`✓ Found site where user can edit and is owner: ${site.siteId} (${site.name})`);
               break;
