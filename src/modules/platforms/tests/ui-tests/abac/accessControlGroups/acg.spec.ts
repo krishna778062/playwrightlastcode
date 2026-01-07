@@ -806,7 +806,7 @@ test.describe(
     test(
       `Verify that single ACG can be updated without any issue`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@this-one'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
