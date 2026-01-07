@@ -59,7 +59,7 @@ export class LineChartComponent extends BaseComponent {
    * {
    *   leftVerticalAxisLabel: 'Total searches',
    *   rightVerticalAxisLabel: 'Total clickthrough',
-   *   horizontalAxisLabel: 'Search performed date (for 2025)',
+   *   horizontalAxisLabel: 'Search performed date',
    * }
    * // For single Y-axis:
    * {
