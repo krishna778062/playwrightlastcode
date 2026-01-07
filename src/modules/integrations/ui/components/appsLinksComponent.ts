@@ -453,4 +453,41 @@ export class AppsLinksComponents extends BaseComponent {
       await this.page.waitForTimeout(3000);
     });
   }
+  async selectAppsIntegration(integrationName: string): Promise<void> {
+    await test.step(`Selecting apps integration`, async () => {
+      await this.appsIntegrationDropdown.selectOption({ label: integrationName });
+    });
+  }
+
+  async enterApiToken(apiToken: string): Promise<void> {
+    await test.step(`Entering api token`, async () => {
+      await this.apiTokenInput.fill(apiToken);
+    });
+  }
+
+  async enterOktaLink(oktaLink: string): Promise<void> {
+    await test.step(`Entering okta link`, async () => {
+      await this.oktaLinkInput.fill(oktaLink);
+    });
+  }
+
+  async selectOktaUserNameFormat(userNameFormat: string): Promise<void> {
+    await test.step(`Selecting okta user name format`, async () => {});
+  }
+
+  async selectExistingOktaConfigurationCheckbox(existingOktaConfiguration: string): Promise<void> {
+    await test.step(`Selecting existing okta configuration checkbox`, async () => {
+      await this.existingOktaConfigurationCheckbox.click();
+    });
+  }
+
+  async enterOneLoginEmbeddingCode(embeddingCode: string): Promise<void> {
+    await test.step(`Entering one login embedding code`, async () => {});
+  }
+
+  async enterOneLoginURL(url: string): Promise<void> {
+    await test.step(`Entering one login url`, async () => {
+      await this.oneLoginURLInput.fill(url);
+    });
+  }
 }

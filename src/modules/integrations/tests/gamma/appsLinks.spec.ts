@@ -225,5 +225,69 @@ test.describe(
         await appsLinks.customLinkCheckBox(APPS_LINKS.TRUE);
       }
     );
+
+    test(
+      'verify Okta custom apps feature',
+      {
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
+      },
+      async () => {
+        await appsLinks.selectAppsIntegration(APPS_LINKS.OKTA);
+        await appsLinks.enterApiToken(APPS_LINKS.OKTA_API_TOKEN);
+        await appsLinks.enterOktaLink(APPS_LINKS.OKTA_LINK);
+        await appsLinks.selectOktaUserNameFormat(APPS_LINKS.ACCOUNT_EMAIL);
+        await appsLinks.clickOnSaveButton();
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
+        await appsLinks.verifyApps(APPS_LINKS.OKTA_APPS);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+        await appsLinks.cancelAllLinksPresent();
+        await appsLinks.clickOnSaveButton();
+      }
+    );
+
+    test(
+      'verify One Login custom apps feature',
+      {
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
+      },
+      async () => {
+        await appsLinks.selectAppsIntegration(APPS_LINKS.ONE_LOGIN);
+        await appsLinks.enterOneLoginEmbeddingCode(APPS_LINKS.ONE_LOGIN_EMBEDDING_CODE);
+        await appsLinks.enterOneLoginURL(APPS_LINKS.ONE_LOGIN_URL);
+        await appsLinks.clickOnSaveButton();
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
+        await appsLinks.verifyApps(APPS_LINKS.ONE_LOGIN_APPS);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+        await appsLinks.cancelAllLinksPresent();
+        await appsLinks.clickOnSaveButton();
+      }
+    );
+
+    test(
+      'verify OKTA: Use existing Okta configuration: custom apps feature',
+      {
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
+      },
+      async () => {
+        await appsLinks.selectAppsIntegration(APPS_LINKS.OKTA);
+        await appsLinks.selectExistingOktaConfigurationCheckbox(APPS_LINKS.OKTA_CONFIGURATION);
+        await appsLinks.selectOktaUserNameFormat(APPS_LINKS.ACCOUNT_EMAIL);
+        await appsLinks.clickOnSaveButton();
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
+        await appsLinks.verifyApps(APPS_LINKS.OKTA_APPS);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+        await appsLinks.cancelAllLinksPresent();
+        await appsLinks.clickOnSaveButton();
+      }
+    );
   }
 );
