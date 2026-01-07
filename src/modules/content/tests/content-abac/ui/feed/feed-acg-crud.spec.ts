@@ -1850,5 +1850,105 @@ test.describe(
         });
       }
     );
+
+    test(
+      "verify SU's Feed post with Restricted Viewers is visible only to specified users",
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42175', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Feed post created by SU with Restricted Viewers is visible only to specified users and blocked for unauthorized users including direct URL access',
+          zephyrTestId: 'CONT-42175',
+          storyId: 'CONT-42175',
+        });
+
+        let suPostText: string;
+        let suPostId: string = '';
+
+        // ==================== Setup: Add SU as FO of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
+          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        });
+
+        // ==================== SU creates Feed post WITH Restricted Viewers (Engineering) ====================
+        await test.step('SU creates Feed post with Restricted Viewers (Engineering audience)', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          suPostText = TestDataGenerator.generateRandomText('SU ABAC Restricted Viewers Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPostWithLimitVisibility({
+            text: suPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          suPostId = postResult.postId || '';
+          createdPostId = suPostId;
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+          await feedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== Authorized User (App Manager in Engineering) can see the post ====================
+        await test.step('App Manager (authorized - in Engineering audience) navigates to Home Feed and verifies post is visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPage();
+          await appManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          await appManagerFeedPage.assertions.waitForPostToBeVisible(suPostText);
+          await appManagerFeedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== Unauthorized User (Social Campaign Manager NOT in Engineering) cannot see the post ====================
+        await test.step('Social Campaign Manager (unauthorized - NOT in Engineering audience) navigates to Home Feed and verifies post is NOT visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.reloadPageWithTimelineMode();
+          await socialCampaignManagerFeedPage.verifyThePageIsLoadedWithTimelineMode();
+
+          await socialCampaignManagerFeedPage.assertions.verifyPostIsNotVisible(suPostText);
+        });
+
+        // ==================== Unauthorized User cannot access post via direct URL ====================
+        await test.step('Social Campaign Manager attempts direct URL access to restricted post and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(socialCampaignManagerFixture.page, suPostId);
+          await socialCampaignManagerFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.assertions.verifyPageNotFoundVisibility({
+            stepInfo: 'Verify unauthorized user sees Page not found when accessing restricted post via direct URL',
+          });
+        });
+
+        // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
+        await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
+          await featureOwnersPage.loadPage();
+          await featureOwnersPage.assertions.verifyThePageIsLoaded();
+
+          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
+          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
+
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
+          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
   }
 );
