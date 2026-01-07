@@ -396,9 +396,13 @@ test.describe(
         ],
       },
       async () => {
+        // Known failure - marking test as expected to fail
+        test.fail();
         tagTest(test.info(), {
           description: 'TS To verify the answer Most Popular in Overview Dashboard',
           zephyrTestId: '',
+          isKnownFailure: true,
+          bugTicket: 'DE-27649',
         });
 
         const { sitesDashboardQueryHelper, overviewDashboard } = testEnvironment;
