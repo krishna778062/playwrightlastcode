@@ -1,11 +1,13 @@
 /**
  * Custom ESLint Rule: no-duplicate-assignments
  *
- * Catches consecutive duplicate assignment statements to the same property.
+ * Catches duplicate assignment statements to the same property within a block.
+ * Detects duplicates even if they're not on consecutive lines.
  *
  * ❌ Bad:
  *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
- *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
+ *   this.emailInput = page.getByRole('textbox', { name: 'Email' });
+ *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' }); // Duplicate!
  *
  * ✅ Good:
  *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
@@ -16,14 +18,14 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow consecutive duplicate assignment statements',
+      description: 'Disallow duplicate assignment statements to the same property',
       category: 'Possible Errors',
       recommended: true,
     },
     fixable: null, // No auto-fix - must be fixed manually
     schema: [],
     messages: {
-      duplicateAssignment: 'Duplicate assignment to "{{property}}". This line is identical to the previous assignment.',
+      duplicateAssignment: 'Duplicate assignment to "{{property}}". Already assigned on line {{firstLine}}.',
     },
   },
 
@@ -38,55 +40,74 @@ module.exports = {
     }
 
     /**
-     * Get the property name being assigned (e.g., "this.mobileInput" -> "mobileInput")
+     * Get the property name being assigned (e.g., "this.mobileInput")
      */
-    function getAssignedProperty(node) {
+    function getAssignedPropertyKey(node) {
       if (node.type === 'ExpressionStatement' && node.expression.type === 'AssignmentExpression') {
         const left = node.expression.left;
-        if (left.type === 'MemberExpression' && left.object.type === 'ThisExpression') {
-          return left.property.name || left.property.value;
-        }
-        if (left.type === 'Identifier') {
-          return left.name;
-        }
+        // For this.property assignments
         if (left.type === 'MemberExpression') {
           return sourceCode.getText(left);
+        }
+        // For simple variable assignments
+        if (left.type === 'Identifier') {
+          return left.name;
         }
       }
       return null;
     }
 
     /**
-     * Check if two nodes are duplicate assignments
+     * Check if a node is an assignment expression statement
      */
-    function isDuplicateAssignment(node1, node2) {
-      if (!node1 || !node2) return false;
-      if (node1.type !== 'ExpressionStatement' || node2.type !== 'ExpressionStatement') return false;
-      if (node1.expression.type !== 'AssignmentExpression' || node2.expression.type !== 'AssignmentExpression')
-        return false;
-
-      const text1 = getAssignmentText(node1);
-      const text2 = getAssignmentText(node2);
-
-      return text1 === text2;
+    function isAssignmentStatement(node) {
+      return node.type === 'ExpressionStatement' && node.expression.type === 'AssignmentExpression';
     }
 
     return {
       BlockStatement(node) {
         const statements = node.body;
 
-        for (let i = 1; i < statements.length; i++) {
-          const prevStatement = statements[i - 1];
-          const currentStatement = statements[i];
+        // Track assignments: key = property name, value = { text, line, node }
+        const assignments = new Map();
 
-          if (isDuplicateAssignment(prevStatement, currentStatement)) {
-            const property = getAssignedProperty(currentStatement) || 'property';
+        for (const statement of statements) {
+          if (!isAssignmentStatement(statement)) continue;
 
-            context.report({
-              node: currentStatement,
-              messageId: 'duplicateAssignment',
-              data: { property },
-              // No auto-fix - must be fixed manually
+          const propertyKey = getAssignedPropertyKey(statement);
+          if (!propertyKey) continue;
+
+          const assignmentText = getAssignmentText(statement);
+          const currentLine = statement.loc.start.line;
+
+          if (assignments.has(propertyKey)) {
+            const firstAssignment = assignments.get(propertyKey);
+
+            // Check if the assignment text is identical (same property = same value)
+            if (firstAssignment.text === assignmentText) {
+              context.report({
+                node: statement,
+                messageId: 'duplicateAssignment',
+                data: {
+                  property: propertyKey,
+                  firstLine: firstAssignment.line,
+                },
+              });
+            } else {
+              // Different value - update to track the latest assignment
+              // (allows reassignment with different values)
+              assignments.set(propertyKey, {
+                text: assignmentText,
+                line: currentLine,
+                node: statement,
+              });
+            }
+          } else {
+            // First time seeing this property
+            assignments.set(propertyKey, {
+              text: assignmentText,
+              line: currentLine,
+              node: statement,
             });
           }
         }
