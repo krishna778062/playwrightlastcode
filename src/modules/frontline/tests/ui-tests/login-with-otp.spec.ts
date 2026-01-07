@@ -1044,8 +1044,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'Verify that activated user gets appropriate error messages during OTP verification and account gets locked after 5 failed attempts',
-          zephyrTestId: 'FL-826,FL-827,FL-828,FL-829',
-          storyId: 'FL-826,FL-827,FL-828,FL-829',
+          zephyrTestId: 'FL-826,FL-827,FL-828',
+          storyId: 'FL-826,FL-827,FL-828',
         });
 
         const userBuilder = new UserTestDataBuilder(appManagerApiContext, config.apiBaseUrl);
@@ -1114,7 +1114,7 @@ test.describe(
           description:
             'Verify that clicking Resend OTP immediately after Send OTP shows wait message (max 14 seconds), and after cooldown resend succeeds. 3rd resend triggers 30 minute lockout.',
           zephyrTestId: 'FL-831,FL-832,FL-833,FL-834',
-          storyId: 'FL-RESEND-OTP-001',
+          storyId: 'FL-831,FL-832,FL-833,FL-834',
         });
 
         // Create user with email for OTP verification
