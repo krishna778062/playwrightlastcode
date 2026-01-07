@@ -715,8 +715,8 @@ test.describe(
         await test.step("SU navigates to Home Feed and verifies Edit option is NOT visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.reloadPage();
-          await feedPage.assertions.verifyThePageIsLoaded();
+          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify the post is visible
           await feedPage.assertions.waitForPostToBeVisible(createdPostText);
@@ -1762,8 +1762,8 @@ test.describe(
         await test.step("Standard User navigates to Home Feed and verifies FO's post is visible", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.reloadPage();
-          await feedPage.assertions.verifyThePageIsLoaded();
+          await feedPage.reloadPageWithTimelineMode();
+          await feedPage.verifyThePageIsLoadedWithTimelineMode();
 
           await feedPage.assertions.waitForPostToBeVisible(foPostText);
         });
