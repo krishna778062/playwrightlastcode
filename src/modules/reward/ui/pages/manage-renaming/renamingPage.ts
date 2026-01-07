@@ -330,7 +330,7 @@ export class RenamingPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(editModal.getManualTranslationDisabledAlert(), {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
-      await editModal.getCustomLabelForAllLanguageCheckbox().check();
+      await editModal.getCustomLabelForAllLanguageCheckbox().uncheck();
       await this.verifier.verifyTheElementIsNotVisible(editModal.getManualTranslationDisabledAlert(), {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
