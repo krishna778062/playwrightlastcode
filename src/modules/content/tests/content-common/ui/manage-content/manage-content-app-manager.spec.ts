@@ -202,22 +202,14 @@ test.describe(
           zephyrTestId: 'CONT-20946',
           storyId: 'CONT-20946',
         });
-        const contentListResponse =
-          await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
-            filter: 'owned',
-          });
-        if (contentListResponse.result.listOfItems.length < 5) {
-          const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-          const pagesToCreate = 5 - contentListResponse.result.listOfItems.length;
-          for (let i = 0; i < pagesToCreate; i++) {
-            await appManagerApiFixture.contentManagementHelper.createPage({
-              siteId: siteInfo.siteId,
-              contentInfo: { contentType: 'page', contentSubType: 'news' },
-            });
-          }
-        }
+        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        await appManagerFixture.contentManagementHelper.createPage({
+          siteId: siteInfo.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();
+        await appManagerFixture.page.reload();
         await manageContentPage.manageContent.addPublishContentFilter();
         await manageContentPage.manageContent.selectFirstDropDownOption();
         await manageContentPage.manageContent.clickDeleteOption();
@@ -276,16 +268,15 @@ test.describe(
           zephyrTestId: 'CONT-20944',
           storyId: 'CONT-20944',
         });
-
+        const publicSites = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        await appManagerFixture.contentManagementHelper.createPage({
+          siteId: publicSites.siteId,
+          contentInfo: { contentType: 'page', contentSubType: 'news' },
+        });
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnContentCard();
         await manageContentPage.manageContent.clickFilterButton();
-        const publicSites = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        await appManagerApiFixture.contentManagementHelper.createPage({
-          siteId: publicSites.siteId,
-          contentInfo: { contentType: 'page', contentSubType: 'news' },
-        });
         await manageContentPage.manageContent.clickSiteSearchBar(publicSites?.name);
         await manageContentPage.manageContent.selectSiteSearchBarOption();
         await manageContentPage.manageContent.verifySiteNameLink();
@@ -487,6 +478,8 @@ test.describe(
         const contentListResponse =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
             filter: 'owned',
+            contribution: 'all',
+            sortBy: 'publishedNewest',
           });
         if (contentListResponse.result.listOfItems.length < 5) {
           const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -534,7 +527,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20532'],
       },
-      async ({ appManagerFixture, appManagerApiFixture }) => {
+      async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'verify published and unpublished stamp and its options menu on content under Content tab in Manage Site',
@@ -550,6 +543,7 @@ test.describe(
         });
         await manageContentPage.manageContent.clickSortByButton();
         await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await appManagerFixture.page.reload();
         await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
         await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
         await manageContentPage.manageContent.hoverOnFirstDropDownOption();

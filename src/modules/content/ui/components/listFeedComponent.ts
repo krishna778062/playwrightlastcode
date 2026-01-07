@@ -258,7 +258,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyFileUploadInput = this.page.locator("input[type='file']");
     this.replyAttachedFiles = this.page.locator("div[class='FileItem-name']");
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
-    this.postsIFollow = this.page.locator('[aria-label="Show"]:has-text("Posts I follow")');
+    this.postsIFollow = this.page.getByText('Posts I follow');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
     this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
