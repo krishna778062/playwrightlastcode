@@ -2,7 +2,11 @@
  * Custom ESLint Rule: no-duplicate-assignments
  *
  * Catches duplicate assignment statements to the same property within a block.
- * Detects duplicates even if they're not on consecutive lines.
+ * Detects duplicates even if they're not on consecutive lines or have different values.
+ *
+ * ❌ Bad:
+ *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
+ *   this.mobileInput = page.getByRole('textbox', { name: 'Mobileee' }); // Duplicate property!
  *
  * ❌ Bad:
  *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
@@ -33,13 +37,6 @@ module.exports = {
     const sourceCode = context.getSourceCode ? context.getSourceCode() : context.sourceCode;
 
     /**
-     * Get the full text of an assignment expression
-     */
-    function getAssignmentText(node) {
-      return sourceCode.getText(node);
-    }
-
-    /**
      * Get the property name being assigned (e.g., "this.mobileInput")
      */
     function getAssignedPropertyKey(node) {
@@ -68,7 +65,7 @@ module.exports = {
       BlockStatement(node) {
         const statements = node.body;
 
-        // Track assignments: key = property name, value = { text, line, node }
+        // Track assignments: key = property name, value = { line, node }
         const assignments = new Map();
 
         for (const statement of statements) {
@@ -77,35 +74,23 @@ module.exports = {
           const propertyKey = getAssignedPropertyKey(statement);
           if (!propertyKey) continue;
 
-          const assignmentText = getAssignmentText(statement);
           const currentLine = statement.loc.start.line;
 
           if (assignments.has(propertyKey)) {
             const firstAssignment = assignments.get(propertyKey);
 
-            // Check if the assignment text is identical (same property = same value)
-            if (firstAssignment.text === assignmentText) {
-              context.report({
-                node: statement,
-                messageId: 'duplicateAssignment',
-                data: {
-                  property: propertyKey,
-                  firstLine: firstAssignment.line,
-                },
-              });
-            } else {
-              // Different value - update to track the latest assignment
-              // (allows reassignment with different values)
-              assignments.set(propertyKey, {
-                text: assignmentText,
-                line: currentLine,
-                node: statement,
-              });
-            }
+            // Report duplicate - same property assigned twice (regardless of value)
+            context.report({
+              node: statement,
+              messageId: 'duplicateAssignment',
+              data: {
+                property: propertyKey,
+                firstLine: firstAssignment.line,
+              },
+            });
           } else {
             // First time seeing this property
             assignments.set(propertyKey, {
-              text: assignmentText,
               line: currentLine,
               node: statement,
             });
