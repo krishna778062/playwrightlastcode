@@ -116,14 +116,6 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     await this.clickOnElement(removeButtonElement);
   }
 
-  async clickOnRemoveButtonForUser(userName: string): Promise<void> {
-    const removeButtonElement = this.page
-      .locator('[class*="Spacing-module__row"]')
-      .filter({ hasText: userName })
-      .getByRole('button', { name: 'Remove user' });
-    await this.clickOnElement(removeButtonElement);
-  }
-
   /**
    * Clicks the remove button for a specific audience or user on the access control group modal
    *@param userName - The name of the user for which remove button need to be clicked
