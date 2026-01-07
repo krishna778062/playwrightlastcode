@@ -1,35 +1,41 @@
 /**
  * Custom ESLint Rule: no-duplicate-assignments
  *
- * Catches duplicate assignment statements to the same property within a block.
- * Detects duplicates even if they're not on consecutive lines or have different values.
+ * Catches duplicate assignment statements to the same property within a CONSTRUCTOR.
+ * Only applies to class constructors to avoid false positives in regular methods.
  *
- * ❌ Bad:
- *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
- *   this.mobileInput = page.getByRole('textbox', { name: 'Mobileee' }); // Duplicate property!
+ * ❌ Bad (in constructor):
+ *   constructor(page: Page) {
+ *     this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
+ *     this.mobileInput = page.getByRole('textbox', { name: 'Mobileee' }); // Duplicate!
+ *   }
  *
- * ❌ Bad:
- *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
- *   this.emailInput = page.getByRole('textbox', { name: 'Email' });
- *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' }); // Duplicate!
+ * ✅ Good (in constructor):
+ *   constructor(page: Page) {
+ *     this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
+ *     this.emailInput = page.getByRole('textbox', { name: 'Email' });
+ *   }
  *
- * ✅ Good:
- *   this.mobileInput = page.getByRole('textbox', { name: 'Mobile' });
- *   this.emailInput = page.getByRole('textbox', { name: 'Email' });
+ * ✅ OK (in regular methods - not checked):
+ *   someMethod() {
+ *     this.value = 1;
+ *     this.value = 2; // Allowed - intentional reassignment in methods
+ *   }
  */
 
 module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow duplicate assignment statements to the same property',
+      description: 'Disallow duplicate assignment statements to the same property in constructors',
       category: 'Possible Errors',
       recommended: true,
     },
     fixable: null, // No auto-fix - must be fixed manually
     schema: [],
     messages: {
-      duplicateAssignment: 'Duplicate assignment to "{{property}}". Already assigned on line {{firstLine}}.',
+      duplicateAssignment:
+        'Duplicate assignment to "{{property}}" in constructor. Already assigned on line {{firstLine}}.',
     },
   },
 
@@ -61,8 +67,45 @@ module.exports = {
       return node.type === 'ExpressionStatement' && node.expression.type === 'AssignmentExpression';
     }
 
+    /**
+     * Check if the block is inside a constructor
+     */
+    function isConstructorBlock(node) {
+      const parent = node.parent;
+
+      // Check for class constructor: MethodDefinition with kind 'constructor'
+      if (
+        parent &&
+        parent.type === 'FunctionExpression' &&
+        parent.parent &&
+        parent.parent.type === 'MethodDefinition' &&
+        parent.parent.kind === 'constructor'
+      ) {
+        return true;
+      }
+
+      // Check for TypeScript constructor
+      if (
+        parent &&
+        (parent.type === 'FunctionExpression' || parent.type === 'FunctionDeclaration') &&
+        parent.parent &&
+        parent.parent.type === 'MethodDefinition' &&
+        parent.parent.key &&
+        parent.parent.key.name === 'constructor'
+      ) {
+        return true;
+      }
+
+      return false;
+    }
+
     return {
       BlockStatement(node) {
+        // Only check blocks inside constructors
+        if (!isConstructorBlock(node)) {
+          return;
+        }
+
         const statements = node.body;
 
         // Track assignments: key = property name, value = { line, node }
@@ -79,7 +122,7 @@ module.exports = {
           if (assignments.has(propertyKey)) {
             const firstAssignment = assignments.get(propertyKey);
 
-            // Report duplicate - same property assigned twice (regardless of value)
+            // Report duplicate - same property assigned twice in constructor
             context.report({
               node: statement,
               messageId: 'duplicateAssignment',
