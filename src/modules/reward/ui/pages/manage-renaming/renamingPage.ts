@@ -198,4 +198,43 @@ export class RenamingPage extends BasePage {
       await expect(this.defaultLanguageInput, 'expecting default language input to be disabled').toBeDisabled();
     });
   }
+
+  async validateTheCurrentPageURL(url: string): Promise<void> {
+    await test.step(`Validating the current page is ${url}`, async () => {
+      await expect(this.page, `expecting current page URL to be ${url}`).toHaveURL(url);
+    });
+  }
+
+  async validateTheRenamingPageElements(headings: string[]): Promise<void> {
+    for (const heading of headings) {
+      const headingLocator = this.container.getByRole('heading', { name: heading, level: 2 });
+      await expect(headingLocator, `expecting heading "${heading}" to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    }
+  }
+
+  async verifyTheEditOptions(editButtonLabel: string) {
+    const editButton = this.container.getByRole('button', { name: editButtonLabel });
+    await expect(editButton, `expecting edit button "${editButtonLabel}" to be visible`).toBeVisible({
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  // async validateTheHarnessFlagValue(flagName: string, expectedValue: boolean) {
+  //   await test.step(`Validating the harness flag ${flagName} is set to ${expectedValue}`, async () => {
+  //     const flagValue = await this.getHarnessFlagValue(flagName);
+  //     expect(flagValue).toBe(
+  //       expectedValue,
+  //       `Expected harness flag ${flagName} to be ${expectedValue}, but got ${flagValue}`
+  //     );
+  //   });
+  // }
+  //
+  // private async getHarnessFlagValue(flagName: string) {
+  //   return await this.page.evaluate((name) => {
+  //     //Simpplr.Settings.recognitionCustomLabels.recognition
+  //     // return window.harnessFlags ? window.harnessFlags[name] : undefined;
+  //   }, flagName);
+  // }
 }

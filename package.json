@@ -32,6 +32,8 @@
     "test:reward": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
     "test:reward-settings": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward-settings.config.ts",
     "test:reward:test": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:renaming": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.renaming.config.ts",
+    "test:renaming:test": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.renaming.config.ts",
     "test:module": "./scripts/test-module.sh",
     "test:interactive": "ts-node scripts/interactive-test.ts",
     "test": "npm run test:interactive",

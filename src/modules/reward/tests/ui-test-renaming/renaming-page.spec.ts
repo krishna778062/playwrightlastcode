@@ -9,12 +9,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('renaming page', () => {
+  let responseOfHarnessCall: any;
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint('manage', PAGE_ENDPOINTS.MANAGE_RECOGNITION);
     await manageRecognitionPage.clickOnElement(manageRecognitionPage.renamingTab);
   });
+
   test(
     '[RC-6963] Validate naming page of RnR renaming',
     {
@@ -22,28 +24,20 @@ test.describe('renaming page', () => {
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
+        description: 'Validate naming page of RnR renaming',
         zephyrTestId: 'RC-6963',
-        storyId: 'RC-6963',
+        storyId: 'RC-6370',
       });
-      const { page } = appManagerFixture;
-      const renamingPage = new RenamingPage(page);
-      await renamingPage.verifyThePageIsLoaded();
-    }
-  );
-  test(
-    '[RC-6935] Verify naming option in manage>recognition page',
-    {
-      tag: [RecognitionSuitTags.REGRESSION_TEST, TestPriority.P0, TestGroupType.SMOKE],
-    },
-    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
+        description: 'Verify naming option in manage>recognition page',
         zephyrTestId: 'RC-6935',
-        storyId: 'RC-6935',
+        storyId: 'RC-6370',
       });
       const { page } = appManagerFixture;
       const renamingPage = new RenamingPage(page);
+      await renamingPage.validateTheHarnessFlagValue('recognition_custom_label', true);
       await renamingPage.verifyThePageIsLoaded();
-
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await test.step('Verify Recognition option is visible', async () => {
         await renamingPage.verifier.verifyTheElementIsVisible(renamingPage.recognitionCard);
         await renamingPage.verifier.verifyTheElementIsVisible(renamingPage.recognitionEditButton);
@@ -64,17 +58,20 @@ test.describe('renaming page', () => {
   [
     {
       testId: 'RC-6930',
+      testDescription: 'Validate edit of Recognition from a new naming settings page',
       cardType: 'recognition' as const,
     },
     {
       testId: 'RC-6931',
+      testDescription: 'Validate edit of Points from a new naming settings page',
       cardType: 'points' as const,
     },
     {
       testId: 'RC-6932',
+      testDescription: 'Validate edit option of Reward store from a new naming settings page',
       cardType: 'rewardsStore' as const,
     },
-  ].forEach(({ testId, cardType }) => {
+  ].forEach(({ testId, cardType, testDescription }) => {
     test(
       `[${testId}] Verify edit modal appears and default language input is disabled for ${cardType}`,
       {
@@ -82,8 +79,9 @@ test.describe('renaming page', () => {
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
+          description: testDescription,
           zephyrTestId: testId,
-          storyId: testId,
+          storyId: 'RC-6370',
         });
         const { page } = appManagerFixture;
         const renamingPage = new RenamingPage(page);
