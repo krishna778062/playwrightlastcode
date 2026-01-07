@@ -74,6 +74,7 @@ test.describe(
         // Use Site Manager's page (already logged in via fixture)
         await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
         const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
+        await siteManagerFeedPage.reloadPage();
         await siteManagerFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts"
@@ -93,7 +94,6 @@ test.describe(
         await adminFeedPage.reloadPage();
 
         // Select Show filter = "Posts to me"
-        console.log('Select Show filter = "Posts to me"');
         await adminFeedPage.clickOnShowOption('toMe');
 
         // Verify Admin sees:
@@ -133,6 +133,7 @@ test.describe(
         // Use Site Owner's page (already logged in via fixture, Admin is following Site Owner)
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const siteOwnerFeedPage = new FeedPage(standardUserFixture.page);
+        await siteOwnerFeedPage.reloadPage();
         await siteOwnerFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts"
@@ -152,17 +153,16 @@ test.describe(
         // Use Admin's page (already logged in via fixture)
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.reloadPage();
         await adminFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "Posts I follow"
-        console.log('Select Show filter = "Posts I follow"');
         await adminFeedPage.clickOnShowOption('Posts I follow');
 
         // Verify Admin can see:
         // - Feed posts shared or created by users he follows (Site Owner)
         // - His own posts
         // - NOT Site Manager's post
-        console.log('Verify Admin sees posts from followed users and own posts');
         await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage); // Site Owner's shared post
 
         // Verify Site Manager's original post is NOT visible (since Admin is not following Site Manager)
@@ -199,10 +199,10 @@ test.describe(
         // Use Standard User's page (already logged in via fixture, Admin is following Standard User)
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+        await standardUserFeedPage.reloadPage();
         await standardUserFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts"
-        console.log('Select Show filter = "All Posts"');
         await standardUserFeedPage.clickOnShowOption('all');
 
         // Click Share icon for the feed post created by Site Manager
@@ -218,10 +218,10 @@ test.describe(
         // Use Admin's page (already logged in via fixture)
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.reloadPage();
         await adminFeedPage.verifyThePageIsLoaded();
 
         // Select Show filter = "All Posts" to see the shared post
-        console.log('Select Show filter = "All Posts" to see the shared post');
         await adminFeedPage.clickOnShowOption('all');
         await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 

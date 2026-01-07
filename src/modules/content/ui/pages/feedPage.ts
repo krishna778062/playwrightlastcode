@@ -196,7 +196,7 @@ export class FeedPage extends BasePage {
         expectedAttachmentCount
       );
       //image preview
-      const imagePreviewButton = postContainer.locator("button[aria-label='Open image in lightbox']");
+      const imagePreviewButton = postContainer.locator("button[aria-label='Open image in lightbox']").first();
       await this.clickOnElement(imagePreviewButton, { stepInfo: 'Clicking on image preview button' });
       //verify image preview visible
       await this.feedList.verifyInlineImagePreviewVisible();

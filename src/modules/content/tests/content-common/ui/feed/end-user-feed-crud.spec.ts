@@ -2568,7 +2568,6 @@ test.describe(
         await adminFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Add reply to the post
-        await adminFeedPage.feedList.openReplyEditorForPost(postText);
         const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
         await adminFeedPage.feedList.addReplyToPost(replyText, postResult.postId || '');
         await adminFeedPage.feedList.verifyReplyIsVisible(replyText);
@@ -2697,8 +2696,6 @@ test.describe(
         let replyText: string = '';
         await test.step('Admin creates reply ', async () => {
           const adminFeedPage = new FeedPage(appManagerFixture.page);
-
-          await adminFeedPage.feedList.openReplyEditorForPost(createdPostText);
 
           replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 

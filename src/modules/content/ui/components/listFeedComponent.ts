@@ -225,10 +225,7 @@ export class ListFeedComponent extends BaseComponent {
     this.page.getByRole('button', { name: 'Following' });
 
   readonly getProfilePopoverLocator = (userName: string): Locator =>
-    this.page
-      .locator('div')
-      .filter({ hasText: `${userName}View in org chart` })
-      .first();
+    this.page.getByText(`${userName}View in org chart`).first();
 
   readonly siteNameLocator = (postText: string, siteName: string): Locator =>
     this.page.getByRole('link', { name: siteName }).first();
@@ -254,7 +251,7 @@ export class ListFeedComponent extends BaseComponent {
     this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
     this.replyInput = this.page.getByRole('button', { name: 'Leave a reply…' }).first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
-    this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' });
+    this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' }).first();
     this.replyFileUploadInput = this.page.locator("input[type='file']");
     this.replyAttachedFiles = this.page.locator("div[class='FileItem-name']");
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
