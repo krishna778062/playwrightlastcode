@@ -13,7 +13,7 @@ export class EditLabelModal extends BasePage {
   private customLabel: Locator;
   private customLabelToggleSwitch: Locator;
   private customLabelInputBox: Locator;
-  private customLabelForAllLanguageCheckbox: Locator;
+  private customLabelForAllLanguageCheckbox: Locator | undefined;
   private manualTranslationDisabledAlert: Locator;
 
   constructor(page: Page) {
@@ -29,9 +29,6 @@ export class EditLabelModal extends BasePage {
     this.customLabel = this.container.locator('[data-slot="form-label"][for="default-language-name"]');
     this.customLabelToggleSwitch = this.container.locator('[data-testid="default-language-name-switch"]');
     this.customLabelInputBox = this.container.locator('input[data-testid="default-language-name-input"]');
-    this.customLabelForAllLanguageCheckbox = this.container.getByRole('checkbox', {
-      name: 'Use the Recognition for all languages',
-    });
     this.manualTranslationDisabledAlert = this.container.locator('[role="alert"][aria-live="polite"]');
   }
 
@@ -70,7 +67,10 @@ export class EditLabelModal extends BasePage {
     return this.customLabelInputBox;
   }
 
-  getCustomLabelForAllLanguageCheckbox() {
+  getCustomLabelForAllLanguageCheckbox(option: string): Locator {
+    this.customLabelForAllLanguageCheckbox = this.container.getByRole('checkbox', {
+      name: `Use the ${option} for all languages`,
+    });
     return this.customLabelForAllLanguageCheckbox;
   }
 

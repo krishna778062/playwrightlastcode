@@ -322,15 +322,18 @@ export class RenamingPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(editModal.getCustomLabelInputBox(), {
       timeout: TIMEOUTS.VERY_VERY_SHORT,
     });
-    await this.verifier.verifyTheElementIsVisible(editModal.getCustomLabelForAllLanguageCheckbox(), {
+    const option = await editModal.getCustomLabelInputBox().inputValue();
+    await this.verifier.verifyTheElementIsVisible(editModal.getCustomLabelForAllLanguageCheckbox(option), {
       timeout: TIMEOUTS.VERY_VERY_SHORT,
     });
-    const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelForAllLanguageCheckbox().isChecked();
+    const isRecognitionForAllLanguagesChecked = await editModal
+      .getCustomLabelForAllLanguageCheckbox(option)
+      .isChecked();
     if (isRecognitionForAllLanguagesChecked) {
       await this.verifier.verifyTheElementIsVisible(editModal.getManualTranslationDisabledAlert(), {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
-      await editModal.getCustomLabelForAllLanguageCheckbox().uncheck();
+      await editModal.getCustomLabelForAllLanguageCheckbox(option).uncheck();
       await this.verifier.verifyTheElementIsNotVisible(editModal.getManualTranslationDisabledAlert(), {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
@@ -338,7 +341,7 @@ export class RenamingPage extends BasePage {
       await this.verifier.verifyTheElementIsNotVisible(editModal.getManualTranslationDisabledAlert(), {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
-      await editModal.getCustomLabelForAllLanguageCheckbox().check();
+      await editModal.getCustomLabelForAllLanguageCheckbox(option).check();
       await this.verifier.verifyTheElementIsVisible(editModal.getManualTranslationDisabledAlert(), {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
