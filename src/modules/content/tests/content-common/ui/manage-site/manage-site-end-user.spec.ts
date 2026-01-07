@@ -249,7 +249,6 @@ test.describe(
           description: 'to verify the search content in manage site content ',
           zephyrTestId: 'CONT-23736',
           storyId: 'CONT-23736',
-          isKnownFailure: true,
         });
         // Get or create a site where the standard user can manage content
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
@@ -278,6 +277,7 @@ test.describe(
           options: {
             pageName: MANAGE_SITE_TEST_DATA.CONTENT_NAME.generateUniqueName('page'),
             contentDescription: MANAGE_SITE_TEST_DATA.DESCRIPTION.DESCRIPTION,
+            waitForSearchIndex: true,
           },
         });
         const newSiteDashboard = new SiteDashboardPage(standardUserFixture.page, siteInfo.siteId);
@@ -322,7 +322,7 @@ test.describe(
         manageSiteStandardUserPage = new ManageSiteSetUpPage(standardUserFixture.page, firstSiteId);
         await manageSiteStandardUserPage.searchSiteNameInSearchBar(siteNames[0]);
         const siteDashBoardPage = new SiteDashboardPage(standardUserFixture.page, firstSiteId);
-        await siteDashBoardPage.verifySiteNameIsDisplayed(siteNames[0]);
+        await siteDashBoardPage.verifySiteNameIsDisplayedAfterSearch(siteNames[0]);
       }
     );
     test(

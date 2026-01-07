@@ -15,6 +15,7 @@ export class SiteDashboardPage extends BaseSitePage {
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
   readonly siteLink: (siteName: string) => Locator;
+  readonly siteLinkAfterSearch: (siteName: string) => Locator;
   readonly dashboardFeedLink: Locator;
   readonly feedLink: Locator;
   readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
@@ -52,7 +53,10 @@ export class SiteDashboardPage extends BaseSitePage {
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.dashboardFeedLink = this.page.getByRole('tab', { name: 'Dashboard & feed' });
     this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
+    this.siteLinkAfterSearch = (siteName: string) =>
+      this.page.locator('#page-content').getByRole('link', { name: siteName });
   }
+
   /**
    * Verifies that site was created successfully by checking if site link is visible
    * @param siteName - The site name to verify
@@ -344,6 +348,14 @@ export class SiteDashboardPage extends BaseSitePage {
    * @param siteName - The site name to verify
    */
   async verifySiteNameIsDisplayed(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible`,
+      });
+    });
+  }
+
+  async verifySiteNameIsDisplayedAfterSearch(siteName: string): Promise<void> {
     await test.step(`Verify site name "${siteName}" is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
         assertionMessage: `Site link "${siteName}" should be visible`,

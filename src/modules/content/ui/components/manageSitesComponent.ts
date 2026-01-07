@@ -153,10 +153,8 @@ export class ManageSitesComponent extends BaseComponent {
 
   // Action methods
   async clickOnSiteAction(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Clicking on site', async () => {
       await this.clickOnElement(this.clickOnSite);
-      await this.clickOnSite.press('Tab');
-      await this.clickOnSite.press('Enter');
     });
   }
 
