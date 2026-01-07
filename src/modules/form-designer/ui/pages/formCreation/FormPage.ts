@@ -129,6 +129,30 @@ export class FormCreationPage extends BasePage {
     });
   }
 
+  async scrollToBottom(): Promise<void> {
+    await test.step('Scroll to bottom of the page', async () => {
+      await this.page.evaluate(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' });
+      });
+    });
+  }
+
+  async scrollToTop(): Promise<void> {
+    await test.step('Scroll to top of the page', async () => {
+      await this.page.evaluate(() => {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
+    });
+  }
+
+  async scrollBy(pixels: number): Promise<void> {
+    await test.step(`Scroll vertically by ${pixels}px`, async () => {
+      await this.page.evaluate((y: number) => {
+        window.scrollBy({ top: y, behavior: 'auto' });
+      }, pixels);
+    });
+  }
+
   async dragAndDropElement(source: string | Locator, target: string | Locator = this.dragAndDropArea): Promise<void> {
     const srcLocator = typeof source === 'string' ? this.resolveComponentLocator(source) : source;
     const tgtLocator = typeof target === 'string' ? this.resolveTargetLocator(target) : target;
@@ -584,8 +608,9 @@ export class FormCreationPage extends BasePage {
   }
   async makeComponentMandatory(): Promise<void> {
     await test.step('Make component mandatory', async () => {
+      await this.requiredToggle.scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(this.requiredToggle, { timeout: TIMEOUTS.MEDIUM });
-      await this.clickOnElement(this.requiredToggle);
+      await this.clickByInjectingJavaScript(this.requiredToggle);
     });
   }
 

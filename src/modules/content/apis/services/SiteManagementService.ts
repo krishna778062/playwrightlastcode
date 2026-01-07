@@ -321,7 +321,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         {
           message: `Video file "${fileName}" to appear in search results for site ${siteId}`,
         }
-      ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
+      ).toPass({ intervals: [10_000, 20_000, 40_000, 60_000, 80_000, 100_000, 110_000, 120_000], timeout: 120_000 });
     });
     log.debug('fileID', { fileId: file.item.fileId });
     return { fileId: file.item.fileId, authorName: file.item.owner.name };

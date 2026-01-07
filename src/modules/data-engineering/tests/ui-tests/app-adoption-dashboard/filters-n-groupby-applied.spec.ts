@@ -27,8 +27,8 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe.fixme(
-  'app Adoption Dashboard - All Filters Applied + Group by Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
+test.describe(
+  'app Adoption Dashboard - All Filters Applied + Group by Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
   },
@@ -52,9 +52,9 @@ test.describe.fixme(
         testFiltersConfig = {
           tenantCode: getDataEngineeringConfigFromCache().orgId,
           timePeriod: PeriodFilterTimeRange.LAST_36_MONTHS,
-          segments: [...TEST_FILTER_VALUES.APP_ADOPTION.SEGMENTS],
           departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
           locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+          companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
         };
 

@@ -98,6 +98,7 @@ export const PAGE_ENDPOINTS = {
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
   SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  APPS_PAGE: '/manage/app/integrations/apps',
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
   ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
