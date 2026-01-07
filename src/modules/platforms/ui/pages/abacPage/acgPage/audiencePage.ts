@@ -73,7 +73,7 @@ export class AudiencePage extends BasePage {
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
     this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
-    this.nameAlreadyUsedError = page.getByText('The name is already used');
+    this.nameAlreadyUsedError = page.getByText('Category name already exists');
     this.deleteCategoryOption = page.getByText('Delete category');
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
     this.editCategoryOption = page.getByText('Edit category');
@@ -205,9 +205,9 @@ export class AudiencePage extends BasePage {
 
   // ========== ERROR VERIFICATION METHODS ==========
 
-  // Verify 'The name is already used' error message is displayed
+  // Verify 'Category name already exists' error message is displayed
   async verifyNameAlreadyUsedError(): Promise<void> {
-    await test.step('Verify "Name is already used" error message', async () => {
+    await test.step('Verify "Category name already exists" error message is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.nameAlreadyUsedError, {
         assertionMessage: 'Verify name already used error is visible',
         timeout: TIMEOUTS.MEDIUM,
@@ -333,11 +333,18 @@ export class AudiencePage extends BasePage {
     }
   }
 
-  // Close any open dropdown by clicking elsewhere on the page
+  // Close any open dropdown by pressing Escape key
   async closeOpenDropdown(): Promise<void> {
     await test.step('Close any open dropdown', async () => {
-      await this.page.click('body');
-      await this.page.waitForTimeout(1000);
+      // Check if menu is open before attempting to close
+      const menu = this.page.locator('[role="menu"]');
+      const isMenuVisible = await menu.isVisible({ timeout: 1000 }).catch(() => false);
+
+      if (isMenuVisible) {
+        await this.page.keyboard.press('Escape');
+        // Wait for menu to close
+        await menu.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+      }
     });
   }
 
