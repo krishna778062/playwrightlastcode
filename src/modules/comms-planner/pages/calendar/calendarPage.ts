@@ -1,5 +1,8 @@
 import test, { Locator, Page } from '@playwright/test';
 
+import { CUSTOM_FIELD_TYPES } from '@modules/comms-planner/constants/constant';
+import { CustomField } from '@modules/comms-planner/constants/customField';
+
 import { PAGE_ENDPOINTS } from '@/src/core';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -20,6 +23,10 @@ export class CalendarPage extends BasePage {
   readonly createActivityModalDescription: Locator;
   readonly createActivityContentTypeSelect: Locator;
   readonly createActivityContentTypeSelectMenu: (menuId: string) => Locator;
+  readonly activityModalCustomFields: Locator;
+  readonly activityModalCustomFieldTypeText: (name: string) => Locator;
+  readonly activityModalCustomFieldTypeTextArea: (name: string) => Locator;
+
   readonly createActivitySelectContentButton: Locator;
   readonly createActivityContentSelectMenu: (menuId: string) => Locator;
 
@@ -46,6 +53,12 @@ export class CalendarPage extends BasePage {
     this.createActivityContentTypeSelect = this.page.getByTestId('activity-form-field-contentType').getByRole('button');
     this.createActivityContentTypeSelectMenu = (menuId: string) =>
       this.page.locator(`div[role="menu"][aria-labelledby="${menuId}"]`);
+
+    this.activityModalCustomFields = this.page.locator('[data-testid^="activity-form-field-"]');
+    this.activityModalCustomFieldTypeText = (name: string) =>
+      this.page.locator(`input[placeholder="Add ${name.toLowerCase()}"]`);
+    this.activityModalCustomFieldTypeTextArea = (name: string) =>
+      this.page.locator(`textarea[placeholder="Add ${name.toLowerCase()}"]`);
 
     this.createActivitySelectContentButton = this.page.getByTestId('activity-form-field-connectContent');
     this.createActivityContentSelectMenu = (menuId: string) =>
@@ -153,6 +166,33 @@ export class CalendarPage extends BasePage {
     });
   }
 
+  async verifyCustomFieldsExistence(meta: CustomField): Promise<void> {
+    await test.step('Verify | Custom fields in activity', async () => {
+      let customFieldComponent;
+      const currentCustomField = this.activityModalCustomFields.filter({ hasText: meta.name });
+
+      await this.verifier.verifyTheElementIsVisible(currentCustomField, {
+        assertionMessage: 'The custom field should exists in the create activity modal',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      switch (meta.type) {
+        case CUSTOM_FIELD_TYPES.TEXT:
+          customFieldComponent = this.activityModalCustomFieldTypeText(meta.name);
+          break;
+
+        case CUSTOM_FIELD_TYPES.TEXTAREA:
+          customFieldComponent = this.activityModalCustomFieldTypeTextArea(meta.name);
+          break;
+      }
+
+      await this.verifier.verifyTheElementIsVisible(customFieldComponent!, {
+        assertionMessage: `The custom field "${meta.type}" input component should exists in the create activity modal`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
   async clickOnConnectToContentButton(): Promise<void> {
     await test.step('Select content type', async () => {
       await this.clickOnElement(this.createActivitySelectContentButton, {
@@ -160,5 +200,9 @@ export class CalendarPage extends BasePage {
       });
       await this.page.keyboard.press('Escape');
     });
+  }
+
+  async waitForTimeout(time: number): Promise<void> {
+    await this.page.waitForTimeout(time);
   }
 }
