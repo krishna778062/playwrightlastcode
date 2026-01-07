@@ -1,10 +1,16 @@
+import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 import { ACG_EDIT_ASSETS } from '@/src/modules/platforms/constants/acg';
 import { FEATURE_OWNERS_TABS_OPTIONS } from '@/src/modules/platforms/constants/featureOwners';
 import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
@@ -2049,6 +2055,121 @@ test.describe(
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
+
+    test(
+      'verify FO can share unrestricted Home Feed post to Site Feed with Restricted Viewers (UX audience)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42194', '@feed-acg-crud', '@share-restricted'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a Home Feed post (created without restrictions) to a Public Site Feed with Restricted Viewers enabled (UX audience). Post should be visible only to UX audience users.',
+          zephyrTestId: 'CONT-42194',
+          storyId: 'CONT-42194',
+        });
+
+        let foPostText: string;
+        let sharedPostId: string = '';
+        let publicSiteId: string = '';
+        let publicSiteName: string = '';
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site for sharing', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+          publicSiteName = publicSite.name;
+        });
+
+        // ==================== FO creates Home Feed post WITHOUT restrictions ====================
+        await test.step('FO creates Home Feed post WITHOUT Restricted Viewers (unrestricted)', async () => {
+          // Set feed posting permission to everyone
+          const manageSitePage = new ManageSitePage(appManagerFixture.page);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.actions.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+
+          await appManagerFixture.navigationHelper.clickOnHomeButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          foPostText = TestDataGenerator.generateRandomText('ABAC Share to Site Feed Test Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPost({
+            text: foPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post does NOT have limit visibility (unrestricted)
+          await feedPage.assertions.verifyPostDoesNotHaveLimitVisibility(foPostText);
+        });
+
+        // ==================== FO shares to Site Feed WITH Restricted Viewers (UX audience) ====================
+        await test.step('FO shares post to Public Site Feed with Restricted Viewers (UX audience)', async () => {
+          await feedPage.actions.clickShareIconOnPost(foPostText);
+          await feedPage.assertions.verifyShareModalIsVisible();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          const shareDescription = TestDataGenerator.generateRandomText('Shared with UX restriction', 2, true);
+
+          sharedPostId = await shareComponent.shareToSiteFeedWithLimitVisibility({
+            siteName: publicSiteName,
+            description: shareDescription,
+            audience: 'Engineering',
+          });
+
+          // Verify share was successful
+          await feedPage.assertions.verifyShareModalIsClosed();
+        });
+
+        // ==================== Authorized User (Standard User in Engineering) can see shared post on Site Feed ====================
+        await test.step('Standard User (authorized - in Engineering audience) navigates to Site Feed and verifies shared post is visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.actions.clickOnFeedLink();
+
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.assertions.verifyThePageIsLoaded();
+
+          // Verify the shared post is visible to authorized user
+          await standardUserFeedPage.assertions.waitForPostToBeVisible(foPostText);
+        });
+
+        // ==================== Unauthorized User (Social Campaign Manager NOT in Engineering) cannot see shared post ====================
+        await test.step('Social Campaign Manager (unauthorized - NOT in Engineering audience) navigates to Site Feed and verifies shared post is NOT visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(socialCampaignManagerFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.actions.clickOnFeedLink();
+
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.assertions.verifyThePageIsLoaded();
+
+          // Verify the shared post is NOT visible to unauthorized user
+          await socialCampaignManagerFeedPage.assertions.verifyPostIsNotVisible(foPostText);
+        });
+
+        // ==================== Unauthorized User cannot access shared post via direct URL ====================
+        await test.step('Social Campaign Manager attempts direct URL access to shared post and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(socialCampaignManagerFixture.page, sharedPostId);
+          await socialCampaignManagerFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.assertions.verifyPageNotFoundVisibility({
+            stepInfo:
+              'Verify unauthorized user sees Page not found when accessing restricted shared post via direct URL',
+          });
         });
       }
     );
