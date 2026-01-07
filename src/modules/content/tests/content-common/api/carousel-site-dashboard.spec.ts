@@ -24,7 +24,7 @@ test.describe(
     test(
       'app manager can enable and disable site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42894'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42894'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -64,7 +64,7 @@ test.describe(
     test(
       'app manager can add and remove page content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42895'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42895'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -123,7 +123,7 @@ test.describe(
     test(
       'app manager can add and remove event content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42896'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42896'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -187,7 +187,7 @@ test.describe(
     test(
       'app manager can add and remove album content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42897'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42897'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
