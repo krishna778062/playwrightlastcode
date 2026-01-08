@@ -31,6 +31,7 @@ export class FormParticipationPage extends BasePage {
 
   readonly opinionResponse: (opinionValue: string) => Locator;
   readonly legalResponse: (legalValue: string) => Locator;
+  readonly legalResponseNew: Locator;
   readonly dateResponse: (dateValue: string) => Locator;
   readonly timeResponse: (timeValue: string) => Locator;
   readonly datecomponent: Locator;
@@ -47,15 +48,17 @@ export class FormParticipationPage extends BasePage {
   readonly cityTownResponse: Locator;
   readonly stateRegionProvinceResponse: Locator;
   readonly zipPostCodeResponse: Locator;
+  readonly zipPostCodeResponseNew: Locator;
   readonly countryResponse: Locator;
   readonly fileUploadResponsePreview: (fileName: string) => Locator;
   readonly multiSelectResponseFirstOption: Locator;
   readonly multiSelectResponseOptions: (index: number) => Locator;
   readonly genericGetByTextLocator: (text: string) => Locator;
   readonly mandatoryFieldError2: (heading: string) => Locator;
-
+  readonly formNameInNotification: (formName: string) => Locator;
   readonly submitButton: Locator;
   readonly notificationBell: Locator;
+  readonly dismissSurvey: Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
@@ -80,6 +83,7 @@ export class FormParticipationPage extends BasePage {
     this.dropdownComponent = this.page.getByRole('button', { name: 'Dropdown field input label' });
     this.legalResponse = (legalValue: string) =>
       this.page.getByRole('checkbox', { name: `${legalValue}`, exact: true });
+    this.legalResponseNew = this.page.getByRole('checkbox', { name: `Legal* Legal Question-` });
     this.dateResponse = (dateValue: string) => this.page.getByRole('button', { name: `Today, ${dateValue}` });
     this.timeResponse = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
     this.datecomponent1 = this.page.getByRole('button', { name: 'Select date and time Date' });
@@ -121,6 +125,12 @@ export class FormParticipationPage extends BasePage {
       this.page.getByRole('textbox', { name: `Enter text for the property` }).nth(index);
     // this.notificationBell = this.page.getByTestId('launcher');
     this.notificationBell = this.page.locator('button[aria-label*=Notifications]').first();
+    this.zipPostCodeResponseNew = this.page
+      .getByTestId('field-Zip/Post code')
+      .getByRole('textbox', { name: 'Zip/Post code*', exact: true });
+    this.formNameInNotification = (formName: string) =>
+      this.page.locator(`//span[contains(text(),'A new form is ready for you "${formName}"')]`);
+    this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -150,6 +160,15 @@ export class FormParticipationPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
       await this.clickOnElement(this.actionLocator(formCreationConstants.FORM_NAME));
+    });
+  }
+
+  async verifyTimeFieldIsDisabledOnParticipationPage(): Promise<void> {
+    await test.step('Verify time field is disabled', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.timecomponent, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.timecomponent.isDisabled({ timeout: TIMEOUTS.MEDIUM }), 'Time field should be disabled')
+        .toBe(true);
     });
   }
 
@@ -287,6 +306,22 @@ export class FormParticipationPage extends BasePage {
     });
   }
 
+  async fillResponseIntoLegalFieldNew(): Promise<void> {
+    await test.step('Fill response into legal field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalResponseNew, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.legalResponseNew);
+    });
+  }
+  async verifyTimeFieldIsVisibleOnParticipationPage(): Promise<void> {
+    await test.step('Verify time field is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.timecomponent, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.timecomponent.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Time field should be visible')
+        .toBe(true);
+    });
+  }
   async fillResponseIntoDateField(response: string): Promise<void> {
     await test.step('Fill response into date field', async () => {
       await this.verifier.verifyTheElementIsVisible(this.datecomponent, { timeout: TIMEOUTS.MEDIUM });
@@ -562,6 +597,12 @@ export class FormParticipationPage extends BasePage {
       await this.fillInElement(this.zipPostCodeResponse, response);
     });
   }
+  async fillResponseIntoZipPostCodeFieldNew(response: string): Promise<void> {
+    await test.step('Fill response into zip/post code field', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.zipPostCodeResponseNew, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.zipPostCodeResponseNew, response);
+    });
+  }
   async fillResponseIntoCountryField(response: string): Promise<void> {
     await test.step('Fill response into country field', async () => {
       await this.verifier.verifyTheElementIsVisible(this.countryResponse, { timeout: TIMEOUTS.MEDIUM });
@@ -666,6 +707,13 @@ export class FormParticipationPage extends BasePage {
   }
   async clickOnNotificationBell(): Promise<void> {
     await test.step('Click on notification bell', async () => {
+      try {
+        if (await this.verifier.verifyTheElementIsVisible(this.dismissSurvey, { timeout: TIMEOUTS.VERY_SHORT })) {
+          await this.clickOnElement(this.dismissSurvey);
+        }
+      } catch {
+        // ignore if not present
+      }
       const topNav = new TopNavBarComponent(this.page);
       try {
         await topNav.clickOnBellIconToOpenNotifications();
@@ -674,6 +722,19 @@ export class FormParticipationPage extends BasePage {
         await this.notificationBell.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
         await this.clickByInjectingJavaScript(this.notificationBell);
       }
+    });
+  }
+  async openFormFromNotification(formName: string): Promise<void> {
+    await test.step('Open form from notification', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.formNameInNotification(formName), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.formNameInNotification(formName));
+    });
+  }
+  async waitforNotification(): Promise<void> {
+    await test.step('Wait for notification', async () => {
+      await this.page.waitForTimeout(TIMEOUTS.MEDIUM);
     });
   }
   async verifyNotificationExistsForNewForm(): Promise<void> {
@@ -722,6 +783,13 @@ export class FormParticipationPage extends BasePage {
           `${popupContent} should be visible`
         )
         .toBe(true);
+    });
+  }
+  async verifyZipPostCodeResponse(): Promise<void> {
+    await test.step('Verify zip post code response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.zipPostCodeResponseNew, { timeout: TIMEOUTS.MEDIUM });
+      const value = await this.zipPostCodeResponseNew.inputValue();
+      test.expect(value.length, 'Zip/Postal code should contain exactly 10 digits').toBe(10);
     });
   }
 
