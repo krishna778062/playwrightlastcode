@@ -14,7 +14,7 @@ import { ExternalAppProvider, ExternalAppsPage } from '@/src/modules/integration
 test.describe(
   'Outlook Calendar Native Tiles Integration',
   {
-    tag: [IntegrationsSuiteTags.OUTLOOK_CALENDAR_APPTILES, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.OUTLOOK_CALENDAR_NATIVE_TILES, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     let createdTileTitle: string | undefined = undefined;
