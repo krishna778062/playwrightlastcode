@@ -52,6 +52,10 @@ export class FormCreationPage extends BasePage {
   readonly customUrlInput: Locator;
   readonly dropdownOptionCrossIcon: Locator;
   readonly genericGetByTextLocator: (text: string) => Locator;
+  readonly includeConditionOptions: Locator;
+  readonly questionOption: Locator;
+  readonly valueOptions: Locator;
+  readonly addNewConditionButton: Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -113,6 +117,10 @@ export class FormCreationPage extends BasePage {
     this.customUrlInput = this.page.getByRole('textbox', { name: 'Enter text for the property' });
     this.dropdownOptionCrossIcon = this.page.getByRole('button', { name: 'Delete option icon' }).first();
     this.genericGetByTextLocator = (text: string) => this.page.getByText(text);
+    this.includeConditionOptions = this.page.getByRole('button', { name: 'Include condition' });
+    this.addNewConditionButton = this.page.locator('button').filter({ hasText: 'Add new condition' });
+    this.questionOption = this.page.getByRole('heading', { name: 'If question is one of' });
+    this.valueOptions = this.page.getByRole('textbox', { name: 'Enter text for the property' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -647,6 +655,12 @@ export class FormCreationPage extends BasePage {
       await this.clickOnElement(this.settingsIcon);
     });
   }
+  async verifyIncludeConditionOptions(): Promise<void> {
+    await test.step('Verify include condition options', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.includeConditionOptions, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.includeConditionOptions);
+    });
+  }
   async verifyCopiedTitleAndDescriptionIsVisible(): Promise<void> {
     await test.step('Verify copied component is visible', async () => {
       const heading = formCreationConstants.FORM_HEADING;
@@ -797,8 +811,49 @@ export class FormCreationPage extends BasePage {
       await this.clickOnElement(this.dropdownOptionCrossIcon);
     });
   }
+
+  async verifyQuestionOptionIsVisible(): Promise<void> {
+    await test.step('Verify question option is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.questionOption, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.questionOption.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Question option should be visible')
+        .toBe(true);
+    });
+  }
+
+  async verifyValueOptionsIsVisible(): Promise<void> {
+    await test.step('Verify value options is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.valueOptions, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.valueOptions.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Value options should be visible')
+        .toBe(true);
+    });
+  }
+
+  async verifyAddNewConditionButtonIsVisible(): Promise<void> {
+    await test.step('Verify add new condition button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addNewConditionButton, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.addNewConditionButton.isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Add new condition button should be visible'
+        )
+        .toBe(true);
+    });
+  }
   async verifyOptionsIntoSettingForUploadImageComponent(option: string): Promise<void> {
     await test.step('Verify option: ${option} into setting for upload image component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.genericGetByTextLocator(option).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${option} option should be visible`
+        )
+        .toBe(true);
+    });
+  }
+  async verifyMatchOptionIsVisible(option: string): Promise<void> {
+    await test.step('Verify match option is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
       test
         .expect(
