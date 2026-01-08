@@ -2,19 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export interface IEditFileActions {
-  fillFileDescription: (description: string) => Promise<void>;
-  clickOnUpdateButton: () => Promise<void>;
-  clickOnCrossButton: () => Promise<void>;
-}
-
-export interface IEditFileAssertions {
-  verifyFileDescriptionIsFilledCount: (count: number) => Promise<void>;
-  verifyInputBoxHasValueOf: (characterCount: number) => Promise<void>;
-  getFileDescriptionCounter: (count: number) => Locator;
-}
-
-export class EditFileComponent extends BaseComponent implements IEditFileActions, IEditFileAssertions {
+export class EditFileComponent extends BaseComponent {
   readonly fileDescriptionInput: Locator;
   readonly updateButton: Locator;
   readonly crossButton: Locator;
@@ -30,15 +18,6 @@ export class EditFileComponent extends BaseComponent implements IEditFileActions
         .filter({ hasText: `${count}/250` })
         .first();
   }
-
-  get actions(): IEditFileActions {
-    return this;
-  }
-
-  get assertions(): IEditFileAssertions {
-    return this;
-  }
-
   async fillFileDescription(description: string): Promise<void> {
     await test.step('Filling file description', async () => {
       await this.fillInElement(this.fileDescriptionInput, description);

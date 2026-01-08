@@ -21,33 +21,6 @@ export interface AlbumCreationOptions {
   publishUntilDate?: string;
 }
 
-export interface IAlbumCreationActions {
-  createAndPublishAlbum: (options: AlbumCreationOptions) => Promise<{
-    title: string;
-    description: string;
-    albumId: string;
-    siteId: string;
-    response: AlbumCreationResponse;
-  }>;
-  createAndSubmitAlbum: (options: AlbumCreationOptions) => Promise<{
-    title: string;
-    description: string;
-    albumId: string;
-    siteId: string;
-    peopleName: string;
-    peopleId: string;
-    response: AlbumCreationResponse;
-  }>;
-
-  createWithTopicInDescriptionAndPublish: (options: AlbumCreationOptions) => Promise<{
-    title: string;
-    description: string;
-    albumId: string;
-    siteId: string;
-    response: AlbumCreationResponse;
-  }>;
-}
-
 export class AlbumCreationPage extends BasePage {
   // Page components
   readonly coverImageUploader: AttachementUploaderComponent;
@@ -79,7 +52,7 @@ export class AlbumCreationPage extends BasePage {
     this.submitButton = this.page.locator('span').filter({ hasText: 'Submit for approval' });
     this.titleInput = this.page.locator("textarea[placeholder='Album title']");
     this.albumDescriptionInput = this.page.locator("div[aria-label='Album description']");
-    this.videoUrlInput = this.page.locator('input[placeholder="Paste a video URL"]');
+    this.videoUrlInput = this.page.getByRole('textbox', { name: 'Paste a video URL' });
     this.videoUploadComplete = this.page.locator('div[class*="AlbumSquare-module-videoIndicator"]');
     this.openAlbumCheckbox = this.page.locator('label[for="isOpenToSubmissions"]');
     this.topicInput = this.page.locator('input[id="listOfTopics"]');
@@ -99,13 +72,7 @@ export class AlbumCreationPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.titleInput, {
       assertionMessage: 'Album title input should be visible',
     });
-  }
-
-  get actions(): IAlbumCreationActions {
-    return this;
-  }
-
-  // Action methods implementation
+  } // Action methods implementation
   async createAndPublishAlbum(options: AlbumCreationOptions): Promise<{
     title: string;
     description: string;
@@ -217,6 +184,9 @@ export class AlbumCreationPage extends BasePage {
       try {
         await this.clickOnElement(this.enterVideoURL, {
           stepInfo: 'Click on "Enter Video URL" button',
+        });
+        await this.clickOnElement(this.videoUrlInput, {
+          stepInfo: 'Click on video URL input',
         });
         await this.fillInElement(this.videoUrlInput, videoUrl, {
           stepInfo: `Fill video URL input with: ${videoUrl}`,

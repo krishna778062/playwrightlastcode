@@ -340,6 +340,17 @@ export class FeedManagementHelper {
   }
 
   /**
+   * Gets the Recognition tenant configuration
+   * @returns Promise with the recognition configuration response
+   */
+  async getRecognitionConfig() {
+    return await test.step('Getting recognition configuration', async () => {
+      const response = await this.feedManagementService.getRecognitionConfig();
+      return response;
+    });
+  }
+
+  /**
    * Sets one language in app configuration
    * Gets current config, preserves all settings, and sets selectedLanguages to [1]
    * @returns Promise with the API response

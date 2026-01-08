@@ -46,11 +46,17 @@ export abstract class BasePage extends BaseActionUtil {
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {
-        await this.goToUrl(this.pageUrl);
+        await this.goToUrl(this.pageUrl, { timeout: options?.timeout });
       } else {
         throw new Error('Page URL is not set for this page');
       }
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  async loadFeedDetailPage(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Loading feed detail page`, async () => {
+      await this.goToUrl(`${this.pageUrl}`);
     });
   }
 

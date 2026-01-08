@@ -150,7 +150,7 @@ test.describe(
         let siteMention;
         try {
           const publicSiteId =
-            await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+            await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
           if (publicSiteId) {
             siteMention = { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME };
           }
@@ -248,7 +248,7 @@ test.describe(
         let siteMention;
         try {
           const publicSiteId =
-            await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+            await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
           if (publicSiteId) {
             siteMention = { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME };
           }
@@ -641,7 +641,7 @@ test.describe(
 
         // Get public site for mention
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available for mention');
         }
@@ -667,7 +667,7 @@ test.describe(
 
         // Get public site for mention
         const updateSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!updateSiteId) {
           throw new Error('No public site available for mention');
         }
@@ -815,7 +815,7 @@ test.describe(
         // Get user and site info for mentions
         const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available for mention');
         }
@@ -976,7 +976,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1151,7 +1151,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1213,7 +1213,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1271,7 +1271,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1793,7 +1793,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1861,7 +1861,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1930,7 +1930,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -2009,7 +2009,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -2068,7 +2068,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -3007,7 +3007,8 @@ test.describe(
         });
 
         // Get sites for mentions
-        const site1Id = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const site1Id =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const site2 = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private');
         if (!site1Id || !site2) {
           throw new Error('At least 2 sites required for this test');
@@ -3073,7 +3074,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
