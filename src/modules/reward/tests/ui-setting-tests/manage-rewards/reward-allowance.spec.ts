@@ -945,17 +945,22 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
       tagTest(test.info(), {
         description: 'Validate that the user cannot add any allowance when Allowances are refreshing',
         zephyrTestId: 'RC-3325',
-        storyId: 'RC-3325',
+        storyId: 'RC-2553',
       });
       tagTest(test.info(), {
         description: 'Validate that the user cannot edit any allowance when Allowances are refreshing',
         zephyrTestId: 'RC-3323',
-        storyId: 'RC-3323',
+        storyId: 'RC-2553',
       });
       tagTest(test.info(), {
         description: 'Validate that the user cannot remove any allowance when Allowances are refreshing',
         zephyrTestId: 'RC-3324',
-        storyId: 'RC-3324',
+        storyId: 'RC-2553',
+      });
+      tagTest(test.info(), {
+        description: 'Verify tooltip on Edit/Delete button on allowances page when allowances are refreshing',
+        zephyrTestId: 'RC-3330',
+        storyId: 'RC-2553',
       });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);

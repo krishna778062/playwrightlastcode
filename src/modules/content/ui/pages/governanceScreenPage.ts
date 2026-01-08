@@ -4,26 +4,7 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 
-export interface IGovernanceScreenPageActions {
-  selectTimelineFeedSettingsAsTimelineAndCommentsOnContent(): unknown;
-  selectTimelineFeedSettingsAsDefaultMode(): Promise<void>;
-  selectTimelineFeedSettingsAsTimeline(): Promise<void>;
-  disableContentSubmissions: (message: string) => Promise<void>;
-  enableContentSubmissions: (message: string) => Promise<void>;
-  clickOnTimelineFeedEnabled: () => Promise<void>;
-  clickOnTimelineFeedDisabled: () => Promise<void>;
-  selectContentValidationPeriodTime: (time: string) => Promise<void>;
-  updateTheCustomFeedPlaceholder: (placeholder: string) => Promise<void>;
-  makePlaceholderDefault: () => Promise<void>;
-}
-
-export interface IGovernanceScreenPageAssertions {
-  verifyFeedPlaceholderSettingIsVisible: () => Promise<void>;
-  verifyFeedPlaceholderSettingIsNotVisible: () => Promise<void>;
-  verifyFeedPlaceholderPositionedBelowTimelineFeed: () => Promise<void>;
-}
-
-export class GovernanceScreenPage extends BasePage implements IGovernanceScreenPageActions {
+export class GovernanceScreenPage extends BasePage {
   // Governance locators (moved from GovernanceComponent)
   private baseActionUtil: BaseActionUtil;
   readonly clickOnTimelineButton: Locator;
@@ -60,15 +41,6 @@ export class GovernanceScreenPage extends BasePage implements IGovernanceScreenP
     this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
     this.feedPlaceholderHeading = page.getByRole('heading', { name: 'Feed placeholder' });
   }
-
-  get actions(): IGovernanceScreenPageActions {
-    return this;
-  }
-
-  get assertions(): IGovernanceScreenPageAssertions {
-    return this;
-  }
-
   async verifyFeedPlaceholderSettingIsVisible(): Promise<void> {
     await test.step('Verify Feed placeholder setting section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.feedPlaceholderHeading, {

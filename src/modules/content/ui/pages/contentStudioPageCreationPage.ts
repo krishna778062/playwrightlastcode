@@ -4,41 +4,9 @@ import { CONTENT_TEST_DATA } from '@content/test-data/content.test-data';
 import { AddCoverImageComponent } from '@content/ui/components/addCoverImageComponent';
 import { ContentStudioToolbarComponent } from '@content/ui/components/contentStudioToolbarComponent';
 import { MediaManagerComponent } from '@content/ui/components/mediaManagerComponent';
-import { IPageCreationActions, IPageCreationAssertions, PageCreationPage } from '@content/ui/pages/pageCreationPage';
+import { PageCreationPage } from '@content/ui/pages/pageCreationPage';
 
-export interface IContentStudioPageCreationActions extends IPageCreationActions {
-  clickAddCoverImageIcon: () => Promise<void>;
-  clickOnOptionsButtonAndSelectAddCoverImageTab: (
-    tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash' | 'Select color'
-  ) => Promise<void>;
-  clickOnopenMediaManagerDialog: () => Promise<void>;
-  selectAndAttachImageFromMediaManager: () => Promise<void>;
-  clickEditCover: () => Promise<void>;
-  clickAddImage: () => Promise<void>;
-  clickCoverLayoutSection: () => Promise<void>;
-  selectBackgroundOverlayLayout: () => Promise<void>;
-  clickSelectColorTab: () => Promise<void>;
-  selectColorFromPalette: (colorIndex?: number) => Promise<void>;
-  selectBrandColor: (brandColorIndex?: number) => Promise<void>;
-}
-
-export interface IContentStudioPageCreationAssertions extends IPageCreationAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyCoverImageModalTabIsVisible: (tab: 'Upload' | 'Browse' | 'URL' | 'Unsplash' | 'Select color') => Promise<void>;
-  verifyAllCoverImageModalTabsAreVisible: () => Promise<void>;
-  verifyopenMediaManagerDialogIsVisible: () => Promise<void>;
-  verifyToolbarIsVisible: () => Promise<void>;
-  verifyEditPageCoverPanelIsVisible: () => Promise<void>;
-  verifyLayoutOptionsAreVisible: () => Promise<void>;
-  verifyColorPaletteIsVisible: () => Promise<void>;
-  verifyCoverColorIsApplied: () => Promise<void>;
-  verifyPageTitleOverCoverIsVisible: () => Promise<void>;
-}
-
-export class ContentStudioPageCreationPage
-  extends PageCreationPage
-  implements IContentStudioPageCreationActions, IContentStudioPageCreationAssertions
-{
+export class ContentStudioPageCreationPage extends PageCreationPage {
   readonly addCoverImageIcon: Locator;
   readonly coverTitleInput: Locator;
   readonly addCoverImageComponent: AddCoverImageComponent;
@@ -72,15 +40,6 @@ export class ContentStudioPageCreationPage
     this.coverAreaWithColor = page.locator('.flex.h-full.w-full.items-center');
     this.pageTitleOverCover = page.getByRole('textbox', { name: 'Untitled page' });
   }
-
-  get actions(): IContentStudioPageCreationActions {
-    return this;
-  }
-
-  get assertions(): IContentStudioPageCreationAssertions {
-    return this;
-  }
-
   async clickAddCoverImageIcon(): Promise<void> {
     await test.step('Click on Add cover image icon', async () => {
       await this.verifier.verifyTheElementIsVisible(this.addCoverImageIcon, {
@@ -155,11 +114,11 @@ export class ContentStudioPageCreationPage
   }
 
   async clickEditCover(): Promise<void> {
-    await this.toolbarComponent.actions.clickEditCover();
+    await this.toolbarComponent.clickEditCover();
   }
 
   async clickAddImage(): Promise<void> {
-    await this.toolbarComponent.actions.clickAddImage();
+    await this.toolbarComponent.clickAddImage();
   }
 
   /**
@@ -240,7 +199,7 @@ export class ContentStudioPageCreationPage
   }
 
   async verifyToolbarIsVisible(): Promise<void> {
-    await this.toolbarComponent.assertions.verifyToolbarIsVisible();
+    await this.toolbarComponent.verifyToolbarIsVisible();
   }
 
   async verifyEditPageCoverPanelIsVisible(): Promise<void> {
