@@ -37,7 +37,6 @@ export class AppsLinksComponents extends BaseComponent {
   constructor(page: Page) {
     super(page);
     const getButtonByName = (name: string) => this.page.getByRole('button', { name });
-    this.customJsonInputField = this.page.getByPlaceholder(APPS_LINKS.CUSTOM_JSON_PLACEHOLDER);
     this.appsIntegrationDropdown = this.page.locator('select[id="appsIntegrationProvider"]');
     this.saveButton = this.page.locator('span', { hasText: 'Save' });
     this.saveButtonElement = getButtonByName(APPS_LINKS.SAVE);

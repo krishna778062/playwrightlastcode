@@ -2,20 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export interface IContentStudioToolbarActions {
-  clickEditCover: () => Promise<void>;
-  clickAddImage: () => Promise<void>;
-  getButton: (buttonName: string) => Locator;
-}
-
-export interface IContentStudioToolbarAssertions {
-  verifyToolbarIsVisible: () => Promise<void>;
-}
-
-export class ContentStudioToolbarComponent
-  extends BaseComponent
-  implements IContentStudioToolbarActions, IContentStudioToolbarAssertions
-{
+export class ContentStudioToolbarComponent extends BaseComponent {
   readonly toolbar: Locator;
   readonly editCoverButton: Locator;
   readonly addImageButton: Locator;
@@ -26,17 +13,7 @@ export class ContentStudioToolbarComponent
     this.toolbar = this.page.getByTestId('studio-toolbar');
     this.editCoverButton = this.toolbar.getByRole('button', { name: 'Edit cover' });
     this.addImageButton = this.toolbar.getByRole('button', { name: 'Add image' });
-  }
-
-  get actions(): IContentStudioToolbarActions {
-    return this;
-  }
-
-  get assertions(): IContentStudioToolbarAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Clicks on the "Edit cover" button in the toolbar
    */
   async clickEditCover(): Promise<void> {
