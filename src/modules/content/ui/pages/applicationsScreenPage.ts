@@ -19,7 +19,6 @@ export class ApplicationScreenPage extends BasePage {
     this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
     this.topicsButton = page.locator('#page-content').getByRole('link', { name: 'Topics' });
     this.clickOnApplicationButton = page.getByRole('button', { name: 'Application' });
-    this.pageHeading = page.getByRole('heading', { name: 'Application settings' });
     this.disableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_false');
     this.enableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_true');
   }
