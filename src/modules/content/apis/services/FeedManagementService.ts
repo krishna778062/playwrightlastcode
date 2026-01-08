@@ -395,14 +395,8 @@ export function buildFeedWithAllFeatures(params: {
   variant?: string;
 }): CreateFeedPostPayload {
   const {
-    baseText = 'Add a Feed',
-    emoji = { name: 'monkey', emoji: '🐒' },
-    siteMention,
-    userMention,
-    topics = [],
-    linkUrl = 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
     listOfAttachedFiles = [],
-    scope = 'public',
+    scope = 'site',
     siteId = null,
     contentId = null,
     ignoreToxic = false,
@@ -410,80 +404,7 @@ export function buildFeedWithAllFeatures(params: {
     variant = 'standard',
   } = params;
 
-  // Build the main paragraph content
-  const paragraphContent: any[] = [
-    {
-      type: 'text',
-      text: `${baseText} `,
-    },
-  ];
-
-  // Add emoji if provided
-  if (emoji) {
-    paragraphContent.push({
-      type: 'emoji',
-      attrs: {
-        name: emoji.name,
-        emoji: emoji.emoji,
-      },
-    });
-    paragraphContent.push({
-      type: 'text',
-      text: '. ',
-    });
-  }
-
-  // Add site mention if provided
-  if (siteMention) {
-    paragraphContent.push({
-      type: 'UserAndSiteMention',
-      attrs: {
-        id: siteMention.id,
-        label: siteMention.label,
-        type: 'site',
-      },
-    });
-    paragraphContent.push({
-      type: 'text',
-      text: '  ',
-    });
-  }
-
-  // Add user mention if provided
-  if (userMention) {
-    paragraphContent.push({
-      type: 'UserAndSiteMention',
-      attrs: {
-        id: userMention.id,
-        label: userMention.label,
-        type: 'user',
-      },
-    });
-    paragraphContent.push({
-      type: 'text',
-      text: ' ',
-    });
-  }
-
-  // Add topic mentions
-  topics.forEach((topic, index) => {
-    paragraphContent.push({
-      type: 'TopicMention',
-      attrs: {
-        id: topic.id,
-        label: topic.label,
-        type: 'topic',
-      },
-    });
-    if (index < topics.length - 1) {
-      paragraphContent.push({
-        type: 'text',
-        text: ' ',
-      });
-    }
-  });
-
-  // Build bullet list with formatting
+  // Build bullet list with formatting matching the exact structure
   const bulletListContent = [
     // Bold text item
     {
@@ -495,14 +416,14 @@ export function buildFeedWithAllFeatures(params: {
         {
           type: 'paragraph',
           attrs: {
-            class: null,
-            style: null,
+            className: '',
+            'data-sw-sid': null,
           },
           content: [
             {
               type: 'text',
               marks: [{ type: 'bold' }],
-              text: 'Text with bold',
+              text: 'something bold',
             },
           ],
         },
@@ -518,20 +439,20 @@ export function buildFeedWithAllFeatures(params: {
         {
           type: 'paragraph',
           attrs: {
-            class: null,
-            style: null,
+            className: '',
+            'data-sw-sid': null,
           },
           content: [
             {
               type: 'text',
               marks: [{ type: 'italic' }],
-              text: 'Text with italic',
+              text: 'something italic',
             },
           ],
         },
       ],
     },
-    // Strikethrough text item
+    // Underline text item
     {
       type: 'listItem',
       attrs: {
@@ -541,37 +462,37 @@ export function buildFeedWithAllFeatures(params: {
         {
           type: 'paragraph',
           attrs: {
-            class: null,
-            style: null,
-          },
-          content: [
-            {
-              type: 'text',
-              marks: [{ type: 'strike' }],
-              text: 'Text with strikethrough',
-            },
-          ],
-        },
-      ],
-    },
-    // Underline text item with nested bullet list containing link
-    {
-      type: 'listItem',
-      attrs: {
-        'data-sw-sid': null,
-      },
-      content: [
-        {
-          type: 'paragraph',
-          attrs: {
-            class: null,
-            style: null,
+            className: '',
+            'data-sw-sid': null,
           },
           content: [
             {
               type: 'text',
               marks: [{ type: 'underline' }],
-              text: 'text with underline',
+              text: 'something Underline',
+            },
+          ],
+        },
+      ],
+    },
+    // Strikethrough text item with nested bullet list
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'strike' }],
+              text: 'something strickout',
             },
           ],
         },
@@ -591,8 +512,43 @@ export function buildFeedWithAllFeatures(params: {
                 {
                   type: 'paragraph',
                   attrs: {
-                    class: null,
-                    style: null,
+                    className: '',
+                    'data-sw-sid': null,
+                  },
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'subpoint ',
+                    },
+                    {
+                      type: 'emoji',
+                      attrs: {
+                        name: 'heart_eyes',
+                        emoji: '😍',
+                      },
+                    },
+                    {
+                      type: 'emoji',
+                      attrs: {
+                        name: 'innocent',
+                        emoji: '😇',
+                      },
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              type: 'listItem',
+              attrs: {
+                'data-sw-sid': null,
+              },
+              content: [
+                {
+                  type: 'paragraph',
+                  attrs: {
+                    className: '',
+                    'data-sw-sid': null,
                   },
                   content: [
                     {
@@ -601,31 +557,20 @@ export function buildFeedWithAllFeatures(params: {
                         {
                           type: 'link',
                           attrs: {
-                            href: linkUrl,
-                            target: '_blank',
+                            href: '/',
+                            target: '_self',
                             rel: 'noopener noreferrer nofollow',
                             class: null,
                             alt: null,
                             align: null,
                             display: 'inline',
                             isButton: null,
+                            buttonClass: null,
+                            source: 'manual',
                           },
                         },
-                        { type: 'textStyle' },
                       ],
-                      text: linkUrl,
-                    },
-                  ],
-                },
-                {
-                  type: 'paragraph',
-                  attrs: {
-                    class: null,
-                    style: null,
-                  },
-                  content: [
-                    {
-                      type: 'hardBreak',
+                      text: 'URL',
                     },
                   ],
                 },
@@ -637,16 +582,110 @@ export function buildFeedWithAllFeatures(params: {
     },
   ];
 
+  // Build ordered list content
+  const orderedListContent = [
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'bold' }],
+              text: 'something bold',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'italic' }],
+              text: 'something italic',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'underline' }],
+              text: 'something Underline',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'listItem',
+      attrs: {
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'paragraph',
+          attrs: {
+            className: '',
+            'data-sw-sid': null,
+          },
+          content: [
+            {
+              type: 'text',
+              marks: [{ type: 'strike' }],
+              text: 'something strickout',
+            },
+            {
+              type: 'hardBreak',
+            },
+            {
+              type: 'hardBreak',
+            },
+            {
+              type: 'text',
+              text: ' ',
+            },
+          ],
+        },
+      ],
+    },
+  ];
+
   // Build the complete content structure
   const content = [
-    {
-      type: 'paragraph',
-      attrs: {
-        class: null,
-        style: null,
-      },
-      content: paragraphContent,
-    },
     {
       type: 'bulletList',
       attrs: {
@@ -654,6 +693,28 @@ export function buildFeedWithAllFeatures(params: {
         'data-sw-sid': null,
       },
       content: bulletListContent,
+    },
+    {
+      type: 'paragraph',
+      attrs: {
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: [
+        {
+          type: 'text',
+          text: 'Sonali created another  point',
+        },
+      ],
+    },
+    {
+      type: 'orderedList',
+      attrs: {
+        start: 1,
+        className: '',
+        'data-sw-sid': null,
+      },
+      content: orderedListContent,
     },
   ];
 
@@ -663,45 +724,24 @@ export function buildFeedWithAllFeatures(params: {
     content,
   });
 
-  // Build textHtml
-  let textHtml = '<p>';
-
-  // Add base text
-  textHtml += `${baseText} `;
-
-  // Add emoji
-  if (emoji) {
-    textHtml += `<span data-name="${emoji.name}" class="tiptap-emoji" data-type="emoji">${emoji.emoji}</span>. `;
-  }
-
-  // Add site mention
-  if (siteMention) {
-    textHtml += `<span data-type="site" data-id="${siteMention.id}" data-label="${siteMention.label}"><a href="/site/${siteMention.id}" target="_blank">@${siteMention.label}</a></span>  `;
-  }
-
-  // Add user mention
-  if (userMention) {
-    textHtml += `<span data-type="user" data-id="${userMention.id}" data-label="${userMention.label}"><a href="/people/${userMention.id}" target="_blank">@${userMention.label}</a></span> `;
-  }
-
-  // Add topic mentions
-  topics.forEach(topic => {
-    textHtml += `<span data-type="topic" data-id="${topic.id}" data-label="${topic.label}"><a href="/topic/${topic.id}" target="_blank">#${topic.label}</a></span> `;
-  });
-
-  textHtml += '</p>';
-
-  // Add bullet list HTML
-  textHtml += '<ul>';
-  textHtml += '<li><p><strong>Text with bold</strong></p></li>';
-  textHtml += '<li><p><em>Text with italic</em></p></li>';
-  textHtml += '<li><p><s>Text with strikethrough</s></p></li>';
-  textHtml += '<li><p><u>text with underline</u>';
-  textHtml += '<ul>';
-  textHtml += `<li><p><a target="_blank" rel="noopener noreferrer nofollow" href="${linkUrl}"><span>${linkUrl}</span></a></p><p><br></p></li>`;
+  // Build textHtml matching the exact structure
+  let textHtml = '<ul>';
+  textHtml += '<li><p><strong>something bold</strong></p></li>';
+  textHtml += '<li><p><em>something italic</em></p></li>';
+  textHtml += '<li><p><u>something Underline</u></p></li>';
+  textHtml += '<li><p><s>something strickout</s></p><ul>';
+  textHtml +=
+    '<li><p>subpoint <span data-name="heart_eyes" emoji="😍" class="tiptap-emoji" data-type="emoji">😍</span><span data-name="innocent" emoji="😇" class="tiptap-emoji" data-type="emoji">😇</span></p></li>';
+  textHtml += '<li><p><a target="_self" rel="noopener noreferrer nofollow" href="/">URL</a></p></li>';
+  textHtml += '</ul></li>';
   textHtml += '</ul>';
-  textHtml += '</li>';
-  textHtml += '</ul>';
+  textHtml += '<p>Sonali created another  point</p>';
+  textHtml += '<ol>';
+  textHtml += '<li><p><strong>something bold</strong></p></li>';
+  textHtml += '<li><p><em>something italic</em></p></li>';
+  textHtml += '<li><p><u>something Underline</u></p></li>';
+  textHtml += '<li><p><s>something strickout</s><br><br> </p></li>';
+  textHtml += '</ol>';
 
   return {
     textJson,
@@ -827,21 +867,19 @@ export class FeedManagementService implements IFeedManagementOperations {
     type?: string;
     variant?: string;
   }): Promise<FeedPostResponse> {
-    return await test.step('Creating a feed with all features via API post request', async () => {
-      const payload = buildFeedWithAllFeatures(params);
-      log.debug('feed payload JSON with all features', { payload: JSON.stringify(payload, null, 2) });
+    const payload = buildFeedWithAllFeatures(params);
+    log.debug('feed payload JSON with all features', { payload: JSON.stringify(payload, null, 2) });
 
-      const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
-        data: payload,
-      });
-      const responseBody = await response.json();
-      log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
-      if (!response.ok() || responseBody.status !== 'success') {
-        throw new Error(`Failed to create feed post with all features. Status: ${response.status()}`);
-      }
-
-      return responseBody;
+    const response = await this.httpClient.post(API_ENDPOINTS.feed.create, {
+      data: payload,
     });
+    const responseBody = await response.json();
+    log.debug('feed response JSON', { response: JSON.stringify(responseBody, null, 2) });
+    if (!response.ok() || responseBody.status !== 'success') {
+      throw new Error(`Failed to create feed post with all features. Status: ${response.status()}`);
+    }
+
+    return responseBody;
   }
 
   async updatePost(postId: string, postData: UpdateFeedPostPayload): Promise<FeedPostResponse> {
@@ -876,6 +914,7 @@ export class FeedManagementService implements IFeedManagementOperations {
     fileName: string,
     size: number,
     mimeType: string,
+    uploadContext: string,
     options: {
       altText?: string | null;
       fileId?: string;
@@ -893,7 +932,10 @@ export class FeedManagementService implements IFeedManagementOperations {
         mime_type: mimeType,
         file_id: fileId,
         siteId: siteId,
+        uploadContext: uploadContext,
       };
+
+      log.debug('upload image payload', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
@@ -999,13 +1041,14 @@ export class FeedManagementService implements IFeedManagementOperations {
     fileSize: number,
     mimeType: string,
     filePath: string,
+    uploadContext: string,
     overrides: Partial<CreateFeedPostPayload> = {}
   ): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
       // Default image upload parameters
 
       // Upload image to get fileId
-      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
+      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType, uploadContext);
       const fileId = uploadResponse.result.file_id;
       const attachmentURL = uploadResponse.result.upload_url;
       log.debug('File upload details', { fileId, attachmentURL });
