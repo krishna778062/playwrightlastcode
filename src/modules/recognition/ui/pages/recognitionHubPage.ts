@@ -33,7 +33,7 @@ export class RecognitionHubPage extends BasePage {
   readonly giveAwardButton: Locator;
   readonly spotAwardPromotionTile: Locator;
 
-  constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.RECOGNITION_HUB) {
+  constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
     this.manageRecognitionPage = new ManageRecognitionPage(page);
     this.recognitionHeader = page.getByRole('heading', { name: 'Recognition', exact: true });

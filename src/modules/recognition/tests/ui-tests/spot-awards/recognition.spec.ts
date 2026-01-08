@@ -3,7 +3,6 @@ import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/consta
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { SpotAwardPage } from '@recognition/ui/pages/manage/spotAwardPage';
-import { RecognitionHubPage } from '@recognition/ui/pages/recognitionHubPage';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -16,8 +15,8 @@ import { GiveRecognitionDialogBox } from '@/src/modules/recognition/ui/component
 test.describe('Recognition Page Flow', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
-    const recognitionHubPage = new RecognitionHubPage(appManagerPage);
-    await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+    const spotAwardPage = new SpotAwardPage(appManagerPage);
+    await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
   });
 
   test(
@@ -36,9 +35,8 @@ test.describe('Recognition Page Flow', () => {
         storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
-      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const spotAwardPage = new SpotAwardPage(appManagerPage);
+      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       const awardName = `Auto_QA Spot Award ${faker.string.alphanumeric(8)}`;
       await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
@@ -52,10 +50,10 @@ test.describe('Recognition Page Flow', () => {
       await spotAwardPage.waitForToastToHide();
       await spotAwardPage.page.reload();
 
-      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-      await recognitionHubPage.fillFormAndValidateRecognizeButton(giveRecognitionDialogBox, awardName);
-      await recognitionHubPage.removeOptionalFieldAndValidateRecognizeButton(giveRecognitionDialogBox);
-      await recognitionHubPage.removeMandatoryFieldAndValidateRecognizeButton(giveRecognitionDialogBox);
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await spotAwardPage.fillFormAndValidateRecognizeButton(giveRecognitionDialogBox, awardName);
+      await spotAwardPage.removeOptionalFieldAndValidateRecognizeButton(giveRecognitionDialogBox);
+      await spotAwardPage.removeMandatoryFieldAndValidateRecognizeButton(giveRecognitionDialogBox);
       await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
         'manage',
         PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
@@ -81,10 +79,10 @@ test.describe('Recognition Page Flow', () => {
         storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
-      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      const spotAwardPage = new SpotAwardPage(appManagerPage);
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
 
-      await recognitionHubPage.verifySpotAwardPromotionTile();
+      await spotAwardPage.verifySpotAwardPromotionTile();
     }
   );
 
@@ -104,11 +102,11 @@ test.describe('Recognition Page Flow', () => {
         storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
+      const spotAwardPage = new SpotAwardPage(appManagerPage);
       const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
-      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-      await recognitionHubPage.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
-      await recognitionHubPage.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await spotAwardPage.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
+      await spotAwardPage.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
     }
   );
 
@@ -128,9 +126,8 @@ test.describe('Recognition Page Flow', () => {
         storyId: 'RC-4336',
       });
       const { page: appManagerPage } = appManagerFixture;
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
-      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const spotAwardPage = new SpotAwardPage(appManagerPage);
+      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       const awardName = `Auto_QA Spot Award ${faker.string.alphanumeric(8)}`;
       await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
@@ -144,8 +141,8 @@ test.describe('Recognition Page Flow', () => {
       await spotAwardPage.waitForToastToHide();
       await spotAwardPage.page.reload();
 
-      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-      await recognitionHubPage.verifySpotAwardsForSingleRecipient(giveRecognitionDialogBox, awardName);
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await spotAwardPage.verifySpotAwardsForSingleRecipient(giveRecognitionDialogBox, awardName);
       await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
         'manage',
         PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION

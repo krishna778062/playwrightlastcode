@@ -4,7 +4,6 @@ import { recognitionTestFixture as test } from '@recognition/fixtures/recognitio
 import { GiveRecognitionDialogBox } from '@recognition/ui/components/recognition/give-recognition-dialog-box';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { SpotAwardPage } from '@recognition/ui/pages/manage/spotAwardPage';
-import { RecognitionHubPage } from '@recognition/ui/pages/recognitionHubPage';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -65,14 +64,12 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
       });
       const { page: appManagerPage } = appManagerFixture;
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
       const spotAwardPage = new SpotAwardPage(appManagerPage);
       const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const awardName = `Auto_QA SpotAwardWithCompValue ${faker.string.alphanumeric(8)}`;
 
       await spotAwardPage.createAwardWithCompanyValueAndVerifyFlow(
         manageRecognitionPage,
-        recognitionHubPage,
         giveRecognitionDialogBox,
         awardName,
         companyValue
@@ -97,14 +94,12 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
       });
       const { page: appManagerPage } = appManagerFixture;
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
       const spotAwardPage = new SpotAwardPage(appManagerPage);
       const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const awardName = `Auto_QA SpotDisableAward ${faker.string.alphanumeric(8)}`;
 
       await spotAwardPage.createAwardWithLimitedTimesAndVerifyDisabledFlow(
         manageRecognitionPage,
-        recognitionHubPage,
         giveRecognitionDialogBox,
         awardName
       );
@@ -128,14 +123,12 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
       });
       const { page: appManagerPage } = appManagerFixture;
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
       const spotAwardPage = new SpotAwardPage(appManagerPage);
       const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
       const awardName = `Auto_QA ShareSpotAward ${faker.string.alphanumeric(8)}`;
 
       await spotAwardPage.createAwardPublishShareAndCleanupFlow(
         manageRecognitionPage,
-        recognitionHubPage,
         giveRecognitionDialogBox,
         awardName
       );
@@ -158,11 +151,10 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
         storyId: 'RC-5294',
       });
       const { page: appManagerPage } = appManagerFixture;
-      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
       const spotAwardPage = new SpotAwardPage(appManagerPage);
       const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
 
-      await spotAwardPage.navigateToRecognitionHubAndVerifyPagination(recognitionHubPage, giveRecognitionDialogBox);
+      await spotAwardPage.navigateToRecognitionHubAndVerifyPagination(giveRecognitionDialogBox);
     }
   );
 });
