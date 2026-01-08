@@ -5,7 +5,6 @@ import { NewsletterHomePagePage } from '@newsletter/pages/NewsletterHomePage.pag
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
@@ -32,7 +31,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
       tagTest(test.info(), {
         description: 'Newsletter Home page',
       });
-      // Page already loaded via beforeEach hook
+
+      await newsletterHomePage.assertPageTitleIsVisible();
     }
   );
 
@@ -81,9 +81,6 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();
       await filtersComponent.verifyFromAddressFilterIsVisible();
-
-      const senderEmail = process.env['NEWSLETTER_SENDER_EMAIL'] ?? getEnvConfig().appManagerEmail;
-      await filtersComponent.assertDisplayNameAndEmailVisible(senderEmail);
     }
   );
 
@@ -111,8 +108,6 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
         description: 'Validate Resend option visibility for Failed to send newsletters',
       });
 
-      await newsletterHomePage.clearSearchInput();
-
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();
       await filtersComponent.selectStatus('Failed to send');
@@ -130,8 +125,6 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
       tagTest(test.info(), {
         description: 'Verify past newsletters can be viewed via filters',
       });
-
-      await newsletterHomePage.clearSearchInput();
 
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();

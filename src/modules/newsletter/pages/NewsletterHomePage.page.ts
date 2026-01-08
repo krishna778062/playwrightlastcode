@@ -1,9 +1,13 @@
 import { Locator, Page } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 export class NewsletterHomePagePage extends BasePage {
+  // Page Header
+  readonly pageTitle: Locator;
+
   // Search
   private readonly searchContainer: Locator;
   readonly searchInput: Locator;
@@ -15,6 +19,9 @@ export class NewsletterHomePagePage extends BasePage {
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_NEWSLETTER_PAGE);
+
+    // Page Header
+    this.pageTitle = this.page.locator('h1[class*="PageContainer-module__title"]');
 
     // Search
     this.searchContainer = this.page.locator('div[class*="TextInput-module__wrapper"]');
@@ -30,7 +37,7 @@ export class NewsletterHomePagePage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.searchInput, {
-      timeout: 20000,
+      timeout: TIMEOUTS.SHORT,
       assertionMessage: 'Newsletter Home page is not loaded properly',
     });
   }
@@ -56,6 +63,12 @@ export class NewsletterHomePagePage extends BasePage {
   async assertTableHasResults(): Promise<void> {
     await this.verifier.verifyCountOfElementsIsGreaterThanOrEqualTo(this.tableRows, 1, {
       assertionMessage: 'Expected at least one newsletter to be visible in the table',
+    });
+  }
+
+  async assertPageTitleIsVisible(): Promise<void> {
+    await this.verifier.verifyTheElementIsVisible(this.pageTitle, {
+      assertionMessage: 'Newsletter page title should be visible',
     });
   }
 }

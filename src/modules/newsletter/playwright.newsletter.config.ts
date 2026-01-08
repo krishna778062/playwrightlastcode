@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import path from 'path';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import baseConfig from '../../../playwright.base.config';
@@ -12,9 +13,9 @@ export default defineConfig({
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'newsletter', 'tests'),
   // Add newsletter-specific overrides here
   workers: 1,
-  timeout: 180_000,
+  timeout: TIMEOUTS.VERY_VERY_LONG * 1.5, // 180 seconds (3 minutes)
   expect: {
-    timeout: 10_000,
+    timeout: TIMEOUTS.SHORT, // 15 seconds
   },
   projects: [
     {

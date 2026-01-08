@@ -1,5 +1,6 @@
 import { expect, Locator, Page } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
@@ -191,7 +192,7 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
 
     // Wait for React Select listbox to appear (options are inside a listbox, not native <option> elements)
     await expect(this.fromAddressListbox, 'From address dropdown listbox should be visible').toBeVisible({
-      timeout: 10000,
+      timeout: TIMEOUTS.SHORT,
     });
 
     // Get the first option from the listbox
