@@ -41,6 +41,7 @@ export enum IntegrationsSuiteTags {
   CUSTOM_API_ACTIONS = '@customApiActions',
   JIRA_APPTILES = '@jiraAppTiles',
   GOOGLE_CALENDAR_NATIVE_TILES = '@googleCalendarNativeTiles',
+  APPS_PAGE = '@appsPage',
 }
 
 export enum IntegrationsFeatureTags {

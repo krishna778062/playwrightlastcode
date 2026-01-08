@@ -165,18 +165,18 @@ test.describe(
         createdReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
         // Click on "Share your thoughts or question" button
-        await siteOwnerContentPreviewPage.actions.clickShareThoughtsButton();
+        await siteOwnerContentPreviewPage.clickShareThoughtsButton();
 
         // Create a post and send it to the editor
-        const postResult = await siteOwnerFeedPage.actions.createAndPost({ text: postText });
+        const postResult = await siteOwnerFeedPage.postEditor.createAndPost({ text: postText });
         createdPostId = postResult.postId || '';
 
         // Wait for post to be visible
-        await siteOwnerFeedPage.assertions.waitForPostToBeVisible(postText);
+        await siteOwnerFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Create a reply to the post
-        await siteOwnerFeedPage.actions.addReplyToPost(createdReplyText, createdPostId);
-        await siteOwnerFeedPage.assertions.verifyReplyIsVisible(createdReplyText);
+        await siteOwnerFeedPage.feedList.addReplyToPost(createdReplyText, createdPostId);
+        await siteOwnerFeedPage.feedList.verifyReplyIsVisible(createdReplyText);
       }
     );
 
@@ -242,18 +242,18 @@ test.describe(
           await Promise.all([
             // Site Owner
             (async () => {
-              await siteOwnerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-              await siteOwnerFeedPage.assertions.verifyReplyIsVisible(createdReplyText);
+              await siteOwnerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+              await siteOwnerFeedPage.feedList.verifyReplyIsVisible(createdReplyText);
             })(),
             // Site Manager
             (async () => {
-              await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-              await siteManagerFeedPage.assertions.verifyReplyIsVisible(createdReplyText);
+              await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+              await siteManagerFeedPage.feedList.verifyReplyIsVisible(createdReplyText);
             })(),
             // Content Manager
             (async () => {
-              await contentManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-              await contentManagerFeedPage.assertions.verifyReplyIsVisible(createdReplyText);
+              await contentManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+              await contentManagerFeedPage.feedList.verifyReplyIsVisible(createdReplyText);
             })(),
           ]);
         });
@@ -263,34 +263,34 @@ test.describe(
           // Site Owner like/unlike operations
           (async () => {
             await test.step('Site Owner: Perform like/unlike operations on post and reply', async () => {
-              await siteOwnerFeedPage.actions.likeFeedPost(createdPostText);
-              await siteOwnerFeedPage.assertions.verifyLikeCountOnPost(createdPostText);
-              await siteOwnerFeedPage.actions.unlikeFeedPost(createdPostText);
-              await siteOwnerFeedPage.actions.likeFeedReply(createdReplyText);
-              await siteOwnerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
-              await siteOwnerFeedPage.actions.unlikeFeedReply(createdReplyText);
+              await siteOwnerFeedPage.feedList.likeFeedPost(createdPostText);
+              await siteOwnerFeedPage.feedList.verifyLikeCountOnPost(createdPostText);
+              await siteOwnerFeedPage.feedList.unlikeFeedPost(createdPostText);
+              await siteOwnerFeedPage.feedList.likeFeedReply(createdReplyText);
+              await siteOwnerFeedPage.feedList.verifyLikeCountOnReply(createdReplyText);
+              await siteOwnerFeedPage.feedList.unlikeFeedReply(createdReplyText);
             });
           })(),
           // Site Manager like/unlike operations
           (async () => {
             await test.step('Site Manager: Perform like/unlike operations on post and reply ', async () => {
-              await siteManagerFeedPage.actions.likeFeedPost(createdPostText);
-              await siteManagerFeedPage.assertions.verifyLikeCountOnPost(createdPostText);
-              await siteManagerFeedPage.actions.unlikeFeedPost(createdPostText);
-              await siteManagerFeedPage.actions.likeFeedReply(createdReplyText);
-              await siteManagerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
-              await siteManagerFeedPage.actions.unlikeFeedReply(createdReplyText);
+              await siteManagerFeedPage.feedList.likeFeedPost(createdPostText);
+              await siteManagerFeedPage.feedList.verifyLikeCountOnPost(createdPostText);
+              await siteManagerFeedPage.feedList.unlikeFeedPost(createdPostText);
+              await siteManagerFeedPage.feedList.likeFeedReply(createdReplyText);
+              await siteManagerFeedPage.feedList.verifyLikeCountOnReply(createdReplyText);
+              await siteManagerFeedPage.feedList.unlikeFeedReply(createdReplyText);
             });
           })(),
           // Content Manager like/unlike operations
           (async () => {
             await test.step('Content Manager: Perform like/unlike operations on post and reply', async () => {
-              await contentManagerFeedPage.actions.likeFeedPost(createdPostText);
-              await contentManagerFeedPage.assertions.verifyLikeCountOnPost(createdPostText);
-              await contentManagerFeedPage.actions.unlikeFeedPost(createdPostText);
-              await contentManagerFeedPage.actions.likeFeedReply(createdReplyText);
-              await contentManagerFeedPage.assertions.verifyLikeCountOnReply(createdReplyText);
-              await contentManagerFeedPage.actions.unlikeFeedReply(createdReplyText);
+              await contentManagerFeedPage.feedList.likeFeedPost(createdPostText);
+              await contentManagerFeedPage.feedList.verifyLikeCountOnPost(createdPostText);
+              await contentManagerFeedPage.feedList.unlikeFeedPost(createdPostText);
+              await contentManagerFeedPage.feedList.likeFeedReply(createdReplyText);
+              await contentManagerFeedPage.feedList.verifyLikeCountOnReply(createdReplyText);
+              await contentManagerFeedPage.feedList.unlikeFeedReply(createdReplyText);
             });
           })(),
         ]);
@@ -401,7 +401,7 @@ test.describe(
           (async () => {
             const siteOwnerDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteFeedSiteId);
             await siteOwnerDashboardPage.loadPage();
-            await siteOwnerDashboardPage.actions.clickOnFeedLink();
+            await siteOwnerDashboardPage.clickOnFeedLink();
             const feedPage = new FeedPage(appManagerFixture.page);
             await feedPage.verifyThePageIsLoaded();
             return feedPage;
@@ -410,7 +410,7 @@ test.describe(
           (async () => {
             const siteManagerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, siteFeedSiteId);
             await siteManagerDashboardPage.loadPage();
-            await siteManagerDashboardPage.actions.clickOnFeedLink();
+            await siteManagerDashboardPage.clickOnFeedLink();
             const feedPage = new FeedPage(siteManagerFixture.page);
             await feedPage.verifyThePageIsLoaded();
             return feedPage;
@@ -419,7 +419,7 @@ test.describe(
           (async () => {
             const contentManagerDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteFeedSiteId);
             await contentManagerDashboardPage.loadPage();
-            await contentManagerDashboardPage.actions.clickOnFeedLink();
+            await contentManagerDashboardPage.clickOnFeedLink();
             const feedPage = new FeedPage(standardUserFixture.page);
             await feedPage.verifyThePageIsLoaded();
             return feedPage;
@@ -427,14 +427,14 @@ test.describe(
         ]);
 
         // Create a reply to the post via UI (as Site Owner)
-        await ownerFeedPage.actions.addReplyToPost(siteFeedReplyText, feedResponse.result.feedId);
-        await ownerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText);
+        await ownerFeedPage.feedList.addReplyToPost(siteFeedReplyText, feedResponse.result.feedId);
+        await ownerFeedPage.feedList.verifyReplyIsVisible(siteFeedReplyText);
 
         // Wait for posts to be visible on all pages in parallel
         await Promise.all([
-          ownerFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText),
-          managerFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText),
-          contentFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText),
+          ownerFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText),
+          managerFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText),
+          contentFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText),
         ]);
 
         // Refresh pages for Site Manager and Content Manager to see the reply
@@ -445,9 +445,9 @@ test.describe(
 
         // Wait for reply to be visible on all pages (with longer timeout for sync)
         await Promise.all([
-          ownerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText),
-          managerFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText),
-          contentFeedPage.assertions.verifyReplyIsVisible(siteFeedReplyText),
+          ownerFeedPage.feedList.verifyReplyIsVisible(siteFeedReplyText),
+          managerFeedPage.feedList.verifyReplyIsVisible(siteFeedReplyText),
+          contentFeedPage.feedList.verifyReplyIsVisible(siteFeedReplyText),
         ]);
 
         // Perform like/unlike operations in parallel for all user roles
@@ -455,34 +455,34 @@ test.describe(
           // Site Owner like/unlike operations
           (async () => {
             await test.step('Site Owner: Perform like/unlike operations on post and reply', async () => {
-              await ownerFeedPage.actions.likeFeedPost(siteFeedPostText);
-              await ownerFeedPage.assertions.verifyLikeCountOnPost(siteFeedPostText);
-              await ownerFeedPage.actions.unlikeFeedPost(siteFeedPostText);
-              await ownerFeedPage.actions.likeFeedReply(siteFeedReplyText);
-              await ownerFeedPage.assertions.verifyLikeCountOnReply(siteFeedReplyText);
-              await ownerFeedPage.actions.unlikeFeedReply(siteFeedReplyText);
+              await ownerFeedPage.feedList.likeFeedPost(siteFeedPostText);
+              await ownerFeedPage.feedList.verifyLikeCountOnPost(siteFeedPostText);
+              await ownerFeedPage.feedList.unlikeFeedPost(siteFeedPostText);
+              await ownerFeedPage.feedList.likeFeedReply(siteFeedReplyText);
+              await ownerFeedPage.feedList.verifyLikeCountOnReply(siteFeedReplyText);
+              await ownerFeedPage.feedList.unlikeFeedReply(siteFeedReplyText);
             });
           })(),
           // Site Manager like/unlike operations
           (async () => {
             await test.step('Site Manager: Perform like/unlike operations on post and reply', async () => {
-              await managerFeedPage.actions.likeFeedPost(siteFeedPostText);
-              await managerFeedPage.assertions.verifyLikeCountOnPost(siteFeedPostText);
-              await managerFeedPage.actions.unlikeFeedPost(siteFeedPostText);
-              await managerFeedPage.actions.likeFeedReply(siteFeedReplyText);
-              await managerFeedPage.assertions.verifyLikeCountOnReply(siteFeedReplyText);
-              await managerFeedPage.actions.unlikeFeedReply(siteFeedReplyText);
+              await managerFeedPage.feedList.likeFeedPost(siteFeedPostText);
+              await managerFeedPage.feedList.verifyLikeCountOnPost(siteFeedPostText);
+              await managerFeedPage.feedList.unlikeFeedPost(siteFeedPostText);
+              await managerFeedPage.feedList.likeFeedReply(siteFeedReplyText);
+              await managerFeedPage.feedList.verifyLikeCountOnReply(siteFeedReplyText);
+              await managerFeedPage.feedList.unlikeFeedReply(siteFeedReplyText);
             });
           })(),
           // Content Manager like/unlike operations
           (async () => {
             await test.step('Content Manager: Perform like/unlike operations on post and reply', async () => {
-              await contentFeedPage.actions.likeFeedPost(siteFeedPostText);
-              await contentFeedPage.assertions.verifyLikeCountOnPost(siteFeedPostText);
-              await contentFeedPage.actions.unlikeFeedPost(siteFeedPostText);
-              await contentFeedPage.actions.likeFeedReply(siteFeedReplyText);
-              await contentFeedPage.assertions.verifyLikeCountOnReply(siteFeedReplyText);
-              await contentFeedPage.actions.unlikeFeedReply(siteFeedReplyText);
+              await contentFeedPage.feedList.likeFeedPost(siteFeedPostText);
+              await contentFeedPage.feedList.verifyLikeCountOnPost(siteFeedPostText);
+              await contentFeedPage.feedList.unlikeFeedPost(siteFeedPostText);
+              await contentFeedPage.feedList.likeFeedReply(siteFeedReplyText);
+              await contentFeedPage.feedList.verifyLikeCountOnReply(siteFeedReplyText);
+              await contentFeedPage.feedList.unlikeFeedReply(siteFeedReplyText);
             });
           })(),
         ]);
@@ -518,14 +518,14 @@ test.describe(
       createdReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
       // Click "Share your thoughts or question" button
-      await feedPage.actions.clickShareThoughtsButton();
+      await feedPage.clickShareThoughtsButton();
 
       // Create a post and send it to the editor
-      const postResult = await feedPage.actions.createAndPost({ text: postText });
+      const postResult = await feedPage.postEditor.createAndPost({ text: postText });
       createdPostId = postResult.postId || '';
 
       // Wait for post to be visible
-      await feedPage.assertions.waitForPostToBeVisible(postText);
+      await feedPage.feedList.waitForPostToBeVisible(postText);
     });
 
     test.afterEach('Cleanup created posts', async ({ standardUserFixture }) => {
@@ -551,29 +551,29 @@ test.describe(
           storyId: 'CONT-19556',
         });
 
-        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Like the post → verify like succeeded and count incremented & visual state changed
         await test.step('Like the feed post and verify like count incremented', async () => {
-          await feedPage.actions.likeFeedPost(createdPostText);
-          await feedPage.assertions.verifyLikeCountOnPost(createdPostText);
+          await feedPage.feedList.likeFeedPost(createdPostText);
+          await feedPage.feedList.verifyLikeCountOnPost(createdPostText);
         });
 
-        await feedPage.actions.unlikeFeedPost(createdPostText);
+        await feedPage.feedList.unlikeFeedPost(createdPostText);
 
-        await feedPage.actions.addReplyToPost(createdReplyText, createdPostId);
-        await feedPage.assertions.verifyReplyIsVisible(createdReplyText);
+        await feedPage.feedList.addReplyToPost(createdReplyText, createdPostId);
+        await feedPage.feedList.verifyReplyIsVisible(createdReplyText);
 
         // Like the reply → verify reply like count incremented and state updated
         await test.step('Like the reply and verify like count incremented', async () => {
-          await feedPage.actions.likeFeedReply(createdReplyText);
-          await feedPage.assertions.verifyLikeCountOnReply(createdReplyText);
+          await feedPage.feedList.likeFeedReply(createdReplyText);
+          await feedPage.feedList.verifyLikeCountOnReply(createdReplyText);
         });
 
-        await feedPage.actions.unlikeFeedReply(createdReplyText);
+        await feedPage.feedList.unlikeFeedReply(createdReplyText);
 
-        await feedPage.actions.deletePost(createdPostText);
-        await feedPage.assertions.verifyPostIsNotVisible(createdPostText);
+        await feedPage.deletePost(createdPostText);
+        await feedPage.feedList.verifyPostIsNotVisible(createdPostText);
       }
     );
   }
@@ -597,14 +597,14 @@ test.describe(
       await feedPage.verifyThePageIsLoaded();
 
       // Create a feed post
-      await feedPage.actions.clickShareThoughtsButton();
+      await feedPage.clickShareThoughtsButton();
       const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
       createdPostText = postText;
 
-      const postResult = await feedPage.actions.createAndPost({ text: postText });
+      const postResult = await feedPage.postEditor.createAndPost({ text: postText });
       createdPostId = postResult.postId || '';
 
-      await feedPage.assertions.waitForPostToBeVisible(postText);
+      await feedPage.feedList.waitForPostToBeVisible(postText);
     });
 
     test.afterEach('Cleanup created posts', async ({ standardUserFixture }) => {
@@ -631,23 +631,23 @@ test.describe(
         });
 
         // User hovers on "React to this post" button and selects "like" emoji
-        await feedPage.actions.hoverOnReactionButton(createdPostText);
-        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+        await feedPage.feedList.hoverOnReactionButton(createdPostText);
+        await feedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
 
         // Remove the reaction to test another emoji
-        await feedPage.actions.unlikeFeedPost(createdPostText);
+        await feedPage.feedList.unlikeFeedPost(createdPostText);
 
         // User hovers on "React to this post" button and selects "love" emoji
-        await feedPage.actions.hoverOnReactionButton(createdPostText);
-        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LOVE);
+        await feedPage.feedList.hoverOnReactionButton(createdPostText);
+        await feedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.LOVE);
 
-        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.LOVE);
+        await feedPage.feedList.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.LOVE);
 
         // User hovers on "React to this post" button and selects "Haha" emoji
-        await feedPage.actions.hoverOnReactionButton(createdPostText);
-        await feedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+        await feedPage.feedList.hoverOnReactionButton(createdPostText);
+        await feedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
-        await feedPage.actions.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.INSIGHTFUL);
+        await feedPage.feedList.verifyReactionButtonTextContent(createdPostText, ReactionsEmoji.INSIGHTFUL);
       }
     );
 
@@ -666,8 +666,8 @@ test.describe(
 
         // Verify on Home/Global Feed
         await test.step('Verify all six reaction emojis on Home/Global Feed', async () => {
-          await feedPage.actions.hoverOnReactionButton(createdPostText);
-          await feedPage.assertions.verifyAllReactionEmojisVisible(createdPostText);
+          await feedPage.feedList.hoverOnReactionButton(createdPostText);
+          await feedPage.feedList.verifyAllReactionEmojisVisible(createdPostText);
         });
 
         // Verify on Site Dashboard
@@ -681,15 +681,14 @@ test.describe(
           await siteDashboardPage.verifyThePageIsLoaded();
 
           // Create a post on site dashboard
-          await siteDashboardPage.actions.clickShareThoughtsButton();
+          await siteDashboardPage.clickShareThoughtsButton();
           const sitePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-          await siteDashboardPage['createFeedPostComponent'].actions.createPost(sitePostText);
-          await siteDashboardPage['createFeedPostComponent'].actions.clickPostButton();
-          await siteDashboardPage.assertions.validatePostText(sitePostText);
+          await siteDashboardPage.createFeedPostComponent.createAndPost({ text: sitePostText });
+          await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(sitePostText);
 
           // Verify reaction emojis on site dashboard
-          await siteDashboardPage.actions.hoverOnReactionButton(sitePostText);
-          await siteDashboardPage.assertions.verifyAllReactionEmojisVisible(sitePostText);
+          await siteDashboardPage.listFeedComponent.hoverOnReactionButton(sitePostText);
+          await siteDashboardPage.listFeedComponent.verifyAllReactionEmojisVisible(sitePostText);
         });
 
         // Verify on Content Preview Page
@@ -709,15 +708,14 @@ test.describe(
           await contentPreviewPage.verifyThePageIsLoaded();
 
           // Create a comment on content page
-          await contentPreviewPage.actions.clickShareThoughtsButton();
+          await contentPreviewPage.clickShareThoughtsButton();
           const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
-          await contentPreviewPage['createFeedPostComponent'].actions.createPost(commentText);
-          await contentPreviewPage['createFeedPostComponent'].actions.clickPostButton();
-          await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.createFeedPostComponent.createAndPost({ text: commentText });
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
 
           // Verify reaction emojis on content page
-          await contentPreviewPage.actions.hoverOnReactionButton(commentText);
-          await contentPreviewPage.assertions.verifyAllReactionEmojisVisible(commentText);
+          await contentPreviewPage.listFeedComponent.hoverOnReactionButton(commentText);
+          await contentPreviewPage.listFeedComponent.verifyAllReactionEmojisVisible(commentText);
         });
       }
     );
@@ -772,53 +770,53 @@ test.describe(
         ]);
 
         await Promise.all([
-          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+          standardUserFeedPage.feedList.waitForPostToBeVisible(createdPostText),
         ]);
 
-        await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
-        await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+        await appManagerFeedPage.feedList.hoverOnReactionButton(createdPostText);
+        await appManagerFeedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
 
         await standardUserFeedPage.page.reload();
-        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await standardUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Standard User reacts with "haha"
-        await standardUserFeedPage.actions.hoverOnReactionButton(createdPostText);
-        await standardUserFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
+        await standardUserFeedPage.feedList.hoverOnReactionButton(createdPostText);
+        await standardUserFeedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
 
         await siteManagerFeedPage.page.reload();
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Site Manager reacts with "insightful"
-        await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
-        await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+        await siteManagerFeedPage.feedList.hoverOnReactionButton(createdPostText);
+        await siteManagerFeedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Refresh pages to ensure all reactions are visible
         await standardUserFeedPage.page.reload();
 
-        await standardUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await standardUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // The user clicks on the reaction count or reactions text
-        await feedPage.actions.clickReactionCountButton(createdPostText);
+        await feedPage.feedList.clickReactionCountButton(createdPostText);
 
         // A modal should open
-        await feedPage.actions.verifyReactionModalIsVisible();
+        await feedPage.feedList.verifyReactionModalIsVisible();
 
         // The modal should display users grouped by each reaction emoji
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
-        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.LIKE, [appManagerInfo.fullName]);
+        await feedPage.feedList.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
+        await feedPage.feedList.verifyUsersInReactionModalTab(ReactionsEmoji.LIKE, [appManagerInfo.fullName]);
 
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
-        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.HAHA, [standardUserInfo.fullName]);
+        await feedPage.feedList.verifyReactionModalTabExists(ReactionsEmoji.HAHA);
+        await feedPage.feedList.verifyUsersInReactionModalTab(ReactionsEmoji.HAHA, [standardUserInfo.fullName]);
 
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
-        await feedPage.actions.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
+        await feedPage.feedList.verifyReactionModalTabExists(ReactionsEmoji.INSIGHTFUL);
+        await feedPage.feedList.verifyUsersInReactionModalTab(ReactionsEmoji.INSIGHTFUL, [siteManagerInfo.fullName]);
 
         // Close the modal
-        await feedPage.actions.closeReactionModal();
+        await feedPage.feedList.closeReactionModal();
       }
     );
 
@@ -859,32 +857,32 @@ test.describe(
         await Promise.all([appManagerFeedPage.verifyThePageIsLoaded(), siteManagerFeedPage.verifyThePageIsLoaded()]);
 
         await Promise.all([
-          appManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
-          siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText),
+          appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
+          siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText),
         ]);
 
         // Add reactions from both users
-        await appManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
-        await appManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
+        await appManagerFeedPage.feedList.hoverOnReactionButton(createdPostText);
+        await appManagerFeedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.LIKE);
 
         await siteManagerFeedPage.page.reload();
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-        await siteManagerFeedPage.actions.hoverOnReactionButton(createdPostText);
-        await siteManagerFeedPage.actions.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+        await siteManagerFeedPage.feedList.hoverOnReactionButton(createdPostText);
+        await siteManagerFeedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.INSIGHTFUL);
 
         // Refresh to ensure all reactions are visible
         await feedPage.page.reload();
-        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Given: User has opened the reaction modal
-        await feedPage.actions.clickReactionCountButton(createdPostText);
-        await feedPage.actions.verifyReactionModalIsVisible();
+        await feedPage.feedList.clickReactionCountButton(createdPostText);
+        await feedPage.feedList.verifyReactionModalIsVisible();
 
         // Select the emoji tab containing the first user
-        await feedPage.actions.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
+        await feedPage.feedList.verifyReactionModalTabExists(ReactionsEmoji.LIKE);
 
         // When: User clicks on the first username in the list
-        await feedPage.actions.clickUsernameInReactionModal(appManagerInfo.fullName);
+        await feedPage.feedList.clickUsernameInReactionModal(appManagerInfo.fullName);
 
         // Then: Application should navigate to the selected user's profile screen
         const profilePage = new UserProfilePage(feedPage.page);

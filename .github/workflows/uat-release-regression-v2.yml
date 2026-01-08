@@ -22,8 +22,9 @@
 name: UAT Release Regression (v2)
 
 on:
-  schedule:
-    - cron: '30 1 * * 1,3,5'
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   - cron: '30 1 * * 1,3,5'
 
   workflow_dispatch:
     inputs:
@@ -63,6 +64,7 @@ on:
           - 'de-api-abac'
           - 'reward'
           - 'reward-settings'
+          - 'reward-workAnniversary'
           - 'recognition'
           - 'privateRecognition'
           - 'frontline'

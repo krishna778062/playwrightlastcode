@@ -15,9 +15,11 @@ on:
           - 'global-search'
           - 'reward'
           - 'reward-settings'
+          - 'reward-workAnniversary'
           - 'integrations-primary'
           - 'integrations-workday'
           - 'integrations-azuresso'
+          - 'integrations-api'
           - 'frontline'
           - 'recognition'
           - 'alert-notification'
@@ -92,7 +94,7 @@ permissions:
 
 jobs:
   test-and-upload:
-    timeout-minutes: 60
+    timeout-minutes: 180
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
@@ -171,6 +173,10 @@ jobs:
             "de-api-abac")
               CONFIG_PATH="src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts"
               MODULE_ENV="data-engineering"
+              ;;
+            "integrations-api")
+              CONFIG_PATH="src/modules/integrations/playwright.integrations-api.config.ts"
+              MODULE_ENV="integrations"
               ;;
             *)
               CONFIG_PATH="src/modules/$MODULE/playwright.$MODULE.config.ts"

@@ -34,11 +34,11 @@ test.describe(
         });
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await socialCampaignSettingPage.loadPage();
-        await socialCampaignSettingPage.actions.uncheckSocialCampaignCheckOutbox();
+        await socialCampaignSettingPage.uncheckSocialCampaignCheckOutbox();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.verifySocialCampaignsOptionIsNotVisible();
         await socialCampaignSettingPage.loadPage();
-        await socialCampaignSettingPage.actions.checkSocialCampaignCheckOutbox();
+        await socialCampaignSettingPage.checkSocialCampaignCheckOutbox();
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.verifySocialCampaignsOptionIsVisible();
       }

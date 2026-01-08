@@ -309,6 +309,7 @@ test.describe('pulse Survey Creation Tests', () => {
       await surveyCreationPage.searchSurveyByName(surveyName);
       await surveyCreationPage.clickFirstSurveyManageButton();
       await surveyCreationPage.clickDuplicateOption();
+      await surveyCreationPage.selectDefaultFormAddress();
       await surveyCreationPage.clickConfigureSurveyNextButton();
       await surveyCreationPage.validateQuestionsOnPreview(['Test Scale type question-1', 'Test Scale type question-2']);
       await surveyCreationPage.clickAddQuestionNextButton();

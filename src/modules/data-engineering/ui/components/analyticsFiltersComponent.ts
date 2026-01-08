@@ -468,7 +468,11 @@ export class AnalyticsFiltersComponent extends BaseComponent {
    * @param filterConfig - Unified filter configuration object
    */
   async applyFiltersFromConfig(filterConfig: FilterOptions) {
-    await test.step('Apply filters from unified configuration', async () => {
+    await test.step('Apply filters from unified configuration', async stepInfo => {
+      await stepInfo.attach('filterConfig', {
+        body: JSON.stringify(filterConfig),
+        contentType: 'application/json',
+      });
       // Apply period filter (always required)
       if (filterConfig.timePeriod === PeriodFilterTimeRange.CUSTOM) {
         if (!filterConfig.customStartDate || !filterConfig.customEndDate) {

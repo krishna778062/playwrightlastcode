@@ -88,7 +88,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId, siteId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -96,13 +96,13 @@ test.describe(
         manualCleanupNeeded = true;
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
 
         // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
 
         console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
       }
@@ -147,19 +147,19 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store page ID for cleanup (siteIdToPublishPage is already set above)
         publishedPageId = pageId;
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
 
         // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
   }

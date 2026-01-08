@@ -105,6 +105,12 @@ export const FILE_TEST_DATA = {
         );
       },
     },
+    GIF1: {
+      fileName: 'Gif1.gif',
+      getPath: (specDir: string) => {
+        return FileUtil.getFilePath(specDir, '..', '..', '..', '..', 'test-data', 'static-files', 'images', 'Gif1.gif');
+      },
+    },
   },
 
   /**
@@ -178,6 +184,28 @@ export const FILE_TEST_DATA = {
           'static-files',
           'excel',
           'sample.docx'
+        );
+      },
+    },
+  },
+
+  /**
+   * Video files
+   */
+  VIDEOS: {
+    TEST_VIDEO: {
+      fileName: 'test-video.mp4',
+      getPath: (specDir: string) => {
+        return FileUtil.getFilePath(
+          specDir,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'video',
+          'test-video.mp4'
         );
       },
     },
