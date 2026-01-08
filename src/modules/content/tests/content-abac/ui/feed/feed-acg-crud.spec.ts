@@ -1829,8 +1829,8 @@ test.describe(
         await test.step('Standard User (authorized - in Engineering audience) navigates to Home Feed and verifies post is visible', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           const standardUserFeedPage = new FeedPage(standardUserFixture.page);
-          await standardUserFeedPage.reloadPage();
-          await standardUserFeedPage.verifyThePageIsLoaded();
+          await standardUserFeedPage.reloadPageWithTimelineMode();
+          await standardUserFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
           await standardUserFeedPage.feedList.waitForPostToBeVisible(foPostText);
           await standardUserFeedPage.postEditor.verifyPostHasLimitVisibility(foPostText);
