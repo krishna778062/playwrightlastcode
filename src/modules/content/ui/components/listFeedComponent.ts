@@ -247,7 +247,7 @@ export class ListFeedComponent extends BaseComponent {
     this.unfavoriteButton = this.page.getByRole('button', { name: 'Unfavorite this post' }).first();
     this.unlikeButton = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
-    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
+    this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
     this.replyInput = this.page.getByRole('button', { name: 'Leave a reply…' }).first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' }).first();
@@ -1178,10 +1178,10 @@ export class ListFeedComponent extends BaseComponent {
   async openReplyEditorForPost(postText: string): Promise<void> {
     await test.step(`Open reply editor for post: ${postText}`, async () => {
       // Wait for reply button to be visible
-      await this.verifier.verifyTheElementIsVisible(this.replyButton, {
+      await this.verifier.verifyTheElementIsVisible(this.replyButton.first(), {
         assertionMessage: 'Reply button should be visible for the post',
       });
-      await this.clickOnElement(this.replyButton);
+      await this.clickOnElement(this.replyButton.first());
       await this.verifier.verifyTheElementIsVisible(this.replyEditor, {
         assertionMessage: 'Reply editor should be visible',
       });
@@ -1190,10 +1190,10 @@ export class ListFeedComponent extends BaseComponent {
 
   async clickReplyOnContentComment(commentText: string): Promise<void> {
     await test.step(`Click reply on content comment: ${commentText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.replyButton, {
+      await this.verifier.verifyTheElementIsVisible(this.replyButton.first(), {
         assertionMessage: 'Reply button should be visible for the post',
       });
-      await this.clickOnElement(this.replyButton);
+      await this.clickOnElement(this.replyButton.first());
     });
   }
 
