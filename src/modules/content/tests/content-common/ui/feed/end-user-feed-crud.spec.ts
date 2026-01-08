@@ -2425,7 +2425,7 @@ test.describe(
         // Setup - Admin configures external files and uploads folder
         await test.step('Admin: Setup external files provider and upload folder', async () => {
           await adminManageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
-          await adminManageSitePage.actions.setExternalFilesProvider('Box files');
+          await adminManageSitePage.setExternalFilesProvider('Box files');
           await adminSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
           await adminSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
           await adminSiteFilesPage.assertions.verifyThePageIsLoaded();
@@ -2446,24 +2446,24 @@ test.describe(
           // Open share modal and enter inappropriate text
           await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
           await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-          await shareComponent.actions.enterShareDescription(inappropriatePostText);
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
 
           // Click share and verify warning popup - then Cancel
-          await shareComponent.actions.clickShareButton();
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-          await warningPopup.actions.clickCancel();
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify modal still open, re-enter text and Continue
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-          await shareComponent.actions.enterShareDescription(inappropriatePostText);
-          await shareComponent.actions.clickShareButton();
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-          await warningPopup.actions.clickContinue();
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
         });
 
         // Test Site Feed scenario
@@ -2479,26 +2479,26 @@ test.describe(
           // Open share modal, select Site Feed, enter inappropriate text
           await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
           await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-          await shareComponent.actions.enterShareDescription(inappropriatePostText);
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
           await shareComponent.selectShareOptionAsSiteFeed();
-          await shareComponent.actions.enterSiteName(siteName);
+          await shareComponent.enterSiteName(siteName);
 
           // Click share and verify warning popup - then Cancel
-          await shareComponent.actions.clickShareButton();
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-          await warningPopup.actions.clickCancel();
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify modal still open, re-enter text and Continue
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-          await shareComponent.actions.enterShareDescription(inappropriatePostText);
-          await shareComponent.actions.clickShareButton();
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-          await warningPopup.actions.clickContinue();
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
         });
       }
     );
@@ -2740,7 +2740,7 @@ test.describe(
         // Setup - Configure external files provider and upload folder
         await test.step('Setup: Configure external files and upload folder', async () => {
           await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
-          await manageSitePage.actions.setExternalFilesProvider('Box files');
+          await manageSitePage.setExternalFilesProvider('Box files');
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
           await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
           await siteFilesPage.assertions.verifyThePageIsLoaded();
@@ -2754,7 +2754,7 @@ test.describe(
         await test.step('Verify share option is NOT visible when Feed is disabled (Timeline mode)', async () => {
           await governanceScreenPage.loadPage();
           await governanceScreenPage.verifyThePageIsLoaded();
-          await governanceScreenPage.actions.selectTimelineFeedSettingsAsTimeline();
+          await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
 
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
           await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
@@ -2768,7 +2768,7 @@ test.describe(
         await test.step('Verify share option is visible when Feed is enabled (Default mode)', async () => {
           await governanceScreenPage.loadPage();
           await governanceScreenPage.verifyThePageIsLoaded();
-          await governanceScreenPage.actions.selectTimelineFeedSettingsAsDefaultMode();
+          await governanceScreenPage.selectTimelineFeedSettingsAsDefaultMode();
 
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
           await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
