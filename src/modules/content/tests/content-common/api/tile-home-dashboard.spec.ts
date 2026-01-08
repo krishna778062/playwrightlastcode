@@ -1348,7 +1348,7 @@ test.describe(
         // And Remove the created Latest & popular tile
         await test.step('Remove Latest & popular tile as App Manager', async () => {
           if (!latestAndPopularTileId) {
-            test.skip(true, 'Latest & popular tile was not created successfully');
+            throw new Error('Latest & popular tile was not created successfully');
           }
 
           const deleteResponse =
@@ -1356,7 +1356,7 @@ test.describe(
               latestAndPopularTileId!
             );
 
-          await tileApiHelper.validateTileDeletion(deleteResponse.json());
+          await tileApiHelper.validateTileDeletion(await deleteResponse.json());
 
           // Remove from cleanup list
           createdTileIds = createdTileIds.filter(tileId => tileId !== latestAndPopularTileId);
