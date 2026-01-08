@@ -162,21 +162,21 @@ test.describe(
         await scmContentPreviewPage.loadPage();
 
         // Verify that comment option is visible on content detail page feed form
-        await scmContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await scmContentPreviewPage.verifyCommentOptionIsVisible();
 
         // Click "Share your thoughts" button to open comment editor
-        await scmContentPreviewPage.actions.clickShareThoughtsButton();
+        await scmContentPreviewPage.clickShareThoughtsButton();
 
         // Generate unique comment text for Site Content Manager
         const scmCommentText = TestDataGenerator.generateRandomText('Site Content Manager Comment', 3, true);
 
         // Create comment as Site Content Manager
         const scmCreateFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
-        await scmCreateFeedPostComponent.actions.createPost(scmCommentText);
-        await scmCreateFeedPostComponent.actions.clickPostButton();
+        await scmCreateFeedPostComponent.createPost(scmCommentText);
+        await scmCreateFeedPostComponent.clickPostButton();
 
         // Verify Site Content Manager comment is successfully posted
-        await scmContentPreviewPage.assertions.waitForPostToBeVisible(scmCommentText);
+        await scmContentPreviewPage.listFeedComponent.waitForPostToBeVisible(scmCommentText);
 
         // ==================== SCENARIO 2: Site Member CANNOT post ====================
         // Change user role from Site Content Manager to Site Member
@@ -196,9 +196,7 @@ test.describe(
         await memberContentPreviewPage.loadPage();
 
         // Verify that Site Member sees the restriction message and cannot post
-        await memberContentPreviewPage.assertions.verifyFeedRestrictionMessageVisible(
-          FEED_TEST_DATA.RESTRICTION_MESSAGE
-        );
+        await memberContentPreviewPage.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
       }
     );
   }
