@@ -4,20 +4,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ManageApplicationComponent } from '@/src/modules/content/ui/components/manageApplicationComponent';
 
-export interface IManageApplicationPageActions {
-  clickOnGovernance: () => Promise<void>;
-  clickOnPrivileges: () => Promise<void>;
-  clickOnDefaults: () => Promise<void>;
-  clickOnIntegrations: () => Promise<void>;
-  clickOnSave: () => Promise<void>;
-  disableQuestionAndAnswerFeature: () => Promise<void>;
-  enableQuestionAndAnswerFeature: () => Promise<void>;
-}
-
-export interface IManageApplicationPageAssertions {
-  verifyToastMessage: (message: string) => Promise<void>;
-}
-export interface IManageApplicationPageAssertions {}
 export class ManageApplicationPage extends BasePage {
   private manageApplicationComponent: ManageApplicationComponent;
   readonly integrationButton: Locator;
@@ -33,15 +19,6 @@ export class ManageApplicationPage extends BasePage {
     this.disableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_false');
     this.enableQuestionAndAnswer = page.locator('#isQuestionAnswerEnabled_true');
   }
-
-  get actions(): IManageApplicationPageActions {
-    return this;
-  }
-
-  get assertions(): IManageApplicationPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify manage application page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageApplicationComponent.manageApplicationHeading, {

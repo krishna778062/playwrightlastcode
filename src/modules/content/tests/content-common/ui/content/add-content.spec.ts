@@ -11,7 +11,6 @@ import { PageContentType } from '@/src/modules/content/constants/pageContentType
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
-import { DEFAULT_UNLISTED_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { AddContentModalComponent } from '@/src/modules/content/ui/components/addContentModal';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { ManageUsersPage } from '@/src/modules/content/ui/pages/manageUsersPage';
@@ -45,8 +44,8 @@ test.describe(
       // Verify role assignment in Manage Users page
       manageUsersPage = new ManageUsersPage(appManagerFixture.page);
       await manageUsersPage.loadPage();
-      await manageUsersPage.actions.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
-      await manageUsersPage.assertions.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
+      await manageUsersPage.navigateToManageUsersFilterPage(peopleInfo.firstName, peopleInfo.lastName);
+      await manageUsersPage.verifyRoleFilterIsVisible(Roles.UNLISTED_SITES_MANAGER);
     });
 
     test.afterEach('Cleanup after test', async ({ appManagerFixture }) => {
@@ -73,8 +72,8 @@ test.describe(
           storyId: 'CONT-30521',
         });
 
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
-        const siteName = DEFAULT_UNLISTED_SITE_NAME;
+        const { siteId, name } = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
+        const siteName = name;
         pageCreationPage = (await standardUserFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
           { siteName: siteName }
@@ -85,7 +84,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -100,12 +99,12 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
 
@@ -120,9 +119,8 @@ test.describe(
           zephyrTestId: 'CONT-39680',
           storyId: 'CONT-39680',
         });
-
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_UNLISTED_SITE_NAME);
-        const siteName = DEFAULT_UNLISTED_SITE_NAME;
+        const { siteId, name } = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED);
+        const siteName = name;
         console.log('siteName :   ', siteName);
         pageCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
           ContentType.PAGE,
@@ -134,7 +132,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -149,12 +147,12 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
@@ -187,7 +185,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -203,12 +201,12 @@ test.describe(
         );
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
     // Additional test for disabled content submission
@@ -243,7 +241,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'Uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -258,12 +256,12 @@ test.describe(
           ContentType.PAGE
         );
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           CONTENT_TEST_DATA.TOAST_MESSAGES.PAGE_PUBLISHED_SUCCESSFULLY
         );
 
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
 

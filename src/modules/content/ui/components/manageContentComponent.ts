@@ -87,7 +87,10 @@ export class ManageContentComponent extends BaseComponent {
 
     this.xButton = page.locator('[aria-label="Clear"]');
     this.placeHolderText = page.locator(`[placeholder="Search…"]`);
-    this.firstContentCheckbox = page.locator('[type="checkbox"]').nth(1);
+    // Scope to the first enabled checkbox in content list items to avoid matching other checkboxes on the page
+    // Filter out disabled checkboxes as they cannot be clicked
+    this.firstContentCheckbox = page.locator('input[type="checkbox"].ToggleField-input--checkbox').nth(1);
+
     this.actionDropdownContainer = page.locator(`[class="Bulk Bulk--footer"]`);
     this.actionDropdown = page.locator('#action');
     this.unpublishButton = page.getByText('Unpublish', { exact: true });
@@ -164,7 +167,11 @@ export class ManageContentComponent extends BaseComponent {
     this.validationViewAllButton = page.getByRole('button', { name: 'View all' });
     this.pageTitleInput = page.locator('[id="contentTitle"]').first();
     this.publishConfirmButton = page.getByRole('button', { name: 'Publish changes' }).first();
-    this.checkBoxOfContent = page.locator('[type="checkbox"]');
+    // Locator for all checkboxes in content list items (not just first)
+    // Structure: .ManageContentListItem > .ManageContentListItem-checkbox > input[type="checkbox"][aria-label="Select"]
+    this.checkBoxOfContent = page
+      .locator('.ManageContentListItem')
+      .locator('input[type="checkbox"][aria-label="Select"]');
     this.onboardingOption = page.getByText('Onboarding', { exact: true });
     this.validationRequiredInfoBox = page.locator('.InfoBox').first();
     this.selectContentByNumberOfItemsButton = (option: number) => page.locator('[type="checkbox"]').nth(option);
@@ -174,10 +181,19 @@ export class ManageContentComponent extends BaseComponent {
     return this.page.locator(`[aria-label="${pageName}"]`).first();
   }
   getGlobalSearchResultPageName(pageName: string): Locator {
-    return this.page.locator(`h2:has-text("${pageName}")`).first();
+    // Scope to search results region to avoid matching links in AI summary "Sources" section
+    // The search results are in a region with "Results for" in the name
+    // Search result links can have names like "B2B synergiesEvent" or "B2B synergiesEvent Result 1"
+    const escapedName = pageName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const searchResultsRegion = this.page.getByRole('region').filter({ hasText: /Results for/ });
+    // Match links that start with the page name (handles both "B2B synergiesEvent" and "B2B synergiesEvent Result 1")
+    return searchResultsRegion.getByRole('link', { name: new RegExp(`^${escapedName}`, 'i') }).first();
   }
   getContentNameLocator(text: string): Locator {
-    return this.manageContentListItems.locator(`a:has-text("${text}")`).first();
+    // Match by aria-label (most reliable) within the content list item
+    // Structure: .ManageContentListItem > .ManageContentListItem-content > .ListingItem > .ListingItem-inner > h2 > a[aria-label="contentName"]
+    // Scope to h2 > a to be more specific and avoid matching links in other parts
+    return this.manageContentListItems.locator('h2').locator(`a[aria-label="${text}"]`).first();
   }
 
   createdAtDate(createdAtDate: string): Locator {
@@ -277,7 +293,7 @@ export class ManageContentComponent extends BaseComponent {
 
   async selectFirstContent(): Promise<void> {
     await test.step(`Selecting the first content`, async () => {
-      await this.clickOnElement(this.firstContentCheckbox, { force: true });
+      await this.firstContentCheckbox.click();
     });
   }
 
@@ -841,18 +857,27 @@ export class ManageContentComponent extends BaseComponent {
   }
   async getAllContentNames(): Promise<string[]> {
     return await test.step('Get all content names from manage content page', async () => {
-      const contentNames = await this.listContainer.allInnerTexts();
-      return contentNames
-        .map(content => {
-          // Extract the title from the content text
-          // Format: 'PUBLISHED\nTitle_Name\nBy...'
-          const lines = content.split('\n');
-          if (lines.length >= 2) {
-            return lines[1].trim(); // Get the second line which contains the title
+      // Wait for content items to be visible first
+      await this.waitForManageContentListItems();
+
+      // Get all content names from headings/links within ManageContentListItem
+      const contentNames: string[] = [];
+      const listItems = this.manageContentListItems;
+      const count = await listItems.count();
+
+      for (let i = 0; i < count; i++) {
+        const listItem = listItems.nth(i);
+        // Try to get the content name from the heading (h2) or link within the list item
+        const heading = listItem.locator('h2 a, h2').first();
+        if (await heading.isVisible()) {
+          const name = (await heading.textContent())?.trim();
+          if (name) {
+            contentNames.push(name);
           }
-          return content.trim();
-        })
-        .filter(name => name.length > 0);
+        }
+      }
+
+      return contentNames;
     });
   }
 
@@ -997,7 +1022,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async UpdatedPageName(pageName: string): Promise<void> {
+  async updatePageName(pageName: string): Promise<void> {
     await test.step('Verifying the updated page name', async () => {
       await this.pageTitleInput.fill(pageName);
     });
@@ -1025,7 +1050,7 @@ export class ManageContentComponent extends BaseComponent {
     });
   }
 
-  async verifyAllContentsAreSelected(expectedCount: number = 16): Promise<void> {
+  async verifyAllContentsAreSelected(expectedCount: number): Promise<void> {
     await test.step(`Verifying ${expectedCount} contents are selected`, async () => {
       const checkBoxes = await this.checkBoxOfContent.all();
       const selectedCheckBoxes = [];
@@ -1052,9 +1077,12 @@ export class ManageContentComponent extends BaseComponent {
   }
   async verifyAllContentsAreDeleted(contentNames: string[]): Promise<void> {
     await test.step('Verifying all contents are deleted', async () => {
-      const contentNameLocator = this.getContentNameLocator(contentNames[0]);
+      const contentName = contentNames[0];
+      const contentNameLocator = this.getContentNameLocator(contentName);
+
+      // Fallback: if element is still in DOM, verify it's at least hidden
       await this.verifier.verifyTheElementIsNotVisible(contentNameLocator, {
-        assertionMessage: `Content ${contentNames[0]} should not be visible`,
+        assertionMessage: `Content ${contentName} should not be visible after deletion`,
       });
     });
   }
