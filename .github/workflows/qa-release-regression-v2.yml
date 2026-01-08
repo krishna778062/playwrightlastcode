@@ -71,6 +71,7 @@ on:
           - 'de-api-abac'
           - 'reward'
           - 'reward-settings'
+          - 'reward-workAnniversary'
           - 'recognition'
           - 'privateRecognition'
           - 'frontline'
@@ -82,7 +83,8 @@ on:
       is_browserstack:
         description: 'Enable BrowserStack'
         required: false
-        default: true
+        # DISABLED: BrowserStack disabled to preserve quota
+        default: false
         type: boolean
 
 jobs:

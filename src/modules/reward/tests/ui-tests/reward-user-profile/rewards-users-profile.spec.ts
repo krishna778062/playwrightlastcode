@@ -13,7 +13,7 @@ test.describe('user profile', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, REWARD_SU
   test(
     "RC-3261 Verify user profile should show a 'View orders' button in the Recognition section in User profile page",
     {
-      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.HEALTHCHECK],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

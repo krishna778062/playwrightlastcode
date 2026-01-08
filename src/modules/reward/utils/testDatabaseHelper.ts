@@ -41,25 +41,17 @@ export class TestDatabaseHelper {
   /**
    * Set distribution allowance as failed (for testing allowance refresh scenarios)
    */
-  static async setDistributionAllowanceAsFailed(
-    tenantCode: string,
-    databaseType: DatabaseType = 'reward'
-  ): Promise<void> {
-    const dbConfig = this.getDbConfig(databaseType);
+  static async setDistributionAllowanceAsFailed(tenantCode: string): Promise<void> {
     const resultAsFailed = getQuery('setDistributionAllowanceAsFail');
-    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode), dbConfig.database, dbConfig);
+    await executeQuery(resultAsFailed.replace('tenantCode', tenantCode), getDbConfigFromCache('reward'));
   }
 
   /**
    * Set distribution allowance as success (for testing allowance refresh scenarios)
    */
-  static async setDistributionAllowanceAsSuccess(
-    tenantCode: string,
-    databaseType: DatabaseType = 'reward'
-  ): Promise<void> {
-    const dbConfig = this.getDbConfig(databaseType);
+  static async setDistributionAllowanceAsSuccess(tenantCode: string): Promise<void> {
     const resultAsSuccess = getQuery('setDistributionAllowanceAsSuccess');
-    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode), dbConfig.database, dbConfig);
+    await executeQuery(resultAsSuccess.replace('tenantCode', tenantCode), getDbConfigFromCache('reward'));
   }
 
   /**
@@ -70,9 +62,8 @@ export class TestDatabaseHelper {
     databaseType: DatabaseType = 'reward'
   ): Promise<void> {
     initializeDbConfig(databaseType);
-    const dbConfig = this.getDbConfig(databaseType);
     const resultAsSuccess = getQuery('setTheLatestCreatedDateFromAllowanceJobRecord');
-    await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode), dbConfig.database, dbConfig);
+    await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode), getDbConfigFromCache('reward'));
   }
 
   /**
@@ -84,9 +75,8 @@ export class TestDatabaseHelper {
     databaseType: DatabaseType = 'reward'
   ): Promise<any[]> {
     initializeDbConfig(databaseType);
-    const dbConfig = this.getDbConfig(databaseType);
     const processedQuery = tenantCode ? query.replace(/tenantCode/g, tenantCode) : query;
-    return await executeQuery(processedQuery, dbConfig.database, dbConfig);
+    return await executeQuery(processedQuery, getDbConfigFromCache('reward'));
   }
 
   /**
@@ -97,9 +87,8 @@ export class TestDatabaseHelper {
     databaseType: DatabaseType = 'reward'
   ): Promise<void> {
     initializeDbConfig(databaseType);
-    const dbConfig = this.getDbConfig(databaseType);
     const resultAsSuccess = getQuery('getTheEmailOfUsersWhichCurrencyIsNull');
-    await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode), dbConfig.database, dbConfig);
+    await executeQuery(resultAsSuccess.replace(/tenantCode/g, tenantCode), getDbConfigFromCache('reward'));
   }
 
   /**
@@ -132,10 +121,10 @@ export class TestDatabaseHelper {
       const databaseType = operation.databaseType || defaultDatabaseType;
       switch (operation.type) {
         case 'setDistributionAllowanceAsFailed':
-          await this.setDistributionAllowanceAsFailed(operation.tenantCode, databaseType);
+          await this.setDistributionAllowanceAsFailed(operation.tenantCode);
           break;
         case 'setDistributionAllowanceAsSuccess':
-          await this.setDistributionAllowanceAsSuccess(operation.tenantCode, databaseType);
+          await this.setDistributionAllowanceAsSuccess(operation.tenantCode);
           break;
         case 'setLatestCreatedDateFromAllowanceJobRecord':
           await this.setLatestCreatedDateFromAllowanceJobRecord(operation.tenantCode, databaseType);
@@ -159,7 +148,7 @@ export const TestDbScenarios = {
    */
   async setupAllowanceRefresh(tenantCode: string, databaseType: DatabaseType = 'reward'): Promise<void> {
     initializeDbConfig(databaseType);
-    await TestDatabaseHelper.setDistributionAllowanceAsFailed(tenantCode, databaseType);
+    await TestDatabaseHelper.setDistributionAllowanceAsFailed(tenantCode);
   },
 
   /**
@@ -167,7 +156,7 @@ export const TestDbScenarios = {
    */
   async cleanupAllowanceRefresh(tenantCode: string, databaseType: DatabaseType = 'reward'): Promise<void> {
     initializeDbConfig(databaseType);
-    await TestDatabaseHelper.setDistributionAllowanceAsSuccess(tenantCode, databaseType);
+    await TestDatabaseHelper.setDistributionAllowanceAsSuccess(tenantCode);
   },
 
   /**

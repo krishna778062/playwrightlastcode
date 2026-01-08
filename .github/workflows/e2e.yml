@@ -15,6 +15,7 @@ on:
           - 'global-search'
           - 'reward'
           - 'reward-settings'
+          - 'reward-workAnniversary'
           - 'integrations-primary'
           - 'integrations-workday'
           - 'integrations-azuresso'
@@ -93,7 +94,7 @@ permissions:
 
 jobs:
   test-and-upload:
-    timeout-minutes: 60
+    timeout-minutes: 180
     runs-on: [kubernetes]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2

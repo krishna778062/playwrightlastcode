@@ -35,7 +35,7 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       const siteCreationPage = new SiteCreationPageAbac(appManagerFixture.page);
 
       // Verify form structure
-      await siteCreationPage.assertions.verifySiteCreationFormStructure();
+      await siteCreationPage.verifySiteCreationFormStructure();
 
       // STEP 3: Setup specific audience (reuse existing or create new)
       let audienceName = await appManagerFixture.siteAudienceHelper.getAudienceName();
@@ -57,7 +57,7 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       console.log('INFO: The created siteId', siteId);
 
       // STEP 6: Verify site creation success toast and that siteId is present
-      await siteCreationPage.assertions.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PUBLIC_SITE.name);
+      await siteCreationPage.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PUBLIC_SITE.name);
     }
   );
 
@@ -79,7 +79,7 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       const siteCreationPage = new SiteCreationPageAbac(appManagerFixture.page);
 
       // Verify form structure
-      await siteCreationPage.assertions.verifySiteCreationFormStructure();
+      await siteCreationPage.verifySiteCreationFormStructure();
 
       // STEP 2: Setup specific audience (reuse existing or create new)
       let audienceName = await appManagerFixture.siteAudienceHelper.getAudienceName();
@@ -101,7 +101,7 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       console.log('INFO: The created siteId', siteId);
 
       // STEP 6: Verify site creation success toast and that siteId is present
-      await siteCreationPage.assertions.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PRIVATE_SITE.name);
+      await siteCreationPage.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PRIVATE_SITE.name);
     }
   );
 });
