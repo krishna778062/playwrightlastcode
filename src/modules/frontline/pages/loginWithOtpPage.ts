@@ -503,9 +503,17 @@ export class LoginWithOtpPage extends BasePage {
   ): Promise<void> {
     await test.step(`Navigating to OTP verification page for ${employeeId}`, async () => {
       await this.fillInElement(loginPage.usernameInput, employeeId);
-      await this.clickOnElement(loginPage.continueButton);
 
-      await this.verifyAuthenticatePage(options);
+      await Promise.all([
+        this.page.waitForURL(/authenticate/, {
+          timeout: options?.timeout || TIMEOUTS.MEDIUM,
+        }),
+        this.clickOnElement(loginPage.continueButton),
+      ]);
+
+      await this.verifier.verifyTheElementIsVisible(this.useOtpButton, {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      });
       await this.clickOnElement(this.useOtpButton);
 
       await this.verifyLetsGetStartedHeading(options);

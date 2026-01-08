@@ -69,7 +69,7 @@ test.describe(
         userDetails.endUserEmpId,
         userDetails.endUserFirstName,
         userDetails.endUserLastName,
-        'email'
+        'both'
       );
     });
 
@@ -1027,8 +1027,15 @@ test.describe(
       }
     });
 
-    test.afterAll(async ({ appManagerApiContext, config }) => {
+    test.afterAll(async ({ appManagerApiContext, config, lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteUserContactInfo(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName,
+        'email'
+      );
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
         userDetails.endUserId,
         USER_STATUS.INACTIVE
@@ -1096,8 +1103,15 @@ test.describe(
       }
     });
 
-    test.afterAll(async ({ appManagerApiContext, config }) => {
+    test.afterAll(async ({ appManagerApiContext, config, lwoUserManagementService }) => {
       const userDetails = loadUserDetails();
+      await lwoUserManagementService.deleteUserContactInfo(
+        userDetails.endUserId,
+        userDetails.endUserEmpId,
+        userDetails.endUserFirstName,
+        userDetails.endUserLastName,
+        'email'
+      );
       await new UserManagementService(appManagerApiContext, config.apiBaseUrl).updateUserStatus(
         userDetails.endUserId,
         USER_STATUS.INACTIVE
