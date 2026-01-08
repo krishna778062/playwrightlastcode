@@ -394,47 +394,6 @@ export class ManageApplicationPage extends BasePage {
     });
   }
 
-  async checkAutomatedTranslationsCheckbox(option: 'Enabled' | 'Disabled'): Promise<void> {
-    await test.step(`Check automated translations checkbox with option "${option}"`, async () => {
-      // Find the checkbox associated with the option text
-      const optionSpan = this.page.locator(`span:has-text("${option}")`).first();
-      await this.verifier.waitUntilElementIsVisible(optionSpan, { timeout: 10000 });
-      await optionSpan.scrollIntoViewIfNeeded();
-
-      // Find the associated checkbox (usually a sibling or parent element)
-      const checkbox = optionSpan.locator('..').locator('input[type="checkbox"]').first();
-      if ((await checkbox.count()) === 0) {
-        // If checkbox not found as sibling, try clicking the label/span itself
-        await this.clickOnElement(optionSpan, { stepInfo: `Click on ${option} option` });
-      } else {
-        if (!(await checkbox.isChecked())) {
-          await checkbox.check();
-        }
-      }
-    });
-  }
-
-  async verifyAutomatedTranslationEnabledInAppConfig(
-    apiContext: APIRequestContext,
-    baseUrl: string,
-    expectedValue: boolean
-  ): Promise<void> {
-    await test.step(`Verify that automatedTranslationEnabled in response of API appConfig is "${expectedValue}"`, async () => {
-      const appConfig = await this.getAppConfigViaAPI(apiContext, baseUrl);
-      const actualValue = appConfig.result.automatedTranslationEnabled;
-      if (actualValue !== expectedValue) {
-        throw new Error(`Expected automatedTranslationEnabled to be ${expectedValue} but got ${actualValue}`);
-      }
-    });
-  }
-
-  async verifyTranslateOptionIsNotPresent(): Promise<void> {
-    await test.step('Verify that Translate option is not present', async () => {
-      const translateOption = this.page.locator('span:has-text("Translate"), button:has-text("Translate")').first();
-      await this.verifier.verifyTheElementIsNotVisible(translateOption, { timeout: 5000 });
-    });
-  }
-
   async navigateToGeneralSetupPage(): Promise<void> {
     await test.step('Navigate to General setup page', async () => {
       const zuluUrl = process.env.ZULU_URL;
