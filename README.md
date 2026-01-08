@@ -28,11 +28,21 @@ A centralized, scalable, and modular end-to-end UI automation framework built wi
 
 ## Available npm Scripts
 
-| Command                        | Description                              |
-| ------------------------------ | ---------------------------------------- |
-| `npm run test:newsletter`      | Run newsletter module tests              |
-| `npm run test:newsletter:qa`   | Run newsletter tests on QA environment   |
-| `npm run test:newsletter:test` | Run newsletter tests on Test environment |
+| Command                        | Description                                                                        |
+| ------------------------------ | ---------------------------------------------------------------------------------- |
+| `npm test`                     | **Interactive test runner** (recommended for local development)                    |
+| `npm run setup`                | **One-time setup** - installs dependencies, browsers, and git hooks                |
+| `npm run create:module`        | **Create new module** - scaffolds complete module structure                        |
+| `npm run test:module`          | **Generic module runner** - `npm run test:module <module> [tags] [env] [flags...]` |
+| `npm run test:chat`            | Run chat module tests directly                                                     |
+| `npm run test:chat:P0`         | Run priority P0 chat tests                                                         |
+| `npm run test:chat:smoke`      | Run smoke tests for chat module                                                    |
+| `npm run serve-report`         | View latest test reports in browser                                                |
+| `npm run format`               | Format code with Prettier                                                          |
+| `npm run lint`                 | Check code with ESLint                                                             |
+| `npm run test:newsletter`      | Run newsletter module tests                                                        |
+| `npm run test:newsletter:qa`   | Run newsletter tests on QA environment                                             |
+| `npm run test:newsletter:test` | Run newsletter tests on Test environment                                           |
 
 ## Directory Structure
 

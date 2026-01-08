@@ -1,6 +1,6 @@
-import { DateSelection, NewsletterDatePickerComponent } from '@newsletter/components/datePicker.component';
 import { expect, Locator, Page } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
@@ -13,18 +13,15 @@ export type NewsletterFilterState = {
 
 export class NewsletterFiltersComponent extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
-  private readonly filtersButton: Locator;
-  private readonly creatorField: Locator;
-  private readonly statusSelect: Locator;
-  private readonly recipientsSelect: Locator;
-  private readonly dateModifiedSelect: Locator;
-  private readonly resetFiltersButton: Locator;
-  private readonly menuItems: Locator;
-  private readonly customDateFromButton: Locator;
-  private readonly customDateToButton: Locator;
-  private readonly fromAddressField: Locator;
-  private readonly senderOptions: Locator;
-  private readonly customDateLabelCandidates: Record<'from' | 'to', string[]>;
+  readonly filtersButton: Locator;
+  readonly creatorField: Locator;
+  readonly statusSelect: Locator;
+  readonly recipientsSelect: Locator;
+  readonly dateModifiedSelect: Locator;
+  readonly resetFiltersButton: Locator;
+  readonly menuItems: Locator;
+  readonly fromAddressField: Locator;
+  readonly fromAddressListbox: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -36,14 +33,8 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
     this.dateModifiedSelect = this.page.locator('#modifiedAtSelect');
     this.resetFiltersButton = this.page.getByRole('button', { name: 'Reset all' });
     this.menuItems = this.page.getByRole('menuitem');
-    this.customDateFromButton = this.page.getByRole('button', { name: /^Date from/i });
-    this.customDateToButton = this.page.getByRole('button', { name: /^Date to/i });
     this.fromAddressField = this.page.locator('[data-testid="field-From address"]');
-    this.senderOptions = this.page.locator('[data-testid="sender-option"]');
-    this.customDateLabelCandidates = {
-      from: ['Date from', 'From date', 'Start date'],
-      to: ['Date to', 'To date', 'End date'],
-    };
+    this.fromAddressListbox = this.page.getByRole('listbox');
   }
 
   async openFiltersPanel(): Promise<void> {
@@ -132,24 +123,6 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
     return fallbackValue;
   }
 
-  async selectCustomDateRange(from: DateSelection, to: DateSelection): Promise<void> {
-    if (!(await this.customDateFromButton.isVisible())) {
-      await this.selectDateModified('Custom');
-    }
-
-    const fromTrigger = await this.resolveCustomDateTrigger('from');
-    const toTrigger = await this.resolveCustomDateTrigger('to');
-
-    await expect(fromTrigger, 'Custom date range "Date from" picker should be visible').toBeVisible();
-    await expect(toTrigger, 'Custom date range "Date to" picker should be visible').toBeVisible();
-
-    const customDatePicker = new NewsletterDatePickerComponent(this.page, {
-      fromDateLocator: fromTrigger,
-      toDateLocator: toTrigger,
-    });
-    await customDatePicker.selectDateRange(from, to);
-  }
-
   async resetFilters(): Promise<void> {
     await this.clickOnElement(this.resetFiltersButton, {
       stepInfo: 'Reset all newsletter filters',
@@ -172,12 +145,38 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
     await expect(this.dateModifiedSelect).toHaveValue(expectedState.dateModifiedValue);
   }
 
-  async getCustomDateRangeLabels(): Promise<{ from: string; to: string }> {
-    const fromTrigger = await this.resolveCustomDateTrigger('from');
-    const toTrigger = await this.resolveCustomDateTrigger('to');
-    const fromLabel = ((await fromTrigger.textContent()) || '').trim();
-    const toLabel = ((await toTrigger.textContent()) || '').trim();
-    return { from: fromLabel, to: toLabel };
+  /**
+   * Verifies that filter selections are correctly applied in the UI
+   * @param selections - The expected filter selections
+   */
+  async verifyFilterSelections(selections: {
+    creatorLabel?: string;
+    statusValue?: string;
+    recipientsValue?: string;
+    dateModifiedValue?: string;
+  }): Promise<void> {
+    const currentState = await this.captureCurrentState();
+
+    if (selections.creatorLabel !== undefined) {
+      expect(currentState.creatorText, `Creator filter should contain "${selections.creatorLabel}"`).toContain(
+        selections.creatorLabel
+      );
+    }
+    if (selections.statusValue !== undefined) {
+      expect(currentState.statusValue, `Status filter should be "${selections.statusValue}"`).toBe(
+        selections.statusValue
+      );
+    }
+    if (selections.recipientsValue !== undefined) {
+      expect(currentState.recipientsValue, `Recipients filter should be "${selections.recipientsValue}"`).toBe(
+        selections.recipientsValue
+      );
+    }
+    if (selections.dateModifiedValue !== undefined) {
+      expect(currentState.dateModifiedValue, `Date Modified filter should be "${selections.dateModifiedValue}"`).toBe(
+        selections.dateModifiedValue
+      );
+    }
   }
 
   async verifyFromAddressFilterIsVisible(): Promise<void> {
@@ -186,17 +185,18 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
     });
   }
 
-  async assertDisplayNameAndEmailVisible(senderEmail: string): Promise<void> {
+  async assertDisplayNameAndEmailVisible(_senderEmail: string): Promise<void> {
     await this.clickOnElement(this.fromAddressField, {
       stepInfo: 'Open From address filter options',
     });
 
     // Wait for React Select listbox to appear (options are inside a listbox, not native <option> elements)
-    const listbox = this.page.getByRole('listbox');
-    await expect(listbox, 'From address dropdown listbox should be visible').toBeVisible({ timeout: 10000 });
+    await expect(this.fromAddressListbox, 'From address dropdown listbox should be visible').toBeVisible({
+      timeout: TIMEOUTS.SHORT,
+    });
 
     // Get the first option from the listbox
-    const dropdownOption = listbox.getByRole('option').first();
+    const dropdownOption = this.fromAddressListbox.getByRole('option').first();
     await expect(dropdownOption, 'Dropdown option should be visible').toBeVisible();
 
     const firstOptionText = (await dropdownOption.textContent())?.trim() ?? '';
@@ -223,121 +223,5 @@ export class NewsletterFiltersComponent extends BaseActionUtil {
   private async getCreatorFieldText(): Promise<string> {
     const textContent = await this.creatorField.textContent();
     return (textContent || '').replace(/\s+/g, ' ').trim();
-  }
-
-  private async resolveCustomDateTrigger(type: 'from' | 'to'): Promise<Locator> {
-    const candidates: Locator[] = [];
-    const labels = this.customDateLabelCandidates[type];
-
-    const fallbackDataTestIds =
-      type === 'from'
-        ? ['custom-date-from', 'date-from', 'from-date', 'custom-from-date', 'field-Date from', 'field-From date']
-        : ['custom-date-to', 'date-to', 'to-date', 'custom-to-date', 'field-Date to', 'field-To date'];
-    const placeholderCandidates = ['mm/dd/yyyy', 'Select date', 'Start date', 'End date'];
-    const inputNames =
-      type === 'from' ? ['customDateFrom', 'dateFrom', 'fromDate'] : ['customDateTo', 'dateTo', 'toDate'];
-
-    // Primary stored locator and related field wrappers
-    candidates.push(type === 'from' ? this.customDateFromButton : this.customDateToButton);
-    const fieldWrapper = this.dateModifiedSelect.locator(
-      'xpath=ancestor::*[contains(@class,"Spacing-module__column")]'
-    );
-    candidates.push(fieldWrapper.locator('input').nth(type === 'from' ? 0 : 1));
-    candidates.push(
-      fieldWrapper
-        .locator('[data-testid*="date"]')
-        .locator('input, button')
-        .nth(type === 'from' ? 0 : 1)
-    );
-
-    const addGenericXPathCandidates = (root?: Locator) => {
-      const base =
-        root ??
-        this.page.locator(
-          'xpath=//*[(self::input or self::button or self::div or self::span)' +
-            ` and (contains(translate(@name,"FROMTO","fromto"),"${type === 'from' ? 'from' : 'to'}")` +
-            ` or contains(translate(@id,"FROMTO","fromto"),"${type === 'from' ? 'from' : 'to'}")` +
-            ` or contains(translate(@data-testid,"FROMTO","fromto"),"${type === 'from' ? 'from' : 'to'}")` +
-            ` or contains(translate(@aria-label,"FROMTO","fromto"),"${type === 'from' ? 'from' : 'to'}"))]`
-        );
-      candidates.push(base);
-    };
-
-    const addLabelCandidates = (root: Locator | Page) => {
-      for (const label of labels) {
-        const labelRegex = new RegExp(`^${label}`, 'i');
-        if ('getByRole' in root) {
-          candidates.push(root.getByRole('button', { name: labelRegex }));
-        }
-        if ('getByLabel' in root) {
-          candidates.push(root.getByLabel(labelRegex));
-        }
-        if ('locator' in root) {
-          candidates.push(root.locator(`[aria-label*="${label}" i]`));
-          candidates.push(root.locator('button').filter({ hasText: labelRegex }));
-          candidates.push(root.locator('input').filter({ hasText: labelRegex }));
-          candidates.push(root.locator('label').filter({ hasText: labelRegex }).locator('..').locator('input, button'));
-          const normalized = label.toLowerCase().replace(/\s+/g, '-');
-          candidates.push(root.locator(`[aria-labelledby*="${normalized}"]`).locator('input, button'));
-          candidates.push(root.locator(`[id*="${normalized}"]`).locator('input, button'));
-        }
-      }
-    };
-
-    addLabelCandidates(this.page);
-    addGenericXPathCandidates();
-
-    for (const testId of fallbackDataTestIds) {
-      candidates.push(this.page.locator(`[data-testid="${testId}"]`));
-      candidates.push(this.page.locator(`[data-testid*="${testId}"]`));
-    }
-
-    for (const name of inputNames) {
-      candidates.push(this.page.locator(`input[name="${name}"]`));
-      candidates.push(this.page.locator(`input[name*="${name}"]`));
-    }
-
-    candidates.push(this.page.locator('input[type="date"]'));
-
-    for (const placeholder of placeholderCandidates) {
-      candidates.push(this.page.getByPlaceholder(placeholder));
-    }
-
-    const portalRoot = this.page.locator('[data-tippy-root]');
-    if (await portalRoot.count()) {
-      addLabelCandidates(portalRoot);
-      addGenericXPathCandidates(portalRoot);
-      for (const testId of fallbackDataTestIds) {
-        candidates.push(portalRoot.locator(`[data-testid="${testId}"]`));
-        candidates.push(portalRoot.locator(`[data-testid*="${testId}"]`));
-      }
-
-      for (const name of inputNames) {
-        candidates.push(portalRoot.locator(`input[name="${name}"]`));
-        candidates.push(portalRoot.locator(`input[name*="${name}"]`));
-      }
-
-      candidates.push(portalRoot.locator('input[type="date"]'));
-
-      candidates.push(portalRoot.locator('[class*="DayPicker"]').locator('..').locator('button', { hasText: /Date/i }));
-      for (const placeholder of placeholderCandidates) {
-        candidates.push(portalRoot.getByPlaceholder(placeholder));
-      }
-    }
-
-    for (const candidate of candidates) {
-      const target = candidate.first();
-      if ((await target.count()) === 0) {
-        continue;
-      }
-      try {
-        await target.waitFor({ state: 'visible', timeout: 1500 });
-        return target;
-      } catch {
-        continue;
-      }
-    }
-
-    throw new Error(`Unable to locate custom date "${type}" trigger`);
   }
 }

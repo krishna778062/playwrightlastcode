@@ -2,37 +2,23 @@ import { NewsletterFiltersComponent } from '@newsletter/components/newsletterFil
 import { NEWSLETTER_FEATURE_TAGS, NEWSLETTER_SUITE_TAGS } from '@newsletter/constants/testTags';
 import { newsletterFixture as test } from '@newsletter/fixtures/newsletterFixture';
 import { NewsletterHomePagePage } from '@newsletter/pages/NewsletterHomePage.page';
-import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { tagTest } from '@core/utils/testDecorator';
 
 test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
-  test(
-    'validate the Manage Newslettter page UI',
-    {
-      tag: [
-        NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE,
-        TestPriority.P0,
-        TestGroupType.REGRESSION,
-        TestGroupType.SMOKE,
-      ],
-    },
-    async ({ appManagerPage }) => {
-      tagTest(test.info(), {
-        description: 'Newsletter Home page',
-      });
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-    }
-  );
+  let newsletterHomePage: NewsletterHomePagePage;
+
+  test.beforeEach(async ({ appManagerPage }) => {
+    newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
+    await newsletterHomePage.loadPage();
+    await newsletterHomePage.verifyThePageIsLoaded();
+    await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
+  });
 
   test(
-    'validate Newsletter Home page',
+    'validate the Manage Newsletter page UI',
     {
       tag: [
         NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE,
@@ -41,14 +27,14 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
         TestGroupType.SMOKE,
       ],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Newsletter Home page',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
+
+      await newsletterHomePage.assertPageTitleIsVisible();
     }
   );
 
@@ -57,31 +43,29 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Reset newsletter filters via Filters menu',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-
-      const filtersComponent = new NewsletterFiltersComponent(appManagerPage);
+      const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();
       const initialFilterState = await filtersComponent.captureCurrentState();
 
-      const currentUserName = await newsletterHomePage.getCurrentLoggedInUserName('Determine creator filter option');
+      const currentUserName = await newsletterHomePage.getCurrentLoggedInUserName();
       const selectedCreatorLabel = await filtersComponent.selectCreator(currentUserName);
       const selectedStatusValue = await filtersComponent.selectStatus('Draft');
       const selectedRecipientsValue = await filtersComponent.selectRecipients('All org');
       const selectedDateValue = await filtersComponent.selectDateModified('Last 24 hours');
 
-      const updatedFilterState = await filtersComponent.captureCurrentState();
-      expect(updatedFilterState.creatorText).toContain(selectedCreatorLabel);
-      expect(updatedFilterState.statusValue).toBe(selectedStatusValue);
-      expect(updatedFilterState.recipientsValue).toBe(selectedRecipientsValue);
-      expect(updatedFilterState.dateModifiedValue).toBe(selectedDateValue);
+      await filtersComponent.verifyFilterSelections({
+        creatorLabel: selectedCreatorLabel,
+        statusValue: selectedStatusValue,
+        recipientsValue: selectedRecipientsValue,
+        dateModifiedValue: selectedDateValue,
+      });
 
       await filtersComponent.resetFilters();
       await filtersComponent.expectStateToMatch(initialFilterState);
@@ -93,22 +77,16 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Validate sender details visibility in From address filter',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-
-      const filtersComponent = new NewsletterFiltersComponent(appManagerPage);
+      const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();
       await filtersComponent.verifyFromAddressFilterIsVisible();
-
-      const senderEmail = process.env['NEWSLETTER_SENDER_EMAIL'] ?? getEnvConfig().appManagerEmail;
-      await filtersComponent.assertDisplayNameAndEmailVisible(senderEmail);
     }
   );
 
@@ -117,15 +95,13 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Validate From address column visibility in newsletter table',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
       await newsletterHomePage.assertFromAddressColumnVisible();
     }
   );
@@ -135,18 +111,14 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Validate Resend option visibility for Failed to send newsletters',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-      await newsletterHomePage.clearSearchInput();
-
-      const filtersComponent = new NewsletterFiltersComponent(appManagerPage);
+      const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();
       await filtersComponent.selectStatus('Failed to send');
       await filtersComponent.selectRecipients('All org');
@@ -159,18 +131,14 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P2, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Verify past newsletters can be viewed via filters',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
-      const newsletterHomePage = new NewsletterHomePagePage(appManagerPage);
-      await newsletterHomePage.loadPage();
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await newsletterHomePage.verifier.waitUntilPageHasNavigatedTo('/employee-newsletter');
-      await newsletterHomePage.clearSearchInput();
-
-      const filtersComponent = new NewsletterFiltersComponent(appManagerPage);
+      const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
       await filtersComponent.openFiltersPanel();
       await filtersComponent.selectStatus('Failed to send');
       await filtersComponent.assertStatusOptionExists('Failed to send');

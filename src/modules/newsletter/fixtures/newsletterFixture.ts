@@ -1,25 +1,21 @@
-import { NewsletterNewUxHomePage, NewsletterOldUxHomePage } from '@newsletter/pages/newsletterHomeAdapters';
+import { NewsletterHomePageAdapter } from '@newsletter/pages/newsletterHomeAdapters';
 import { Page, test } from '@playwright/test';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@core/pages/homePage/oldUxHomePage';
+import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-const adaptHomePage = (homePage: NewUxHomePage | OldUxHomePage) => {
-  if (homePage instanceof NewUxHomePage) {
-    return new NewsletterNewUxHomePage(homePage.page);
-  }
-  return new NewsletterOldUxHomePage(homePage.page);
+/**
+ * Adapts a NewHomePage instance to NewsletterHomePageAdapter.
+ * Since LoginHelper always returns NewHomePage, this is a straightforward conversion.
+ */
+const adaptHomePage = (homePage: NewHomePage): NewsletterHomePageAdapter => {
+  return new NewsletterHomePageAdapter(homePage.page);
 };
 
 export const newsletterFixture = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
+  appManagerHomePage: NewsletterHomePageAdapter;
   appManagerPage: Page;
-  enlManagerHomePage: NewUxHomePage | OldUxHomePage;
-  enlManagerPage: Page;
-  standardUserHomePage: NewUxHomePage | OldUxHomePage;
-  standardUserPage: Page;
 }>({
   appManagerHomePage: [
     async ({ page }, use) => {
@@ -36,46 +32,6 @@ export const newsletterFixture = test.extend<{
   appManagerPage: [
     async ({ appManagerHomePage }, use) => {
       await use(appManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  //recognition manager
-  enlManagerHomePage: [
-    async ({ page }, use) => {
-      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
-        email: String(process.env['ENL_MANAGER_USERNAME']),
-        password: String(process.env['ENL_MANAGER_PASSWORD']),
-      });
-      const newsletterHomePage = adaptHomePage(recognitionHomePage);
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await use(newsletterHomePage);
-    },
-    { scope: 'test' },
-  ],
-  enlManagerPage: [
-    async ({ enlManagerHomePage }, use) => {
-      await use(enlManagerHomePage.page);
-    },
-    { scope: 'test' },
-  ],
-
-  //standard user
-  standardUserHomePage: [
-    async ({ page }, use) => {
-      const recognitionHomePage = await LoginHelper.loginWithPassword(page, {
-        email: process.env['STANDARD_USER_USERNAME'] || getEnvConfig().appManagerEmail,
-        password: process.env['STANDARD_USER_PASSWORD'] || getEnvConfig().appManagerPassword,
-      });
-      const newsletterHomePage = adaptHomePage(recognitionHomePage);
-      await newsletterHomePage.verifyThePageIsLoaded();
-      await use(newsletterHomePage);
-    },
-    { scope: 'test' },
-  ],
-  standardUserPage: [
-    async ({ standardUserHomePage }, use) => {
-      await use(standardUserHomePage.page);
     },
     { scope: 'test' },
   ],

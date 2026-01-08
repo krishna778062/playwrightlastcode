@@ -20,7 +20,6 @@ export const PAGE_ENDPOINTS = {
   REWARDS_GIFTING_OPTIONS_PAGE: '/manage/recognition/rewards/peer-gifting/options',
   CURRENCY_CONVERSION_PAGE: '/manage/recognition/rewards/currency-conversions',
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
-  MANAGE_NEWSLETTER_PAGE: '/employee-newsletter',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',
   MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
@@ -138,4 +137,7 @@ export const PAGE_ENDPOINTS = {
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
   COMMS_PLANNER_PLANNER: '/comms-planner/planner',
   COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
+
+  //Newsletter pages
+  MANAGE_NEWSLETTER_PAGE: '/employee-newsletter',
 };
