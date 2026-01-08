@@ -22,6 +22,7 @@ on:
           - 'integrations-azuresso'
           - 'integrations-api'
           - 'frontline'
+          - 'newsletter'
           - 'recognition'
           - 'alert-notification'
           - 'employee-listening'
