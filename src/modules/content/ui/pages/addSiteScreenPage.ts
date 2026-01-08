@@ -3,15 +3,6 @@ import { Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/ui/pages/basePage';
 
-export interface IAddSiteScreenActions {
-  clickOnRemoveAudienceButton: () => Promise<void>;
-  clickOnIUnderstandCheckbox: () => Promise<void>;
-  clickOnContinueButton: () => Promise<void>;
-  clickOnBrowseButton: () => Promise<void>;
-}
-
-export interface IAddSiteScreenAssertions {}
-
 export class AddSiteScreenPage extends BasePage {
   readonly removeAudienceButton = this.page.getByRole('button', { name: 'Remove audience' });
   readonly iUnderstandCheckbox = this.page.getByRole('checkbox', { name: 'I understand' });
@@ -22,14 +13,6 @@ export class AddSiteScreenPage extends BasePage {
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ADD_SITE_SCREEN_PAGE);
   }
-
-  get actions(): IAddSiteScreenActions {
-    return this;
-  }
-  get assertions(): IAddSiteScreenAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.addSiteHeading, {
       assertionMessage: 'Add site heading should be visible on add site screen page',

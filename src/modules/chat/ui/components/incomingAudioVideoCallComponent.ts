@@ -22,17 +22,10 @@ export class IncomingAudioVideoCallComponent extends BaseComponent {
       name: 'Accept',
       exact: true,
     });
-    this.incomingCallContainer = this.page.getByTestId('incomingCallModal');
-    this.acceptIncomingCallButton = this.incomingCallContainer.getByRole('button', {
-      name: 'Accept',
-      exact: true,
-    });
     this.rejectIncomingCallButton = this.incomingCallContainer.getByRole('button', {
       name: 'Decline',
       exact: true,
     });
-
-    this.callerName = this.page.getByTestId('callerName');
     this.incomingCallGroupImageContainer = this.page.getByTestId('groupImageContainer');
     this.incomingVideoCallStreamPreview = this.page.locator("video[aria-label='video-preview']");
 

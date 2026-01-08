@@ -68,49 +68,49 @@ test.describe(
           storyId: 'CONT-23553',
         });
         await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationscreen.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
-        await governanceScreenPage.actions.disableContentSubmissions('Saved changes successfully');
+        await applicationscreen.clickOnApplication();
+        await manageApplicationPage.clickOnGovernance();
+        await governanceScreenPage.disableContentSubmissions('Saved changes successfully');
         await sideNavBarComponent.verifyingCreateButtonIsVisible();
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSiteSetUpPage.actions.clickOnSite();
-        await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.assertions.verifyAddContentButtonIsVisible();
+        await manageFeaturesPage.clickOnSitesCard();
+        await manageSiteSetUpPage.clickOnSite();
+        await siteDetailsPage.ViewSite();
+        await siteDashboardPage.verifyAddContentButtonIsVisible();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
         const standardUserSitesPage = new SitesPage(standardUserFixture.page, '');
         const standardUserSideNavBarComponent = new SideNavBarComponent(standardUserFixture.page);
         await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnFollowingTab();
-        await standardUserSitesPage.actions.openSiteFromFollowingTab();
+        await standardUserSitesPage.clickOnFollowingTab();
+        await standardUserSitesPage.openSiteFromFollowingTab();
         const standardUserSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, '');
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsNotVisible();
-        await standardUserSiteDashboardPage.actions.clickOnDismissButton();
+        await standardUserSiteDashboardPage.verifyAddContentButtonIsNotVisible();
+        await standardUserSiteDashboardPage.clickOnDismissButton();
         await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnMemberTab();
-        await standardUserSitesPage.actions.openSiteFromMemberTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsNotVisible();
+        await standardUserSitesPage.clickOnMemberTab();
+        await standardUserSitesPage.openSiteFromMemberTab();
+        await standardUserSiteDashboardPage.verifyAddContentButtonIsNotVisible();
         await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnMySitesTab();
-        await standardUserSitesPage.actions.openSiteFromMySitesTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsVisible();
+        await standardUserSitesPage.clickOnMySitesTab();
+        await standardUserSitesPage.openSiteFromMySitesTab();
+        await standardUserSiteDashboardPage.verifyAddContentButtonIsVisible();
         await appManagerFixture.navigationHelper.openApplicationSettings();
-        await applicationscreen.actions.clickOnApplication();
-        await manageApplicationPage.actions.clickOnGovernance();
-        await governanceScreenPage.actions.enableContentSubmissions('Saved changes successfully');
+        await applicationscreen.clickOnApplication();
+        await manageApplicationPage.clickOnGovernance();
+        await governanceScreenPage.enableContentSubmissions('Saved changes successfully');
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
-        await manageSiteSetUpPage.actions.clickOnSite();
-        await siteDetailsPage.actions.ViewSite();
-        await siteDashboardPage.assertions.verifyAddContentButtonIsVisible();
+        await manageFeaturesPage.clickOnSitesCard();
+        await manageSiteSetUpPage.clickOnSite();
+        await siteDetailsPage.ViewSite();
+        await siteDashboardPage.verifyAddContentButtonIsVisible();
         await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnFollowingTab();
-        await standardUserSitesPage.actions.openSiteFromFollowingTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsVisible();
+        await standardUserSitesPage.clickOnFollowingTab();
+        await standardUserSitesPage.openSiteFromFollowingTab();
+        await standardUserSiteDashboardPage.verifyAddContentButtonIsVisible();
         await standardUserSideNavBarComponent.clickOnSites();
-        await standardUserSitesPage.actions.clickOnMemberTab();
-        await standardUserSitesPage.actions.openSiteFromMemberTab();
-        await standardUserSiteDashboardPage.assertions.verifyAddContentButtonIsVisible();
+        await standardUserSitesPage.clickOnMemberTab();
+        await standardUserSitesPage.openSiteFromMemberTab();
+        await standardUserSiteDashboardPage.verifyAddContentButtonIsVisible();
       }
     );
 
@@ -156,22 +156,22 @@ test.describe(
         await manageSiteSetupPage.clickDashboardAndFeedTab();
 
         // Disable Content posts
-        await manageSiteSetupPage.actions.setContentPostsPermission(ContentPostingPermission.DISABLED);
+        await manageSiteSetupPage.setContentPostsPermission(ContentPostingPermission.DISABLED);
 
         const contentPreviewPage = new ContentPreviewPage(standardUserFixture.page, siteId, contentId, 'page');
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page as EndUser' });
         await contentPreviewPage.verifyThePageIsLoaded();
 
         // Verify user is unable to view Comment option (Share your thoughts button)
-        await contentPreviewPage.assertions.verifyCommentOptionIsNotVisible();
+        await contentPreviewPage.verifyCommentOptionIsNotVisible();
 
-        await contentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        await contentPreviewPage.waitForPostToBeVisible(commentText);
 
         await manageSiteSetupPage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
         await manageSiteSetupPage.clickDashboardAndFeedTab();
 
         // Disable Content posts
-        await manageSiteSetupPage.actions.setContentPostsPermission(ContentPostingPermission.ENABLED);
+        await manageSiteSetupPage.setContentPostsPermission(ContentPostingPermission.ENABLED);
       }
     );
   }

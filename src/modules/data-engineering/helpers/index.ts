@@ -2,6 +2,7 @@ export * from './base64Helper';
 export * from './baseAnalyticsQueryHelper';
 export * from './contentDashboardQueryHelper';
 export * from './dateHelper';
+export * from './filesDashboardQueryHelper';
 export * from './mobileDashboardQueryHelper';
 export * from './monthlyReportsQueryHelper';
 export * from './peopleDashboardQueryHelper';

@@ -3,16 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IManageUsersPageActions {
-  navigateToManageUsersFilterPage: (firstName: string, lastName: string) => Promise<void>;
-}
-
-export interface IManageUsersPageAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyRoleFilterIsVisible: (role: string) => Promise<void>;
-}
-
-export class ManageUsersPage extends BasePage implements IManageUsersPageActions, IManageUsersPageAssertions {
+export class ManageUsersPage extends BasePage {
   readonly pageHeader: Locator;
   readonly roleFilter: (role: string) => Locator;
 
@@ -21,15 +12,6 @@ export class ManageUsersPage extends BasePage implements IManageUsersPageActions
     this.pageHeader = page.getByRole('heading', { name: 'Manage users' });
     this.roleFilter = (role: string) => page.getByText(role);
   }
-
-  get actions(): IManageUsersPageActions {
-    return this;
-  }
-
-  get assertions(): IManageUsersPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying manage users page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageHeader, {

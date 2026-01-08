@@ -56,14 +56,14 @@ test.describe(
         const siteSetupPage = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
         await siteSetupPage.loadPage();
         await siteSetupPage.verifyThePageIsLoaded();
-        await siteSetupPage.actions.clickOnThePageTemplateTab();
-        await siteSetupPage.actions.clickThreeDotsMenuForTemplate(templateName);
-        await siteSetupPage.actions.clickOnEditButton();
+        await siteSetupPage.clickOnThePageTemplateTab();
+        await siteSetupPage.clickThreeDotsMenuForTemplate(templateName);
+        await siteSetupPage.clickOnEditButton();
         const editTemplatePage = new EditTemplatePage(appManagerFixture.page);
         await editTemplatePage.verifyThePageIsLoaded();
-        await editTemplatePage.actions.editContent(largeContent);
-        await editTemplatePage.assertions.verifyContentHasProperCharacterCount(300000);
-        await editTemplatePage.actions.clickOnUpdateButton();
+        await editTemplatePage.editContent(largeContent);
+        await editTemplatePage.verifyContentHasProperCharacterCount(300000);
+        await editTemplatePage.clickOnUpdateButton();
       }
     );
   }
