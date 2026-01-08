@@ -12,6 +12,7 @@ import { ShareComponent } from '@content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
+import { SiteFilesPage } from '@content/ui/pages/sitePages/siteFilesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
@@ -25,6 +26,7 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
@@ -2389,7 +2391,120 @@ test.describe(
     );
 
     test(
-      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed CONT-24122',
+      'in Zeus verify user submits inappropriate content while sharing a file to home dashboard and site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28478'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User submits inappropriate content while Sharing a File to Home Dashboard and Site Dashboard',
+          zephyrTestId: 'CONT-28478',
+          storyId: 'CONT-28478',
+        });
+
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const siteName = 'All Employees';
+        const fileName = 'V2.png';
+        const folderName = 'AVISTA BOX FILES EDITOR';
+
+        // Get site ID and setup page objects once
+        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        // Admin page objects for setup
+        const adminManageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        const adminSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const adminSiteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+
+        // Standard user page objects (reused across both scenarios)
+        const userSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+        const userSiteFilesPage = new SiteFilesPage(standardUserFixture.page, publicSiteId);
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        const warningPopup = new InappropriateContentWarningPopupComponent(standardUserFixture.page);
+
+        // Setup - Admin configures external files and uploads folder
+        await test.step('Admin: Setup external files provider and upload folder', async () => {
+          await adminManageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await adminManageSitePage.setExternalFilesProvider('Box files');
+          await adminSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+          await adminSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await adminSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await adminSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await adminSiteFilesPage.actions.uploadBoxFileFolder(folderName);
+        });
+
+        // Test Home Feed scenario
+        await test.step('Home Feed: Verify inappropriate content warning - Cancel and Continue flows', async () => {
+          // Navigate to file
+          await userSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await userSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await userSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await userSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await userSiteFilesPage.actions.clickOnFilesFolder(folderName);
+          await userSiteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          // Open share modal and enter inappropriate text
+          await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+
+          // Click share and verify warning popup - then Cancel
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Verify modal still open, re-enter text and Continue
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
+        });
+
+        // Test Site Feed scenario
+        await test.step('Site Feed: Verify inappropriate content warning - Cancel and Continue flows', async () => {
+          // Navigate to file
+          await userSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await userSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await userSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await userSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await userSiteFilesPage.actions.clickOnFilesFolder(folderName);
+          await userSiteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          // Open share modal, select Site Feed, enter inappropriate text
+          await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.selectShareOptionAsSiteFeed();
+          await shareComponent.enterSiteName(siteName);
+
+          // Click share and verify warning popup - then Cancel
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Verify modal still open, re-enter text and Continue
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
+        });
+      }
+    );
+
+    test(
+      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24122'],
       },
@@ -2599,6 +2714,73 @@ test.describe(
     );
 
     test(
+      'in Zeus verify share option is not visible for GDrive file when Feed is disabled',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-20080'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify share option is not visible for GDrive file when Feed is disabled',
+          zephyrTestId: 'CONT-20080',
+          storyId: 'CONT-20080',
+        });
+
+        const fileName = 'V2.png';
+        const folderName = 'AVISTA BOX FILES EDITOR';
+
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const publicSiteId = publicSite.siteId;
+
+        // Create page objects once and reuse
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+        const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+
+        // Setup - Configure external files provider and upload folder
+        await test.step('Setup: Configure external files and upload folder', async () => {
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setExternalFilesProvider('Box files');
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.uploadBoxFileFolder(folderName);
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+        });
+
+        // Change governance to Timeline mode and verify share option is hidden
+        await test.step('Verify share option is NOT visible when Feed is disabled (Timeline mode)', async () => {
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
+
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyShareOptionIsNotVisible(fileName);
+        });
+
+        // Restore governance to default mode and verify share option is visible
+        await test.step('Verify share option is visible when Feed is enabled (Default mode)', async () => {
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.selectTimelineFeedSettingsAsDefaultMode();
+
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyShareOptionIsVisible(fileName);
+        });
+      }
+    );
+
+    test(
       'verify user able to share Feed post on Public Site feed using "Post in Site Feed" option',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19560'],
@@ -2665,6 +2847,8 @@ test.describe(
           zephyrTestId: 'CONT-19568',
           storyId: 'CONT-19568',
         });
+        let createdPostText: string = '';
+        let createdPostId: string = '';
 
         await test.step('Login as Admin and create global post with file attachment', async () => {
           await appManagerFixture.homePage.verifyThePageIsLoaded();
