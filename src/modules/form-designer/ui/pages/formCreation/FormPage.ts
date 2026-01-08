@@ -109,7 +109,6 @@ export class FormCreationPage extends BasePage {
     this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
     this.previewButton = this.page.getByText('Preview');
     this.requiredToggle = this.page.getByRole('switch', { name: 'Required' });
-    this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
     this.settingsButton = this.page.getByText('Settings');
     this.updateButton = this.page.getByRole('button', { name: 'Update' });
     this.editButton = this.page.getByText('Edit');
