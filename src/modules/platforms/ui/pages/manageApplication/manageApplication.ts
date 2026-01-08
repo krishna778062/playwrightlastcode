@@ -3,6 +3,7 @@ import { APIRequestContext, Locator, Page, test } from '@playwright/test';
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { AppConfigurationService } from '@platforms/apis/services/AppConfigurationService';
+import { PLATFORM_GENERIC_MESSAGES } from '@platforms/constants';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
@@ -262,7 +263,7 @@ export class ManageApplicationPage extends BasePage {
   async saveAndVerifySuccess(): Promise<void> {
     await test.step('Save changes and verify success message', async () => {
       await this.clickOnSave();
-      await this.verifyTheDisplayOfMessageWithText('Saved changes successfully');
+      await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
       // Wait a bit for the page state to update after save
       await this.page.waitForTimeout(1000);
     });
@@ -380,17 +381,6 @@ export class ManageApplicationPage extends BasePage {
       await locator.waitFor({ state: 'attached', timeout: 15000 });
       await locator.scrollIntoViewIfNeeded();
       await this.verifier.waitUntilElementIsVisible(locator, { timeout: 15000 });
-    });
-  }
-
-  async checkLanguageCheckbox(fieldId: string): Promise<void> {
-    await test.step(`Check language checkbox with field id "${fieldId}"`, async () => {
-      const checkbox = this.page.locator(`input[id*="${fieldId}"]`).first();
-      await this.verifier.waitUntilElementIsVisible(checkbox, { timeout: 10000 });
-      await checkbox.scrollIntoViewIfNeeded();
-      if (!(await checkbox.isChecked())) {
-        await checkbox.check();
-      }
     });
   }
 
@@ -623,29 +613,6 @@ export class ManageApplicationPage extends BasePage {
     });
   }
 
-  async verifyTheAbsenceOfFieldWithHtmlTagAndText(tag: string, text: string): Promise<void> {
-    await test.step(`Verify absence of ${tag} element with text "${text}"`, async () => {
-      // Wait for page to finish loading first (progressbar to disappear)
-      await this.waitForPageToLoad();
-      let locator;
-      // Use getByRole for headings (h1, h2, h3, etc.) as suggested by codegen
-      if (tag.toLowerCase().startsWith('h') && tag.length === 2) {
-        const level = parseInt(tag.charAt(1));
-        if (level >= 1 && level <= 6) {
-          locator = this.page.getByRole('heading', { name: text, level });
-        } else {
-          // Fallback: use locator with hasText for non-standard headings
-          locator = this.page.locator(`${tag}:not(#app)`).filter({ hasText: text }).first();
-        }
-      } else {
-        // For other tags, use locator with hasText which handles nested text better
-        locator = this.page.locator(`${tag}:not(#app)`).filter({ hasText: text }).first();
-      }
-      // Verify the element is not visible
-      await this.verifier.verifyTheElementIsNotVisible(locator, { timeout: 10000 });
-    });
-  }
-
   private async findHelpAndFeedbackInputField(): Promise<Locator> {
     return this.page.locator('#react-select-2-input');
   }
@@ -666,8 +633,6 @@ export class ManageApplicationPage extends BasePage {
         await this.clickOnElement(removeButton, {
           stepInfo: `Remove email tag`,
         });
-        // Wait for the tag to be removed and UI to update
-        await this.page.waitForTimeout(500);
         // Re-check the count
         removeButtonCount = await removeButtons.count();
       }
@@ -681,9 +646,6 @@ export class ManageApplicationPage extends BasePage {
       await inputField.clear();
       await inputField.blur();
 
-      // Wait for form to recognize the change
-      await this.page.waitForTimeout(500);
-
       return emailsWereCleared;
     });
   }
@@ -695,21 +657,16 @@ export class ManageApplicationPage extends BasePage {
       await this.verifier.waitUntilElementIsVisible(inputField, { timeout: 10000 });
       // Click to focus and open the React Select
       await inputField.click();
-      await this.page.waitForTimeout(300);
       // Fill the input field with the email
       await inputField.fill(email);
-      await this.page.waitForTimeout(300);
       // Press Enter to confirm/add the email
       await inputField.press('Enter');
-      await this.page.waitForTimeout(500);
       // Click on the email text that appears (the tag)
       const emailText = this.page.getByText(email).first();
       await this.verifier.waitUntilElementIsVisible(emailText, { timeout: 5000 });
       await this.clickOnElement(emailText, {
         stepInfo: `Click on email tag ${email}`,
       });
-      // Wait for form to recognize the change
-      await this.page.waitForTimeout(500);
     });
   }
 
@@ -759,12 +716,6 @@ export class ManageApplicationPage extends BasePage {
         } catch (error) {
           lastError = error instanceof Error ? error : new Error(String(error));
         }
-
-        // Exponential backoff: start with 500ms, increase gradually up to 2 seconds
-        if (attempt < maxRetries - 1) {
-          const delay = Math.min(500 + attempt * 200, 2000);
-          await this.page.waitForTimeout(delay);
-        }
       }
 
       // If we get here, all retries failed - provide detailed error message
@@ -807,7 +758,7 @@ export class ManageApplicationPage extends BasePage {
       await this.scrollAndClickOnSave();
 
       // Verify the display of message with text "Saved changes successfully"
-      await this.verifyTheDisplayOfMessageWithText('Saved changes successfully');
+      await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
 
       // Refresh the page
       await this.page.reload({ waitUntil: 'domcontentloaded' });
@@ -817,9 +768,6 @@ export class ManageApplicationPage extends BasePage {
 
       // Scroll to element with html tag "h2" and text "Social campaigns"
       await this.scrollToElementWithHtmlTagAndText('h2', 'Social campaigns');
-
-      // Wait a bit for the page to fully render after refresh
-      await this.page.waitForTimeout(1000);
 
       // Verify the presence of field with html tag "button" and text "Help & feedback"
       // Use getByRole directly for buttons as it's more reliable
@@ -859,7 +807,7 @@ export class ManageApplicationPage extends BasePage {
         }
 
         // Verify the display of message with text "Saved changes successfully"
-        await this.verifyTheDisplayOfMessageWithText('Saved changes successfully');
+        await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
 
         // Call Zeus AppConfig API first to ensure backend has processed the change
         await this.getAppConfigViaAPI(apiContext, zuluApiUrl);
@@ -876,9 +824,6 @@ export class ManageApplicationPage extends BasePage {
 
         // Scroll to element with html tag "h2" and text "Social campaigns"
         await this.scrollToElementWithHtmlTagAndText('h2', 'Social campaigns');
-
-        // Wait a bit for the page to fully render after refresh
-        await this.page.waitForTimeout(1000);
 
         // Verify the absence of field with html tag "button" and text "Help & feedback"
         // Use getByRole directly for buttons as it's more reliable
@@ -898,8 +843,6 @@ export class ManageApplicationPage extends BasePage {
       await this.clickOnElement(helpFeedbackButton, {
         stepInfo: 'Click on Help & feedback button in footer',
       });
-      // Wait for the modal/form to appear
-      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -909,7 +852,6 @@ export class ManageApplicationPage extends BasePage {
       const selectInput = this.page.getByTestId('SelectInput');
       await this.verifier.waitUntilElementIsVisible(selectInput, { timeout: 10000 });
       await selectInput.selectOption(option);
-      await this.page.waitForTimeout(500);
     });
   }
 
@@ -925,7 +867,6 @@ export class ManageApplicationPage extends BasePage {
       await descriptionTextarea.click();
       await descriptionTextarea.fill(shortText);
       await descriptionTextarea.blur();
-      await this.page.waitForTimeout(500);
     });
   }
 
@@ -939,7 +880,6 @@ export class ManageApplicationPage extends BasePage {
       await descriptionTextarea.click();
       await descriptionTextarea.fill(description);
       await descriptionTextarea.blur();
-      await this.page.waitForTimeout(500);
     });
   }
 
@@ -954,7 +894,6 @@ export class ManageApplicationPage extends BasePage {
       const isChecked = await checkbox.isChecked();
       if (!isChecked) {
         await checkbox.check();
-        await this.page.waitForTimeout(500);
       }
     });
   }
@@ -967,7 +906,6 @@ export class ManageApplicationPage extends BasePage {
       await this.clickOnElement(sendButton, {
         stepInfo: 'Click on Send button',
       });
-      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -1004,11 +942,8 @@ export class ManageApplicationPage extends BasePage {
       // Scroll and Click on "Save" field
       await this.scrollAndClickOnSave();
 
-      // Wait for 5 second
-      await this.page.waitForTimeout(5000);
-
       // Verify the display of message with text "Saved changes successfully"
-      await this.verifyTheDisplayOfMessageWithText('Saved changes successfully');
+      await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
 
       // Click on "Help & feedback" section in footer
       await this.clickOnHelpAndFeedbackSectionInFooter();
@@ -1064,7 +999,7 @@ export class ManageApplicationPage extends BasePage {
         }
 
         // Verify the display of message with text "Saved changes successfully"
-        await this.verifyTheDisplayOfMessageWithText('Saved changes successfully');
+        await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
       } finally {
         await apiContext.dispose();
       }
