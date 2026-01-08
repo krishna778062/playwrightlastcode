@@ -119,6 +119,11 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         zephyrTestId: 'RC-2192',
         storyId: 'RC-2192',
       });
+      tagTest(test.info(), {
+        description: 'Validate Rewards terminology menu on Rewards overview page',
+        zephyrTestId: 'RC-3474',
+        storyId: 'RC-3202',
+      });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsOverviewPage.verifyThePageIsLoaded();
       await manageRewardsOverviewPage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/overview');

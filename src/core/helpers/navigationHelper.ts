@@ -78,6 +78,7 @@ export class NavigationHelper {
    */
   async clickOnGlobalFeed(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Clicking on global feed', async () => {
+      //check if feed link is visible
       await this.sideNavBarComponent.clickOnGlobalFeed();
     });
   }
@@ -139,9 +140,9 @@ export class NavigationHelper {
     });
   }
 
-  async clickOnHomeButton(): Promise<void> {
+  async clickOnHomeIconButton(): Promise<void> {
     await test.step('Clicking on home button on side bar', async () => {
-      await this.sideNavBarComponent.clickingOnHome.click();
+      await this.sideNavBarComponent.clickOnHomeIcon();
     });
   }
 
@@ -307,12 +308,12 @@ export class NavigationHelper {
         //click on application settings and click on application
         await this.openApplicationSettings({ stepInfo: 'Open Application settings via side nav' });
         const applicationScreenPage = new ApplicationScreenPage(this.page);
-        await applicationScreenPage.actions.clickOnApplication();
+        await applicationScreenPage.clickOnApplication();
         //verify manage application page is visible
         const manageApplicationPage = new ManageApplicationPage(this.page);
         await manageApplicationPage.verifyThePageIsLoaded();
         // move to defaults tab
-        await manageApplicationPage.actions.clickOnDefaults();
+        await manageApplicationPage.clickOnDefaults();
         // verify email notification settings page is visible
         const emailNotificationAppSettingsPage = new EmailNotificationAppSettingsPage(this.page);
         await emailNotificationAppSettingsPage.verifyThePageIsLoaded();

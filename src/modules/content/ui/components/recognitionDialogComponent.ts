@@ -2,32 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
-export interface IRecognitionDialogActions {
-  clickShareDialogShareButton(): Promise<void>;
-  selectUserForRecognition: (userName: string | number) => Promise<void>;
-  selectPeerRecognitionAward: (awardName: string | number) => Promise<string>;
-  enterRecognitionMessage: (message: string) => Promise<void>;
-  addAttachment: (filePath: string) => Promise<void>;
-  clickRecognizeButtonAndWaitForShareDialog: () => Promise<void>;
-  selectPostInHomeFeedInShareDialog: () => Promise<void>;
-  selectPostInSiteFeedInShareDialog: () => Promise<void>;
-  selectSiteInShareDialog: (siteName: string) => Promise<void>;
-  clickSharePostButton: () => Promise<void>;
-  waitForShareDialogToClose: () => Promise<void>;
-  clickSkipButton: () => Promise<void>;
-  enterMessageInShareDialog: (message: string) => Promise<void>;
-  selectPostInHomeFeedInShareDialogForm: () => Promise<void>;
-  selectPostInSiteFeedInShareDialogForm: (siteName: string) => Promise<void>;
-}
-
-export interface IRecognitionDialogAssertions {
-  verifyRecognitionDialogIsLoaded: () => Promise<void>;
-}
-
-export class RecognitionDialogComponent
-  extends BaseComponent
-  implements IRecognitionDialogActions, IRecognitionDialogAssertions
-{
+export class RecognitionDialogComponent extends BaseComponent {
   // Dialog container - scoped to the recognition dialog
   readonly recognitionDialog: Locator;
 
@@ -354,12 +329,5 @@ export class RecognitionDialogComponent
     await test.step('Click Share button in share dialog', async () => {
       await this.clickOnElement(this.shareDialogShareButton);
     });
-  }
-  get actions(): IRecognitionDialogActions {
-    return this;
-  }
-
-  get assertions(): IRecognitionDialogAssertions {
-    return this;
   }
 }

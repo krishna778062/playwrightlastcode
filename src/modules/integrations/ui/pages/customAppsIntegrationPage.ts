@@ -214,7 +214,10 @@ export class CustomAppsIntegrationPage extends BasePage {
    * @returns void
    */
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
-    return this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
+    await test.step(`Verify toast message: "${message}"`, async () => {
+      await this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
+      await this.page.waitForTimeout(500);
+    });
   }
 
   async openConnectorOptions(service: string): Promise<void> {
@@ -223,12 +226,29 @@ export class CustomAppsIntegrationPage extends BasePage {
 
   async searchAndSelectAppWithNameToPerformAction(appName: string, action: AppConnectorOptions): Promise<void> {
     await test.step('Search and select app with name', async () => {
+      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
       await this.customAppsComponent.searchForApp(appName);
       await this.customAppsComponent.verifyCountOfAppsInListIs(1);
+      await this.page.waitForTimeout(300);
+
       await this.customAppsComponent.clickOnAppConnector(appName);
+      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
+      await this.saveButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+
       await this.customAppsComponent.selectConnectorOption(action);
-      // Use the new generic dialog button method instead of confirmDelete
       await this.customAppsComponent.clickDialogButton(action, `Confirm ${action}`);
+      if (action === AppConnectorOptions.Delete) {
+        await this.page
+          .waitForURL(/\/manage\/app\/integrations\/custom$/, {
+            timeout: TIMEOUTS.MEDIUM,
+          })
+          .catch(() => {});
+        await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
+        await this.resultListAppTilesItemCountLocator.waitFor({
+          state: 'visible',
+          timeout: TIMEOUTS.MEDIUM,
+        });
+      }
     });
   }
 
@@ -272,7 +292,10 @@ export class CustomAppsIntegrationPage extends BasePage {
       await this.customAppsComponent.clickAddCustomAppOption(CustomAppType.ADD_PREBUILT_APP);
       await this.customAppsComponent.searchForPrebuiltApp(appName);
       await this.customAppsComponent.clickAddPrebuilt(appName);
-      await this.page.waitForURL(/new/);
+      await this.page.waitForURL(/new/, { timeout: TIMEOUTS.MEDIUM });
+      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
+      await this.saveButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(this.saveButton).toBeEnabled({ timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -328,8 +351,13 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
 
   async clickSaveButton(): Promise<void> {
-    await this.customAppsComponent.clickButton('Save');
-    await expect(this.saveButton).toBeDisabled({ timeout: TIMEOUTS.SHORT });
+    await test.step('Click Save button', async () => {
+      await this.saveButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(this.saveButton).toBeEnabled({ timeout: TIMEOUTS.SHORT });
+      await this.customAppsComponent.clickButton('Save');
+      await expect(this.saveButton).toBeDisabled({ timeout: TIMEOUTS.MEDIUM });
+      await this.page.waitForTimeout(500);
+    });
   }
 
   /**
@@ -337,13 +365,18 @@ export class CustomAppsIntegrationPage extends BasePage {
    */
   async enterCredentials(userId: string, userSecret: string): Promise<void> {
     await test.step(`Enter credentials: userId=${userId}`, async () => {
-      await this.usernameInput.waitFor({ state: 'visible' });
+      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.MEDIUM });
+      await this.usernameInput.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(this.usernameInput).toBeEnabled({ timeout: TIMEOUTS.SHORT });
       await this.usernameInput.fill(userId);
       await this.usernameInput.blur();
-      await this.passwordInput.waitFor({ state: 'visible' });
+      await this.page.waitForTimeout(300);
+      await this.passwordInput.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(this.passwordInput).toBeEnabled({ timeout: TIMEOUTS.SHORT });
       await this.passwordInput.fill(userSecret);
       await this.passwordInput.blur();
-      await this.saveButton.waitFor({ state: 'visible' });
+      await this.saveButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await expect(this.saveButton).toBeEnabled({ timeout: TIMEOUTS.SHORT });
       await this.clickSaveButton();
     });
   }

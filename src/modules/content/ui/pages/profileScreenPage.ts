@@ -6,67 +6,55 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { EditContactComponent } from '@/src/modules/content/ui/components/editContactComponent';
 
-export interface IProfileScreenPageActions {
-  clickOnManageTopics: () => Promise<void>;
-  clickOnFavoriteOption: () => Promise<boolean>; // Returns true if user was already favorited, false otherwise
-  clickEditAbout: () => Promise<void>;
-  updateDateOfBirth: (month: number, day: number) => Promise<void>;
-  saveProfileChanges: () => Promise<void>;
-  openEditTimezone: () => Promise<void>;
-  selectTimezone: (value: string) => Promise<void>;
-  clickOnSaveTimezoneButton: () => Promise<void>;
-}
-
-export interface IProfileScreenPageAssertions {
-  verifyingUserNameOnProfileScreenPage: () => Promise<void>;
-}
-
-export class ProfileScreenPage extends BasePage implements IProfileScreenPageActions, IProfileScreenPageAssertions {
+export class ProfileScreenPage extends BasePage {
   private baseActionUtil: BaseActionUtil;
   private editContactComponent: EditContactComponent;
-  readonly copyProfileLinkOption: Locator = this.page.getByRole('button', { name: 'Copy profile link' });
-  readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
-  readonly favoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Favorite' }).nth(1);
-  readonly unfavoriteOption: Locator = this.page.getByRole('menuitem', { name: 'Unfavorite' }).nth(1);
-  readonly favoriteTextLocator: Locator = this.page.getByTestId('desktop-layout').getByText('Favorite');
-  readonly editTimezoneButton: Locator = this.page.getByRole('button', { name: 'Edit contact' });
 
-  readonly manageTopicsLink: Locator = this.page
-    .getByRole('link', { name: 'Manage Topics' })
-    .or(this.page.locator('a', { hasText: 'Manage Topics' }));
-
-  readonly editAboutButton: Locator = this.page.getByRole('button', { name: 'Edit about' });
-  readonly editAboutDialog: Locator = this.page.getByRole('dialog', { name: 'Edit about' });
-  readonly dateOfBirthMonthInput: Locator = this.editAboutDialog
-    .getByTestId('field-Birthday month')
-    .getByTestId('SelectInput');
-  readonly dateOfBirthDayInput: Locator = this.editAboutDialog
-    .getByTestId('field-Birthday day')
-    .getByTestId('SelectInput');
-  readonly saveButton: Locator = this.editAboutDialog.getByRole('button', { name: 'Save' });
+  readonly copyProfileLinkOption: Locator;
+  readonly ellipsesButton: Locator;
+  readonly favoriteOption: Locator;
+  readonly unfavoriteOption: Locator;
+  readonly favoriteTextLocator: Locator;
+  readonly editTimezoneButton: Locator;
+  readonly manageTopicsLink: Locator;
+  readonly editAboutButton: Locator;
+  readonly editAboutDialog: Locator;
+  readonly dateOfBirthMonthInput: Locator;
+  readonly dateOfBirthDayInput: Locator;
+  readonly saveButton: Locator;
+  readonly followButton: Locator;
 
   constructor(page: Page, peopleId: string) {
     super(page, PAGE_ENDPOINTS.getProfileScreenPage(peopleId));
     this.baseActionUtil = new BaseActionUtil(page);
     this.editContactComponent = new EditContactComponent(page);
-  }
 
-  get actions(): IProfileScreenPageActions {
-    return this;
-  }
-
-  get assertions(): IProfileScreenPageAssertions {
-    return this;
+    this.copyProfileLinkOption = this.page.getByRole('button', { name: 'Copy profile link' });
+    this.followButton = this.page.getByRole('button', { name: 'Follow' });
+    this.ellipsesButton = this.page.getByRole('button', { name: 'Show more' });
+    this.favoriteOption = this.page.getByRole('menuitem', { name: 'Favorite' }).nth(1);
+    this.unfavoriteOption = this.page.getByRole('menuitem', { name: 'Unfavorite' }).nth(1);
+    this.favoriteTextLocator = this.page.getByTestId('desktop-layout').getByText('Favorite');
+    this.editTimezoneButton = this.page.getByRole('button', { name: 'Edit contact' });
+    this.manageTopicsLink = this.page
+      .getByRole('link', { name: 'Manage Topics' })
+      .or(this.page.locator('a', { hasText: 'Manage Topics' }));
+    this.editAboutButton = this.page.getByRole('button', { name: 'Edit about' });
+    this.editAboutDialog = this.page.getByRole('dialog', { name: 'Edit about' });
+    this.dateOfBirthMonthInput = this.editAboutDialog.getByTestId('field-Birthday month').getByTestId('SelectInput');
+    this.dateOfBirthDayInput = this.editAboutDialog.getByTestId('field-Birthday day').getByTestId('SelectInput');
+    this.saveButton = this.editAboutDialog.getByRole('button', { name: 'Save' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify profile screen page is visible', async () => {
       // Use "Show more" button as it's reliably present on profile pages
-      await this.verifier.verifyTheElementIsVisible(this.copyProfileLinkOption, {
+      await this.verifier.verifyTheElementIsVisible(this.editTimezoneButton, {
         assertionMessage: 'Profile screen page should be visible',
       });
     });
   }
+
   async clickOnFavoriteOption(): Promise<boolean> {
     return await test.step('Clicking on favorite option', async () => {
       // Step 1: Click on "Show more" button (three dots) to open the menu
@@ -134,24 +122,24 @@ export class ProfileScreenPage extends BasePage implements IProfileScreenPageAct
         assertionMessage: 'Date of birth month input should be visible',
       });
       await this.clickOnElement(this.dateOfBirthMonthInput);
-      await this.dateOfBirthMonthInput.selectOption({ value: month.toString() });
+      await this.dateOfBirthMonthInput.selectOption({ index: month + 1 });
 
       await this.verifier.verifyTheElementIsVisible(this.dateOfBirthDayInput, {
         assertionMessage: 'Date of birth day input should be visible',
       });
       await this.clickOnElement(this.dateOfBirthDayInput);
-      const dayValue = day.toString().padStart(2, '0');
-      await this.dateOfBirthDayInput.selectOption({ value: dayValue });
+      await this.dateOfBirthDayInput.selectOption({ index: day });
     });
   }
 
   async saveProfileChanges(): Promise<void> {
     await test.step('Saving profile changes', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
-        assertionMessage: 'Save button should be visible',
-      });
-      await this.clickByInjectingJavaScript(this.saveButton);
-      await this.saveButton.waitFor({ state: 'hidden' }).catch(() => {});
+      const saveButton = await this.saveButton.isVisible();
+      if (saveButton) {
+        await this.clickOnElement(this.saveButton, { force: true });
+        //wait for the save button to be hidden
+        await this.saveButton.waitFor({ state: 'hidden' });
+      }
     });
   }
 

@@ -27,7 +27,7 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe.fixme(
+test.describe(
   'app Adoption Dashboard - Custom Period Filter + All Filters + Group by Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
@@ -55,9 +55,9 @@ test.describe.fixme(
         timePeriod: PeriodFilterTimeRange.CUSTOM,
         customStartDate: customDateRange.startDate,
         customEndDate: customDateRange.endDate,
-        segments: [...TEST_FILTER_VALUES.APP_ADOPTION.SEGMENTS],
         departments: [...TEST_FILTER_VALUES.APP_ADOPTION.DEPARTMENTS],
         locations: [...TEST_FILTER_VALUES.APP_ADOPTION.LOCATIONS],
+        companyName: [...TEST_FILTER_VALUES.APP_ADOPTION.COMPANY_NAMES],
         // groupBy: GroupByOnUserParameter.LOCATION,
       };
 

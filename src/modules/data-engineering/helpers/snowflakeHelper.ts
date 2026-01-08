@@ -1,5 +1,5 @@
 import { SnowflakeParamValue, SnowflakeService } from '@data-engineering/api/services/SnowflakeService';
-
+import { test } from '@playwright/test';
 /**
  * Helper class for interacting with Snowflake using the SnowflakeService.
  * Delegates connection state management to SnowflakeService for consistency.
@@ -114,7 +114,12 @@ export class SnowflakeHelper {
    *   const result = await helper.runQuery('SELECT * FROM my_table');
    */
   async runQuery<T = any>(sql: string): Promise<T[]> {
-    return await this.execute<T>(sql);
+    return await test.step(`Execute SQL query: ${sql}`, async stepInfo => {
+      await stepInfo.attach('sql', { body: sql, contentType: 'text/plain' });
+      const results = await this.execute<T>(sql);
+      await stepInfo.attach('results', { body: JSON.stringify(results), contentType: 'application/json' });
+      return results;
+    });
   }
 
   /**

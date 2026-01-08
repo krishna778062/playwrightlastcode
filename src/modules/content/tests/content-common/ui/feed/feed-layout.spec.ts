@@ -10,7 +10,6 @@ import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
-import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -23,16 +22,12 @@ test.describe(
   },
   () => {
     let homePage: NewHomePage;
-    let siteDashboardPage: SiteDashboardPage;
-    let changeLayoutComponent: ChangeLayoutComponent;
     let homeFeedPostId: string = '';
     let homeFeedPostText: string = '';
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
       // Initialize page objects
       homePage = new NewHomePage(appManagerFixture.page);
-      siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, '');
-      changeLayoutComponent = new ChangeLayoutComponent(appManagerFixture.page);
 
       // Login as Admin and navigate to Home-Global Feed
       await homePage.loadPage();
@@ -66,12 +61,12 @@ test.describe(
 
         const applicationManagerHomePage = appManagerFixture.homePage;
 
-        await applicationManagerHomePage.actions.clickOnManageDashboardCarousel();
-        await applicationManagerHomePage.actions.clickOnChangeLayout();
-        await applicationManagerHomePage.actions.clickExcludeFeed();
+        await applicationManagerHomePage.clickOnManageDashboardCarousel();
+        await applicationManagerHomePage.clickOnChangeLayout();
+        await applicationManagerHomePage.clickExcludeFeed();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(appManagerFixture.page);
-        await feedPage.assertions.verifySmartFeedBlocksAreNotVisible();
+        await feedPage.verifySmartFeedBlocksAreNotVisible();
       }
     );
 
@@ -126,9 +121,9 @@ test.describe(
             });
 
             const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
-            await appManagerProfileScreenPage.actions.clickEditAbout();
-            await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
-            await appManagerProfileScreenPage.actions.saveProfileChanges();
+            await appManagerProfileScreenPage.clickEditAbout();
+            await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
+            await appManagerProfileScreenPage.saveProfileChanges();
           }
         });
 
@@ -170,11 +165,11 @@ test.describe(
 
             // Verify all smart feed blocks are visible
             for (const blockName of smartFeedBlocks) {
-              await feedPage.assertions.verifySmartFeedBlockIsVisible(blockName);
+              await feedPage.feedList.verifySmartFeedBlockIsVisible(blockName);
             }
 
             // Verify "Must Read" section is visible (if applicable)
-            await feedPage.assertions.verifyMustReadSectionIsVisible();
+            await feedPage.verifyMustReadSectionIsVisible();
           });
         }
       }
@@ -231,9 +226,9 @@ test.describe(
             });
 
             const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
-            await appManagerProfileScreenPage.actions.clickEditAbout();
-            await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
-            await appManagerProfileScreenPage.actions.saveProfileChanges();
+            await appManagerProfileScreenPage.clickEditAbout();
+            await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
+            await appManagerProfileScreenPage.saveProfileChanges();
           }
         });
 
@@ -271,10 +266,10 @@ test.describe(
 
             // Verify all smart feed blocks are visible
             for (const blockName of smartFeedBlocks) {
-              await feedPage.assertions.verifySmartFeedBlockIsVisible(blockName);
+              await feedPage.feedList.verifySmartFeedBlockIsVisible(blockName);
             }
 
-            await feedPage.assertions.verifyMustReadSectionIsVisible();
+            await feedPage.verifyMustReadSectionIsVisible();
           });
         }
       }
@@ -311,7 +306,6 @@ test.describe(
             },
           });
           eventId = eventInfo.contentId;
-          console.log(`Created event via API: ${eventId} in site: ${allEmployeesSiteId}`);
 
           // Update user's date of birth for celebration block
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
@@ -330,9 +324,9 @@ test.describe(
             });
 
             const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
-            await appManagerProfileScreenPage.actions.clickEditAbout();
-            await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
-            await appManagerProfileScreenPage.actions.saveProfileChanges();
+            await appManagerProfileScreenPage.clickEditAbout();
+            await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
+            await appManagerProfileScreenPage.saveProfileChanges();
           }
         });
 
@@ -357,27 +351,27 @@ test.describe(
             await siteDashboardPage.verifyThePageIsLoaded();
 
             // Click "Edit Dashboard" → "Change Layout"
-            await siteDashboardPage.actions.clickOnEditDashboard();
-            await siteDashboardPage.actions.clickOnChangeLayout();
+            await siteDashboardPage.clickOnEditDashboard();
+            await siteDashboardPage.clickOnChangeLayout();
 
             if (layoutSign === 'recommended') {
-              await siteDashboardPage.actions.clickIncludeFeed();
+              await siteDashboardPage.clickIncludeFeed();
             } else {
-              await siteDashboardPage.actions.checkIncludeFeed();
-              await siteDashboardPage.actions.selectTileLayout(layoutSign);
+              await siteDashboardPage.checkIncludeFeed();
+              await siteDashboardPage.selectTileLayout(layoutSign);
             }
 
             // Click on Feed link/tab
-            await siteDashboardPage.actions.clickOnFeedLink();
+            await siteDashboardPage.clickOnFeedLink();
             await feedPage.verifyThePageIsLoaded();
 
             // Verify all smart feed blocks are visible
             for (const blockName of smartFeedBlocks) {
-              await feedPage.assertions.verifySmartFeedBlockIsVisible(blockName);
+              await feedPage.feedList.verifySmartFeedBlockIsVisible(blockName);
             }
 
             // Verify "Must Read" section is visible (if applicable)
-            await feedPage.assertions.verifyMustReadSectionIsVisible();
+            await feedPage.verifyMustReadSectionIsVisible();
           });
         }
       }
@@ -433,9 +427,9 @@ test.describe(
             });
 
             const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
-            await appManagerProfileScreenPage.actions.clickEditAbout();
-            await appManagerProfileScreenPage.actions.updateDateOfBirth(birthMonth, birthDay);
-            await appManagerProfileScreenPage.actions.saveProfileChanges();
+            await appManagerProfileScreenPage.clickEditAbout();
+            await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
+            await appManagerProfileScreenPage.saveProfileChanges();
           }
         });
 
@@ -460,23 +454,23 @@ test.describe(
             await siteDashboardPage.verifyThePageIsLoaded();
 
             // Click "Edit Dashboard" → "Change Layout"
-            await siteDashboardPage.actions.clickOnEditDashboard();
-            await siteDashboardPage.actions.clickOnChangeLayout();
+            await siteDashboardPage.clickOnEditDashboard();
+            await siteDashboardPage.clickOnChangeLayout();
 
-            await siteDashboardPage.actions.checkIncludeFeed();
-            await siteDashboardPage.actions.selectTileLayout(layoutSign);
+            await siteDashboardPage.checkIncludeFeed();
+            await siteDashboardPage.selectTileLayout(layoutSign);
 
             // Click on Feed link/tab
-            await siteDashboardPage.actions.clickOnFeedLink();
+            await siteDashboardPage.clickOnFeedLink();
             await feedPage.verifyThePageIsLoaded();
 
             // Verify all smart feed blocks are visible
             for (const blockName of smartFeedBlocks) {
-              await feedPage.assertions.verifySmartFeedBlockIsVisible(blockName);
+              await feedPage.feedList.verifySmartFeedBlockIsVisible(blockName);
             }
 
             // Verify "Must Read" section is visible (if applicable)
-            await feedPage.assertions.verifyMustReadSectionIsVisible();
+            await feedPage.verifyMustReadSectionIsVisible();
           });
         }
       }
@@ -522,28 +516,28 @@ test.describe(
         });
 
         await test.step('End User: Include Feed in Dashboard', async () => {
-          await standardUserHomePage.actions.clickOnManageDashboardCarousel();
-          await standardUserHomePage.actions.clickOnChangeLayout();
-          await standardUserHomePage.actions.clickIncludeFeed();
+          await standardUserHomePage.clickOnManageDashboardCarousel();
+          await standardUserHomePage.clickOnChangeLayout();
+          await standardUserHomePage.clickIncludeFeed();
         });
 
         await test.step('End User: Verify feed post is visible on home dashboard', async () => {
-          await feedPage.assertions.waitForPostToBeVisible(homeFeedPostText);
+          await feedPage.feedList.waitForPostToBeVisible(homeFeedPostText);
         });
 
         await test.step('End User: Refresh page and verify feed post is still visible', async () => {
           await feedPage.reloadPage();
-          await feedPage.assertions.waitForPostToBeVisible(homeFeedPostText);
+          await feedPage.feedList.waitForPostToBeVisible(homeFeedPostText);
         });
 
         await test.step('End User: Exclude Feed from Dashboard', async () => {
-          await standardUserHomePage.actions.clickOnManageDashboardCarousel();
-          await standardUserHomePage.actions.clickOnChangeLayout();
-          await standardUserHomePage.actions.clickExcludeFeed();
+          await standardUserHomePage.clickOnManageDashboardCarousel();
+          await standardUserHomePage.clickOnChangeLayout();
+          await standardUserHomePage.clickExcludeFeed();
         });
 
         await test.step('End User: Verify feed post is not visible on home dashboard', async () => {
-          await feedPage.assertions.verifyPostIsNotVisible(homeFeedPostText);
+          await feedPage.feedList.verifyPostIsNotVisible(homeFeedPostText);
         });
       }
     );

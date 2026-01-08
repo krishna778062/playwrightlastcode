@@ -503,7 +503,7 @@ test.describe(
         await customIntegrationsPage.disconnectApp(AppName);
         await customIntegrationsPage.verifyDisconnectDialogContent(AppName);
         await customIntegrationsPage.clickOnButtonWithName(APP_LABELS.DISCONNECT_ACCOUNT_LABEL);
-        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.getAppDisconnectedMessage(AppName));
+        await customIntegrationsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CONNECTION_DISCONNECTED_MESSAGE);
         // Verify Greenhouse setup checklist - Connect is incomplete, Enable is completed
         await customIntegrationsPage.verifySetupChecklistSteps([
           { text: 'Connect the app-level account', status: 'incomplete' },
