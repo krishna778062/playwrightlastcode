@@ -740,6 +740,29 @@ export class FeedManagementService implements IFeedManagementOperations {
   }
 
   /**
+   * Gets the Recognition tenant configuration
+   * @returns Promise containing the raw recognition config response
+   */
+  async getRecognitionConfig(): Promise<any> {
+    return await test.step('Get recognition configuration', async () => {
+      const response = await this.httpClient.get('/recognition/v1/tenant/config', {
+        headers: {
+          Accept: 'application/json, text/plain, */*',
+        },
+      });
+
+      const responseBody = await response.json();
+      log.debug('Recognition configuration response', { response: JSON.stringify(responseBody, null, 2) });
+
+      if (!response.ok()) {
+        throw new Error(`Failed to get recognition configuration. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
    * @description Creates a feed
    * @param {Partial<Feed>} [overrides] The partial feed data to override the defaults
    * @returns {Promise<any>}
@@ -1444,10 +1467,19 @@ export class FeedManagementService implements IFeedManagementOperations {
     payload: { textJson: string; textHtml: string; listOfAttachedFiles?: AttachedFile[]; ignoreToxic?: boolean }
   ): Promise<any> {
     return await test.step(`Creating answer on question ${questionId}`, async () => {
+      // Ensure all required fields are present with defaults
+      const answerPayload = {
+        textJson: payload.textJson,
+        textHtml: payload.textHtml,
+        listOfAttachedFiles: payload.listOfAttachedFiles || [],
+        ignoreToxic: payload.ignoreToxic !== undefined ? payload.ignoreToxic : false,
+      };
+      log.debug('Create answer payload', { payload: JSON.stringify(answerPayload, null, 2) });
       const response = await this.httpClient.post(API_ENDPOINTS.feed.comment(questionId), {
-        data: payload,
+        data: answerPayload,
       });
       const responseBody = await response.json();
+      log.debug('Create answer response', { response: JSON.stringify(responseBody, null, 2) });
       if (!response.ok() || responseBody.status !== 'success') {
         throw new Error(`Failed to create answer on question ${questionId}. Status: ${response.status()}`);
       }

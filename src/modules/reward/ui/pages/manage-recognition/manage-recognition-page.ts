@@ -1,6 +1,6 @@
 import { Locator, Page } from '@playwright/test';
 import { RewardsAllowance } from '@rewards-components/manage-rewards/rewards-allowance';
-import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary';
+import { WorkAnniversaryPage } from '@rewards-pages/work-anniversary/work-anniversary-page';
 import * as console from 'node:console';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';

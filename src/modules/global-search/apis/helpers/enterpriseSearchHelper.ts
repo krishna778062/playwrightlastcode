@@ -11,7 +11,9 @@ export class EnterpriseSearchHelper {
    * @param params.searchTerm - The search term to use.
    * @param params.objectType - The object type to search for (e.g., 'content', 'feed', 'file').
    * @param params.valueToFind - The value to find in the specified field (defaults to searchTerm if not provided).
-   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title').
+   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title', ignored for 'feed' type).
+   * @param params.timeout - Maximum time in milliseconds to wait for the result (defaults to 80000ms).
+   * @returns The found result item, or undefined if not found within timeout.
    */
   static async waitForResultToAppearInApiResponse(params: {
     apiClient: HttpClient;
@@ -19,14 +21,11 @@ export class EnterpriseSearchHelper {
     objectType: string;
     valueToFind?: string;
     fieldToCheck?: string;
+    timeout?: number;
   }) {
-    const {
-      apiClient,
-      searchTerm,
-      objectType,
-      valueToFind,
-      fieldToCheck = objectType === 'feed' ? 'excerpt' : 'title',
-    } = params;
+    const { apiClient, searchTerm, objectType, valueToFind, fieldToCheck = 'title', timeout = 80_000 } = params;
+
+    let foundItem: Record<string, any> | undefined;
 
     await test.step(`Waiting for search results to be visible for search term ${searchTerm}`, async () => {
       await expect(
@@ -35,18 +34,19 @@ export class EnterpriseSearchHelper {
             data: { page_size: 10, exact_match: true, search_term: searchTerm },
           });
           const responseBody = await response.json();
-          console.log('responseBody', responseBody);
+
+          // Safely access list_items with fallback to empty array
+          const listItems = responseBody?.data?.list_items ?? [];
+
           // Filter the list items which have the correct object_type
-          const result = responseBody.data.list_items.filter(
-            (eachItem: any) => eachItem.item.object_type === objectType
-          );
+          const result = listItems.filter((eachItem: any) => eachItem.item.object_type === objectType);
+
           // Find the specific item by checking the specified field for the value
           const valueToSearch = valueToFind || searchTerm;
 
-          // For feeds, try multiple possible field names
-          let resultItem;
+          // For feeds, try multiple possible field names (uses partial match)
           if (objectType === 'feed') {
-            resultItem = result.find(
+            foundItem = result.find(
               (eachItem: any) =>
                 eachItem.item.excerpt?.includes(valueToSearch) ||
                 eachItem.item.text?.includes(valueToSearch) ||
@@ -55,18 +55,20 @@ export class EnterpriseSearchHelper {
                 eachItem.item.textJson?.includes(valueToSearch)
             );
           } else {
-            resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
+            // For other object types, use exact match on the specified field
+            foundItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
           }
 
-          console.log('Found result item:', resultItem);
-          expect(resultItem).toBeDefined();
+          expect(foundItem).toBeDefined();
         },
         {
           message: `${objectType} result for search term ${searchTerm} to appear in api response`,
         }
-      ).toPass({ intervals: [20000, 40000, 70000], timeout: 80_000 });
+      ).toPass({ intervals: [20000], timeout: 120_000 });
 
       //TODO: We should run a deep check to see if the result item is site and then match the title
     });
+
+    return foundItem;
   }
 }

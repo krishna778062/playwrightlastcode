@@ -32,7 +32,7 @@ export class FilePreviewComponent extends BaseComponent {
       .nth(0);
 
     this.imageUploader = new AttachementUploaderComponent(page, this.imageUploaderContainer);
-    this.closeButton = this.page.locator('button[aria-label="Close"]').nth(1);
+    this.closeButton = this.page.getByRole('button', { name: 'Close', exact: true });
     this.versionNumber = this.page.locator('span:has-text("Versions")').locator('+ h4 button');
   }
 

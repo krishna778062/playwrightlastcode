@@ -177,3 +177,52 @@ export interface SiteMembershipListResponse {
     listOfItems: SiteMember[];
   };
 }
+
+export interface SearchSiteItem {
+  id: string;
+  img: string | null;
+  title: string;
+  access: string;
+  landingPage: string;
+  categoryId: string;
+  categoryName: string;
+  followerCount: number;
+  isFeatured: boolean;
+  memberCount: number;
+  managerCount: number;
+  hasAlbums: boolean;
+  hasEvents: boolean;
+  hasPages: boolean;
+  isActive: boolean;
+  isFavorited: boolean;
+  isInMandatorySubscription: boolean;
+  isMembershipAutoApproved: boolean;
+  isManager: boolean;
+  isMember: boolean;
+  isOwner: boolean;
+  isContentManager: boolean;
+  isFollower: boolean;
+  isAccessRequested: boolean;
+  canEdit: boolean;
+  canManage: boolean;
+  canActivateDeactivate: boolean;
+  canCreatePage: boolean;
+  canCreateEvent: boolean;
+  canCreateAlbum: boolean;
+}
+
+export interface SearchSiteResultItem {
+  itemType: string;
+  relevancyScore: number;
+  item: SearchSiteItem;
+}
+
+export interface SearchSitesResponse {
+  responseTimeStamp: number;
+  message: string;
+  result: {
+    totalRecords: number;
+    suggestedTerm: string;
+    listOfItems: SearchSiteResultItem[];
+  };
+}

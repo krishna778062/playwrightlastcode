@@ -44,10 +44,10 @@ test.describe('site Creation', { tag: ['@content', '@site-creation'] }, () => {
       await sitesListPage.verifyThePageIsLoaded();
 
       // Step 3: Click Add Site button to open site creation page
-      siteCreationPage = await sitesListPage.actions.clickAddSiteButton();
+      siteCreationPage = await sitesListPage.clickAddSiteButton();
 
       // Step 4: Create site with random category using UI
-      await siteCreationPage.actions.createSiteWithRandomCategory(createdSiteName, createdCategoryName);
+      await siteCreationPage.createSiteWithRandomCategory(createdSiteName, createdCategoryName);
 
       // Step 5: Wait for navigation to site dashboard and initialize SiteDashboardPage
       await appManagerFixture.page.waitForTimeout(3000);
@@ -60,10 +60,10 @@ test.describe('site Creation', { tag: ['@content', '@site-creation'] }, () => {
       siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
 
       // Step 6: Verify category was created successfully (click on category link in header)
-      await siteDashboardPage.assertions.verifyCategoryCreatedSuccessfully(createdCategoryName);
+      await siteDashboardPage.verifyCategoryCreatedSuccessfully(createdCategoryName);
 
       // Step 7: Verify site was created successfully (should be on site dashboard)
-      await siteDashboardPage.assertions.verifySiteCreatedSuccessfully(createdSiteName);
+      await siteDashboardPage.verifySiteCreatedSuccessfully(createdSiteName);
     }
   );
 });
