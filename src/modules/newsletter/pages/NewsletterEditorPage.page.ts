@@ -1,6 +1,7 @@
 import { expect, Locator, Page, Response, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 export class NewsletterEditorPage extends BasePage {
@@ -47,6 +48,10 @@ export class NewsletterEditorPage extends BasePage {
 
   // Create button (from home page)
   readonly createButton: Locator;
+
+  // Additional locators for methods
+  readonly backArrowLink: Locator;
+  readonly threeDotButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_NEWSLETTER_PAGE);
@@ -99,12 +104,16 @@ export class NewsletterEditorPage extends BasePage {
 
     // Create button (it's actually a link styled as button)
     this.createButton = this.page.getByRole('link', { name: 'Create', exact: true });
+
+    // Additional locators for methods
+    this.backArrowLink = this.page.getByTestId('i-arrowLeft');
+    this.threeDotButton = this.page.getByRole('button', { name: 'Show more' }).first();
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify newsletter listing page is loaded', async () => {
       // Wait for URL to confirm navigation completed
-      await this.page.waitForURL(/employee-newsletter/, { timeout: 15000 });
+      await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
 
       // Dismiss any blocking dialogs (e.g., survey prompts)
       await this.dismissSurveyPromptIfVisible();
@@ -113,7 +122,7 @@ export class NewsletterEditorPage extends BasePage {
       await expect(
         this.page.getByRole('heading', { name: 'Newsletter', level: 1 }),
         'Newsletter listing page should be loaded'
-      ).toBeVisible({ timeout: 20000 });
+      ).toBeVisible({ timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -126,10 +135,10 @@ export class NewsletterEditorPage extends BasePage {
 
     try {
       // Wait briefly for dialog to appear, then dismiss it
-      await surveyDialog.waitFor({ state: 'visible', timeout: 3000 });
+      await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_SHORT });
       await test.step('Dismiss survey prompt dialog', async () => {
         await dismissButton.click();
-        await surveyDialog.waitFor({ state: 'hidden', timeout: 5000 });
+        await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
       });
     } catch {
       // Dialog not present, continue
@@ -142,7 +151,7 @@ export class NewsletterEditorPage extends BasePage {
   async verifyEditorIsLoaded(): Promise<void> {
     await test.step('Verify newsletter editor is loaded', async () => {
       // Check for the Blocks tab which is unique to the editor
-      await expect(this.blocksTab, 'Newsletter editor should be loaded').toBeVisible({ timeout: 20000 });
+      await expect(this.blocksTab, 'Newsletter editor should be loaded').toBeVisible({ timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -151,7 +160,7 @@ export class NewsletterEditorPage extends BasePage {
    */
   async clickCreateButton(): Promise<void> {
     await test.step('Click Create button', async () => {
-      await expect(this.createButton, 'Create button should be visible').toBeVisible({ timeout: 15000 });
+      await expect(this.createButton, 'Create button should be visible').toBeVisible({ timeout: TIMEOUTS.SHORT });
       await this.clickOnElement(this.createButton, {
         stepInfo: 'Click Create button',
       });
@@ -191,7 +200,7 @@ export class NewsletterEditorPage extends BasePage {
     return await test.step('Click Next and wait for newsletter response', async () => {
       const responsePromise = this.page.waitForResponse(
         response => response.url().includes('newsletters') && response.status() === 200,
-        { timeout: 30000 }
+        { timeout: TIMEOUTS.MEDIUM }
       );
       await this.clickOnElement(this.nameModalNextButton, {
         stepInfo: 'Click Next button',
@@ -275,7 +284,22 @@ export class NewsletterEditorPage extends BasePage {
       | 'Surveys'
   ): Promise<void> {
     await test.step(`Add ${blockType} block`, async () => {
-      const blockLocator = this.page.locator(`[data-chockablock-item-id="${blockType}"]`);
+      // Use existing class properties for block locators
+      const blockLocatorMap: Record<typeof blockType, Locator> = {
+        Button: this.buttonBlock,
+        Divider: this.dividerBlock,
+        Embed: this.embedBlock,
+        Image: this.imageBlock,
+        Text: this.textBlock,
+        Spacer: this.spacerBlock,
+        Video: this.videoBlock,
+        Content: this.contentBlock,
+        People: this.peopleBlock,
+        Recognition: this.recognitionBlock,
+        Sites: this.sitesBlock,
+        Surveys: this.surveysBlock,
+      };
+      const blockLocator = blockLocatorMap[blockType];
       await this.clickOnElement(blockLocator, {
         stepInfo: `Click ${blockType} block`,
       });
@@ -318,11 +342,9 @@ export class NewsletterEditorPage extends BasePage {
    */
   async clickBackButton(): Promise<void> {
     await test.step('Click back button', async () => {
-      await this.page
-        .locator('button')
-        .filter({ has: this.page.locator('[class*="back"], [class*="arrow"]') })
-        .first()
-        .click();
+      await this.clickOnElement(this.backButton, {
+        stepInfo: 'Click back button',
+      });
     });
   }
 
@@ -331,11 +353,9 @@ export class NewsletterEditorPage extends BasePage {
    */
   async clickBackToEmployeeNewsletterPage(): Promise<void> {
     await test.step('Click Back to return to newsletter list', async () => {
-      // Use the back arrow link with aria-label="Back"
-      const backLink = this.page.getByTestId('i-arrowLeft');
-      await backLink.click({ force: true });
+      await this.backArrowLink.click({ force: true });
       // Wait for navigation to complete
-      await this.page.waitForURL(/employee-newsletter/, { timeout: 15000 });
+      await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -344,8 +364,7 @@ export class NewsletterEditorPage extends BasePage {
    */
   async clickOnThreeDotButton(): Promise<void> {
     await test.step('Click three-dot menu button', async () => {
-      const threeDotButton = this.page.getByRole('button', { name: 'Show more' }).first();
-      await this.clickOnElement(threeDotButton, {
+      await this.clickOnElement(this.threeDotButton, {
         stepInfo: 'Click three-dot menu button',
       });
     });
@@ -372,7 +391,7 @@ export class NewsletterEditorPage extends BasePage {
       // Use force to bypass any overlay dialogs (matching Cypress behavior)
       await this.saveButton.click({ force: true });
       // Wait for save to complete
-      await this.page.waitForTimeout(3000);
+      await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     });
   }
 }

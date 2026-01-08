@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
@@ -64,7 +65,7 @@ export class SelectTemplateModal extends BaseActionUtil {
    */
   async waitForModal(): Promise<void> {
     await test.step('Wait for Select Template modal', async () => {
-      await expect(this.modalDialog, 'Template modal should be visible').toBeVisible({ timeout: 15000 });
+      await expect(this.modalDialog, 'Template modal should be visible').toBeVisible({ timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -80,7 +81,9 @@ export class SelectTemplateModal extends BaseActionUtil {
       const templateHeading = this.modalDialog.getByRole('heading', { name: templateName, exact: true });
       const templateContainer = templateHeading.locator('xpath=ancestor::*[@data-testid="thumbnail-item-wrapper"]');
 
-      await expect(templateContainer, `Template "${templateName}" should be visible`).toBeVisible({ timeout: 10000 });
+      await expect(templateContainer, `Template "${templateName}" should be visible`).toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
       await templateContainer.click();
     });
   }
