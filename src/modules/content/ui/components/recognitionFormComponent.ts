@@ -1,22 +1,8 @@
 import { Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '@/src/core/ui/components/baseComponent';
+import { BaseComponent } from '@/src/core';
 
-export interface IRecognitionFormActions {
-  verifyRecognitionFormIsLoaded: () => Promise<void>;
-  selectUserForRecognition: (userName: string | number) => Promise<void>;
-  selectPeerRecognitionAward: (awardName: string | number) => Promise<string>;
-  enterRecognitionMessage: (message: string) => Promise<void>;
-  clickRecognizeButtonAndWaitForShareDialog: () => Promise<void>;
-  selectPostInHomeFeedInShareDialog: () => Promise<void>;
-  selectPostInSiteFeedInShareDialog: () => Promise<void>;
-  selectSiteInShareDialog: (siteName: string) => Promise<void>;
-  clickSharePostButton: () => Promise<void>;
-  waitForShareDialogToClose: () => Promise<void>;
-  clickRecognizeButton: () => Promise<void>;
-}
-
-export class RecognitionFormComponent extends BaseComponent implements IRecognitionFormActions {
+export class RecognitionFormComponent extends BaseComponent {
   // Recognition form locators - scoped to inline form in feed composer
   readonly recognitionRecipientsInput: Locator;
   readonly selectPeerRecognitionInput: Locator;
@@ -71,11 +57,6 @@ export class RecognitionFormComponent extends BaseComponent implements IRecognit
       await this.verifier.verifyTheElementIsVisible(this.selectPeerRecognitionInput, {
         assertionMessage: 'Recognition recipients input should be visible',
       });
-      // Wait for any loading indicators to disappear
-      const loadingVisible = await this.verifier.isTheElementVisible(this.loadingIndicator.first());
-      if (loadingVisible) {
-        await this.loadingIndicator.first().waitFor({ state: 'detached', timeout: 10000 });
-      }
     });
   }
 

@@ -3,23 +3,11 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { BaseSitePage } from '@content/ui/pages/sitePages/baseSite';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
-export interface ISiteContentActions {
-  clickPageCategory: (categoryName: string) => Promise<void>;
-  clickOnShowMoreButton: () => Promise<void>;
-}
-
-export interface ISiteContentAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyContentListLoaded: () => Promise<void>;
-  verifyShowMoreButtonIsVisible: () => Promise<void>;
-  verifyContentListAfterClickingShowMoreButton: () => Promise<void>;
-}
-
 /**
  * A Site has many pages.
  * This class is for managing the Site Content page.
  */
-export class SiteContentPage extends BaseSitePage implements ISiteContentAssertions {
+export class SiteContentPage extends BaseSitePage {
   readonly pageCategoryLink: (categoryName: string) => Locator;
   readonly contentListContainer: Locator;
   readonly showMoreButton: Locator;
@@ -31,18 +19,9 @@ export class SiteContentPage extends BaseSitePage implements ISiteContentAsserti
     // Locator for page category link/button
     this.pageCategoryLink = (categoryName: string) =>
       this.page.getByLabel('Content', { exact: true }).getByRole('link', { name: categoryName, exact: true });
-    this.contentListContainer = this.page.locator('div.DraggableList > div > li').first();
+    this.contentListContainer = this.page.locator('div.DraggableList > div > li');
     this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
   }
-
-  get actions(): ISiteContentActions {
-    return this;
-  }
-
-  get assertions(): ISiteContentAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site content page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
@@ -65,11 +44,11 @@ export class SiteContentPage extends BaseSitePage implements ISiteContentAsserti
    */
   async verifyContentListLoaded(): Promise<void> {
     await test.step('Verify content list is loaded', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.contentListContainer, {
+      await this.verifier.verifyTheElementIsVisible(this.contentListContainer.first(), {
         assertionMessage: 'Content list should be visible',
       });
     });
-    //element list size should be 16
+
     const elementListSize = await this.contentListContainer.count();
     expect(elementListSize).toBe(16);
   }
@@ -87,8 +66,12 @@ export class SiteContentPage extends BaseSitePage implements ISiteContentAsserti
   }
 
   async verifyContentListAfterClickingShowMoreButton(): Promise<void> {
-    //element list size should be 16
-    const elementListSize = await this.contentListContainer.count();
-    expect(elementListSize).toBeGreaterThan(16);
+    await test.step('Verify content list has more than 16 items after clicking Show More', async () => {
+      // Wait for the count to increase after clicking Show More
+      await expect(async () => {
+        const elementListSize = await this.contentListContainer.count();
+        expect(elementListSize).toBeGreaterThan(16);
+      }).toPass();
+    });
   }
 }
