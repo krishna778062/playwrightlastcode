@@ -13,9 +13,9 @@ export interface DistributionOfViewsByFileCategoryData {
 
 export interface DistributionOfDownloadsByFileCategoryData {
   File_category: string;
-  Total_views: number;
-  View_contribution: string;
-  Average_file_views: string;
+  Total_downloads: number;
+  Download_contribution: string;
+  Average_file_downloads: string;
 }
 
 /**
@@ -137,9 +137,9 @@ export class FilesDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   ): DistributionOfDownloadsByFileCategoryData[] {
     return rawResults.map((item: any) => ({
       File_category: item.FILE_CATEGORY || item.File_category || '',
-      Total_views: Number(item.TOTAL_VIEWS || item.Total_views || 0),
-      View_contribution: item.VIEW_CONTRIBUTION || item.View_contribution || '0%',
-      Average_file_views: item.AVERAGE_FILE_VIEWS || item.Average_file_views || '0',
+      Total_downloads: Number(item.TOTAL_VIEWS || item.Total_views || 0),
+      Download_contribution: item.VIEW_CONTRIBUTION || item.View_contribution || '0%',
+      Average_file_downloads: item.AVERAGE_FILE_VIEWS || item.Average_file_views || '0',
     }));
   }
 

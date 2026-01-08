@@ -35,9 +35,9 @@ export class DistributionOfDownloadsByFileCategory extends TabluarMetricsCompone
   ): Promise<void> {
     const dataMapper = (item: DistributionOfDownloadsByFileCategoryData) => ({
       [DistributionOfDownloadsByFileCategoryColumns.FILE_CATEGORY]: item.File_category || '',
-      [DistributionOfDownloadsByFileCategoryColumns.TOTAL_DOWNLOADS]: item.Total_views.toString(),
-      [DistributionOfDownloadsByFileCategoryColumns.TOTAL_DOWNLOAD_PERCENTAGE]: item.View_contribution,
-      [DistributionOfDownloadsByFileCategoryColumns.AVERAGE_FILE_DOWNLOADS]: item.Average_file_views,
+      [DistributionOfDownloadsByFileCategoryColumns.TOTAL_DOWNLOADS]: item.Total_downloads.toString(),
+      [DistributionOfDownloadsByFileCategoryColumns.TOTAL_DOWNLOAD_PERCENTAGE]: item.Download_contribution,
+      [DistributionOfDownloadsByFileCategoryColumns.AVERAGE_FILE_DOWNLOADS]: item.Average_file_downloads,
     });
 
     await this.compareUIDataWithDBRecords(
