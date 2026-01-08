@@ -7,7 +7,7 @@ import { ManageApplicationPage } from '@/src/modules/platforms/ui/pages/manageAp
 test.describe(
   'Zeus General Setup in Manage Application',
   {
-    tag: ['@setupManageApplication', '@regression', '@zeus', '@sanitys', '@Platform_Services', '@Zulu', '@zeussmoke'],
+    tag: ['@setupManageApplication', '@regression', '@zeus', '@sanity', '@Platform_Services', '@Zulu', '@zeussmoke'],
   },
   () => {
     test(
