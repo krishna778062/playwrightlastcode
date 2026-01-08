@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
+import { ReactionsEmoji } from '@/src/modules/content/constants/reactionsEmoji';
 
 export class ListFeedComponent extends BaseComponent {
   // Post options section
@@ -230,6 +231,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly getProfilePopoverLocator = (userName: string): Locator =>
     this.page.getByText(`${userName}View in org chart`).first();
 
+  readonly getReactionButton = (emojiName: string): Locator =>
+    this.page.getByRole('button', { name: `React with ${emojiName}` }).first();
   readonly siteNameLocator = (postText: string, siteName: string): Locator =>
     this.page.getByRole('link', { name: siteName }).first();
 
@@ -1596,7 +1599,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
     await test.step(`Click ${reactionName} reaction for post: ${postText}`, async () => {
-      const reactionButton = this.page.getByRole('button', { name: `React with ${reactionName}` }).first();
+      const reactionButton = this.getReactionButton(reactionName);
       await this.verifier.verifyTheElementIsVisible(reactionButton, {
         assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
       });
@@ -1694,6 +1697,25 @@ export class ListFeedComponent extends BaseComponent {
         const userLocator = this.page.getByRole('link', { name: expectedUser }).first();
         await this.verifier.verifyTheElementIsVisible(userLocator, {
           assertionMessage: `User "${expectedUser}" should be visible in "${emojiName}" tab`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies all six reaction emojis are visible in the reaction menu
+   * @param postText - The text of the post to verify reactions for
+   */
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await test.step(`Verify all reaction emojis are visible for post: ${postText}`, async () => {
+      const expectedEmojis = Object.values(ReactionsEmoji);
+
+      for (const emoji of expectedEmojis) {
+        await test.step(`Verify ${emoji} emoji is visible`, async () => {
+          const reactionButton = this.getReactionButton(emoji);
+          await this.verifier.verifyTheElementIsVisible(reactionButton, {
+            assertionMessage: `Reaction emoji "${emoji}" should be visible in the reaction menu for post "${postText}"`,
+          });
         });
       }
     });

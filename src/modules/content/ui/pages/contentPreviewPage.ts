@@ -557,6 +557,14 @@ export class ContentPreviewPage extends BasePage {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
   }
 
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
+  }
+
   /**
    * Verifies that a reply is visible
    */

@@ -43,7 +43,6 @@ export class MessageCardComponent extends MessageBaseComponent {
       .filter({ visible: true });
     this.replyInThreadButton = this.page.getByTestId('replyInThreadButton');
     this.replyThreadComponentContainer = this.page.locator("[data-variant='thread'][class*='styles_root_']");
-    this.deleteMessageButtonFromMessageActionsMenu = this.page.getByTestId('deleteMessageButton');
     this.deleteMessageConfirmationPrompt = this.page
       .locator("[role='dialog']")
       .filter({ hasText: 'This action cannot be undone' });
