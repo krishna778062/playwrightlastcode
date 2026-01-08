@@ -2,7 +2,7 @@ import { expect } from '@playwright/test';
 import { DatabaseType, getDbConfigFromCache, initializeDbConfig } from '@recognition/config/dbConfig';
 import { getQuery } from '@recognition/utils/dbQuery';
 
-import { executeQuery } from '@core/utils/dbUtils';
+import { Database } from '@core/utils/dbUtils';
 
 /**
  * Database helper functions for recognition module tests
@@ -37,7 +37,7 @@ export class TestDatabaseHelper {
 
     const query = getNominationsByAwardIdQuery.replace(/{{tenantCode}}/g, tenantCode).replace(/{{awardId}}/g, awardId);
 
-    const result = await executeQuery(query, dbConfig.database, dbConfig);
+    const result = await this.executeWithConfig(query, dbConfig);
     console.log('result', result);
     console.log('result length', result.length);
     return result;
@@ -55,7 +55,7 @@ export class TestDatabaseHelper {
       .replace(/{{tenantCode}}/g, tenantCode)
       .replace(/{{nominationId}}/g, nominationId);
 
-    const result = await executeQuery(query, dbConfig.database, dbConfig);
+    const result = await this.executeWithConfig(query, dbConfig);
     console.log('result', result);
     console.log('result length', result.length);
     return result;
@@ -102,8 +102,22 @@ export class TestDatabaseHelper {
       .replace(/{{tenantCode}}/g, tenantCode)
       .replace(/{{nominationId}}/g, nominationId);
 
-    const result = await executeQuery(query, dbConfig.database, dbConfig);
+    const result = await this.executeWithConfig(query, dbConfig);
     console.log('updateNominationInstanceByNominationId result', result);
+  }
+
+  /**
+   * Execute a query using the provided DB config.
+   * Uses Database class to avoid signature mismatches across environments.
+   */
+  private static async executeWithConfig(query: string, dbConfig: { database: string }): Promise<any[]> {
+    const db = new Database(dbConfig.database, dbConfig);
+    await db.connect();
+    try {
+      return await db.executeQuery(query);
+    } finally {
+      await db.close();
+    }
   }
 }
 
