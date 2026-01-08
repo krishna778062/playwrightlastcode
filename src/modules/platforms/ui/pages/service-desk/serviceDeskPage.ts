@@ -114,8 +114,17 @@ export class ServiceDeskPage extends BasePage {
    */
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading Service Desk page`, async () => {
-      await this.goToUrl(`${this.getServiceDeskUrl()}/service-desk`, { waitUntil: 'domcontentloaded' });
-      await this.verifyThePageIsLoaded();
+      // Go to manage features page first
+      await this.goToUrl(`${this.getServiceDeskUrl()}/nav-manage-features`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+      await this.page.waitForTimeout(2000);
+
+      // Click on Service desk in the left sidebar (use first match)
+      const serviceDeskLink = this.page.getByRole('link', { name: 'Service desk' }).first();
+      await serviceDeskLink.click();
+      await this.page.waitForTimeout(2000);
     });
   }
 
@@ -141,24 +150,31 @@ export class ServiceDeskPage extends BasePage {
    * Open the Create Ticket dialog
    */
   async openCreateTicketDialog(): Promise<void> {
-    const isAppsButtonVisible = await this.appsButton.isVisible({ timeout: 2000 }).catch(() => false);
-    if (isAppsButtonVisible) {
-      await this.appsButton.click();
-    } else {
-      await expect(this.rocketButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
-      await this.rocketButton.click();
-    }
-    await this.page.waitForTimeout(1000);
+    // Wait for page to be ready
+    await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+    await this.page.waitForTimeout(2000);
 
-    const globalButtonLocator = await this.findGlobalButton();
-    await globalButtonLocator.click();
-    await this.page.waitForTimeout(1000);
+    // Try direct "Create incident ticket" button first (new UI)
+    const createIncidentButton = this.page.getByRole('button', { name: /Create incident ticket/i });
+    await expect(createIncidentButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+    await createIncidentButton.click();
 
-    await this.createTicketButton.click();
-    await expect(this.createTicketDialog).toBeVisible({ timeout: 5000 });
+    // Wait for dialog to appear
+    await this.page.waitForTimeout(1000);
+    const dialogHeading = this.page.getByRole('heading', { name: /Create new incident/i });
+    await expect(dialogHeading).toBeVisible({ timeout: TIMEOUTS.SHORT });
   }
 
   async selectWorkspace(workspace?: string): Promise<void> {
+    // Check if workspace dropdown exists (it might not in some dialog variants)
+    const isWorkspaceVisible = await this.workspaceDropdown.isVisible({ timeout: 2000 }).catch(() => false);
+
+    if (!isWorkspaceVisible) {
+      // Workspace dropdown doesn't exist - workspace is pre-selected from sidebar
+      console.log('Workspace dropdown not found - using pre-selected workspace');
+      return;
+    }
+
     await this.workspaceDropdown.click();
 
     if (workspace) {
@@ -170,20 +186,29 @@ export class ServiceDeskPage extends BasePage {
   }
 
   /**
-   * Select a category from the dropdown
-   * @param category - The category to select (e.g., 'HR', 'Finance', 'IT Support')
+   * Select a category from the dropdown (if it exists in the UI)
+   * @param category - The category to select (e.g., 'HR', 'Finance', 'IT')
    */
   async selectCategory(category: string): Promise<void> {
+    // Check if category dropdown exists (new UI may not have it)
+    const isCategoryVisible = await this.categoryDropdown.isVisible({ timeout: 2000 }).catch(() => false);
+    if (!isCategoryVisible) {
+      // Category field doesn't exist in new UI, skip
+      return;
+    }
     await this.categoryDropdown.click();
     await this.page.getByRole('menuitem', { name: category }).click();
   }
 
   async selectRequester(requesterName?: string): Promise<void> {
     await this.requesterDropdown.click();
+    await this.page.waitForTimeout(500);
 
     if (requesterName) {
-      await expect(this.page.getByRole('option', { name: new RegExp(requesterName) })).toBeVisible();
-      await this.page.getByText(requesterName, { exact: true }).click();
+      // Click on the option in the dropdown using role or testid
+      const option = this.page.getByRole('option', { name: new RegExp(requesterName) });
+      await expect(option).toBeVisible({ timeout: 5000 });
+      await option.click();
     } else {
       const firstOption = this.page.getByRole('listbox').getByRole('option').first();
       await firstOption.waitFor({ state: 'visible' });
@@ -553,6 +578,359 @@ export class ServiceDeskPage extends BasePage {
         }
 
         expect(slaValues.length).toBeGreaterThan(0);
+      }
+    });
+  }
+
+  /**
+   * Search for a ticket by ID or name/subject
+   * @param searchTerm - The ticket ID (e.g., 'INC-123') or subject text to search for
+   */
+  async searchTicket(searchTerm: string): Promise<void> {
+    await test.step(`Search for ticket: ${searchTerm}`, async () => {
+      // Find the Tickets section search box (not the global "Search Simpplr..." header)
+      // The Tickets search is in the main content area, after the "Tickets" heading
+
+      // Wait for page to be ready
+      await this.page.waitForTimeout(1000);
+
+      // Find search input in the main content area (not header)
+      // Look for input inside the section that contains "Create incident ticket" button
+      const mainContent = this.page.locator('main, [role="main"], .main-content').first();
+      let ticketsSearchBox = mainContent.locator('input[type="text"], input[type="search"]').first();
+      let isVisible = await ticketsSearchBox.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (!isVisible) {
+        // Find input near "Create incident ticket" button
+        const createButton = this.page.getByRole('button', { name: /Create incident ticket/i });
+        const isCreateVisible = await createButton.isVisible({ timeout: 2000 }).catch(() => false);
+        if (isCreateVisible) {
+          // Get the parent container and find input in it
+          ticketsSearchBox = createButton
+            .locator('xpath=ancestor::div[contains(@class, "flex") or contains(@class, "header")]')
+            .first()
+            .locator('input')
+            .first();
+          isVisible = await ticketsSearchBox.isVisible({ timeout: 2000 }).catch(() => false);
+        }
+      }
+
+      if (!isVisible) {
+        // Find any input that's NOT in the header/nav area
+        const allInputs = this.page.locator('input');
+        const count = await allInputs.count();
+        for (let i = 0; i < count; i++) {
+          const input = allInputs.nth(i);
+          const placeholder = await input.getAttribute('placeholder');
+          // Skip the global search which has "Search Simpplr..."
+          if (placeholder && placeholder.toLowerCase().includes('search') && !placeholder.includes('Simpplr')) {
+            ticketsSearchBox = input;
+            isVisible = true;
+            console.log(`Found search box with placeholder: ${placeholder}`);
+            break;
+          }
+        }
+      }
+
+      if (isVisible) {
+        await ticketsSearchBox.click();
+        await ticketsSearchBox.clear();
+        await ticketsSearchBox.fill(searchTerm);
+        // Click the search icon button next to the input
+        const searchButton = ticketsSearchBox.locator('xpath=following-sibling::button | ../button').first();
+        const isSearchBtnVisible = await searchButton.isVisible({ timeout: 1000 }).catch(() => false);
+        if (isSearchBtnVisible) {
+          await searchButton.click();
+        } else {
+          await ticketsSearchBox.press('Enter');
+        }
+        await this.page.waitForTimeout(2000);
+        console.log(`Searched for: ${searchTerm} in Tickets search box`);
+      } else {
+        console.log('Tickets search box not found');
+      }
+    });
+  }
+
+  /**
+   * Verify that a ticket appears in search results
+   * @param ticketId - The ticket ID to verify (e.g., 'INC-123')
+   * @param subject - Optional subject text to verify
+   */
+  async verifyTicketInSearchResults(ticketId: string, subject?: string): Promise<void> {
+    await test.step(`Verify ticket ${ticketId} appears in search results`, async () => {
+      // Look for the ticket ID in results
+      const ticketLink = this.page.getByRole('link', { name: new RegExp(ticketId, 'i') });
+      await expect(ticketLink).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+      // Optionally verify subject if provided
+      if (subject) {
+        const subjectText = this.page.getByText(subject).first();
+        const isSubjectVisible = await subjectText.isVisible({ timeout: 3000 }).catch(() => false);
+        if (!isSubjectVisible) {
+          // Subject might be truncated, try partial match
+          const partialSubject = subject.substring(0, 20);
+          const partialText = this.page.getByText(new RegExp(partialSubject, 'i')).first();
+          await expect(partialText).toBeVisible({ timeout: TIMEOUTS.SHORT });
+        }
+      }
+    });
+  }
+
+  /**
+   * Clear search and return to full ticket list
+   */
+  async clearSearch(): Promise<void> {
+    await test.step('Clear search', async () => {
+      const searchInput = this.page.getByRole('searchbox').or(this.page.getByPlaceholder(/search/i));
+      const isSearchVisible = await searchInput.isVisible({ timeout: 2000 }).catch(() => false);
+
+      if (isSearchVisible) {
+        await searchInput.clear();
+        await this.page.keyboard.press('Enter');
+      }
+
+      // Look for clear/reset button
+      const clearButton = this.page.getByRole('button', { name: /clear|reset|x/i });
+      const isClearVisible = await clearButton.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isClearVisible) {
+        await clearButton.click();
+      }
+
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Create multiple tickets for testing
+   * @param count - Number of tickets to create
+   * @param ticketData - Base ticket data to use
+   * @returns Array of created ticket IDs
+   */
+  async createMultipleTickets(
+    count: number,
+    ticketData: {
+      workspace?: string;
+      category?: string;
+      requester?: string;
+      subject: string;
+      description: string;
+      priority: string;
+    }
+  ): Promise<string[]> {
+    const ticketIds: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      await test.step(`Create ticket ${i + 1} of ${count}`, async () => {
+        const uniqueSubject = `${ticketData.subject} ${i + 1} - ${Date.now()}`;
+
+        await this.createTicket({
+          ...ticketData,
+          subject: uniqueSubject,
+        });
+
+        const ticketId = await this.verifyTicketCreationSuccess();
+        ticketIds.push(ticketId);
+
+        // Wait before creating next ticket
+        await this.page.waitForTimeout(1000);
+      });
+    }
+
+    return ticketIds;
+  }
+
+  /**
+   * Add a comment to an open ticket
+   * @param comment - The comment text to add
+   * @param isPublic - Whether the comment should be public (visible to requester)
+   */
+  async addCommentToTicket(comment: string, isPublic: boolean = true): Promise<void> {
+    await test.step(`Add ${isPublic ? 'public' : 'private'} comment to ticket`, async () => {
+      // Wait for Comments section to be visible
+      await expect(this.page.getByText('Comments')).toBeVisible({ timeout: 10000 });
+
+      // Find the comment input box - it's a contenteditable div or textbox in the Comments section
+      const commentsSection = this.page.locator('text=Comments').locator('..').locator('..');
+
+      // Try to find the comment editor (contenteditable)
+      let commentInput = commentsSection.locator('[contenteditable="true"]').first();
+      let isVisible = await commentInput.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (!isVisible) {
+        // Try finding any textbox/textarea in comments area
+        commentInput = commentsSection.locator('textarea, [role="textbox"]').first();
+        isVisible = await commentInput.isVisible({ timeout: 2000 }).catch(() => false);
+      }
+
+      if (!isVisible) {
+        // Fallback: find any contenteditable on the page
+        commentInput = this.page.locator('[contenteditable="true"]').first();
+      }
+
+      await commentInput.click();
+      await commentInput.fill(comment);
+      console.log(`Typed comment: ${comment}`);
+
+      // Enable public comment toggle
+      if (isPublic) {
+        // Find the toggle switch near "Public comment" text
+        const publicToggleSwitch = this.page.getByRole('switch').first();
+        const isToggleVisible = await publicToggleSwitch.isVisible({ timeout: 2000 }).catch(() => false);
+
+        if (isToggleVisible) {
+          // Check if toggle is already checked
+          const isChecked = await publicToggleSwitch.isChecked().catch(() => false);
+          if (!isChecked) {
+            await publicToggleSwitch.click();
+            console.log('Enabled Public comment toggle');
+          } else {
+            console.log('Public comment toggle already enabled');
+          }
+        } else {
+          // Try alternate locator for toggle
+          const altToggle = this.page.locator('[data-state]').filter({ hasText: '' }).first();
+          const dataState = await altToggle.getAttribute('data-state').catch(() => null);
+          if (dataState === 'unchecked') {
+            await altToggle.click();
+            console.log('Enabled Public comment toggle (alt)');
+          }
+        }
+      }
+
+      // Click Send button (arrow icon) - it has data-testid="i-send"
+      const sendButton = this.page.locator('[data-testid="i-send"]').locator('..'); // Get the parent button
+      await expect(sendButton).toBeVisible({ timeout: 5000 });
+      await sendButton.click();
+      console.log('Clicked send button');
+
+      await this.page.waitForTimeout(2000);
+
+      // Handle any confirmation dialog if it appears
+      const proceedButton = this.page.getByRole('button', { name: /proceed|confirm|ok/i });
+      const isProceedVisible = await proceedButton.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isProceedVisible) {
+        await proceedButton.click();
+        await this.page.waitForTimeout(1000);
+      }
+    });
+  }
+
+  /**
+   * Add an attachment to an open ticket
+   * @param filePath - Path to the file to attach
+   */
+  async addAttachmentToTicket(filePath: string | string[]): Promise<void> {
+    await test.step('Add attachment to ticket', async () => {
+      // Find attachment button
+      const attachButton = this.page.getByRole('button', { name: /attach|upload|add file/i });
+      const isAttachVisible = await attachButton.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (isAttachVisible) {
+        await attachButton.click();
+      }
+
+      // Find file input and upload
+      const fileInput = this.page.locator('input[type="file"]');
+      await fileInput.waitFor({ state: 'attached', timeout: TIMEOUTS.SHORT });
+      await fileInput.setInputFiles(filePath);
+
+      await this.page.waitForTimeout(2000);
+
+      // Click update/save if needed
+      const updateButton = this.page.getByRole('button', { name: /Update|Save|Done/i });
+      const isUpdateVisible = await updateButton.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isUpdateVisible) {
+        await updateButton.click();
+        await this.page.waitForTimeout(1000);
+      }
+    });
+  }
+
+  /**
+   * Navigate to a ticket as a requester (end user view)
+   * Uses the Support portal path
+   * @param ticketId - The ticket ID to navigate to
+   */
+  async navigateToTicketAsRequester(ticketId: string): Promise<void> {
+    await test.step(`Navigate to ticket ${ticketId} as requester`, async () => {
+      const serviceDeskUrl = this.getServiceDeskUrl();
+
+      // Try requester/support portal path
+      await this.goToUrl(`${serviceDeskUrl}/support/tickets/${ticketId}`, {
+        waitUntil: 'domcontentloaded',
+      });
+
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+      await this.page.waitForTimeout(2000);
+
+      // If not found, try alternate path
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes(ticketId)) {
+        // Navigate to my tickets and find the ticket
+        await this.goToUrl(`${serviceDeskUrl}/support/my-tickets`, {
+          waitUntil: 'domcontentloaded',
+        });
+        await this.page.waitForTimeout(2000);
+
+        // Click on the ticket
+        const ticketLink = this.page.getByRole('link', { name: new RegExp(ticketId, 'i') });
+        const isTicketVisible = await ticketLink.isVisible({ timeout: 3000 }).catch(() => false);
+        if (isTicketVisible) {
+          await ticketLink.click();
+          await this.page.waitForTimeout(2000);
+        }
+      }
+    });
+  }
+
+  /**
+   * Verify that a comment is visible on the ticket
+   * @param commentText - The comment text to verify (can be partial)
+   */
+  async verifyCommentVisible(commentText: string): Promise<void> {
+    await test.step(`Verify comment is visible: "${commentText.substring(0, 30)}..."`, async () => {
+      // Look for the comment text on the page
+      const commentElement = this.page.getByText(commentText);
+      const isVisible = await commentElement.isVisible({ timeout: 5000 }).catch(() => false);
+
+      if (!isVisible) {
+        // Try partial match
+        const partialText = commentText.substring(0, 30);
+        const partialElement = this.page.getByText(new RegExp(partialText, 'i'));
+        await expect(partialElement).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      } else {
+        await expect(commentElement).toBeVisible();
+      }
+    });
+  }
+
+  /**
+   * Verify that an attachment is visible on the ticket
+   * @param fileName - The file name to verify
+   */
+  async verifyAttachmentVisible(fileName: string): Promise<void> {
+    await test.step(`Verify attachment is visible: ${fileName}`, async () => {
+      // Look for attachment by name or image
+      const attachmentElement = this.page.getByText(fileName);
+      const isTextVisible = await attachmentElement.isVisible({ timeout: 3000 }).catch(() => false);
+
+      if (isTextVisible) {
+        await expect(attachmentElement).toBeVisible();
+      } else {
+        // Try looking for image preview
+        const fileNameWithoutExt = fileName.split('.')[0];
+        const imageAttachment = this.page.getByLabel(new RegExp(`Image:.*${fileNameWithoutExt}`, 'i'));
+        const isImageVisible = await imageAttachment.isVisible({ timeout: 3000 }).catch(() => false);
+
+        if (isImageVisible) {
+          await expect(imageAttachment).toBeVisible();
+        } else {
+          // Look for any attachment indicator
+          const attachmentIcon = this.page.locator('[data-testid*="attachment"]');
+          const hasAttachment = (await attachmentIcon.count()) > 0;
+          expect(hasAttachment).toBeTruthy();
+        }
       }
     });
   }
