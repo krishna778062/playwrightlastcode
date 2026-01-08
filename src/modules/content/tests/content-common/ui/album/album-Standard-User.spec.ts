@@ -77,6 +77,9 @@ test.describe(
       }
     });
 
+    /**
+     * TODO: Looks like a real bug, the paste is not working, need to fix it from product after checking manually.
+     */
     for (const testData of ALBUM_APPROVAL_TEST_DATA) {
       test(
         `Album Content Add attach file with all the Mandatory fields by Standard user and ${testData.displayName} ${testData.zephyrTestId}`,
@@ -94,6 +97,8 @@ test.describe(
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
             storyId: testData.storyId,
+            isKnownFailure: true,
+            bugTicket: 'CONT-43081',
           });
 
           // Initialize preview page
@@ -127,8 +132,7 @@ test.describe(
           });
 
           // Create and submit the album
-          const { albumId, siteId, peopleName } =
-            await albumCreationPage.actions.createAndSubmitAlbum(albumCreationOptions);
+          const { albumId, siteId, peopleName } = await albumCreationPage.createAndSubmitAlbum(albumCreationOptions);
 
           // Store IDs for cleanup
           publishedAlbumId = albumId;
@@ -136,12 +140,12 @@ test.describe(
           manualCleanupNeeded = true;
 
           // Verify content was submitted successfully
-          await contentPreviewPageStandardUser.assertions.verifyContentPublishedSuccessfully(
+          await contentPreviewPageStandardUser.verifyContentPublishedSuccessfully(
             albumCreationOptions.title,
             'Submitted album for approval'
           );
 
-          await contentPreviewPageStandardUser.assertions.verifyContentStatus('Pending');
+          await contentPreviewPageStandardUser.verifyContentStatus('Pending');
 
           await appManagerFixture.page.reload();
           // Handle notification and perform action (approve/reject)
@@ -150,14 +154,14 @@ test.describe(
           });
           const notificationMessage =
             peopleName + ' submitted a album for approval "' + albumCreationOptions.title + '"';
-          await notificationComponentAppManager.actions.clickOnNotification(notificationMessage);
+          await notificationComponentAppManager.clickOnNotification(notificationMessage);
 
           // Perform approve or reject action
-          await contentPreviewPageAppManager.actions.clickOnApproveOrRejectButton(testData.action);
+          await contentPreviewPageAppManager.clickOnApproveOrRejectButton(testData.action);
           if (testData.action === 'Reject') {
-            await contentPreviewPageAppManager.actions.enterRejectReason('Test reason');
+            await contentPreviewPageAppManager.enterRejectReason('Test reason');
           }
-          await contentPreviewPageAppManager.assertions.verifyContentPublishedSuccessfully(
+          await contentPreviewPageAppManager.verifyContentPublishedSuccessfully(
             albumCreationOptions.title,
             testData.actionSuccessMessage
           );
@@ -172,13 +176,13 @@ test.describe(
           const appManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.appManager.email);
           const finalNotificationMessage =
             appManagerInfo.fullName + testData.notificationMessage + ' "' + albumCreationOptions.title + '"';
-          await notificationMessageStandardUser.actions.clickOnNotification(finalNotificationMessage);
+          await notificationMessageStandardUser.clickOnNotification(finalNotificationMessage);
 
           if (testData.action === 'Approve & publish') {
-            await contentPreviewPageStandardUser.assertions.verifyContentIsInPublishedStatus();
+            await contentPreviewPageStandardUser.verifyContentIsInPublishedStatus();
           } else {
-            await contentPreviewPageStandardUser.assertions.verifyContentStatus('Rejected');
-            await contentPreviewPageStandardUser.assertions.verifyContentHasSubmitForApprovalButton();
+            await contentPreviewPageStandardUser.verifyContentStatus('Rejected');
+            await contentPreviewPageStandardUser.verifyContentHasSubmitForApprovalButton();
           }
         }
       );

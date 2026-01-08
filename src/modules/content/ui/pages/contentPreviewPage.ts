@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import {
   CreateQuestionComponent,
@@ -17,83 +17,7 @@ import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedC
 import { MustReadModalComponent } from '@/src/modules/content/ui/components/mustReadModalComponent';
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
-export interface IContentPreviewPageActions {
-  clickShareContentButton(): Promise<void>;
-  handlePromotionPageStep: () => Promise<void>;
-  clickOnApproveOrRejectButton: (action: string) => Promise<void>;
-  enterRejectReason: (reason: string) => Promise<void>;
-  verifyCommentOptionIsNotVisible: () => Promise<void>;
-  unpublishingTheContent: () => Promise<void>;
-  publishingTheContent: () => Promise<void>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  clickShareThoughtsButton: () => Promise<void>;
-  clickQuestionButton: () => Promise<void>;
-  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
-  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
-  clickOnOptionMenuButton: () => Promise<void>;
-  clickOnMustReadButton: () => Promise<void>;
-  clickOnRemoveFromHomeCarouselButton: (carouselItemId: string) => Promise<void>;
-  clickOnRemoveFromSiteCarouselButton: (siteId: string, carouselItemId: string) => Promise<void>;
-  clickOnMustReadModalCancelButton: () => Promise<void>;
-  openReplyEditorForPost: (postText: string) => Promise<void>;
-  verifyCancelButtonVisible: (postText: string) => Promise<void>;
-  clickCancelButton: (postText: string) => Promise<void>;
-  verifyReplyEditorVisible: (postText: string) => Promise<void>;
-  verifyReplyEditorClosed: (postText: string) => Promise<void>;
-  clickAllCommentsLink: () => Promise<void>;
-  clickShowMoreCommentsButton: () => Promise<void>;
-  getVisibleCommentCount: () => Promise<number>;
-  addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
-  addReplyToCommentWithFile: (
-    replyText: string,
-    postId: string,
-    filePath: string,
-    mentionUserName?: string
-  ) => Promise<string>;
-  makeContentForEveryoneInOrganization: () => Promise<void>;
-  clickOnMakeMustReadButton: () => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  clickOnFavouriteContentButton(): Promise<void>;
-  deleteTheContent: () => Promise<void>;
-  skipPromotionDialogIfVisible(contentType: string): Promise<void>;
-}
-
-export interface IContentPreviewPageAssertions {
-  verifyCommentTimestampFormat(contentCommentText: string): unknown;
-  verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
-  verifyContentStatus: (status: string) => Promise<void>;
-  verifyContentIsInPublishedStatus: () => Promise<void>;
-  verifyContentHasSubmitForApprovalButton: () => Promise<void>;
-  verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
-  verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
-  verifyUnpublishedContentToastMessage: (toastMessage: string) => Promise<void>;
-  verifyPublishedContentToasteMessage: (toastMessage: string) => Promise<void>;
-  verifyCommentOptionIsNotVisible: () => Promise<void>;
-  verifyCommentOptionIsVisible: () => Promise<void>;
-  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
-  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
-  verifyMustReadModalIsNotVisible: () => Promise<void>;
-  verifyCommentCount: (expectedCount: number) => Promise<void>;
-  verifyMustReadModalIsVisible: () => Promise<void>;
-  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
-  verifyPostIsNotVisible(text: string): Promise<void>;
-  verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyShareIconIsVisible: (postText: string) => Promise<void>;
-  verifyContentShareButtonIsVisible: () => Promise<void>;
-  verifyReactionButtonIsVisible: () => Promise<void>;
-  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
-  verifyReplyIsVisible: (replyText: string) => Promise<void>;
-  verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
-  verifyContentIsMustRead: () => Promise<void>;
-  verifyContentIsNotAMustRead: () => Promise<void>;
-  verifyMustReadButtonIsNotVisible: () => Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
-}
-
-export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
+export class ContentPreviewPage extends BasePage {
   // Additional locators for promotion and verification
   readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
   readonly successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
@@ -131,6 +55,11 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly replyEditorForPost = (postText: string): Locator => {
+    return this.page.locator('._post_eonic_1').first().getByRole('button', { name: 'Leave a reply…' }).first();
+  };
+  readonly replyEditor = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+  readonly submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
   readonly promotionEventDialog = (contentType: string) =>
     this.page.getByRole('dialog', { name: `Promote ${contentType}` });
   readonly skipPromotionEventDialogButton = (contentType: string) =>
@@ -140,15 +69,17 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
   readonly promotePageModal: PromotePageModal;
   readonly mustReadModalComponent: MustReadModalComponent;
   readonly optionMenuComponent: OptionMenuComponent;
+  readonly createFeedPostComponent: CreateFeedPostComponent;
+  readonly listFeedComponent: ListFeedComponent;
+  readonly createQuestionComponent: CreateQuestionComponent;
   private contentDetailsComponent: ContentDetailsComponent;
-  private createFeedPostComponent: CreateFeedPostComponent;
-  private listFeedComponent: ListFeedComponent;
-  private createQuestionComponent: CreateQuestionComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
       page,
-      siteId && contentId && contentType ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType) : ''
+      siteId && contentId && contentType
+        ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType.toLowerCase())
+        : ''
     );
     this.promotePageModal = new PromotePageModal(page);
     this.mustReadModalComponent = new MustReadModalComponent(page);
@@ -159,19 +90,6 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     this.createQuestionComponent = new CreateQuestionComponent(page);
   }
 
-  // Actions
-  get actions(): IContentPreviewPageActions {
-    return this;
-  }
-
-  // Assertions
-  get assertions(): IContentPreviewPageAssertions {
-    return this;
-  }
-
-  /**
-   * Verifies the preview page is loaded
-   */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify preview page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
@@ -224,6 +142,27 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
         assertionMessage: `Content should be in pending status`,
       });
     });
+  }
+
+  async clickReplyEditorForPost(commentText: string): Promise<void> {
+    await test.step('Click on reply editor for post', async () => {
+      const replyEditor = this.replyEditorForPost(commentText);
+      await this.verifier.verifyTheElementIsVisible(replyEditor, {
+        assertionMessage: 'Reply editor should be visible for the post',
+      });
+      await this.clickOnElement(replyEditor);
+    });
+  }
+
+  async addReplyToContentComment(replyText: string): Promise<void> {
+    await test.step('Add reply to content comment', async () => {
+      await this.fillInElement(this.replyEditor, replyText);
+      await this.clickOnElement(this.submitReplyButton);
+    });
+  }
+
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await this.listFeedComponent.clickLoadMoreRepliesButton();
   }
 
   /**
@@ -308,7 +247,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async deleteTheContent(): Promise<void> {
     await test.step('Delete the content', async () => {
-      await this.actions.clickOnOptionMenuButton();
+      await this.clickOnOptionMenuButton();
       await this.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.deleteButton);
       await this.clickOnElement(this.confirmDeleteButton);
@@ -596,6 +535,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    */
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
   }
 
   /**
