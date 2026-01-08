@@ -147,10 +147,10 @@ test.describe(
           appManagerFixture.page,
           creatingSiteFirstPublicSite.siteId
         );
-        await firstManageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
-        await firstManageSitePageAppManagerSite.actions.clickOnThePageCategoryButton();
+        await firstManageSitePageAppManagerSite.clickOnTheManageSiteButton();
+        await firstManageSitePageAppManagerSite.clickOnThePageCategoryButton();
         const categoryName = TestDataGenerator.generateCategoryName();
-        await siteCategoriesPage.actions.createCategoryWithName(categoryName);
+        await siteCategoriesPage.createCategoryWithName(categoryName);
 
         // Get second unique site (different from first)
         const creatingSiteSecondPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
@@ -164,9 +164,9 @@ test.describe(
           appManagerFixture.page,
           creatingSiteSecondPublicSite.siteId
         );
-        await manageSitePageSecondPublicSite.actions.clickOnTheManageSiteButton();
-        await secondManageSitePageAppManagerSite.actions.clickOnThePageCategoryButton();
-        await siteCategoriesPage.actions.createCategoryWithName(categoryName);
+        await manageSitePageSecondPublicSite.clickOnTheManageSiteButton();
+        await secondManageSitePageAppManagerSite.clickOnThePageCategoryButton();
+        await siteCategoriesPage.createCategoryWithName(categoryName);
 
         // Get third unique site (different from first and second)
         const creatingSiteThirdPublicSite = await getUniqueSite(SITE_TYPES.PUBLIC);
@@ -180,12 +180,12 @@ test.describe(
           appManagerFixture.page,
           creatingSiteThirdPublicSite.siteId
         );
-        await manageSitePageThirdPublicSite.actions.clickOnTheManageSiteButton();
-        await manageSitePageThirdPublicSite.actions.clickOnThePageCategoryButton();
-        await siteCategoriesPage.actions.createCategoryWithName(categoryName);
-        await manageSitePageThirdPublicSite.actions.clickOnThePageCategoryButton();
-        await siteCategoriesPage.actions.createCategoryWithName(categoryName);
-        await thirdManageSitePageAppManagerSite.assertions.checkTheError();
+        await manageSitePageThirdPublicSite.clickOnTheManageSiteButton();
+        await manageSitePageThirdPublicSite.clickOnThePageCategoryButton();
+        await siteCategoriesPage.createCategoryWithName(categoryName);
+        await manageSitePageThirdPublicSite.clickOnThePageCategoryButton();
+        await siteCategoriesPage.createCategoryWithName(categoryName);
+        await thirdManageSitePageAppManagerSite.checkTheError();
       }
     );
 
@@ -211,17 +211,17 @@ test.describe(
           },
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.SCHEDULED);
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-        await manageContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
-        await manageContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.actions.clickOnPublishButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.SCHEDULED);
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.PUBLISH);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPage.manageContent.selectPublishButton();
       }
     );
 
@@ -275,21 +275,21 @@ test.describe(
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteId);
-        await manageSitePageAppManagerSite.actions.clickOnAboutTab();
-        await manageSitePageAppManagerSite.actions.clickOnTheMembersTab();
-        await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
-        await manageSitePageAppManagerSite.assertions.checkIsUserMarkedAsFavorite();
-        await manageSitePageAppManagerSite.assertions.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
-        await manageSitePageAppManagerSite.actions.clickOnTheFavouriteTabs();
-        await manageSitePageAppManagerSite.assertions.clickOnPeppleTab();
-        await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
-        await manageSitePageAppManagerSite.actions.hoverOnMembersName(membersName.membersName[0]);
-        await manageSitePageAppManagerSite.actions.markAsUnfavorite(membersName.membersName[0]);
+        await manageSitePageAppManagerSite.clickOnAboutTab();
+        await manageSitePageAppManagerSite.clickOnTheMembersTab();
+        await manageSitePageAppManagerSite.hoverOnMembersName(membersName.membersName[0]);
+        await manageSitePageAppManagerSite.checkIsUserMarkedAsFavorite();
+        await manageSitePageAppManagerSite.markAsFavoriteAndCheckRGBColor(membersName.membersName[0]);
+        await manageSitePageAppManagerSite.clickOnTheFavouriteTabs();
+        await manageSitePageAppManagerSite.clickOnPeppleTab();
+        await manageSitePageAppManagerSite.checkMarkedAsFavoriteInPeopleList(membersName.membersName[0]);
+        await manageSitePageAppManagerSite.hoverOnMembersName(membersName.membersName[0]);
+        await manageSitePageAppManagerSite.markAsUnfavorite(membersName.membersName[0]);
         const memberSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await memberSiteDashboardPage.loadPage();
-        await manageSitePageAppManagerSite.actions.clickOnTheAboutTab();
-        await manageSitePageAppManagerSite.actions.clickOnTheMemberButtonInAboutTab();
-        await manageSitePageAppManagerSite.assertions.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(
+        await manageSitePageAppManagerSite.clickOnTheAboutTab();
+        await manageSitePageAppManagerSite.clickOnTheMemberButtonInAboutTab();
+        await manageSitePageAppManagerSite.checkMarkedAsFavoriteInPeopleListShouldNotBeVisible(
           membersName.membersName[0]
         );
       }
@@ -314,12 +314,12 @@ test.describe(
 
         const manageSiteContentPage = new ManageContentPage(appManagerFixture.page);
         await manageSiteContentPage.load();
-        await manageSiteContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageSiteContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
-        await manageSiteContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageSiteContentPage.actions.hoverOnFirstDropDownOption();
-        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageSiteContentPage.assertions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageSiteContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageSiteContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+        await manageSiteContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageSiteContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageSiteContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageSiteContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
       }
     );
 
@@ -345,7 +345,8 @@ test.describe(
         if (!campaignName) {
           throw new Error('Campaign has neither title nor message');
         }
-        const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteInfo =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -353,14 +354,14 @@ test.describe(
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
         await siteDashboardPage.loadPage();
         const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo);
-        await manageSitePageAppManagerSite.actions.clickOnTheManageSiteButton();
-        await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
-        await manageContentPage.actions.clickOnOptionButton(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await manageSitePageAppManagerSite.clickOnTheManageSiteButton();
+        await manageSitePageAppManagerSite.clickOnInsideContentButton();
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await manageContentPage.manageContent.clickOnOptionButton(ManageContentOptions.ADD_TO_CAMPAIGN);
         await addToCampaignComponent.clickOnAddToCampaignInput();
         await addToCampaignComponent.typeInAddToCampaignInput(campaignName);
         await addToCampaignComponent.clickOnSaveButton();
@@ -382,7 +383,7 @@ test.describe(
           storyId: 'CONT-26044',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',
@@ -395,9 +396,9 @@ test.describe(
           throw new Error('No sites found in the response');
         }
         const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
-        await manageSiteAppManagerPage.assertions.searchSiteNameInSearchBar(siteNames[0]);
+        await manageSiteAppManagerPage.searchSiteNameInSearchBar(siteNames[0]);
         const siteDashBoardPage = new SiteDashboardPage(appManagerFixture.page, firstSiteId);
-        await siteDashBoardPage.assertions.verifySiteNameIsDisplayed(siteNames[0]);
+        await siteDashBoardPage.verifySiteNameIsDisplayedAfterSearch(siteNames[0]);
       }
     );
     test(
@@ -411,41 +412,40 @@ test.describe(
           zephyrTestId: 'CONT-23737',
           storyId: 'CONT-23737',
         });
-        const siteInfo = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteInfo =
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         await appManagerFixture.contentManagementHelper.createPage({
           siteId: siteInfo,
           contentInfo: { contentType: 'page', contentSubType: 'news' },
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
+        await manageFeaturesPage.clickOnContentCard();
         const DashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo);
         const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, siteInfo);
         await DashboardPage.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
-        await siteDetailsPage.actions.clickOnContentTab();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ONBOARDING_OPTION);
-        await manageContentPage.actions.clickOnOnboardingOption();
-        await manageContentPage.assertions.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
-        await manageContentPage.actions.saveButtonShouldBeDisabled();
-        await manageContentPage.actions.selectOnboardingOption(TagOption.SITE_ONBOARDING);
-        await manageContentPage.actions.clickOnOnboardingSaveButton();
-        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
-        await manageContentPage.assertions.verifyToastMessageIsVisibleWithText(
-          MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS
+        await siteDetailsPage.clickOnContentTab();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(
+          ManageContentOptions.ONBOARDING_OPTION
         );
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.clickOnOnboardingOption();
-        await manageContentPage.actions.selectOnboardingOption(TagOption.NOT_ONBOARDING);
-        await manageContentPage.actions.clickOnOnboardingSaveButton();
-        await manageContentPage.assertions.verifyToastMessageIsVisibleWithText(
-          MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS
-        );
-        await manageContentPage.assertions.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+        await manageContentPage.manageContent.clickOnOnboardingOption();
+        await manageContentPage.onboarding.verifyAlreadySelectedOnboardingOptionVisible(TagOption.NOT_ONBOARDING);
+        await manageContentPage.onboarding.saveButtonShouldBeDisabled();
+        await manageContentPage.onboarding.selectOnboardingOption(TagOption.SITE_ONBOARDING);
+        await manageContentPage.onboarding.clickOnSaveButton();
+        await manageContentPage.onboarding.verifyTagIsVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
+        await manageContentPage.verifyToastMessageIsVisibleWithText(MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.clickOnOnboardingOption();
+        await manageContentPage.onboarding.selectOnboardingOption(TagOption.NOT_ONBOARDING);
+        await manageContentPage.onboarding.clickOnSaveButton();
+        await manageContentPage.verifyToastMessageIsVisibleWithText(MANAGE_CONTENT_TEST_DATA.UPDATED_ONBOARDING_STATUS);
+        await manageContentPage.onboarding.verifyTagShouldNotBeVisibleOnContent(TagOption.SITE_ONBOARDING_TAG);
       }
     );
 
@@ -475,34 +475,34 @@ test.describe(
         }
 
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnPublishButton();
-        await manageContentPage.actions.clickOnApplyButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
-        await manageContentPage.actions.clickSortByButton();
-        const contentNames = await manageContentPage.actions.getAllContentNames();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectFirstContent();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectUnpublishButton();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.UNPUBLISHED);
+        await manageContentPage.manageContent.selectFirstContent();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectPublishButton();
+        await manageContentPage.manageContent.selectApplyButton();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.manageContent.clickSortByButton();
+        const contentNames = await manageContentPage.manageContent.getAllContentNames();
         console.log('contentNames', contentNames);
-        await manageContentPage.actions.clickOnFirstContentButton();
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnDeleteButton();
-        await manageContentPage.actions.selectDeleteApplyButton();
-        await manageContentPage.actions.verifyAllContentsAreDeleted(contentNames);
+        await manageContentPage.manageContent.selectFirstContent();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.selectDeleteButton();
+        await manageContentPage.manageContent.selectDeleteApplyButton();
+        await manageContentPage.manageContent.verifyAllContentsAreDeleted(contentNames);
       }
     );
     test(
@@ -517,17 +517,17 @@ test.describe(
           storyId: 'CONT-26450',
         });
         await appManagerFixture.navigationHelper.clickOnFavoritePeopleSection();
-        await favoritesPage.actions.clickOnPeopleButton();
+        await favoritesPage.clickOnPeopleButton();
         const getPeopleList = await appManagerApiFixture.siteManagementHelper.getListOfPeople();
         const peopleNames = getPeopleList.result.listOfItems.map((item: any) =>
           `${item.firstName || ''} ${item.lastName || ''}`.trim()
         );
-        await favoritesPage.assertions.verifyPeopleNamesAreDisplayed(peopleNames);
+        await favoritesPage.verifyPeopleNamesAreDisplayed(peopleNames);
         await appManagerFixture.navigationHelper.clickOnOrgChartButton();
-        await orgChartPage.actions.typeInSearchBarInput(peopleNames[0]);
-        await orgChartPage.actions.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
-        await userProfilePage.actions.clickOnFollowersTab();
-        await userProfilePage.assertions.verifyContactInformation();
+        await orgChartPage.typeInSearchBarInput(peopleNames[0]);
+        await orgChartPage.clickOnViewProfileButtonInOGRChart(peopleNames[0]);
+        await userProfilePage.clickOnFollowersTab();
+        await userProfilePage.verifyContactInformation();
       }
     );
     test(
@@ -541,16 +541,21 @@ test.describe(
           zephyrTestId: 'CONT-26503',
           storyId: 'CONT-26503',
         });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        const manageSitePageAppManager = new ManageSitePage(appManagerFixture.page);
+        await manageSitePageAppManager.loadPage();
+        await manageSitePageAppManager.verifyThePageIsLoaded();
         const editSitePage = new EditSitePage(appManagerFixture.page);
         await manageSitesComponent.hoverOnFirstSiteNameAction();
-        await editSitePage.actions.clickOnEditOption();
-        await editSitePage.actions.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
-        await editSitePage.actions.clickOnUpdateButton();
-        await editSitePage.assertions.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.clickOnEditOption();
+        await editSitePage.editSiteNameInput(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
+        await editSitePage.clickOnUpdateButton();
+        await editSitePage.verifySiteNameIsUpdated(MANAGE_SITE_TEST_DATA.UPDATED_SITE_NAME);
       }
     );
+
+    /**
+     * CONTENT TAB IS NOT VIISBLE, WHY?
+     */
     test(
       'to verify the bulk action activate in manage site user drop down CONT-26576',
       {
@@ -565,7 +570,7 @@ test.describe(
 
         // Navigate to manage sites page first
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const manageSitePage = new ManageSitePage(appManagerFixture.page);
         await manageSitePage.loadPage();
 
@@ -604,7 +609,7 @@ test.describe(
               `No enabled checkbox found, clicking "Show More" button (attempt ${attempt + 1}/${maxRetriesForShowMoreButton})`
             );
             try {
-              await manageSitePage.actions.clickOnShowMoreButtonAction();
+              await manageSitePage.clickOnShowMoreButtonAction();
             } catch {
               console.log('Show More button not available or clickable');
               // Continue to next attempt
@@ -618,9 +623,9 @@ test.describe(
           );
         }
         // Use the selected site name from the checkbox selection
-        await manageContentPage.actions.clickOnSelectActionDropdown();
-        await manageContentPage.actions.clickOnActivateButton();
-        await manageContentPage.actions.clickOnActivateApplyButton();
+        await manageContentPage.manageContent.selectActionDropdown();
+        await manageContentPage.manageContent.clickOnActivateButton();
+        await manageContentPage.manageContent.clickOnActivateApplyButton();
         await manageSitesComponent.selectSiteFilterByText(BulkActionOptions.DEACTIVATE);
         await manageSitesComponent.selectFilterByText(BulkActionOptions.ACTIVE);
         const getSiteListResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
@@ -655,8 +660,10 @@ test.describe(
           zephyrTestId: 'CONT-26574',
           storyId: 'CONT-26574',
         });
-        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+
+        const manageSitePageAppManager = new ManageSitePage(appManagerFixture.page);
+        await manageSitePageAppManager.loadPage();
+        await manageSitePageAppManager.verifyThePageIsLoaded();
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',
@@ -667,11 +674,11 @@ test.describe(
           throw new Error('No sites found in the response');
         }
         await manageSitesComponent.selectSiteCheckboxByExactName(getListOfSitesResponse.result.listOfItems[1].name);
-        await manageContentPage.actions.clickOnSelectActionDropdown();
+        await manageContentPage.manageContent.selectActionDropdown();
         await manageSitesComponent.clickOnUpdateCategoryButtonAction();
-        await manageContentPage.actions.clickOnApply();
+        await manageContentPage.manageContent.clickOnApply();
         const manageSitePage = new ManageSiteSetUpPage(appManagerFixture.page, firstSiteId);
-        await manageSitePage.actions.updatingCategoryToUncategorized('Uncategorized');
+        await manageSitePage.updatingCategoryToUncategorized('Uncategorized');
       }
     );
 
@@ -685,6 +692,8 @@ test.describe(
           description: '',
           zephyrTestId: 'CONT-20536',
           storyId: 'CONT-20536',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43937',
         });
 
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
@@ -698,22 +707,23 @@ test.describe(
         });
         console.log('pageInfo', pageInfo);
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.albumName);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPage.actions.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
-        await manageContentPage.actions.clickOnUnpublishButton();
-        await manageContentPage.actions.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
-        await manageContentPage.actions.hoverOnFirstDropDownOption();
-        await manageContentPage.actions.clickOnDeleteOption();
-        await manageContentPage.actions.clickDeleteModalConfirmButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await appManagerFixture.page.reload();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.albumName);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.UNPUBLISH);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
+        await manageContentPage.manageContent.verifyOptionVisibleInManageContent(ManageContentOptions.ADD_TO_CAMPAIGN);
+        await manageContentPage.manageContent.selectUnpublishButton();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.UNPUBLISHED);
+        await manageContentPage.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPage.manageContent.clickOnDeleteOption();
+        await manageContentPage.manageContent.clickDeleteModalConfirmButton();
       }
     );
 
@@ -745,12 +755,12 @@ test.describe(
         await siteDetailsPage.loadPage();
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         await manageSitesComponent.clickOnInsideContentButtonAction();
-        await siteDetailsPage.actions.clickOnContentTab();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.PUBLISHED_TAG);
+        await siteDetailsPage.clickOnContentTab();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.onboarding.verifyTagIsVisibleOnContent(TagOption.PUBLISHED_TAG);
       }
     );
 
@@ -770,8 +780,8 @@ test.describe(
         const siteTypes = [SITE_TYPES.PUBLIC, SITE_TYPES.PRIVATE, SITE_TYPES.UNLISTED];
         const manageSitePage = new ManageSitePage(appManagerFixture.page);
         await manageSitePage.loadPage();
-        await manageSitePage.actions.clickOnFilterOptionsDropdownButton();
-        await manageSitePage.actions.selectFilterOption('All');
+        await manageSitePage.clickOnFilterOptionsDropdownButton();
+        await manageSitePage.selectFilterOption('All');
 
         for (const siteType of siteTypes) {
           const siteInfo = await appManagerApiFixture.siteManagementHelper.getDeactivatedSite(siteType, {
@@ -779,11 +789,11 @@ test.describe(
             sortBy: 'alphabetical',
           });
           const siteName = siteInfo.siteName;
-          await manageSitePage.actions.searchSite(siteName);
-          await manageSitePage.actions.clickOnSearchButton();
-          await manageSitePage.actions.clickOnOptionsDropdown(siteName);
-          await manageSitePage.assertions.verifyOptionIsVisibleInOptionsDropdown('Activate');
-          await manageSitePage.assertions.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
+          await manageSitePage.searchSite(siteName);
+          await manageSitePage.clickOnSearchButton();
+          await manageSitePage.clickOnOptionsDropdown(siteName);
+          await manageSitePage.verifyOptionIsVisibleInOptionsDropdown('Activate');
+          await manageSitePage.verifyOptionIsNotVisibleInOptionsDropdown('Deactivate');
         }
       }
     );
@@ -799,7 +809,7 @@ test.describe(
           storyId: 'CONT-23662',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const getListOfSitesResponse = await appManagerApiFixture.siteManagementHelper.getListOfSites({ size: 1000 });
         const firstSite = getListOfSitesResponse.result.listOfItems.find((item: any) => item.memberCount === 2);
         if (!firstSite) {
@@ -826,9 +836,11 @@ test.describe(
           console.log(`User ${nonAppManagerMember.peopleId} is already an owner, skipping role update`);
         }
         const manageSiteAppManagerPage = new ManageSiteSetUpPage(appManagerFixture.page, firstSite.siteId);
-        await manageSiteAppManagerPage.loadPage();
-        await manageSiteAppManagerPage.actions.clickOnThePeopleTab();
-        await manageSiteAppManagerPage.assertions.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, firstSite.siteId);
+        await siteDashboardPage.loadPage();
+        await manageSitesComponent.clickOnTheManageSiteButtonAction();
+        await manageSiteAppManagerPage.clickOnThePeopleTab();
+        await manageSiteAppManagerPage.verifyMemberNameAndSiteOwnerStatus(nonAppManagerMember.name);
       }
     );
     test(
@@ -928,8 +940,8 @@ test.describe(
         await contentPreviewPageEvent.loadPage();
         await contentPreviewPageEvent.clickOnFavouriteContentButton();
         await manageSitesComponent.clickOnTheFavouriteTabsAction();
-        await favoritesPage.actions.clickOnContentButton();
-        await favoritesPage.assertions.verifyContentNamesAreDisplayed([
+        await favoritesPage.clickOnContentButton();
+        await favoritesPage.verifyContentNamesAreDisplayed([
           createPageInfo.pageName,
           createAlbumInfo.albumName,
           createEventInfo.eventName,
@@ -1000,20 +1012,20 @@ test.describe(
         const newHomePage = new NewHomePage(appManagerFixture.page);
         await newHomePage.loadPage();
         await manageSitesComponent.clickOnTheFavouriteTabsAction();
-        await favoritesPage.actions.clickOnContentButton();
-        await favoritesPage.assertions.verifyContentNamesAreDisplayed([
+        await favoritesPage.clickOnContentButton();
+        await favoritesPage.verifyContentNamesAreDisplayed([
           createPageInfo.pageName,
           createAlbumInfo.albumName,
           createEventInfo.eventName,
         ]);
 
         const manageAppManagerUserPage = new ManageSiteSetUpPage(appManagerFixture.page, siteInfo.siteId);
-        await favoritesPage.assertions.verifyEventsTabImageIsDisplayed();
-        await favoritesPage.assertions.verifyAlbumTabImageIsDisplayed();
-        await manageAppManagerUserPage.assertions.verifyPageTabImageIsDisplayed();
-        await favoritesPage.assertions.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
+        await favoritesPage.verifyEventsTabImageIsDisplayed();
+        await favoritesPage.verifyAlbumTabImageIsDisplayed();
+        await manageAppManagerUserPage.verifyPageTabImageIsDisplayed();
+        await favoritesPage.verifyEventsTabMatchesApiDate(createEventInfo.startsAt);
         await onboardingComponent.verifyTagIsVisibleOnContentUnderFavoritesTab(TagOption.MUST_READ_TAG);
-        await favoritesPage.assertions.markAsFavoriteAndCheckRGBColor();
+        await favoritesPage.markAsFavoriteAndCheckRGBColor();
       }
     );
     test(
@@ -1046,20 +1058,20 @@ test.describe(
           'page'
         );
         await contentDetails.loadPage();
-        await contentDetails.actions.clickOnOptionMenuButton();
-        await contentDetails.actions.clickOnRemoveFromHomeCarouselButton(
+        await contentDetails.clickOnOptionMenuButton();
+        await contentDetails.clickOnRemoveFromHomeCarouselButton(
           addContentIntoHomeCarouselResponse.result.carouselItemId
         );
-        await contentDetails.actions.clickOnRemoveFromSiteCarouselButton(
+        await contentDetails.clickOnRemoveFromSiteCarouselButton(
           siteInfo.siteId,
           addSiteCarouselItemResponse.result.carouselItemId
         );
         const homePage = new NewHomePage(appManagerFixture.page);
         await homePage.loadPage();
-        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
+        await homePage.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteInfo.siteId);
         await siteDashboardPage.loadPage();
-        await homePage.assertions.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
+        await homePage.verifyContentIsNotVisibleInCarousel(createPageInfo.pageName);
       }
     );
 
@@ -1127,23 +1139,23 @@ test.describe(
 
         const manageSitePageAppManagerSite = new ManageSiteSetUpPage(appManagerFixture.page, siteId);
         await manageSitePageAppManagerSite.loadPage();
-        await manageSitePageAppManagerSite.actions.clickOnInsideContentButton();
+        await manageSitePageAppManagerSite.clickOnInsideContentButton();
         const manageContentPage = new ManageContentPage(appManagerFixture.page);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.manageContent.clickSortByButton();
         // Verify all three dates in parallel since they're already rendered on the page
         await Promise.all([
-          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDate),
-          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDate),
-          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDate),
+          manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDate),
+          manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDate),
+          manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDate),
         ]);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
-        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_OLDEST);
+        await manageContentPage.manageContent.clickSortByButton();
         const getContentListResponseOldest =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
             sortBy: ContentSortBy.CREATED_OLDEST,
@@ -1158,7 +1170,7 @@ test.describe(
         }
         const oldestContentItem = getContentListResponseOldest.result.listOfItems[0];
         const oldestContentCreatedAtDate = formatCreatedAtDateForManageContent(oldestContentItem.createdAt);
-        await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(oldestContentCreatedAtDate);
+        await manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(oldestContentCreatedAtDate);
         // Get current user's peopleId - try from API first, fallback to page object
         const currentUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
           users.appManager.email
@@ -1171,10 +1183,10 @@ test.describe(
         console.log('Using peopleId:', peopleId);
         const profileScreenPage = new ProfileScreenPage(appManagerFixture.page, peopleId);
         await profileScreenPage.loadPage();
-        await profileScreenPage.actions.openEditTimezone();
+        await profileScreenPage.openEditTimezone();
         // Generate random timezone value between 1 and 300 (inclusive)
-        await profileScreenPage.actions.selectTimezone(PROFILE_TEST_DATA.TIMEZONE.RANDOM_NUMBER.toString());
-        await profileScreenPage.actions.clickOnSaveTimezoneButton();
+        await profileScreenPage.selectTimezone(PROFILE_TEST_DATA.TIMEZONE.RANDOM_NUMBER.toString());
+        await profileScreenPage.clickOnSaveTimezoneButton();
 
         const getSiteListResponseAfterUpdate = await appManagerApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
@@ -1231,23 +1243,23 @@ test.describe(
           siteIdAfterUpdate
         );
         await manageSitePageAppManagerSite.loadPage();
-        await manageSitePageAppManagerSiteAfterUpdate.actions.clickOnInsideContentButton();
+        await manageSitePageAppManagerSiteAfterUpdate.clickOnInsideContentButton();
         const manageContentPageAfterUpdate = new ManageContentPage(appManagerFixture.page);
-        await manageContentPageAfterUpdate.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.clickSortByButton();
+        await manageContentPageAfterUpdate.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.manageContent.clickSortByButton();
         // Verify all three dates in parallel since they're already rendered on the page
         await Promise.all([
-          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDateAfterUpdate),
-          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDateAfterUpdate),
-          manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDateAfterUpdate),
+          manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(pageCreatedAtDateAfterUpdate),
+          manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(eventCreatedAtDateAfterUpdate),
+          manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(albumCreatedAtDateAfterUpdate),
         ]);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
-        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_OLDEST);
+        await manageContentPage.manageContent.clickSortByButton();
         const getContentListResponseOldestAfterUpdate =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({
             sortBy: ContentSortBy.CREATED_OLDEST,
@@ -1264,14 +1276,14 @@ test.describe(
         const oldestContentCreatedAtDateAfterUpdate = formatCreatedAtDateForManageContent(
           oldestContentItemAfterUpdate.createdAt
         );
-        await manageContentPageAfterUpdate.assertions.verifyCreatedAtDateVisibleInManageContent(
+        await manageContentPageAfterUpdate.manageContent.verifyCreatedAtDateVisibleInManageContent(
           oldestContentCreatedAtDateAfterUpdate
         );
         await profileScreenPage.loadPage();
-        await profileScreenPage.actions.openEditTimezone();
+        await profileScreenPage.openEditTimezone();
         // select default timezone
-        await profileScreenPage.actions.selectTimezone('328');
-        await profileScreenPage.actions.clickOnSaveTimezoneButton();
+        await profileScreenPage.selectTimezone('328');
+        await profileScreenPage.clickOnSaveTimezoneButton();
       }
     );
     test(
@@ -1288,9 +1300,7 @@ test.describe(
         });
         const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
         await governanceScreenPage.loadPage();
-        await governanceScreenPage.actions.selectContentValidationPeriodTime(
-          CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS
-        );
+        await governanceScreenPage.selectContentValidationPeriodTime(CONTENT_VALIDATION_PERIOD_TIME.TWELVE_MONTHS);
         const sitesResponse = await standardUserApiFixture.siteManagementHelper.getListOfSites({
           sortBy: 'alphabetical',
           filter: 'active',
@@ -1320,29 +1330,37 @@ test.describe(
         );
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
-        await manageFeaturesPageForStandardUser.actions.clickOnContentCard();
+        await manageFeaturesPageForStandardUser.clickOnContentCard();
         const manageContentPageForStandardUser = new ManageContentPage(standardUserFixture.page);
-        await manageContentPageForStandardUser.assertions.verifyValidationRequiredIsVisible();
-        await manageContentPageForStandardUser.actions.clickOnValidationViewAllButton();
-        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(
+        await manageContentPageForStandardUser.manageContent.verifyValidationRequiredIsVisible();
+        await manageContentPageForStandardUser.manageContent.clickOnValidationViewAllButton();
+        await manageContentPageForStandardUser.manageContent.verifyTagVisibleInManageContent(
           ManageContentTags.VALIDATION_REQUIRED
         );
-        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
-        await manageContentPageForStandardUser.actions.clickOnValidateButton();
-        await manageContentPageForStandardUser.actions.clickFilterButton();
-        await manageContentPageForStandardUser.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPageForStandardUser.actions.clickFilterButton();
-        await manageContentPageForStandardUser.actions.clickSortByButton();
-        await manageContentPageForStandardUser.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPageForStandardUser.assertions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPageForStandardUser.actions.hoverOnFirstDropDownOption();
-        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.EDIT);
-        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.DELETE);
-        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(
+        await manageContentPageForStandardUser.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.manageContent.selectValidateButton();
+        await manageContentPageForStandardUser.manageContent.clickFilterButton();
+        await manageContentPageForStandardUser.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPageForStandardUser.manageContent.clickFilterButton();
+        await manageContentPageForStandardUser.manageContent.clickSortByButton();
+        await manageContentPageForStandardUser.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPageForStandardUser.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPageForStandardUser.manageContent.hoverOnFirstDropDownOption();
+        await manageContentPageForStandardUser.manageContent.verifyOptionVisibleInManageContent(
+          ManageContentOptions.EDIT
+        );
+        await manageContentPageForStandardUser.manageContent.verifyOptionVisibleInManageContent(
+          ManageContentOptions.DELETE
+        );
+        await manageContentPageForStandardUser.manageContent.verifyOptionVisibleInManageContent(
           ManageContentOptions.UNPUBLISH
         );
-        await manageContentPageForStandardUser.actions.verifyOptionVisibleInManageContent(ManageContentOptions.MOVE);
-        await manageContentPageForStandardUser.actions.verifyTagVisibleInManageContent(ManageContentTags.PUBLISHED);
+        await manageContentPageForStandardUser.manageContent.verifyOptionVisibleInManageContent(
+          ManageContentOptions.MOVE
+        );
+        await manageContentPageForStandardUser.manageContent.verifyTagVisibleInManageContent(
+          ManageContentTags.PUBLISHED
+        );
       }
     );
     test(
@@ -1358,13 +1376,11 @@ test.describe(
         });
 
         const siteInfo = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const siteListResponse = siteInfo.siteListResponse; // This is an array of sites
-        if (!siteListResponse || siteListResponse.length === 0) {
-          throw new Error('No sites found in siteListResponse');
-        }
+
         // Loop through sites to find one where standard user is NOT a member, owner, or manager
-        const newsiteInfo =
-          await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(siteListResponse);
+        const newsiteInfo = await standardUserApiFixture.siteManagementHelper.getSitesWhereUserIsNotMemberOrOwner(
+          siteInfo.siteListResponse
+        );
         const pageInfo = await standardUserApiFixture.contentManagementHelper.createPage({
           siteId: newsiteInfo.siteId, // Use the site where standard user is not a member/owner/manager
           contentInfo: { contentType: 'page', contentSubType: 'news' },
@@ -1378,14 +1394,14 @@ test.describe(
         const siteDetailsPage = new SiteDetailsPage(appManagerFixture.page, newsiteInfo.siteId);
         await siteDetailsPage.loadPage();
         const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, newsiteInfo.siteId);
-        await manageSiteSetUpPage.actions.clickOnTheManageSiteButton();
-        await manageSiteSetUpPage.actions.clickOnInsideContentButton();
-        await siteDetailsPage.actions.clickOnContentTab();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.REJECTED);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.verifyContentDetailsVisibility(pageInfo.pageName);
-        await manageContentPage.assertions.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
+        await manageSiteSetUpPage.clickOnTheManageSiteButton();
+        await manageSiteSetUpPage.clickOnInsideContentButton();
+        await siteDetailsPage.clickOnContentTab();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.REJECTED);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.verifyContentDetailsVisibility(pageInfo.pageName);
+        await manageContentPage.onboarding.verifyTagIsVisibleOnContent(TagOption.REJECTED_TAG);
       }
     );
 
@@ -1404,20 +1420,19 @@ test.describe(
           // Get a site with a page category that has more than 16 pages
           const categoryInfo =
             await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
-              minPageCount: 17,
-              maxSitesToCheck: 10,
+              minPageCount: 18,
             });
 
           // Click on the page category
           const siteContentPage = new SiteContentPage(appManagerFixture.page, categoryInfo.siteId);
           await siteContentPage.loadPage();
-          await siteContentPage.assertions.verifyThePageIsLoaded();
-          await siteContentPage.actions.clickPageCategory(categoryInfo.categoryName);
+          await siteContentPage.verifyThePageIsLoaded();
+          await siteContentPage.clickPageCategory(categoryInfo.categoryName);
           // Verify content list loads
-          await siteContentPage.assertions.verifyContentListLoaded();
-          await siteContentPage.assertions.verifyShowMoreButtonIsVisible();
-          await siteContentPage.actions.clickOnShowMoreButton();
-          await siteContentPage.assertions.verifyContentListAfterClickingShowMoreButton();
+          await siteContentPage.verifyContentListLoaded();
+          await siteContentPage.verifyShowMoreButtonIsVisible();
+          await siteContentPage.clickOnShowMoreButton();
+          await siteContentPage.verifyContentListAfterClickingShowMoreButton();
         });
       }
     );
@@ -1438,22 +1453,18 @@ test.describe(
         // Get a site with a page category that has more than 16 pages
         const categoryInfo =
           await appManagerFixture.contentManagementHelper.getSiteWithPageCategoryHavingMoreThan16Pages({
-            minPageCount: 17,
-            maxSitesToCheck: 10,
+            minPageCount: 18,
           });
         const manageSitePageCategoryPage = new ManageSitePageCategoryPage(appManagerFixture.page, categoryInfo.siteId);
         await manageSitePageCategoryPage.loadPage();
-        await manageSitePageCategoryPage.assertions.verifyThePageIsLoaded();
-        await manageSitePageCategoryPage.actions.searchCategory(categoryInfo.categoryName);
-        await manageSitePageCategoryPage.actions.clickOnCustomCategory(categoryInfo.categoryName);
-        await manageSitePageCategoryPage.assertions.verifyNoResultsFoundIsNotVisible();
-        await manageSitePageCategoryPage.assertions.verifyContentListLoaded(
-          categoryInfo.siteId,
-          categoryInfo.categoryId
-        );
-        await manageSitePageCategoryPage.assertions.verifyShowMoreButtonIsVisible();
-        await manageSitePageCategoryPage.actions.clickOnShowMoreButton();
-        await manageSitePageCategoryPage.assertions.verifyContentListAfterClickingShowMoreButton();
+        await manageSitePageCategoryPage.verifyThePageIsLoaded();
+        await manageSitePageCategoryPage.searchCategory(categoryInfo.categoryName);
+        await manageSitePageCategoryPage.clickOnCustomCategory(categoryInfo.categoryName);
+        await manageSitePageCategoryPage.verifyNoResultsFoundIsNotVisible();
+        await manageSitePageCategoryPage.verifyContentListLoaded(categoryInfo.siteId, categoryInfo.categoryId);
+        await manageSitePageCategoryPage.verifyShowMoreButtonIsVisible();
+        await manageSitePageCategoryPage.clickOnShowMoreButton();
+        await manageSitePageCategoryPage.verifyContentListAfterClickingShowMoreButton();
       }
     );
   }

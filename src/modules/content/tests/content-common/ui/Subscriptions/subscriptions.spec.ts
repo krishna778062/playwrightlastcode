@@ -66,8 +66,8 @@ test.describe(
         const manageSitesComponent = new ManageSitesComponent(appManagerFixture.page);
         await manageSitesComponent.clickOnTheManageSiteButtonAction();
         const manageSiteSetUpPage = new ManageSiteSetUpPage(appManagerFixture.page, selectedSite.siteId);
-        await manageSiteSetUpPage.actions.clickOnSubscriptionButton();
-        await manageSiteSetUpPage.assertions.verifyAddSubscriptionPageIsLoaded();
+        await manageSiteSetUpPage.clickOnSubscriptionButton();
+        await manageSiteSetUpPage.verifyAddSubscriptionPageIsLoaded();
       }
     );
   }
