@@ -1,23 +1,24 @@
 import { expect } from '@playwright/test';
+import { automatedAwardMsgs } from '@recognition/constants/automated-award-constants';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import {
-  automatedAwardMsgs,
   AutomatedAwardPage,
   EditAutomatedAwardPage,
   ManageRecognitionPage,
-  milestoneEndpointUrls,
 } from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 
-import { TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
+import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
+
+import { DialogContainerForm } from '../../../ui/components/common/workAnniversary-dialog-container-form';
 
 test.describe('Edit work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
     await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     await threeDotsButton.click();
@@ -37,16 +38,16 @@ test.describe('Edit work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WO
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.removeAllCustomizationsFromAwardInstance(automatedAwardPage, manageRecognitionPage);
-      await editAutomatedAwardPage.validateAwardScheduleAndOpenEditInstance(manageRecognitionPage);
-      await editAutomatedAwardPage.validateEditAwardInstanceDialogElements(manageRecognitionPage);
-      await editAutomatedAwardPage.customizeMessageInAwardInstance(automatedAwardPage, manageRecognitionPage);
-      await editAutomatedAwardPage.customizeAuthorInAwardInstance(automatedAwardPage, manageRecognitionPage);
-      await editAutomatedAwardPage.customizeBadgeInAwardInstance(automatedAwardPage, manageRecognitionPage);
-      await editAutomatedAwardPage.validateIconsOnAwardInstancePostEditing(manageRecognitionPage);
-      await editAutomatedAwardPage.removeAllCustomizationsFromAwardInstance(automatedAwardPage, manageRecognitionPage);
+      await editAutomatedAwardPage.removeAllCustomizationsFromAwardInstance(automatedAwardPage, dialogContainerForm);
+      await editAutomatedAwardPage.validateAwardScheduleAndOpenEditInstance(dialogContainerForm);
+      await editAutomatedAwardPage.validateEditAwardInstanceDialogElements(dialogContainerForm);
+      await editAutomatedAwardPage.customizeMessageInAwardInstance(automatedAwardPage, dialogContainerForm);
+      await editAutomatedAwardPage.customizeAuthorInAwardInstance(automatedAwardPage, dialogContainerForm);
+      await editAutomatedAwardPage.customizeBadgeInAwardInstance(automatedAwardPage, dialogContainerForm);
+      await editAutomatedAwardPage.validateIconsOnAwardInstancePostEditing(dialogContainerForm);
+      await editAutomatedAwardPage.removeAllCustomizationsFromAwardInstance(automatedAwardPage, dialogContainerForm);
     }
   );
 
@@ -96,10 +97,10 @@ test.describe('Edit work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WO
         zephyrTestId: 'RC-5088',
       });
       const { page: appManagerPage } = appManagerFixture;
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.validatePreviewAutomatedAward(manageRecognitionPage, automatedAwardMsgs);
+      await editAutomatedAwardPage.validatePreviewAutomatedAward(dialogContainerForm, automatedAwardMsgs);
     }
   );
 
@@ -116,8 +117,13 @@ test.describe('Edit work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WO
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.customizeMessageForAwardInstance(automatedAwardPage, manageRecognitionPage);
+      await editAutomatedAwardPage.customizeMessageForAwardInstance(
+        automatedAwardPage,
+        dialogContainerForm,
+        manageRecognitionPage
+      );
     }
   );
 });
@@ -126,8 +132,8 @@ test.describe('Edit work anniversary award verification by Admin User', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
-    await manageRecognitionPage.header.waitFor({ state: 'visible' });
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+    await manageRecognitionPage.recognitionHeader.waitFor({ state: 'visible' });
   });
 
   test(
@@ -145,7 +151,7 @@ test.describe('Edit work anniversary award verification by Admin User', () => {
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
 
       await editAutomatedAwardPage.inactivateAwardIfActive(automatedAwardPage, manageRecognitionPage);
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
       await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await threeDotsButton.click();
@@ -169,8 +175,9 @@ test.describe('Edit work anniversary award verification by Admin User', () => {
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
       await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await threeDotsButton.click();
@@ -179,7 +186,7 @@ test.describe('Edit work anniversary award verification by Admin User', () => {
 
       await editAutomatedAwardPage.verifyPreviewAwardInstanceViaEyeIcon(
         automatedAwardPage,
-        manageRecognitionPage,
+        dialogContainerForm,
         automatedAwardMsgs
       );
     }

@@ -4,13 +4,14 @@ import {
   AutomatedAwardPage,
   EditAutomatedAwardPage,
   ManageRecognitionPage,
-  milestoneEndpointUrls,
 } from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import path from 'node:path';
 
 import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
+
+import { DialogContainerForm } from '../../../ui/components/common/workAnniversary-dialog-container-form';
 
 // Get the image file path - directly use content module's test data path
 const imagePath = path.resolve(__dirname, '../../../../content/test-data/static-files/images/image1.jpg');
@@ -20,9 +21,9 @@ test.describe('Image attachment for automated award', { tag: [REWARD_SUITE_TAGS.
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-    await expect(manageRecognitionPage.header).toBeVisible({
+    await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
     const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
@@ -84,39 +85,39 @@ test.describe('Image attachment for automated award', { tag: [REWARD_SUITE_TAGS.
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
       // Open edit award instance dialog
-      await editAutomatedAwardPage.openEditAwardInstanceDialog(manageRecognitionPage);
+      await editAutomatedAwardPage.openEditAwardInstanceDialog(dialogContainerForm);
 
       // Add text in customize message section
-      await editAutomatedAwardPage.customizeMessageInAwardInstance(automatedAwardPage, manageRecognitionPage);
+      await editAutomatedAwardPage.customizeMessageInAwardInstance(automatedAwardPage, dialogContainerForm);
 
       // Attach image
-      await editAutomatedAwardPage.attachImageInAwardInstance(automatedAwardPage, manageRecognitionPage, imagePath);
+      await editAutomatedAwardPage.attachImageInAwardInstance(automatedAwardPage, dialogContainerForm, imagePath);
 
       // Verify cancel reverts changes
-      await editAutomatedAwardPage.verifyCancelRevertsImageChangesInAwardInstance(manageRecognitionPage);
+      await editAutomatedAwardPage.verifyCancelRevertsImageChangesInAwardInstance(dialogContainerForm);
 
       // Add text again and verify no image
-      await editAutomatedAwardPage.addTextInCustomizeMessageAndVerifyNoImage(manageRecognitionPage);
+      await editAutomatedAwardPage.addTextInCustomizeMessageAndVerifyNoImage(dialogContainerForm);
 
       // Attach image again
-      await editAutomatedAwardPage.attachImageInAwardInstance(automatedAwardPage, manageRecognitionPage, imagePath);
+      await editAutomatedAwardPage.attachImageInAwardInstance(automatedAwardPage, dialogContainerForm, imagePath);
 
       // Save and verify image is attached
-      await editAutomatedAwardPage.saveAndVerifyImageAttachedInAwardInstance(manageRecognitionPage);
+      await editAutomatedAwardPage.saveAndVerifyImageAttachedInAwardInstance(dialogContainerForm);
 
       // Remove image and verify it remains after cancel
       await editAutomatedAwardPage.removeImageAndVerifyRemainsAfterCancelInAwardInstance(
         automatedAwardPage,
-        manageRecognitionPage
+        dialogContainerForm
       );
 
       // Remove image and verify it's deleted after save
       await editAutomatedAwardPage.removeImageAndVerifyDeletedAfterSaveInAwardInstance(
         automatedAwardPage,
-        manageRecognitionPage
+        dialogContainerForm
       );
     }
   );

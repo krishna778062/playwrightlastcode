@@ -4,7 +4,6 @@ import {
   AutomatedAwardPage,
   EditAutomatedAwardPage,
   ManageRecognitionPage,
-  milestoneEndpointUrls,
 } from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 
@@ -16,9 +15,9 @@ test.describe('Edit details from Award Frequency section', { tag: [REWARD_SUITE_
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-    await expect(manageRecognitionPage.header).toBeVisible({
+    await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
     const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);

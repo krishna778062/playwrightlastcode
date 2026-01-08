@@ -1,11 +1,10 @@
 import { expect } from '@playwright/test';
+import { automatedAwardMsgs } from '@recognition/constants/automated-award-constants';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import {
-  automatedAwardMsgs,
   AutomatedAwardPage,
   EditAutomatedAwardPage,
   ManageRecognitionPage,
-  milestoneEndpointUrls,
 } from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 
@@ -19,9 +18,9 @@ test.describe(
     test.beforeEach(async ({ appManagerFixture }) => {
       const { page: appManagerPage } = appManagerFixture;
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-      await expect(manageRecognitionPage.header).toBeVisible({
+      await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
     });
@@ -75,9 +74,9 @@ test.describe('Work anniversary award activation by Recognition Manager', () => 
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-    await expect(manageRecognitionPage.header).toBeVisible({
+    await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
   });
@@ -100,7 +99,7 @@ test.describe('Work anniversary award activation by Recognition Manager', () => 
       await editAutomatedAwardPage.inactivateAwardIfActive(automatedAwardPage, manageRecognitionPage);
 
       // Navigate back to the listing page and wait for it to load
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       // Check for error page first
       const errorMessage = appManagerPage.getByText('Something went wrong', { exact: false });
@@ -108,7 +107,7 @@ test.describe('Work anniversary award activation by Recognition Manager', () => 
       if (isErrorVisible) {
         throw new Error('Page loaded with error: "Something went wrong - please try again later"');
       }
-      await expect(manageRecognitionPage.header).toBeVisible({
+      await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
 

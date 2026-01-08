@@ -4,7 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { ManageRecognitionPage } from './manage-recognition-page';
+import { ManageRecognitionPage } from '../manageRecognitionPage';
 
 export class AutomatedAwardPage extends BasePage {
   readonly tableGridFirstRow: Locator;

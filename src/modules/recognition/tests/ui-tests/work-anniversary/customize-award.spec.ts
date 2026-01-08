@@ -4,19 +4,20 @@ import {
   AutomatedAwardPage,
   EditAutomatedAwardPage,
   ManageRecognitionPage,
-  milestoneEndpointUrls,
 } from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 
 import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
 
+import { DialogContainerForm } from '../../../ui/components/common/workAnniversary-dialog-container-form';
+
 test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     // Check for error page first
     const errorMessage = appManagerPage.getByText('Something went wrong', { exact: false });
@@ -24,7 +25,7 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
     if (isErrorVisible) {
       throw new Error('Page loaded with error: "Something went wrong - please try again later"');
     }
-    await expect(manageRecognitionPage.header).toBeVisible({
+    await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
     const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
@@ -46,9 +47,9 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.setAuthorAsNoAuthorForAwardInstance(automatedAwardPage, manageRecognitionPage, 2);
+      await editAutomatedAwardPage.setAuthorAsNoAuthorForAwardInstance(automatedAwardPage, dialogContainerForm, 2);
     }
   );
 
@@ -64,9 +65,9 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.setAuthorAsCustomForAwardInstance(automatedAwardPage, manageRecognitionPage, 2);
+      await editAutomatedAwardPage.setAuthorAsCustomForAwardInstance(automatedAwardPage, dialogContainerForm, 2);
     }
   );
 
@@ -82,13 +83,9 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.setAuthorAsSelectedUserForAwardInstance(
-        automatedAwardPage,
-        manageRecognitionPage,
-        4
-      );
+      await editAutomatedAwardPage.setAuthorAsSelectedUserForAwardInstance(automatedAwardPage, dialogContainerForm, 4);
     }
   );
 
@@ -104,13 +101,9 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.setAuthorAsIntranetNameForAwardInstance(
-        automatedAwardPage,
-        manageRecognitionPage,
-        1
-      );
+      await editAutomatedAwardPage.setAuthorAsIntranetNameForAwardInstance(automatedAwardPage, dialogContainerForm, 1);
     }
   );
 
@@ -126,9 +119,9 @@ test.describe('Customize work anniversary award', { tag: [REWARD_SUITE_TAGS.MANA
       const { page: appManagerPage } = appManagerFixture;
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
-      await editAutomatedAwardPage.validateCharacterLimitInCustomMessage(automatedAwardPage, manageRecognitionPage, 0);
+      await editAutomatedAwardPage.validateCharacterLimitInCustomMessage(automatedAwardPage, dialogContainerForm, 0);
     }
   );
 });

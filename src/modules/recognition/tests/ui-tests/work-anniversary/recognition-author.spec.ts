@@ -20,7 +20,7 @@ test.describe(
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
       await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
-      await expect(manageRecognitionPage.header).toBeVisible({
+      await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
       await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();

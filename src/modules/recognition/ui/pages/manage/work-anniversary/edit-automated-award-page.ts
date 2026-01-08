@@ -1,11 +1,12 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { automatedAwardMsgs } from '@recognition/constants/automated-award-constants';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
-import { automatedAwardMsgs, milestoneEndpointUrls } from './automated-award-constants';
+import { DialogContainerForm } from '@/src/modules/recognition/ui/components/common/workAnniversary-dialog-container-form';
 
 export class EditAutomatedAwardPage extends BasePage {
   readonly container: Locator;
@@ -351,7 +352,7 @@ export class EditAutomatedAwardPage extends BasePage {
         activeMenuItem: Locator;
       };
       toastAlertText: Locator;
-      header: Locator;
+      recognitionHeader: Locator;
     }
   ): Promise<void> {
     await test.step('Choose "no author" as the author type', async () => {
@@ -370,7 +371,7 @@ export class EditAutomatedAwardPage extends BasePage {
       await expect(this.customizeNoAuthorRadio).toBeChecked();
       await automatedAwardPage.automatedAwardSaveButton.click();
       await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
-      await expect(manageRecognitionPage.header).toBeVisible({
+      await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
       await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
@@ -499,9 +500,7 @@ export class EditAutomatedAwardPage extends BasePage {
    */
   async removeAllCustomizationsFromAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: { dailogRemoveMilestoneBtn: Locator; dailogSaveBtn: Locator; dailogHeader: Locator };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Remove all customizations from award instance', async () => {
       const msgCountBefore = await this.awardScheduleMsgIcon.count();
@@ -510,13 +509,13 @@ export class EditAutomatedAwardPage extends BasePage {
 
       if (msgCountBefore !== 0 || authorCountBefore !== 0 || badgeCountBefore !== 0) {
         await this.awardScheduleAwardInstancePencilBtn.first().click();
-        await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-        const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+        await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+        const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
         for (const button of buttons) {
           await button.click();
           await automatedAwardPage.pause(300);
         }
-        await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+        await dialogContainerForm.dailogSaveBtn.click();
 
         // Wait for the page to update after saving
         await automatedAwardPage.pause(1000);
@@ -544,103 +543,67 @@ export class EditAutomatedAwardPage extends BasePage {
 
   /**
    * Validate award schedule element and open edit work anniversary award instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async validateAwardScheduleAndOpenEditInstance(manageRecognitionPage: {
-    dialogContainerForm: { dailogHeader: Locator };
-  }): Promise<void> {
+  async validateAwardScheduleAndOpenEditInstance(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate Award schedule element and open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(this.awardScheduleEditIcon).toBeVisible();
       await this.verifyWorkAnniversaryAwardInstance('1 year work anniversary').isVisible();
       await this.awardScheduleEditIcon.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
   }
 
   /**
    * Validate UI elements of edit work anniversary award instance dialog
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async validateEditAwardInstanceDialogElements(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogHeader: Locator;
-      dailogIProfileEmblem: Locator;
-      dailogAwardeeName: Locator;
-      dailogSubHeader: Locator;
-      dailogSubWorkAnniversaryHeader: Locator;
-      dailogTipTapContent: Locator;
-      dailogCheerIcon: Locator;
-      dailogCommentIcon: Locator;
-      dailogShareIcon: Locator;
-      dailogCancelBtn: Locator;
-      dailogSaveBtn: Locator;
-      dailogCrossBtn: Locator;
-    };
-  }): Promise<void> {
+  async validateEditAwardInstanceDialogElements(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate UI elements of edit work anniversary award instance', async () => {
-      await expect(manageRecognitionPage.dialogContainerForm.dailogHeader).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogIProfileEmblem).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogAwardeeName).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogSubHeader).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogSubWorkAnniversaryHeader).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogTipTapContent).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCheerIcon).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCommentIcon).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogShareIcon).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCancelBtn).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogSaveBtn).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCrossBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogIProfileEmblem).toBeVisible();
+      await expect(dialogContainerForm.dailogAwardeeName).toBeVisible();
+      await expect(dialogContainerForm.dailogSubHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogSubWorkAnniversaryHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogTipTapContent).toBeVisible();
+      await expect(dialogContainerForm.dailogCheerIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogCommentIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogShareIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogCancelBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogSaveBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogCrossBtn).toBeVisible();
     });
   }
 
   /**
    * Customize message in edit work anniversary modal
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @returns Customized message text
    */
   async customizeMessageInAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogRemoveMilestoneBtn: Locator;
-        dailogCustomiseMsgLink: Locator;
-        dailogCustomiseMsgHeader: Locator;
-        dailogAttachAnImageBtn: Locator;
-        dailogContentEditorTextBox: Locator;
-        dailogContentBodyText: Locator;
-        dailogCustomiseMsgFooterText: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<string> {
     return await test.step('Customise message in edit work anniversary modal', async () => {
       const customiseMsgText = 'Auto_workAnniversary_customisedMsg_' + Math.floor(Math.random() * 1000);
-      const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+      const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
       for (const button of buttons) {
         await button.click();
         await automatedAwardPage.pause(300);
       }
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink.click();
+      await expect(dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
+      await dialogContainerForm.dailogCustomiseMsgLink.click();
       await automatedAwardPage.pause(500);
-      const customiseMsgElementList = [
-        'dailogCustomiseMsgHeader',
-        'dailogAttachAnImageBtn',
-        'dailogContentEditorTextBox',
-        'dailogContentBodyText',
-        'dailogCustomiseMsgFooterText',
-        'dailogRemoveMilestoneBtn',
-      ] as const;
-      for (const locatorKey of customiseMsgElementList) {
-        await expect(
-          manageRecognitionPage.dialogContainerForm[
-            locatorKey as keyof typeof manageRecognitionPage.dialogContainerForm
-          ]
-        ).toBeVisible();
-      }
-      await manageRecognitionPage.dialogContainerForm.dailogContentEditorTextBox.fill(customiseMsgText);
+      await expect(dialogContainerForm.dailogCustomiseMsgHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogAttachAnImageBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogContentEditorTextBox).toBeVisible();
+      await expect(dialogContainerForm.dailogContentBodyText).toBeVisible();
+      await expect(dialogContainerForm.dailogCustomiseMsgFooterText).toBeVisible();
+      await expect(dialogContainerForm.dailogRemoveMilestoneBtn).toBeVisible();
+      await dialogContainerForm.dailogContentEditorTextBox.fill(customiseMsgText);
       return customiseMsgText;
     });
   }
@@ -648,88 +611,54 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Customize author in edit work anniversary modal
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async customizeAuthorInAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogCustomiseAuthorLink: Locator;
-        dailogCustomiseAuthorHeader: Locator;
-        dailogCustomiseAuthorFooterText: Locator;
-        dailogCustomiseNoAuthorRadio: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Customise author in edit work anniversary modal', async () => {
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink.click();
-      const customiseAuthorElementList = ['dailogCustomiseAuthorHeader', 'dailogCustomiseAuthorFooterText'] as const;
-      for (const locatorKey of customiseAuthorElementList) {
-        await expect(
-          manageRecognitionPage.dialogContainerForm[
-            locatorKey as keyof typeof manageRecognitionPage.dialogContainerForm
-          ]
-        ).toBeVisible();
-      }
+      await expect(dialogContainerForm.dailogCustomiseAuthorLink).toBeVisible();
+      await dialogContainerForm.dailogCustomiseAuthorLink.click();
+      await expect(dialogContainerForm.dailogCustomiseAuthorHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogCustomiseAuthorFooterText).toBeVisible();
       await automatedAwardPage.pause(300);
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseNoAuthorRadio.check();
+      await dialogContainerForm.dailogCustomiseNoAuthorRadio.check();
     });
   }
 
   /**
    * Customize badge in edit work anniversary modal
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async customizeBadgeInAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogCustomiseBadgeLink: Locator;
-        dailogCustomiseBadgeHeader: Locator;
-        dailogBadgeUploadBtn: Locator;
-        dailogCustomiseBadgeFooterText: Locator;
-        dailogShowMoreBtn: Locator;
-        dailogFirstBagde: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Customise badge in edit work anniversary modal', async () => {
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseBadgeLink).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseBadgeLink.click();
-      const customiseBadgeElementList = [
-        'dailogCustomiseBadgeHeader',
-        'dailogBadgeUploadBtn',
-        'dailogCustomiseBadgeFooterText',
-      ] as const;
-      for (const locatorKey of customiseBadgeElementList) {
-        await expect(
-          manageRecognitionPage.dialogContainerForm[
-            locatorKey as keyof typeof manageRecognitionPage.dialogContainerForm
-          ]
-        ).toBeVisible();
-      }
+      await expect(dialogContainerForm.dailogCustomiseBadgeLink).toBeVisible();
+      await dialogContainerForm.dailogCustomiseBadgeLink.click();
+      await expect(dialogContainerForm.dailogCustomiseBadgeHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogBadgeUploadBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogCustomiseBadgeFooterText).toBeVisible();
       // Show more button is optional - only check if visible
-      const showMoreBtn = manageRecognitionPage.dialogContainerForm.dailogShowMoreBtn;
-      const isShowMoreVisible = await showMoreBtn.isVisible().catch(() => false);
+      const isShowMoreVisible = await dialogContainerForm.dailogShowMoreBtn.isVisible().catch(() => false);
       if (isShowMoreVisible) {
-        await expect(showMoreBtn).toBeVisible();
+        await expect(dialogContainerForm.dailogShowMoreBtn).toBeVisible();
       }
       await automatedAwardPage.pause(500);
-      await manageRecognitionPage.dialogContainerForm.dailogFirstBagde.click({ force: true });
+      await dialogContainerForm.dailogFirstBagde.click({ force: true });
     });
   }
 
   /**
    * Validate icons on work anniversary award instance post editing
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async validateIconsOnAwardInstancePostEditing(manageRecognitionPage: {
-    dialogContainerForm: { dailogSaveBtn: Locator };
-  }): Promise<void> {
+  async validateIconsOnAwardInstancePostEditing(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate icons on work anniversary award instance post editing', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogSaveBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(this.awardScheduleMsgIcon.first()).toBeVisible();
       await expect(this.awardScheduleAwardIcon.first()).toBeVisible();
@@ -801,24 +730,11 @@ export class EditAutomatedAwardPage extends BasePage {
 
   /**
    * Validate preview automated award
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param automatedAwardMsgs - Automated award messages
    */
   async validatePreviewAutomatedAward(
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogIProfileEmblem: Locator;
-        dailogAwardeeName: Locator;
-        dailogSubHeader: Locator;
-        dailogSubWorkAnniversaryHeader: Locator;
-        dailogTipTapContent: Locator;
-        dailogCheerIcon: Locator;
-        dailogCommentIcon: Locator;
-        dailogShareIcon: Locator;
-        dailogCrossBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     automatedAwardMsgs: { previewAwardTipTapText: string }
   ): Promise<void> {
     await test.step('Validate if user is able to preview automated award', async () => {
@@ -828,29 +744,20 @@ export class EditAutomatedAwardPage extends BasePage {
       await expect(this.defaultAwardMsgRadioBtn).toBeChecked({ timeout: TIMEOUTS.MEDIUM });
       await this.previewAwardBtn.scrollIntoViewIfNeeded();
       await this.previewAwardBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-      const editWorkAnnWebElementList = [
-        'dailogHeader',
-        'dailogIProfileEmblem',
-        'dailogAwardeeName',
-        'dailogSubHeader',
-        'dailogSubWorkAnniversaryHeader',
-        'dailogTipTapContent',
-        'dailogCheerIcon',
-        'dailogCommentIcon',
-        'dailogShareIcon',
-        'dailogCrossBtn',
-      ] as const;
-      for (const locator of editWorkAnnWebElementList) {
-        await expect(
-          manageRecognitionPage.dialogContainerForm[locator as keyof typeof manageRecognitionPage.dialogContainerForm]
-        ).toBeVisible();
-      }
-      await expect(manageRecognitionPage.dialogContainerForm.dailogTipTapContent).toHaveText(
-        automatedAwardMsgs.previewAwardTipTapText
-      );
-      await manageRecognitionPage.dialogContainerForm.dailogCrossBtn.click();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogHeader).toHaveCount(0);
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await expect(dialogContainerForm.dailogHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogIProfileEmblem).toBeVisible();
+      await expect(dialogContainerForm.dailogAwardeeName).toBeVisible();
+      await expect(dialogContainerForm.dailogSubHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogSubWorkAnniversaryHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogTipTapContent).toBeVisible();
+      await expect(dialogContainerForm.dailogCheerIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogCommentIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogShareIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogCrossBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogTipTapContent).toHaveText(automatedAwardMsgs.previewAwardTipTapText);
+      await dialogContainerForm.dailogCrossBtn.click();
+      await expect(dialogContainerForm.dailogHeader).toHaveCount(0);
     });
   }
 
@@ -858,47 +765,42 @@ export class EditAutomatedAwardPage extends BasePage {
    * Customize message for work anniversary award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
    * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async customizeMessageForAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void>; automatedAwardSaveButton: Locator },
+    dialogContainerForm: DialogContainerForm,
     manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogRemoveMilestoneBtn: Locator;
-        dailogCustomiseMsgLink: Locator;
-        dailogContentEditorTextBox: Locator;
-        dailogSaveBtn: Locator;
-      };
       automatedAwards: { getThreeDotsButton: (index: number) => Locator; editMenuItem: Locator };
       toastAlertText: Locator;
-      header: Locator;
+      recognitionHeader: Locator;
     }
   ): Promise<void> {
     await test.step('Validate Award schedule element and open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await expect(this.awardScheduleEditIcon).toBeVisible();
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
 
     await test.step('Customize message in edit work anniversary modal', async () => {
       const customizedMsgText = 'Auto_workAnniversary_customizedMsg_' + Math.floor(Math.random() * 1000);
-      const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+      const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
       for (const button of buttons) {
         await button.click();
         await automatedAwardPage.pause(300);
       }
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink.click();
-      await manageRecognitionPage.dialogContainerForm.dailogContentEditorTextBox.fill(customizedMsgText);
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+      await expect(dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
+      await dialogContainerForm.dailogCustomiseMsgLink.click();
+      await dialogContainerForm.dailogContentEditorTextBox.fill(customizedMsgText);
+      await dialogContainerForm.dailogSaveBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
 
       // Verify the custom message icon appears for the first instance (1 year) that was just edited
       await expect(this.awardScheduleMsgIcon.first()).toBeVisible();
       await automatedAwardPage.automatedAwardSaveButton.click();
       await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
-      await expect(manageRecognitionPage.header).toBeVisible();
+      await expect(manageRecognitionPage.recognitionHeader).toBeVisible();
     });
 
     await test.step('Clean up - Validate on removing all the customization made in award instance works as expected', async () => {
@@ -908,11 +810,11 @@ export class EditAutomatedAwardPage extends BasePage {
       if (count !== 0) {
         await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
         await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-        const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+        const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
         for (const button of buttons) {
           await button.click();
           await automatedAwardPage.pause(300);
-          await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+          await dialogContainerForm.dailogSaveBtn.click();
           await automatedAwardPage.automatedAwardSaveButton.click();
         }
       }
@@ -980,25 +882,12 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Verify that any instance of the work anniversary award can be previewed via eye icon
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param automatedAwardMsgs - Automated award messages
    */
   async verifyPreviewAwardInstanceViaEyeIcon(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogIProfileEmblem: Locator;
-        dailogAwardeeName: Locator;
-        dailogSubHeader: Locator;
-        dailogSubWorkAnniversaryHeader: Locator;
-        dailogTipTapContent: Locator;
-        dailogCheerIcon: Locator;
-        dailogCommentIcon: Locator;
-        dailogShareIcon: Locator;
-        dailogCrossBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     automatedAwardMsgs: { previewAwardTipTapText: string }
   ): Promise<void> {
     await test.step('Verify that any instance of the work anniversary award can be previewed via eye icon', async () => {
@@ -1009,58 +898,47 @@ export class EditAutomatedAwardPage extends BasePage {
       await expect(this.defaultAwardMsgRadioBtn).toBeChecked({ timeout: TIMEOUTS.MEDIUM });
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.clickWorkAnniversaryAwardInstanceEyeButton(4);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-      await expect(manageRecognitionPage.dialogContainerForm.dailogHeader).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogIProfileEmblem).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogAwardeeName).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogSubHeader).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogSubWorkAnniversaryHeader).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogTipTapContent).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCheerIcon).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCommentIcon).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogShareIcon).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCrossBtn).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogTipTapContent).toHaveText(
-        automatedAwardMsgs.previewAwardTipTapText
-      );
-      await manageRecognitionPage.dialogContainerForm.dailogCrossBtn.click();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogHeader).toHaveCount(0);
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await expect(dialogContainerForm.dailogHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogIProfileEmblem).toBeVisible();
+      await expect(dialogContainerForm.dailogAwardeeName).toBeVisible();
+      await expect(dialogContainerForm.dailogSubHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogSubWorkAnniversaryHeader).toBeVisible();
+      await expect(dialogContainerForm.dailogTipTapContent).toBeVisible();
+      await expect(dialogContainerForm.dailogCheerIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogCommentIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogShareIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogCrossBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogTipTapContent).toHaveText(automatedAwardMsgs.previewAwardTipTapText);
+      await dialogContainerForm.dailogCrossBtn.click();
+      await expect(dialogContainerForm.dailogHeader).toHaveCount(0);
     });
   }
 
   /**
    * Set recognition author as "no author" for award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param instanceIndex - Index of the award instance to edit
    */
   async setAuthorAsNoAuthorForAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogCustomiseAuthorLink: Locator;
-        dailogCustomiseNoAuthorRadio: Locator;
-        dailogAuthorNameLink: Locator;
-        dailogSaveBtn: Locator;
-        dailogRemoveMilestoneBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     instanceIndex: number
   ): Promise<void> {
     await test.step('Open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
 
     await test.step('Validate Customization of author by setting recognition author as "no author"', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink.scrollIntoViewIfNeeded();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink.click();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseNoAuthorRadio.check();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseNoAuthorRadio).toBeChecked();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogAuthorNameLink).not.toBeAttached();
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogCustomiseAuthorLink.scrollIntoViewIfNeeded();
+      await dialogContainerForm.dailogCustomiseAuthorLink.click();
+      await dialogContainerForm.dailogCustomiseNoAuthorRadio.check();
+      await expect(dialogContainerForm.dailogCustomiseNoAuthorRadio).toBeChecked();
+      await expect(dialogContainerForm.dailogAuthorNameLink).not.toBeAttached();
+      await dialogContainerForm.dailogSaveBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(this.awardScheduleAwardIcon.first()).toBeVisible();
     });
@@ -1069,13 +947,13 @@ export class EditAutomatedAwardPage extends BasePage {
       const count = await this.awardScheduleAwardIcon.count();
       if (count !== 0) {
         await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-        await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-        const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+        await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+        const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
         for (const button of buttons) {
           await button.click();
           await automatedAwardPage.pause(300);
         }
-        await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+        await dialogContainerForm.dailogSaveBtn.click();
         await this.page.waitForTimeout(1000);
         const countAfter = await this.awardScheduleAwardIcon.count();
         if (countAfter > 0) {
@@ -1088,38 +966,29 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Set recognition author as "custom" for award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param instanceIndex - Index of the award instance to edit
    */
   async setAuthorAsCustomForAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogCustomiseAuthorLink: Locator;
-        dailogCustomAuthorTextBox: Locator;
-        dailogAuthorNameLink: Locator;
-        dailogSaveBtn: Locator;
-        dailogRemoveMilestoneBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     instanceIndex: number
   ): Promise<void> {
     await test.step('Open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
 
     await test.step('Validate Customization of author by setting recognition author as "custom"', async () => {
       const customizedAuthorName = 'customizedAuthorName_' + Math.floor(Math.random() * 1000);
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink.click();
+      await dialogContainerForm.dailogCustomiseAuthorLink.click();
       const dialog = this.page.getByRole('dialog');
       await dialog.getByRole('radio', { name: 'Custom' }).check();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomAuthorTextBox.fill(customizedAuthorName);
-      const actualText = await manageRecognitionPage.dialogContainerForm.dailogAuthorNameLink.textContent();
+      await dialogContainerForm.dailogCustomAuthorTextBox.fill(customizedAuthorName);
+      const actualText = await dialogContainerForm.dailogAuthorNameLink.textContent();
       expect(actualText).toEqual(customizedAuthorName);
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogSaveBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(this.awardScheduleAwardIcon.first()).toBeVisible();
     });
@@ -1128,13 +997,13 @@ export class EditAutomatedAwardPage extends BasePage {
       const count = await this.awardScheduleAwardIcon.count();
       if (count !== 0) {
         await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-        await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-        const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+        await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+        const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
         for (const button of buttons) {
           await button.click();
           await automatedAwardPage.pause(300);
         }
-        await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+        await dialogContainerForm.dailogSaveBtn.click();
         await this.page.waitForTimeout(1000);
         const countAfter = await this.awardScheduleAwardIcon.count();
         if (countAfter > 0) {
@@ -1147,43 +1016,32 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Set recognition author as "selected user" for award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param instanceIndex - Index of the award instance to edit
    */
   async setAuthorAsSelectedUserForAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogCustomiseAuthorLink: Locator;
-        dailogSelectedUserTextBox: Locator;
-        dailogSelectOptions: Locator;
-        dailogSelectUserValue: Locator;
-        dailogAuthorNameLink: Locator;
-        dailogSaveBtn: Locator;
-        dailogRemoveMilestoneBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     instanceIndex: number
   ): Promise<void> {
     await test.step('Open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
 
     await test.step('Validate Customization of author by setting recognition author as "selected user"', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink.click();
+      await dialogContainerForm.dailogCustomiseAuthorLink.click();
       const dialog = this.page.getByRole('dialog');
       await dialog.getByRole('radio', { name: 'Selected user' }).check();
-      await manageRecognitionPage.dialogContainerForm.dailogSelectedUserTextBox.fill('a');
-      const firstOption = manageRecognitionPage.dialogContainerForm.dailogSelectOptions.first();
+      await dialogContainerForm.dailogSelectedUserTextBox.fill('a');
+      const firstOption = dialogContainerForm.dailogSelectOptions.first();
       await firstOption.waitFor({ state: 'visible' });
       await firstOption.click();
-      const selectedName = await manageRecognitionPage.dialogContainerForm.dailogSelectUserValue.textContent();
-      const actualText = await manageRecognitionPage.dialogContainerForm.dailogAuthorNameLink.textContent();
+      const selectedName = await dialogContainerForm.dailogSelectUserValue.textContent();
+      const actualText = await dialogContainerForm.dailogAuthorNameLink.textContent();
       expect(actualText).toEqual(selectedName);
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogSaveBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(this.awardScheduleAwardIcon.first()).toBeVisible();
     });
@@ -1192,13 +1050,13 @@ export class EditAutomatedAwardPage extends BasePage {
       const count = await this.awardScheduleAwardIcon.count();
       if (count !== 0) {
         await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-        await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-        const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+        await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+        const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
         for (const button of buttons) {
           await button.click();
           await automatedAwardPage.pause(300);
         }
-        await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+        await dialogContainerForm.dailogSaveBtn.click();
         await this.page.waitForTimeout(1000);
         const countAfter = await this.awardScheduleAwardIcon.count();
         if (countAfter > 0) {
@@ -1211,33 +1069,23 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Set recognition author as "Intranet name" for award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param instanceIndex - Index of the award instance to edit
    */
   async setAuthorAsIntranetNameForAwardInstance(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogCustomiseAuthorLink: Locator;
-        dailogIntranetNameRadio: Locator;
-        dailogAuthorAppNameLabel: Locator;
-        dailogAuthorNameLink: Locator;
-        dailogSaveBtn: Locator;
-        dailogRemoveMilestoneBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     instanceIndex: number
   ): Promise<void> {
     await test.step('Open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
 
     await test.step('Validate Customization of author by setting recognition author as "Intranet name"', async () => {
       // Check if author section is already expanded, if not click customize link
-      const customizeAuthorLink = manageRecognitionPage.dialogContainerForm.dailogCustomiseAuthorLink;
+      const customizeAuthorLink = dialogContainerForm.dailogCustomiseAuthorLink;
       const isCustomizeLinkVisible = await customizeAuthorLink.isVisible().catch(() => false);
       if (isCustomizeLinkVisible) {
         await customizeAuthorLink.click();
@@ -1245,19 +1093,18 @@ export class EditAutomatedAwardPage extends BasePage {
       }
 
       await expect(
-        manageRecognitionPage.dialogContainerForm.dailogIntranetNameRadio,
+        dialogContainerForm.dailogIntranetNameRadio,
         'expecting Intranet name radio button to be visible'
       ).toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
-      await manageRecognitionPage.dialogContainerForm.dailogIntranetNameRadio.check();
-      const authorName = await manageRecognitionPage.dialogContainerForm.dailogAuthorAppNameLabel.textContent();
+      await dialogContainerForm.dailogIntranetNameRadio.check();
+      const authorName = await dialogContainerForm.dailogAuthorAppNameLabel.textContent();
       const match = authorName?.match(/\(([^)]+)\)/);
       const intranetName = match ? match[1] : null;
-      const intranetNameShownOnPreview =
-        await manageRecognitionPage.dialogContainerForm.dailogAuthorNameLink.textContent();
+      const intranetNameShownOnPreview = await dialogContainerForm.dailogAuthorNameLink.textContent();
       expect(intranetNameShownOnPreview).toEqual(intranetName);
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogSaveBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
       await expect(this.awardScheduleAwardIcon.first()).toBeVisible();
     });
@@ -1266,13 +1113,13 @@ export class EditAutomatedAwardPage extends BasePage {
       const count = await this.awardScheduleAwardIcon.count();
       if (count !== 0) {
         await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-        await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
-        const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+        await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+        const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
         for (const button of buttons) {
           await button.click();
           await automatedAwardPage.pause(300);
         }
-        await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
+        await dialogContainerForm.dailogSaveBtn.click();
         await this.page.waitForTimeout(1000);
         const countAfter = await this.awardScheduleAwardIcon.count();
         if (countAfter > 0) {
@@ -1285,43 +1132,34 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Validate character limit in custom message of work anniversary award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param instanceIndex - Index of the award instance to edit
    */
   async validateCharacterLimitInCustomMessage(
     automatedAwardPage: { pause: (delay: number) => Promise<void> },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogHeader: Locator;
-        dailogRemoveMilestoneBtn: Locator;
-        dailogCustomiseMsgLink: Locator;
-        dailogContentEditorTextBox: Locator;
-        dailogCustomiseMsgError: Locator;
-        dailogCancelBtn: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     instanceIndex: number
   ): Promise<void> {
     await test.step('Validate Award schedule element and open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await this.clickWorkAnniversaryAwardInstanceEditButton(instanceIndex);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
 
     await test.step('Customize message in edit work anniversary modal', async () => {
-      const buttons = await manageRecognitionPage.dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
+      const buttons = await dialogContainerForm.dailogRemoveMilestoneBtn.elementHandles();
       for (const button of buttons) {
         await button.click();
         await automatedAwardPage.pause(300);
       }
       // Generate a string with 2501 characters
       const overLimitText = 'B'.repeat(2501);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink.click();
-      await manageRecognitionPage.dialogContainerForm.dailogContentEditorTextBox.fill(overLimitText);
-      await manageRecognitionPage.dialogContainerForm.dailogContentEditorTextBox.blur();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgError).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCancelBtn.click();
+      await expect(dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
+      await dialogContainerForm.dailogCustomiseMsgLink.click();
+      await dialogContainerForm.dailogContentEditorTextBox.fill(overLimitText);
+      await dialogContainerForm.dailogContentEditorTextBox.blur();
+      await expect(dialogContainerForm.dailogCustomiseMsgError).toBeVisible();
+      await dialogContainerForm.dailogCancelBtn.click();
       await this.getHeadingElementByText('Award schedule').waitFor({ state: 'visible' });
     });
   }
@@ -1384,6 +1222,7 @@ export class EditAutomatedAwardPage extends BasePage {
       await automatedAwardPage.pause(500); // Allow text to be set
 
       await automatedAwardPage.automatedAwardSaveButton.click();
+      await automatedAwardPage.pause(1000);
       await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
       await automatedAwardPage.pause(2000); // Waiting for the changes to be reflected in the UI
 
@@ -1766,6 +1605,7 @@ export class EditAutomatedAwardPage extends BasePage {
     automatedAwardPage: {
       automatedAwardCancelButton: Locator;
       editMilestoneTitle: Locator;
+      pause: (delay: number) => Promise<void>;
     },
     manageRecognitionPage: {
       navigateViaUrl: (url: string) => Promise<void>;
@@ -1777,7 +1617,8 @@ export class EditAutomatedAwardPage extends BasePage {
   ): Promise<void> {
     await test.step('Validate on clicking cancel button post attaching image, reverts the changes made', async () => {
       await automatedAwardPage.automatedAwardCancelButton.click();
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+      await automatedAwardPage.pause(1000);
       const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
       await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await threeDotsButton.click();
@@ -1811,7 +1652,7 @@ export class EditAutomatedAwardPage extends BasePage {
     await test.step('Validate Image should be attached in custom message and configuration should be saved', async () => {
       await automatedAwardPage.automatedAwardSaveButton.click();
       await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
       await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await threeDotsButton.click();
@@ -1860,7 +1701,7 @@ export class EditAutomatedAwardPage extends BasePage {
       const attachImgcontent = this.container.locator('[class*="imageContainer"] img').first();
       await expect(attachImgcontent).toHaveCount(0);
       await automatedAwardPage.automatedAwardCancelButton.click();
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
       await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await threeDotsButton.click();
@@ -1903,7 +1744,7 @@ export class EditAutomatedAwardPage extends BasePage {
       await expect(attachImgcontent).toHaveCount(0);
       await automatedAwardPage.automatedAwardSaveButton.click();
       await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
       const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
       await expect(threeDotsButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await threeDotsButton.click();
@@ -1917,172 +1758,126 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Attach image in award instance dialog
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    * @param imagePath - Path to the image file
    */
   async attachImageInAwardInstance(
     automatedAwardPage: {
       pause: (delay: number) => Promise<void>;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogAttachAnImageBtn: Locator;
-        dailogAttachAnImageInput: Locator;
-        dailogUploadImageProgressBar: Locator;
-        dailogUploadImageThumbnail: Locator;
-        dailogUploadImagePanel: Locator;
-        dailogRemoveImageIcon: Locator;
-      };
-    },
+    dialogContainerForm: DialogContainerForm,
     imagePath: string
   ): Promise<void> {
     await test.step('Attach image in work anniversary award instance', async () => {
-      await expect(manageRecognitionPage.dialogContainerForm.dailogAttachAnImageBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogAttachAnImageBtn).toBeVisible();
       await automatedAwardPage.pause(500);
-      await manageRecognitionPage.dialogContainerForm.dailogAttachAnImageInput.setInputFiles(imagePath);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImageProgressBar).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImageThumbnail).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogUploadImageProgressBar.waitFor({ state: 'detached' });
-      await manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel.hover();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
+      await dialogContainerForm.dailogAttachAnImageInput.setInputFiles(imagePath);
+      await expect(dialogContainerForm.dailogUploadImageProgressBar).toBeVisible();
+      await expect(dialogContainerForm.dailogUploadImageThumbnail).toBeVisible();
+      await expect(dialogContainerForm.dailogUploadImagePanel).toBeVisible();
+      await dialogContainerForm.dailogUploadImageProgressBar.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogUploadImagePanel.hover();
+      await expect(dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
     });
   }
 
   /**
    * Save and verify image is attached in award instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async saveAndVerifyImageAttachedInAwardInstance(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogSaveBtn: Locator;
-      dailogHeader: Locator;
-      dailogUploadImagePanel: Locator;
-      dailogRemoveImageIcon: Locator;
-    };
-  }): Promise<void> {
+  async saveAndVerifyImageAttachedInAwardInstance(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate Image should be attached in custom message and configuration should be saved', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
       await expect(this.awardScheduleMsgIcon).toBeVisible();
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogUploadImagePanel).toBeVisible();
+      await expect(dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
     });
   }
 
   /**
    * Remove image and verify it remains after cancel in award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async removeImageAndVerifyRemainsAfterCancelInAwardInstance(
     automatedAwardPage: {
       pause: (delay: number) => Promise<void>;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogRemoveImageIcon: Locator;
-        dailogUploadImagePanel: Locator;
-        dailogCancelBtn: Locator;
-        dailogHeader: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Validate Image should remain as it is when deleted but clicked on cancel button', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon.click();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toHaveCount(0);
-      await manageRecognitionPage.dialogContainerForm.dailogCancelBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogRemoveImageIcon.click();
+      await expect(dialogContainerForm.dailogUploadImagePanel).toHaveCount(0);
+      await dialogContainerForm.dailogCancelBtn.click();
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogUploadImagePanel).toBeVisible();
+      await expect(dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
     });
   }
 
   /**
    * Remove image and verify it's deleted after save in award instance
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async removeImageAndVerifyDeletedAfterSaveInAwardInstance(
     automatedAwardPage: {
       pause: (delay: number) => Promise<void>;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogRemoveImageIcon: Locator;
-        dailogUploadImagePanel: Locator;
-        dailogSaveBtn: Locator;
-        dailogHeader: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Validate Attached image should be removed and award configuration should be saved', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon.click();
+      await dialogContainerForm.dailogRemoveImageIcon.click();
       await expect(this.addedImagePanel).toHaveCount(0);
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
       await automatedAwardPage.pause(3000); // wait for the save to complete
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toHaveCount(0);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon).toHaveCount(0);
+      await expect(dialogContainerForm.dailogUploadImagePanel).toHaveCount(0);
+      await expect(dialogContainerForm.dailogRemoveImageIcon).toHaveCount(0);
     });
   }
 
   /**
    * Open edit award instance dialog
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async openEditAwardInstanceDialog(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogHeader: Locator;
-    };
-  }): Promise<void> {
+  async openEditAwardInstanceDialog(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate Award schedule element and open edit work anniversary award instance', async () => {
       await this.getHeadingElementByText('Award schedule').scrollIntoViewIfNeeded();
       await expect(this.awardScheduleEditIcon).toBeVisible();
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'visible' });
     });
   }
 
   /**
    * Verify cancel reverts image changes in award instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async verifyCancelRevertsImageChangesInAwardInstance(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogCancelBtn: Locator;
-      dailogHeader: Locator;
-    };
-  }): Promise<void> {
+  async verifyCancelRevertsImageChangesInAwardInstance(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate on clicking cancel button post attaching image, reverts the changes made', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogCancelBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogCancelBtn.click();
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
     });
   }
 
   /**
    * Add text in customize message section and verify no image
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async addTextInCustomizeMessageAndVerifyNoImage(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogCustomiseMsgLink: Locator;
-      dailogUploadImagePanel: Locator;
-      dailogRemoveImageIcon: Locator;
-      dailogContentEditorTextBox: Locator;
-    };
-  }): Promise<void> {
+  async addTextInCustomizeMessageAndVerifyNoImage(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Add text in Customize message section in award instance modal', async () => {
       const customizedMsgText = 'Auto_workAnniversary_customizedMsg_' + Math.floor(Math.random() * 1000);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogCustomiseMsgLink.click();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toHaveCount(0);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon).toHaveCount(0);
-      await manageRecognitionPage.dialogContainerForm.dailogContentEditorTextBox.fill(customizedMsgText);
+      await expect(dialogContainerForm.dailogCustomiseMsgLink).toBeVisible();
+      await dialogContainerForm.dailogCustomiseMsgLink.click();
+      await expect(dialogContainerForm.dailogUploadImagePanel).toHaveCount(0);
+      await expect(dialogContainerForm.dailogRemoveImageIcon).toHaveCount(0);
+      await dialogContainerForm.dailogContentEditorTextBox.fill(customizedMsgText);
     });
   }
 
@@ -2110,30 +1905,25 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Validate alt text icon and UI elements for award instance dialog
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async validateAltTextIconAndUIElementsInAwardInstance(
     automatedAwardPage: {
       automatedAwardCancelButton: Locator;
       automatedAwardAddButton: Locator;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogAltTextIcon: Locator;
-        dailogCrossBtn: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Validate alt image icon and its UI elements', async () => {
-      await expect(manageRecognitionPage.dialogContainerForm.dailogAltTextIcon).toBeVisible();
-      await manageRecognitionPage.dialogContainerForm.dailogAltTextIcon.click();
+      await expect(dialogContainerForm.dailogAltTextIcon).toBeVisible();
+      await dialogContainerForm.dailogAltTextIcon.click();
       const addAltTextLocator = this.page.getByText('Add image alt text');
       await addAltTextLocator.waitFor({ state: 'visible' });
       await expect(addAltTextLocator).toBeVisible();
       await expect(this.page.getByText(automatedAwardMsgs.altTextModalFooterMsg)).toBeVisible();
       await expect(automatedAwardPage.automatedAwardCancelButton).toBeVisible();
       await expect(automatedAwardPage.automatedAwardAddButton).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogCrossBtn).toBeVisible();
+      await expect(dialogContainerForm.dailogCrossBtn).toBeVisible();
     });
   }
 
@@ -2161,25 +1951,21 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Verify cancel reverts alt text changes for award instance dialog
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async verifyCancelRevertsAltTextChangesInAwardInstance(
     automatedAwardPage: {
       addAltTextBox: Locator;
       automatedAwardCancelButton: Locator;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogAltTextIcon: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Validate on clicking cancel button post adding alt text, reverts the changes made', async () => {
       const randomAltText = Math.random().toString(36).substring(2, 7);
       await automatedAwardPage.addAltTextBox.fill(randomAltText);
       const beforeCancel = await automatedAwardPage.addAltTextBox.getAttribute('value');
       await automatedAwardPage.automatedAwardCancelButton.click();
-      await manageRecognitionPage.dialogContainerForm.dailogAltTextIcon.click();
+      await dialogContainerForm.dailogAltTextIcon.click();
       const afterCancel = await automatedAwardPage.addAltTextBox.getAttribute('value');
       expect(beforeCancel).not.toEqual(afterCancel);
     });
@@ -2188,7 +1974,7 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Add and update alt text for custom award message
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async addAndUpdateAltText(
     automatedAwardPage: {
@@ -2198,11 +1984,7 @@ export class EditAutomatedAwardPage extends BasePage {
       getElementByText: (text: string) => Locator;
       updateButton: Locator;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogCrossBtn: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Validate adding and updating alt text in attached image successfully', async () => {
       const addRandomAltText = Math.random().toString(36).substring(2, 7);
@@ -2224,14 +2006,14 @@ export class EditAutomatedAwardPage extends BasePage {
       await automatedAwardPage.getElementByText('Update image alt text').waitFor({ state: 'visible' });
       const afterUpdate = await automatedAwardPage.addAltTextBox.getAttribute('value');
       expect(updateAltText).toEqual(afterUpdate);
-      await manageRecognitionPage.dialogContainerForm.dailogCrossBtn.click();
+      await dialogContainerForm.dailogCrossBtn.click();
     });
   }
 
   /**
    * Add and update alt text for award instance dialog
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async addAndUpdateAltTextInAwardInstance(
     automatedAwardPage: {
@@ -2239,12 +2021,7 @@ export class EditAutomatedAwardPage extends BasePage {
       automatedAwardAddButton: Locator;
       updateButton: Locator;
     },
-    manageRecognitionPage: {
-      dialogContainerForm: {
-        dailogAltTextIcon: Locator;
-        dailogCrossBtn: Locator;
-      };
-    }
+    dialogContainerForm: DialogContainerForm
   ): Promise<void> {
     await test.step('Validate adding and editing alt text in attached image successfully', async () => {
       const addRandomAltText = Math.random().toString(36).substring(2, 7);
@@ -2252,7 +2029,7 @@ export class EditAutomatedAwardPage extends BasePage {
       await automatedAwardPage.automatedAwardAddButton.click();
       await this.page.getByText('Add image alt text').waitFor({ state: 'detached' });
       // Updating/editing the alt text
-      await manageRecognitionPage.dialogContainerForm.dailogAltTextIcon.click();
+      await dialogContainerForm.dailogAltTextIcon.click();
       const updateAltTextLocator = this.page.getByText('Update image alt text');
       await updateAltTextLocator.waitFor({ state: 'visible' });
       await expect(updateAltTextLocator).toBeVisible();
@@ -2263,11 +2040,11 @@ export class EditAutomatedAwardPage extends BasePage {
       await automatedAwardPage.addAltTextBox.fill(updateAltText);
       await automatedAwardPage.updateButton.click();
       // Verifying updated alt text
-      await manageRecognitionPage.dialogContainerForm.dailogAltTextIcon.click();
+      await dialogContainerForm.dailogAltTextIcon.click();
       await updateAltTextLocator.waitFor({ state: 'visible' });
       const afterUpdate = await automatedAwardPage.addAltTextBox.getAttribute('value');
       expect(updateAltText).toEqual(afterUpdate);
-      await manageRecognitionPage.dialogContainerForm.dailogCrossBtn.click();
+      await dialogContainerForm.dailogCrossBtn.click();
     });
   }
 
@@ -2280,6 +2057,7 @@ export class EditAutomatedAwardPage extends BasePage {
     automatedAwardPage: {
       automatedAwardSaveButton: Locator;
       editMilestoneTitle: Locator;
+      pause: (delay: number) => Promise<void>;
     },
     manageRecognitionPage: {
       toastAlertText: Locator;
@@ -2292,8 +2070,10 @@ export class EditAutomatedAwardPage extends BasePage {
   ): Promise<void> {
     await test.step('Validate Image should be attached in custom message and configuration should be saved', async () => {
       await automatedAwardPage.automatedAwardSaveButton.click();
+      await automatedAwardPage.pause(1000);
       await expect(manageRecognitionPage.toastAlertText).toHaveText('Saved changes successfully');
-      await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+      await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
+      await automatedAwardPage.pause(1000);
       await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
       await manageRecognitionPage.automatedAwards.editMenuItem.click();
       await automatedAwardPage.editMilestoneTitle.waitFor({ state: 'visible' });
@@ -2304,6 +2084,7 @@ export class EditAutomatedAwardPage extends BasePage {
    * Remove image and verify it's deleted after save for custom award message
    * @param automatedAwardPage - AutomatedAwardPage instance
    * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async removeImageAndVerifyDeletedAfterSaveForAltText(
     automatedAwardPage: {
@@ -2355,42 +2136,31 @@ export class EditAutomatedAwardPage extends BasePage {
 
   /**
    * Save and verify image with alt text is attached for award instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async saveAndVerifyImageWithAltTextAttachedInAwardInstance(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogSaveBtn: Locator;
-      dailogHeader: Locator;
-      dailogUploadImagePanel: Locator;
-      dailogRemoveImageIcon: Locator;
-    };
-  }): Promise<void> {
+  async saveAndVerifyImageWithAltTextAttachedInAwardInstance(dialogContainerForm: DialogContainerForm): Promise<void> {
     await test.step('Validate Image should be attached in custom message and configuration should be saved', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
       await expect(this.awardScheduleMsgIcon).toBeVisible();
       await this.clickWorkAnniversaryAwardInstanceEditButton(0);
-      await expect(manageRecognitionPage.dialogContainerForm.dailogUploadImagePanel).toBeVisible();
-      await expect(manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
+      await expect(dialogContainerForm.dailogUploadImagePanel).toBeVisible();
+      await expect(dialogContainerForm.dailogRemoveImageIcon).toBeVisible();
     });
   }
 
   /**
    * Remove image and verify it's deleted after save for award instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
-  async removeImageAndVerifyDeletedAfterSaveForAltTextInAwardInstance(manageRecognitionPage: {
-    dialogContainerForm: {
-      dailogRemoveImageIcon: Locator;
-      dailogSaveBtn: Locator;
-      dailogHeader: Locator;
-    };
-  }): Promise<void> {
+  async removeImageAndVerifyDeletedAfterSaveForAltTextInAwardInstance(
+    dialogContainerForm: DialogContainerForm
+  ): Promise<void> {
     await test.step('Validate Attached image should be removed and award configuration should be saved', async () => {
-      await manageRecognitionPage.dialogContainerForm.dailogRemoveImageIcon.click();
+      await dialogContainerForm.dailogRemoveImageIcon.click();
       await expect(this.addedImagePanel).toHaveCount(0);
-      await manageRecognitionPage.dialogContainerForm.dailogSaveBtn.click();
-      await manageRecognitionPage.dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
+      await dialogContainerForm.dailogSaveBtn.click();
+      await dialogContainerForm.dailogHeader.waitFor({ state: 'detached' });
     });
   }
 
@@ -2411,7 +2181,7 @@ export class EditAutomatedAwardPage extends BasePage {
   /**
    * Activate award via toggle in edit page
    * @param automatedAwardPage - AutomatedAwardPage instance
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param dialogContainerForm - DialogContainerForm instance
    */
   async activateAwardViaToggle(
     automatedAwardPage: {

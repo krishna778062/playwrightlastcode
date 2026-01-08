@@ -4,13 +4,14 @@ import {
   AutomatedAwardPage,
   EditAutomatedAwardPage,
   ManageRecognitionPage,
-  milestoneEndpointUrls,
 } from '@recognition/ui/pages/manage/work-anniversary';
 import { REWARD_FEATURE_TAGS, REWARD_SUITE_TAGS } from '@rewards/constants/testTags';
 import path from 'node:path';
 
 import { PAGE_ENDPOINTS, TestGroupType, TestPriority, TIMEOUTS } from '@core/constants';
 import { tagTest } from '@core/utils';
+
+import { DialogContainerForm } from '../../../ui/components/common/workAnniversary-dialog-container-form';
 
 // Get the image file path - directly use content module's test data path
 const imagePath = path.resolve(__dirname, '../../../../content/test-data/static-files/images/image1.jpg');
@@ -20,7 +21,7 @@ test.describe('Work anniversary - Alt text addition', { tag: [REWARD_SUITE_TAGS.
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
     const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
-    await manageRecognitionPage.navigateViaUrl(milestoneEndpointUrls.milestoneEndpointUrl);
+    await manageRecognitionPage.navigateViaUrl(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     await expect(manageRecognitionPage.page).toHaveURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_MILESTONES);
     // Check for error page first
     const errorMessage = appManagerPage.getByText('Something went wrong', { exact: false });
@@ -28,7 +29,7 @@ test.describe('Work anniversary - Alt text addition', { tag: [REWARD_SUITE_TAGS.
     if (isErrorVisible) {
       throw new Error('Page loaded with error: "Something went wrong - please try again later"');
     }
-    await expect(manageRecognitionPage.header).toBeVisible({
+    await expect(manageRecognitionPage.recognitionHeader).toBeVisible({
       timeout: TIMEOUTS.MEDIUM,
     });
     const threeDotsButton = manageRecognitionPage.automatedAwards.getThreeDotsButton(0);
@@ -51,6 +52,7 @@ test.describe('Work anniversary - Alt text addition', { tag: [REWARD_SUITE_TAGS.
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
       // Select custom award message if not already selected
       await editAutomatedAwardPage.selectCustomAwardMessageRadioButton(automatedAwardPage);
@@ -65,7 +67,7 @@ test.describe('Work anniversary - Alt text addition', { tag: [REWARD_SUITE_TAGS.
       await editAutomatedAwardPage.verifyCancelRevertsAltTextChanges(automatedAwardPage);
 
       // Add and update alt text
-      await editAutomatedAwardPage.addAndUpdateAltText(automatedAwardPage, manageRecognitionPage);
+      await editAutomatedAwardPage.addAndUpdateAltText(automatedAwardPage, dialogContainerForm);
 
       // Save and verify image with alt text is attached
       await editAutomatedAwardPage.saveAndVerifyImageWithAltTextAttached(automatedAwardPage, manageRecognitionPage);
@@ -91,36 +93,37 @@ test.describe('Work anniversary - Alt text addition', { tag: [REWARD_SUITE_TAGS.
       const editAutomatedAwardPage = new EditAutomatedAwardPage(appManagerPage);
       const automatedAwardPage = new AutomatedAwardPage(appManagerPage);
       const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
       // Open edit award instance dialog
-      await editAutomatedAwardPage.openEditAwardInstanceDialog(manageRecognitionPage);
+      await editAutomatedAwardPage.openEditAwardInstanceDialog(dialogContainerForm);
 
       // Add text in customize message section
-      await editAutomatedAwardPage.customizeMessageInAwardInstance(automatedAwardPage, manageRecognitionPage);
+      await editAutomatedAwardPage.customizeMessageInAwardInstance(automatedAwardPage, dialogContainerForm);
 
       // Attach image
-      await editAutomatedAwardPage.attachImageInAwardInstance(automatedAwardPage, manageRecognitionPage, imagePath);
+      await editAutomatedAwardPage.attachImageInAwardInstance(automatedAwardPage, dialogContainerForm, imagePath);
 
       // Validate alt text icon and UI elements
       await editAutomatedAwardPage.validateAltTextIconAndUIElementsInAwardInstance(
         automatedAwardPage,
-        manageRecognitionPage
+        dialogContainerForm
       );
 
       // Verify cancel reverts alt text changes
       await editAutomatedAwardPage.verifyCancelRevertsAltTextChangesInAwardInstance(
         automatedAwardPage,
-        manageRecognitionPage
+        dialogContainerForm
       );
 
       // Add and update alt text
-      await editAutomatedAwardPage.addAndUpdateAltTextInAwardInstance(automatedAwardPage, manageRecognitionPage);
+      await editAutomatedAwardPage.addAndUpdateAltTextInAwardInstance(automatedAwardPage, dialogContainerForm);
 
       // Save and verify image with alt text is attached
-      await editAutomatedAwardPage.saveAndVerifyImageWithAltTextAttachedInAwardInstance(manageRecognitionPage);
+      await editAutomatedAwardPage.saveAndVerifyImageWithAltTextAttachedInAwardInstance(dialogContainerForm);
 
       // Remove image and verify it's deleted after save
-      await editAutomatedAwardPage.removeImageAndVerifyDeletedAfterSaveForAltTextInAwardInstance(manageRecognitionPage);
+      await editAutomatedAwardPage.removeImageAndVerifyDeletedAfterSaveForAltTextInAwardInstance(dialogContainerForm);
     }
   );
 });
