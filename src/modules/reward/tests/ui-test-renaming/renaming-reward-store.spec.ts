@@ -26,6 +26,16 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-7033',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description: 'Verify cancel button on edit program name and translation for reward store',
+        zephyrTestId: 'RC-7007',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify save button on edit program name and translation of reward store',
+        zephyrTestId: 'RC-7009',
+        storyId: 'RC-6370',
+      });
       const { page } = appManagerFixture;
       const renamingPage = new RenamingPage(page);
       await renamingPage.verifyThePageIsLoaded();

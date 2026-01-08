@@ -346,6 +346,9 @@ export class RenamingPage extends BasePage {
         timeout: TIMEOUTS.VERY_VERY_SHORT,
       });
     }
+    await this.clickOnElement(editModal.getCancelButton(), {
+      stepInfo: 'Closing the Edit Label modal after validating elements',
+    });
   }
 
   async validateTheEditModalWithMockedResult(): Promise<void> {
@@ -367,6 +370,9 @@ export class RenamingPage extends BasePage {
     });
     await expect(languageAutoTranslationLabel, 'expecting Language 2 heading to be visible').toBeVisible({
       timeout: TIMEOUTS.VERY_SHORT,
+    });
+    await this.clickOnElement(editModal.getCancelButton(), {
+      stepInfo: 'Closing the Edit Label modal after validating elements',
     });
   }
 }
