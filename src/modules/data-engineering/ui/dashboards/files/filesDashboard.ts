@@ -1,6 +1,14 @@
 import { Page, test } from '@playwright/test';
 
-import { Downloads, Favourites, Reactions, TotalViews, UniqueViews } from './metrics';
+import {
+  DistributionOfDownloadsByFileCategory,
+  DistributionOfViewsByFileCategory,
+  Downloads,
+  Favourites,
+  Reactions,
+  TotalViews,
+  UniqueViews,
+} from './metrics';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseAnalyticsDashboardPage } from '@/src/modules/data-engineering/ui/pages/baseAnalyticsDashboardPage';
@@ -12,6 +20,8 @@ export class FilesDashboard extends BaseAnalyticsDashboardPage {
   readonly favourites: Favourites;
   readonly reactions: Reactions;
   readonly uniqueViews: UniqueViews;
+  readonly distributionOfViewsByFileCategory: DistributionOfViewsByFileCategory;
+  readonly distributionOfDownloadsByFileCategory: DistributionOfDownloadsByFileCategory;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FILES_DASHBOARD);
@@ -20,6 +30,11 @@ export class FilesDashboard extends BaseAnalyticsDashboardPage {
     this.favourites = new Favourites(page, this.thoughtSpotIframe);
     this.reactions = new Reactions(page, this.thoughtSpotIframe);
     this.uniqueViews = new UniqueViews(page, this.thoughtSpotIframe);
+    this.distributionOfViewsByFileCategory = new DistributionOfViewsByFileCategory(page, this.thoughtSpotIframe);
+    this.distributionOfDownloadsByFileCategory = new DistributionOfDownloadsByFileCategory(
+      page,
+      this.thoughtSpotIframe
+    );
   }
 
   /**
