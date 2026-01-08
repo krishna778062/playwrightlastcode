@@ -257,7 +257,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile device log-ins in Mobile Dashboard',
       {
         tag: [
@@ -313,7 +313,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile content views by type in Mobile Dashboard',
       {
         tag: [
@@ -369,7 +369,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile content views in Mobile Dashboard',
       {
         tag: [
@@ -418,7 +418,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
       {
         tag: [

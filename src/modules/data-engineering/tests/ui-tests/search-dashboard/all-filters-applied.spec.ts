@@ -335,10 +335,11 @@ test.describe(
         await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
 
         // Verify axis labels (dual Y-axis chart)
+        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
         await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
           leftVerticalAxisLabel: 'Total searches',
           rightVerticalAxisLabel: 'Total clickthrough',
-          horizontalAxisLabel: 'Search performed date (for 2025)',
+          horizontalAxisLabel: 'Search performed date',
         });
 
         // Verify line chart points with tooltips

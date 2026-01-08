@@ -108,6 +108,18 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   }
 
   /**
+   * Clicks the remove button for a specific audience or user on the access control group modal
+   *@param userName - The name of the user for which remove button need to be clicked
+   */
+  async clickOnRemoveButtonForUser(userName: string): Promise<void> {
+    const removeButtonElement = this.page
+      .locator('[class*="Spacing-module__row"]')
+      .filter({ hasText: userName })
+      .getByRole('button', { name: 'Remove user' });
+    await this.clickOnElement(removeButtonElement);
+  }
+
+  /**
    * Verifies the default control group only managers and admins can be modified error message is visible
    */
   async verifyDefaultControlGroupOnlyManagersAndAdminsCanBeModifiedErrorMessage(

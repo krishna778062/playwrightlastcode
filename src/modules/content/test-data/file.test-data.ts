@@ -188,4 +188,26 @@ export const FILE_TEST_DATA = {
       },
     },
   },
+
+  /**
+   * Video files
+   */
+  VIDEOS: {
+    TEST_VIDEO: {
+      fileName: 'test-video.mp4',
+      getPath: (specDir: string) => {
+        return FileUtil.getFilePath(
+          specDir,
+          '..',
+          '..',
+          '..',
+          '..',
+          'test-data',
+          'static-files',
+          'video',
+          'test-video.mp4'
+        );
+      },
+    },
+  },
 } as const;

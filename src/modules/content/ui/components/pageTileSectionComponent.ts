@@ -70,6 +70,10 @@ export class PageTileSectionComponent extends BaseComponent {
   async clickingOnRemoveTileButton(tileName: string): Promise<void> {
     await this.baseActionUtil.hoverOverElementInJavaScript(this.ellipsisButton);
     await this.clickOnElement(this.removeTileButton);
+    //verify dialog is visible
+    await this.verifier.verifyTheElementIsVisible(this.removeTileConfirmationDialog, {
+      assertionMessage: 'Remove tile confirmation dialog should be visible',
+    });
     await this.clickOnElement(this.removeTileButton);
   }
 
