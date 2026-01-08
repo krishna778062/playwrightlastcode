@@ -390,8 +390,6 @@ export class CustomAppTilesPage extends BasePage {
     this.dialogModule = this.getLocator('[class*="Dialog-module"]');
     this.dialogFooterButtonSelector = '[class*="Dialog-module__footer"] button';
     this.firstTileRow = this.getLocator('tbody tr').first();
-    // Will be set after cancelLinkButton is initialized
-    this.cancelButtonForVerification = this.getByRole(this.linkRole, { name: 'Cancel' });
     this.formBehaviorDropdownOptions = this.getLocator('select[aria-label="Form behavior"] option:not([disabled])');
     // Reuse existing locator instead of duplicating
     this.incompleteSettingsMessageLocator = this.getByTestId('incomplete-settings-message');
