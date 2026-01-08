@@ -21,37 +21,7 @@ export interface QuestionResult {
   questionId?: string;
 }
 
-export interface ICreateQuestionActions {
-  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
-  editQuestion: (currentTitle: string, newTitle: string, newBody?: string) => Promise<void>;
-  createQuestion: (title: string, body?: string) => Promise<void>;
-  uploadFiles: (files: string[]) => Promise<void>;
-  removeAttachedFile: (index?: number) => Promise<void>;
-  clickAskQuestionButton: () => Promise<Response>;
-  openQuestionOptionsMenu: (questionTitle: string) => Promise<void>;
-  clickEditOption: () => Promise<void>;
-  updateQuestionText: (title: string, body?: string) => Promise<void>;
-  clickUpdateButton: () => Promise<void>;
-  selectQuestionType: () => Promise<void>;
-  enterQuestionTitle: (title: string) => Promise<void>;
-  enterQuestionBody: (body: string) => Promise<void>;
-  addAttachment: (filePath: string) => Promise<void>;
-}
-
-export interface ICreateQuestionAssertions {
-  verifyQuestionEditorVisible: () => Promise<void>;
-  verifyQACreationModalIsVisible: () => Promise<void>;
-  verifyTipTapEditorIsVisible: () => Promise<void>;
-  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
-  verifyQuestionVisibleInQAList: (questionTitle: string) => Promise<void>;
-  verifyQuestionContentDisplayedAsPlainText: (questionBody: string) => Promise<void>;
-  verifyNoAttachmentsDisplayed: () => Promise<void>;
-}
-
-export class CreateQuestionComponent
-  extends BaseComponent
-  implements ICreateQuestionActions, ICreateQuestionAssertions
-{
+export class CreateQuestionComponent extends BaseComponent {
   // Question editor elements
   readonly questionEditor = this.page.locator("div[aria-describedby='question-description']");
   readonly questionTitleInput = this.page.getByRole('textbox', { name: 'Question*' });
@@ -99,17 +69,7 @@ export class CreateQuestionComponent
 
   constructor(page: Page) {
     super(page);
-  }
-
-  get actions(): ICreateQuestionActions {
-    return this;
-  }
-
-  get assertions(): ICreateQuestionAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Verifies that the question creation page is loaded
    */
   async verifyThePageIsLoaded(): Promise<void> {

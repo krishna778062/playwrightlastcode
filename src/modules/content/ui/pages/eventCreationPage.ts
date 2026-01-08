@@ -22,31 +22,7 @@ export interface EventCreationOptions {
   };
 }
 
-export interface IEventCreationActions {
-  createAndPublishEvent(options: EventCreationOptions): Promise<{
-    eventId: string;
-    siteId: string;
-  }>;
-  createAndSubmitEvent(options: EventCreationOptions): Promise<{
-    eventId: string;
-    siteId: string;
-    peopleId: string;
-    peopleName: string;
-    response: EventCreationResponse;
-  }>;
-}
-
-export interface IEventCreationAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyEventSyncConfiguration: (options?: {
-    verifyGoogleCalendar?: boolean;
-    verifyOutlookCalendar?: boolean;
-    verifyRsvpToggle?: boolean;
-  }) => Promise<void>;
-  verifyLanguageDropdown: () => Promise<void>;
-}
-
-export class EventCreationPage extends BasePage implements IEventCreationActions, IEventCreationAssertions {
+export class EventCreationPage extends BasePage {
   // Essential locators for event creation
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
@@ -102,17 +78,7 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     this.imageCropper = new ImageCropperComponent(page);
     this.languageDropdown = page.getByLabel('Page language');
     this.closeAlertDialogButton = page.getByRole('button', { name: 'Close' });
-  }
-
-  get actions(): IEventCreationActions {
-    return this;
-  }
-
-  get assertions(): IEventCreationAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Verifies the event creation page is loaded
    */
   async verifyThePageIsLoaded(): Promise<void> {

@@ -198,7 +198,7 @@ test.describe(
 
         // ==================== CREATE SECTION ====================
         // Click "Share your thoughts or question" button
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         // Create post with text, topic, user mention, site mentions, and embedded URL
         console.log('Creating post with mentions:');
@@ -209,7 +209,7 @@ test.describe(
         console.log('Embed URL:', embedUrl);
 
         // Create a simple post first to test basic functionality
-        const postResult = await feedPage.actions.createfeedWithMentionUserNameAndTopic({
+        const postResult = await feedPage.postEditor.createfeedWithMentionUserNameAndTopic({
           text: initialPostText,
           userName: standardUserFullName,
           topicName: simpplrTopic.name,
@@ -221,11 +221,11 @@ test.describe(
         // Verify post is created with all content elements
         // Use a simpler text pattern since site mentions are added as plain text
         const expectedText = initialPostText; // Just check for the main text
-        await feedPage.assertions.waitForPostToBeVisible(expectedText);
-        await feedPage.assertions.validatePostText(expectedText);
+        await feedPage.feedList.waitForPostToBeVisible(expectedText);
+        await feedPage.feedList.validatePostText(expectedText);
 
         // Verify inline preview is displayed for embedded URL
-        const postContent = feedPage['listFeedComponent'].getFeedTextLocator(expectedText);
+        const postContent = feedPage['feedList'].getFeedTextLocator(expectedText);
         await postContent
           .locator('iframe[src*="youtube.com"], iframe[src*="youtu.be"], div[class*="embed"], div[class*="preview"]')
           .first()
@@ -236,54 +236,54 @@ test.describe(
 
         // ==================== EDIT SECTION ====================
         // Navigate to Home-Global Feed and click ellipses on feed post
-        await feedPage.actions.openPostOptionsMenu(expectedText);
+        await feedPage.postEditor.openPostOptionsMenu(expectedText);
 
         // Click "Edit"
-        await feedPage.actions.clickEditOption();
+        await feedPage.postEditor.clickEditOption();
 
         // Verify "Update" button is disabled initially
-        await feedPage.assertions.verifyUpdateButtonDisabled();
+        await feedPage.postEditor.verifyUpdateButtonDisabled();
 
         // Update the text
-        await feedPage.actions.updatePostText('Edited a Feed Post');
+        await feedPage.postEditor.updatePostText('Edited a Feed Post');
 
         // Apply formatting in tiptap editor
         // Click Bold button, enter "Text in Bold", press Enter
-        await feedPage.actions.applyFormattingAndEnterText('bold', 'Text in Bold');
+        await feedPage.postEditor.applyFormattingAndEnterText('bold', 'Text in Bold');
 
         // Click Italic button, enter "Text in Italic", press Enter
-        await feedPage.actions.applyFormattingAndEnterText('italic', 'Text in Italic');
+        await feedPage.postEditor.applyFormattingAndEnterText('italic', 'Text in Italic');
 
         // Click Underline button, enter "Text in Underline", press Enter
-        await feedPage.actions.applyFormattingAndEnterText('underline', 'Text in Underline');
+        await feedPage.postEditor.applyFormattingAndEnterText('underline', 'Text in Underline');
 
         // Click Strike button, enter "Text in Strike", press Enter
-        await feedPage.actions.applyFormattingAndEnterText('strike', 'Text in Strike');
+        await feedPage.postEditor.applyFormattingAndEnterText('strike', 'Text in Strike');
 
         // Click Solid Dot Bullet button, enter "Text in Bullet2", press Enter
-        await feedPage.actions.applyFormattingAndEnterText('dotBullet', 'Text in Bullet2');
+        await feedPage.postEditor.applyFormattingAndEnterText('dotBullet', 'Text in Bullet2');
 
         // Click Number Bullet button, enter "Text in Bullet1", press Enter
-        await feedPage.actions.applyFormattingAndEnterText('numberBullet', 'Text in Bullet1');
+        await feedPage.postEditor.applyFormattingAndEnterText('numberBullet', 'Text in Bullet1');
 
         // Click Emoji button, select an emoji
-        await feedPage.actions.selectEmoji(1);
+        await feedPage.postEditor.selectEmoji(1);
 
         // Click Link button, enter text "Link", URL "https://www.bbc.com/sport", press Enter
-        await feedPage.actions.addLink('Link', 'https://www.bbc.com/sport');
+        await feedPage.postEditor.addLink('Link', 'https://www.bbc.com/sport');
         console.log('Pressing Enter after adding link');
-        await feedPage['createFeedPostComponent'].feedEditor.press('Enter');
+        await feedPage['postEditor'].feedEditor.press('Enter');
 
         // Click "Update" button
-        await feedPage.actions.clickUpdateButton();
+        await feedPage.postEditor.clickUpdateButton();
 
         // Verify updated post with formatting is visible
-        await feedPage.assertions.waitForPostToBeVisible('Edited a Feed Post');
+        await feedPage.feedList.waitForPostToBeVisible('Edited a Feed Post');
 
         // ==================== DELETE SECTION ====================
 
         // Click "Delete" - deletePost will handle opening the menu internally
-        await feedPage.actions.deletePost('Edited a Feed Post');
+        await feedPage.deletePost('Edited a Feed Post');
         createdPostId = ''; // Clear post ID as post is already deleted
       }
     );
@@ -328,8 +328,8 @@ test.describe(
             const homeFeedPostText = homeFeedData.text;
 
             // Wait for post to be visible and verify timestamp format
-            await feedPage.assertions.waitForPostToBeVisible(homeFeedPostText);
-            await feedPage.assertions.verifyTimestampFormat(homeFeedPostText);
+            await feedPage.feedList.waitForPostToBeVisible(homeFeedPostText);
+            await feedPage.feedList.verifyTimestampFormat(homeFeedPostText);
             console.log('✓ Home Dashboard timestamp format verified');
           });
 
@@ -357,13 +357,13 @@ test.describe(
             await siteDashboardPage.verifyThePageIsLoaded();
 
             // Click on Feed link to navigate to Site Feed
-            await siteDashboardPage.actions.clickOnFeedLink();
+            await siteDashboardPage.clickOnFeedLink();
             const siteFeedPage = new FeedPage(standardUserFixture.page);
             await siteFeedPage.verifyThePageIsLoaded();
 
             // Wait for post to be visible and verify timestamp format
-            await siteFeedPage.assertions.waitForPostToBeVisible(siteFeedPostText);
-            await siteFeedPage.assertions.verifyTimestampFormat(siteFeedPostText);
+            await siteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+            await siteFeedPage.feedList.verifyTimestampFormat(siteFeedPostText);
             console.log('✓ Site Dashboard timestamp format verified');
           });
 
@@ -396,8 +396,8 @@ test.describe(
             await contentPreviewPage.verifyThePageIsLoaded();
 
             // Wait for comment to be visible and verify timestamp format
-            await contentPreviewPage.assertions.waitForPostToBeVisible(contentCommentText);
-            await contentPreviewPage.assertions.verifyCommentTimestampFormat(contentCommentText);
+            await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(contentCommentText);
+            await contentPreviewPage.verifyCommentTimestampFormat(contentCommentText);
             console.log('✓ Content Page comment timestamp format verified');
           });
         } finally {
