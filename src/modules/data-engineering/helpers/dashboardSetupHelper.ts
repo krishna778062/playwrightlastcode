@@ -5,6 +5,7 @@ import { ContentDashboard } from '../ui/dashboards/content-dashboard/contentDash
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { MonthlyReportsQueryHelper } from './monthlyReportsQueryHelper';
+import { OnSiteQueryHelper } from './onSiteQueryHelper';
 import { PeopleDashboardQueryHelper } from './peopleDashboardQueryHelper';
 import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 
@@ -22,6 +23,7 @@ import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboar
 import { FilesDashboard } from '@/src/modules/data-engineering/ui/dashboards/files/filesDashboard';
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
 import { MonthlyReportsDashboard } from '@/src/modules/data-engineering/ui/dashboards/monthly-reports/monthlyReportsDashboard';
+import { OnSitePage } from '@/src/modules/data-engineering/ui/dashboards/on-site/onSitePage';
 import { OverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards/overview/overviewDashboard';
 import { PeopleDashboard } from '@/src/modules/data-engineering/ui/dashboards/people/peopleDashboard';
 import { SearchDashboard } from '@/src/modules/data-engineering/ui/dashboards/search/searchDashboard';
@@ -418,6 +420,42 @@ export async function setupContentDashboardForTest(
       contentDashboard,
       snowflakeHelper,
       contentDashboardQueryHelper,
+    };
+  });
+}
+
+/**
+ * Sets up On-Site Analytics Page for testing
+ */
+export async function setupOnSitePageForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  onSitePage: OnSitePage;
+  onSiteQueryHelper: OnSiteQueryHelper;
+  snowflakeHelper: SnowflakeHelper;
+}> {
+  return await test.step('Setup On-Site Analytics Page', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create on-site query helper
+    const orgId = getDataEngineeringConfigFromCache().orgId;
+    const onSiteQueryHelper = new OnSiteQueryHelper(snowflakeHelper, orgId);
+
+    //create on-site page
+    const onSitePage = new OnSitePage(page);
+    //load on-site page
+    await onSitePage.loadPage();
+
+    return {
+      page,
+      onSitePage,
+      onSiteQueryHelper,
+      snowflakeHelper,
     };
   });
 }

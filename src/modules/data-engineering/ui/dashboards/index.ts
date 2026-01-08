@@ -3,6 +3,7 @@ export * from './app-adoption';
 export * from './content-dashboard';
 export * from './files';
 export * from './mobile-dashboard';
+export * from './on-site';
 export * from './overview';
 export * from './search';
 export * from './sites';

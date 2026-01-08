@@ -16,7 +16,7 @@ export const OnSiteSql = {
             u.tenant_code = '{tenantCode}'
             AND i.is_deleted = FALSE
             AND i.is_system_feed = FALSE
-            AND i.interaction_type_code IN ('{interactionTypeCode}')
+            AND i.interaction_type_code IN ({interactionTypeCode})
             AND date(i.INTERACTION_DATETIME)>= '{startDate}' AND date(i.INTERACTION_DATETIME)<= '{endDate}' 
             AND i.site_code='{siteCode}'
         GROUP BY 
@@ -28,7 +28,7 @@ export const OnSiteSql = {
   REACTIONS_RECEIVED: `SELECT 
         u.code,
         u.full_name AS "Full name",
-        COUNT(i.receiver_user_code) AS "Interaction count",
+        COUNT(i.receiver_user_code) AS "Interaction count"
     FROM UDL.VW_INTERACTION i
     INNER JOIN UDL.VW_USER_AS_IS u 
         ON i.receiver_user_code = u.code
@@ -159,4 +159,71 @@ GROUP BY
 
 ORDER BY 
     "Popularity score" DESC;`,
+
+  CONTENT_REFERRALS: `SELECT 
+    u.description AS "UTM source name",
+    COUNT(DISTINCT i.content_code) AS "Content items",
+    COUNT(
+        CASE 
+            WHEN i.interaction_type_code NOT IN ('IT000', 'ITCP') 
+            THEN i.content_code 
+        END
+    ) AS "Referrals",
+    ROUND(
+        ("Referrals" * 100.0) / NULLIF(SUM("Referrals") OVER (), 0),
+        2
+    ) AS "Referrals contribution",
+    ROUND(
+        "Referrals" / NULLIF("Content items", 0),
+        1
+    ) AS "Avg referrals per item"
+FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i
+INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_utm_source_as_is u
+    ON i.utm_source_code = u.code
+WHERE 
+    i.tenant_code = '{tenantCode}'
+    AND i.site_code LIKE '{siteCode}'
+    AND DATE(i.interaction_datetime) >= '{startDate}'
+    AND DATE(i.interaction_datetime) <= '{endDate}'
+    AND i.interaction_type_code = 'IT001'
+    AND i.INTERACTION_CONTENT_POST_FIRST_PUBLISH
+GROUP BY 
+    u.description
+ORDER BY 
+    COUNT(i.code) DESC;`,
+
+  MOST_CONTENT_PUBLISHED: `SELECT
+    u.full_name AS "Name",
+    COUNT(c.code) AS "Content count"
+FROM SIMPPLR_COMMON_TENANT.udl.vw_content_as_is AS c
+INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is AS u
+    ON c.primary_author_code = u.code
+WHERE
+    u.tenant_code = '{tenantCode}'
+    AND c.site_code LIKE '{siteCode}'
+    AND DATE(c.content_first_published_date) >= '{startDate}'
+    AND DATE(c.content_first_published_date) <= '{endDate}'
+GROUP BY
+    u.full_name
+ORDER BY
+    "Content count" DESC;`,
+
+  MOST_VIEWED_CONTENT: `SELECT
+    c.title AS "Content",
+    COUNT(i.code) AS "Views"
+FROM SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
+INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_interaction i
+    ON i.content_code = c.code
+WHERE
+    c.site_code = '{siteCode}'
+    AND i.tenant_code = '{tenantCode}'
+    AND i.is_deleted = FALSE
+    AND i.interaction_type_code = 'IT001'
+    AND DATE(i.interaction_datetime) >= '{startDate}'
+    AND DATE(i.interaction_datetime) <= '{endDate}'
+GROUP BY
+    c.code,
+    c.title
+ORDER BY
+    "Views" DESC;`,
 };
