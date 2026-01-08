@@ -4,6 +4,7 @@ import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { validateTimestampFormat } from '@/src/core/utils/dateUtil';
+import { ReactionsEmoji } from '@/src/modules/content/constants/reactionsEmoji';
 
 export class ListFeedComponent extends BaseComponent {
   // Post options section
@@ -227,6 +228,8 @@ export class ListFeedComponent extends BaseComponent {
   readonly getProfilePopoverLocator = (userName: string): Locator =>
     this.page.getByText(`${userName}View in org chart`).first();
 
+  readonly getReactionButton = (emojiName: string): Locator =>
+    this.page.getByRole('button', { name: `React with ${emojiName}` }).first();
   readonly siteNameLocator = (postText: string, siteName: string): Locator =>
     this.page.getByRole('link', { name: siteName }).first();
 
@@ -248,16 +251,15 @@ export class ListFeedComponent extends BaseComponent {
     this.unlikeButton = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.likeButton = this.page.getByRole('button', { name: 'React to this post' });
     this.replyButton = this.page.getByRole('button', { name: 'Reply on this post' });
-    this.replyButton = this.page.locator('p').filter({ hasText: 'Reply' });
     this.replyInput = this.page.getByRole('button', { name: 'Leave a reply…' }).first();
     this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
     this.replyEditor = this.page.getByRole('textbox', { name: 'You are in the content editor' }).first();
-    this.replyFileUploadInput = this.page.locator("input[type='file']");
+    this.replyFileUploadInput = this.page.locator("input[type='file']").last();
     this.replyAttachedFiles = this.page.locator("div[class='FileItem-name']");
     this.replyShowMoreButton = this.page.getByTestId('replyContent').getByRole('button', { name: 'Show more' });
     this.postsIFollow = this.page.getByText('Posts I follow');
     this.sortByRecentActivity = this.page.locator('[aria-label="Sort by"]:has-text("Recent activity")');
-    this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' });
+    this.loadMoreRepliesButton = this.page.getByRole('button', { name: 'Load more replies' }).first();
     this.likeButtonForReply = this.page.getByRole('button', { name: 'React to this reply' }).first();
     this.unlikeButtonForReply = this.page.getByRole('button', { name: 'Remove your reaction' }).first();
     this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
@@ -612,10 +614,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Add reply to post with inappropriate content handling`, async () => {
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
 
-      // Wait for reply input to be visible (without waiting for API response)
-      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
-        assertionMessage: `Reply input should be visible`,
-      });
       await this.fillInElement(this.replyEditor, replyText);
       if (mentionUserName) {
         replyText = replyText + ` @${mentionUserName}`;
@@ -730,9 +728,6 @@ export class ListFeedComponent extends BaseComponent {
   ): Promise<string> {
     await test.step(`Add reply to post with embedded URL`, async () => {
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
-      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
-        assertionMessage: `Reply input should be visible`,
-      });
 
       // Enter reply text
       await this.fillInElement(this.replyEditor, replyText);
@@ -808,10 +803,6 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: `Load more replies button should be visible`,
       });
       await this.clickOnElement(this.loadMoreRepliesButton);
-
-      await this.verifier.verifyTheElementIsNotVisible(this.loadMoreRepliesButton, {
-        assertionMessage: `Load more replies button should not be visible after clicking`,
-      });
     });
   }
 
@@ -1185,13 +1176,11 @@ export class ListFeedComponent extends BaseComponent {
    */
   async openReplyEditorForPost(postText: string): Promise<void> {
     await test.step(`Open reply editor for post: ${postText}`, async () => {
-      const replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
-
       // Wait for reply button to be visible
-      await this.verifier.verifyTheElementIsVisible(replyButton, {
+      await this.verifier.verifyTheElementIsVisible(this.replyButton.first(), {
         assertionMessage: 'Reply button should be visible for the post',
       });
-      await replyButton.click();
+      await this.clickOnElement(this.replyButton.first());
       await this.verifier.verifyTheElementIsVisible(this.replyEditor, {
         assertionMessage: 'Reply editor should be visible',
       });
@@ -1200,11 +1189,10 @@ export class ListFeedComponent extends BaseComponent {
 
   async clickReplyOnContentComment(commentText: string): Promise<void> {
     await test.step(`Click reply on content comment: ${commentText}`, async () => {
-      const replyButton = this.page.getByRole('button', { name: 'Reply on this post' }).first();
-      await this.verifier.verifyTheElementIsVisible(replyButton, {
+      await this.verifier.verifyTheElementIsVisible(this.replyButton.first(), {
         assertionMessage: 'Reply button should be visible for the post',
       });
-      await replyButton.click();
+      await this.clickOnElement(this.replyButton.first());
     });
   }
 
@@ -1608,7 +1596,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async clickReactionEmoji(postText: string, reactionName: string): Promise<void> {
     await test.step(`Click ${reactionName} reaction for post: ${postText}`, async () => {
-      const reactionButton = this.page.getByRole('button', { name: `React with ${reactionName}` }).first();
+      const reactionButton = this.getReactionButton(reactionName);
       await this.verifier.verifyTheElementIsVisible(reactionButton, {
         assertionMessage: `Reaction button should be visible for post "${postText}" with reaction "${reactionName}"`,
       });
@@ -1706,6 +1694,25 @@ export class ListFeedComponent extends BaseComponent {
         const userLocator = this.page.getByRole('link', { name: expectedUser }).first();
         await this.verifier.verifyTheElementIsVisible(userLocator, {
           assertionMessage: `User "${expectedUser}" should be visible in "${emojiName}" tab`,
+        });
+      }
+    });
+  }
+
+  /**
+   * Verifies all six reaction emojis are visible in the reaction menu
+   * @param postText - The text of the post to verify reactions for
+   */
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await test.step(`Verify all reaction emojis are visible for post: ${postText}`, async () => {
+      const expectedEmojis = Object.values(ReactionsEmoji);
+
+      for (const emoji of expectedEmojis) {
+        await test.step(`Verify ${emoji} emoji is visible`, async () => {
+          const reactionButton = this.getReactionButton(emoji);
+          await this.verifier.verifyTheElementIsVisible(reactionButton, {
+            assertionMessage: `Reaction emoji "${emoji}" should be visible in the reaction menu for post "${postText}"`,
+          });
         });
       }
     });

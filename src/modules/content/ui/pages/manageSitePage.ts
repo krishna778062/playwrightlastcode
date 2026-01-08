@@ -36,13 +36,15 @@ export class ManageSitePage extends BasePage {
   // Locators for setExternalFilesProvider method
   readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
   readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
+  readonly disconnectDialog: Locator = this.page.getByRole('dialog', { name: 'Disconnect' });
+
   readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
   // Target the option in the dropdown list, not the selected value
-  readonly boxFilesOption = this.page.locator('#storageProvider-list').getByText('Box files', { exact: true });
+  readonly providerOption = (providerName: string) =>
+    this.page.locator('#storageProvider-list').getByText(providerName, { exact: true });
   // Locator for the currently selected value in the combobox
-  readonly selectedProviderValue = this.page
-    .locator('div[class*="css-15bnrdl-singleValue"]')
-    .filter({ hasText: /Box files/i });
+  readonly selectedProviderValue = (provider: string) =>
+    this.page.locator('div[class*="css-15bnrdl-singleValue"]').filter({ hasText: provider });
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
 
@@ -187,11 +189,15 @@ export class ManageSitePage extends BasePage {
       });
 
       // Check if Box files is already selected
-      const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
+      const isBoxAlreadySelected = await this.selectedProviderValue(provider)
+        .isVisible()
+        .catch(() => false);
 
-      if (isBoxAlreadySelected && provider === 'Box files') {
-        return; // Skip the update process
+      if (isBoxAlreadySelected) {
+        console.log(`${provider} is already selected`);
+        return;
       }
+
       // Click on the React Select input or dropdown arrow to open dropdown
       await this.verifier.verifyTheElementIsVisible(this.storageProviderInput, {
         assertionMessage: 'Storage provider input should be visible',
@@ -199,9 +205,9 @@ export class ManageSitePage extends BasePage {
 
       await this.clickOnElement(this.storageProviderInput);
 
-      const providerOption = this.boxFilesOption;
+      const providerOption = this.providerOption(provider);
       await this.verifier.verifyTheElementIsVisible(providerOption, {
-        assertionMessage: 'Box files option should be visible',
+        assertionMessage: `${provider} option should be visible`,
       });
       await this.clickOnElement(providerOption);
 
@@ -209,6 +215,12 @@ export class ManageSitePage extends BasePage {
         assertionMessage: 'Save button should be visible',
       });
       await this.clickOnElement(this.saveButton);
+
+      const isDisconnectDialogVisible = await this.disconnectDialog.isVisible();
+      if (isDisconnectDialogVisible) {
+        const disconnectButton = this.disconnectDialog.getByRole('button', { name: 'Disconnect' });
+        await this.clickOnElement(disconnectButton);
+      }
     });
   }
   async clickDashboardAndFeedTab(): Promise<void> {
