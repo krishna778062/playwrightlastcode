@@ -63,7 +63,7 @@ test.describe(
     });
 
     test(
-      'in Zeus Verify Sort by options should show shared posts accordingly - Recent Activity',
+      'in Zeus Verify Sort by options should show shared posts accordingly - Recent Activity CONT-26729',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26729'],
       },
@@ -100,7 +100,7 @@ test.describe(
 
         // Navigate to the feed URL to see the post
         await siteManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
-        await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Login as Site Content Manager (Admin should be following Site Content Manager)
         siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
@@ -109,18 +109,18 @@ test.describe(
         // Navigate to Global Feed and Select Show filter as "All Posts"
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await siteContentManagerFeedPage.verifyThePageIsLoaded();
-        await siteContentManagerFeedPage.actions.clickOnShowOption('all');
+        await siteContentManagerFeedPage.clickOnShowOption('all');
 
         // Click on "Share" icon for the feed post created by "Site Manager"
-        await siteContentManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-        await siteContentManagerFeedPage.actions.clickShareButtonForPost(createdPostText);
+        await siteContentManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+        await siteContentManagerFeedPage.feedList.clickShareButtonForPost(createdPostText);
 
         // Add a message "Shared Manager's Post" and select Post in as "Home Feed"
         const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARED;
-        await siteContentManagerFeedPage.actions.enterShareDescription(shareMessage);
+        await siteContentManagerFeedPage.share.enterShareDescription(shareMessage);
 
         // Click on "Share" button
-        await siteContentManagerFeedPage.actions.clickShareButton();
+        await siteContentManagerFeedPage.share.clickShareButton();
 
         // Login as Admin
         await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -128,22 +128,22 @@ test.describe(
         // Navigate to Global Feed
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
-        await adminFeedPage.actions.clickOnShowOption('all');
+        await adminFeedPage.clickOnShowOption('all');
 
         // Like the Feed post made by Site Manager
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
-        await adminFeedPage.actions.markPostAsFavourite();
-        await adminFeedPage.assertions.verifyPostIsFavorited(shareMessage);
+        await adminFeedPage.feedList.markPostAsFavourite();
+        await adminFeedPage.feedList.verifyPostIsFavorited(shareMessage);
 
         // Select sort by option as "Recent Activity"
-        await adminFeedPage.actions.clickOnSortByOption(FeedSortBy.RECENT_ACTIVITY);
+        await adminFeedPage.clickOnSortByOption(FeedSortBy.RECENT_ACTIVITY);
 
         // Wait for the feed to re-sort by waiting for the post to be visible again
-        await adminFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await adminFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         // Verify User is able to view the Site Manager's Feed post at the top
-        await adminFeedPage.assertions.verifyPostIsAtTop(shareMessage);
+        await adminFeedPage.feedList.verifyPostIsAtTop(shareMessage);
       }
     );
   }

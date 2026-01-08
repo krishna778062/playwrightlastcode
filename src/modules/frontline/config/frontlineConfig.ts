@@ -17,7 +17,7 @@
  */
 
 export type TenantKey = 'primary' | 'secondary';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'uatEU';
+export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'uatEU' | 'prodUS';
 
 export const mailosaurValues: {
   mailosaurApiKey: string;
@@ -140,6 +140,19 @@ export const config = {
       newUxEnabled: false,
       orgId: '43742c24-f120-4f3a-9982-a1e7dabc3dbe',
     },
+    prodUS: {
+      tenantName: 'Frontline Primary PROD US',
+      frontendBaseUrl: 'https://ping-automation.app.simpplr.com/',
+      apiBaseUrl: 'https://ping-automation-api.app.simpplr.com/',
+      appManagerEmail: 'rakesh.yadav@simpplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi+1@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: true,
+      orgId: '020cb3c0-14b6-4a6e-9bae-ade3b0e30f79',
+    },
   },
   secondary: {
     qa: {
@@ -204,6 +217,21 @@ export const config = {
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
+    prodUS: {
+      tenantName: 'Frontline Secondary PROD US',
+      frontendBaseUrl: 'https://frontline-automation.app.simpplr.com',
+      apiBaseUrl: 'https://frontline-automation-api.app.simpplr.com',
+      appManagerEmail: '1473',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi@simpplr.com',
+      endUserPassword: 'Simp@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: 'd181647a-958c-4108-b2d2-913b60687da6',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
   },
   appConfig: {
     staticFolderPath: '',
@@ -216,14 +244,15 @@ export const config = {
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!['qa', 'uat', 'test', 'uatEU'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'uatEU', 'prodUS'].includes(testEnv)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test\n` +
+        `Valid values are: qa, uat, test, uatEU, prodUS\n` +
         `Example: TEST_ENV=qa npm run test:module frontline\n` +
         `Example: TEST_ENV=uat npm run test:module frontline\n` +
         `Example: TEST_ENV=test npm run test:module frontline\n` +
-        `Example: TEST_ENV=uatEU npm run test:module frontline\n`
+        `Example: TEST_ENV=uatEU npm run test:module frontline\n` +
+        `Example: TEST_ENV=prodUS npm run test:module frontline\n`
     );
   }
 

@@ -5,11 +5,6 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { HomeFeedComponent } from '@/src/modules/content/ui/components/homeFeedComponent';
 
-export interface IManageApplicationPageActions {
-  clickOnHomeFeed: () => Promise<void>;
-}
-
-export interface IManageApplicationPageAssertions {}
 export class DefaultScreenPage extends BasePage {
   private homeFeedComponent: HomeFeedComponent;
   readonly clickingOnHomeFeed = this.page.getByRole('tab', { name: 'Home feed' });
@@ -19,15 +14,6 @@ export class DefaultScreenPage extends BasePage {
     super(page, PAGE_ENDPOINTS.DEFAULT_SCREEN);
     this.homeFeedComponent = new HomeFeedComponent(page);
   }
-
-  get actions(): IManageApplicationPageActions {
-    return this;
-  }
-
-  get assertions(): IManageApplicationPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify email notifications page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.emailNotificationHeading, {

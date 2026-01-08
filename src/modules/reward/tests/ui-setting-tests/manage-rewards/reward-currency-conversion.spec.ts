@@ -39,7 +39,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   });
 
   test(
-    '[RC-2531] Validate Add & remove currency in currency conversion tab.',
+    'RC-2531 Validate Add & remove currency in currency conversion tab.',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
     },
@@ -54,6 +54,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-2718',
         storyId: 'RC-2718',
       });
+      tagTest(test.info(), {
+        description: '[Test] Validate Integrate Market Currency Conversions',
+        zephyrTestId: 'RC-3278',
+        storyId: 'RC-2462',
+      });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
       const currency = 'XPF';
@@ -64,7 +69,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   );
 
   test(
-    '[RC-3466,RC-3467] Validate currency conversion page on custom conversion',
+    'RC-3466,RC-3467 Validate currency conversion page on custom conversion',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.CURRENCY_CONVERSION, TestPriority.P0],
     },

@@ -18,6 +18,7 @@ export class AIPollCreationPage extends BasePage {
   readonly saveDraftButton: Locator;
   readonly browseAudiencesButton: Locator;
   readonly postButton: Locator;
+  readonly dismissButton: Locator;
   readonly sendingPollTag: Locator;
   readonly activeTag: Locator;
   readonly quickPromptButtons: Locator;
@@ -77,6 +78,7 @@ export class AIPollCreationPage extends BasePage {
   readonly keepResponsesConfidentialToggle: Locator;
   readonly keepResponsesConfidentialHelpText: Locator;
   readonly monthDropdown: Locator;
+  readonly yearDropdown: Locator;
   readonly pollEndDateCaption: Locator;
   readonly inlineErrorMessage: Locator;
   readonly regenerateButton: Locator;
@@ -129,6 +131,7 @@ export class AIPollCreationPage extends BasePage {
     this.saveDraftButton = this.page.getByRole('button', { name: 'Save draft' });
     this.browseAudiencesButton = this.page.getByRole('button', { name: 'Browse' });
     this.postButton = this.page.getByRole('button', { name: 'Post' });
+    this.dismissButton = this.page.getByRole('dialog', { name: 'Survey participation prompt' }).getByLabel('Dismiss');
     this.activeTag = this.page.getByText('Active');
     this.sendingPollTag = this.page.getByText('Sending poll');
     this.quickPromptButtons = this.page.locator(
@@ -209,6 +212,7 @@ export class AIPollCreationPage extends BasePage {
       .locator('p')
       .filter({ hasText: 'Names are hidden from everyone, including poll managers.' });
     this.monthDropdown = this.page.getByLabel('Select month');
+    this.yearDropdown = this.page.getByLabel('Select year');
     this.pollEndDateCaption = this.page.getByText('This poll will end on Dec 3,');
     this.inlineErrorMessage = this.page.getByText("Couldn't generate a poll. Try rephrasing.");
     this.regenerateButton = this.page.getByRole('button', { name: 'Re-generate poll with AI' });
@@ -523,6 +527,9 @@ export class AIPollCreationPage extends BasePage {
     await test.step('Verify poll creation success message or redirection', async () => {
       await this.verifyToastMessageIsVisibleWithText('Poll created', { timeout: TIMEOUTS.LONG });
     });
+    if (await this.dismissButton.isVisible({ timeout: TIMEOUTS.SHORT })) {
+      await this.dismissButton.click({ timeout: TIMEOUTS.SHORT });
+    }
   }
 
   async verifySendingPollTagIsDisplayed(): Promise<void> {
@@ -1104,9 +1111,15 @@ export class AIPollCreationPage extends BasePage {
     await test.step(`Select specific date from calendar: ${date.toDateString()}`, async () => {
       const day = date.getDate();
       const month = date.getMonth();
+      const year = date.getFullYear();
 
+      // Select the year first (Year → Month → Day approach)
+      await this.yearDropdown.selectOption(year.toString());
+
+      // Then select the month
       await this.monthDropdown.selectOption(month.toString());
 
+      // Finally select the day
       const dayCell = getDayGridCell(this.page, day);
       await this.clickOnElement(dayCell, {
         stepInfo: `Click on ${day} day to select the date`,

@@ -26,7 +26,7 @@ export class EditWarningPopupComponent extends BaseComponent {
     this.adminsLoseAccessMessage = page.getByText('Admins might lose access to this group or entire feature');
     this.contentMoveMessage = page.getByText('Feature that loses its association');
     this.analyticsDiscrepanciesMessage = page.getByText('There may be discrepancies on any analytics pages');
-    this.editPopupCrossButton = page.getByLabel('Close');
+    this.editPopupCrossButton = page.getByRole('button', { name: 'Close' });
     this.editPopupCancelButton = page.getByRole('button', { name: 'Cancel' });
     this.editPopupContinueButton = page.getByRole('button', { name: 'Continue' });
   }

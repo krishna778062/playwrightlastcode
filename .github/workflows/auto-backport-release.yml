@@ -11,200 +11,209 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: [kubernetes]
     env:
-      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      SLACK_WEBHOOK_URL: 'https://hooks.slack.com/services/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'
     steps:
       - name: Check if backport is needed
-        id: check_source
+        id: check
+        env:
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
         run: |
           SOURCE_BRANCH="${{ github.event.pull_request.head.ref }}"
+          STAGE=${CURRENT_STAGE:-qa}
 
-          # Skip if PR is from main (already backported via auto-backport-main)
+          echo "Source branch: $SOURCE_BRANCH"
+          echo "Current stage: $STAGE"
+
+          # Skip if PR is from main (backport already handled by auto-backport-main)
           if [ "$SOURCE_BRANCH" == "main" ]; then
             echo "skip=true" >> $GITHUB_OUTPUT
-            echo "⏭️ This is main → release sync - skipping (already backported to develop via auto-backport-main)"
-          # Skip if PR is from develop (those changes already exist in develop)
-          elif [ "$SOURCE_BRANCH" == "develop" ]; then
-            echo "skip=true" >> $GITHUB_OUTPUT
-            echo "⏭️ Skipping - PR is from develop branch (no backport needed)"
-          else
-            echo "skip=false" >> $GITHUB_OUTPUT
-            echo "✅ PR is from '$SOURCE_BRANCH' - will proceed with backport"
+            echo "reason=source_is_main" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping - PR from main (backport handled by auto-backport-main workflow)"
+            exit 0
           fi
 
+          # Skip if PR is from develop (changes already exist in develop)
+          if [ "$SOURCE_BRANCH" == "develop" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "reason=source_is_develop" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping - PR from develop (changes already in develop)"
+            exit 0
+          fi
+
+          # Skip if this is a backport branch (to avoid infinite loops)
+          if [[ "$SOURCE_BRANCH" == backport/* ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "reason=source_is_backport" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping - PR from backport branch (already a backport)"
+            exit 0
+          fi
+
+          # Skip if stage is production (release already promoted, no active release)
+          if [ "$STAGE" == "production" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "reason=stage_is_production" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping - Stage is production (no active release, backport not needed)"
+            exit 0
+          fi
+
+          # All checks passed - proceed with backport
+          echo "skip=false" >> $GITHUB_OUTPUT
+          echo "✅ Will create backport (PR from $SOURCE_BRANCH, stage: $STAGE)"
+
       - name: Checkout repository
-        if: steps.check_source.outputs.skip == 'false'
+        if: steps.check.outputs.skip == 'false'
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           token: ${{ secrets.WORKFLOW_TOKEN }}
 
-      - name: Check for existing sync PR
-        if: steps.check_source.outputs.skip == 'false'
-        id: check_pr
-        env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+      - name: Configure Git
+        if: steps.check.outputs.skip == 'false'
         run: |
-          # Look for existing open PR from release to develop
-          EXISTING_PR=$(gh pr list \
-            --base develop \
-            --head release \
-            --state open \
-            --json number,url \
-            --jq 'if length > 0 then .[0] | "\(.number) \(.url)" else "" end' 2>/dev/null || echo "")
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          if [ -n "$EXISTING_PR" ] && [ "$EXISTING_PR" != "null null" ]; then
-            PR_NUMBER=$(echo "$EXISTING_PR" | cut -d' ' -f1)
-            PR_URL=$(echo "$EXISTING_PR" | cut -d' ' -f2)
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
-            echo "✅ Found existing sync PR: #$PR_NUMBER"
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "📝 No existing sync PR found - will create one"
-          fi
-
-      - name: Create sync PR if not exists
-        id: create_pr
-        if: steps.check_source.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'false'
-        env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
-        run: |
-          # Check if there are differences between release and develop
-          git fetch origin develop release
-
-          DIFF_COUNT=$(git rev-list --count origin/develop..origin/release)
-
-          if [ "$DIFF_COUNT" -eq 0 ]; then
-            echo "created=false" >> $GITHUB_OUTPUT
-            echo "⏭️ No differences between release and develop - skipping PR creation"
-            exit 0
-          fi
-
-          echo "Found $DIFF_COUNT commits to sync"
-
-          # Get info about the triggering PR
-          ORIGINAL_PR_NUMBER="${{ github.event.pull_request.number }}"
-          ORIGINAL_PR_TITLE="${{ github.event.pull_request.title }}"
-          ORIGINAL_PR_URL="${{ github.event.pull_request.html_url }}"
-          ORIGINAL_PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-          CURRENT_DATE=$(date +"%b %d, %Y")
-
-          # Create PR body using heredoc
-          PR_BODY=$(cat <<EOF
-          ## 🔄 Sync: release → develop
-
-          This PR keeps the \`develop\` branch in sync with \`release\`.
-
-          ### 📋 Changes Included:
-
-          | PR | Title | Author | Added |
-          |----|-------|--------|-------|
-          | [#${ORIGINAL_PR_NUMBER}](${ORIGINAL_PR_URL}) | ${ORIGINAL_PR_TITLE} | @${ORIGINAL_PR_AUTHOR} | ${CURRENT_DATE} |
-
-          ### How it works:
-          - This PR **auto-updates** as more changes land on \`release\`
-          - **Merge this PR** periodically to keep \`develop\` up to date
-          - New changes will be added to the table above
-
-          ⚠️ **Note:** Do not close this PR - it will be reused for future syncs.
-          EOF
-          )
-
-          # Create the sync PR
-          SYNC_PR_URL=$(gh pr create \
-            --base develop \
-            --head release \
-            --title "🔄 Sync: release → develop" \
-            --body "$PR_BODY")
-
-          echo "created=true" >> $GITHUB_OUTPUT
-          echo "pr_url=$SYNC_PR_URL" >> $GITHUB_OUTPUT
-
-          # Extract PR number from URL
-          PR_NUMBER=$(echo "$SYNC_PR_URL" | grep -oP '\d+$')
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-
-          echo "✅ Created sync PR: $SYNC_PR_URL"
-
-      - name: Update existing PR body with new change
-        if: steps.check_source.outputs.skip == 'false' && steps.check_pr.outputs.exists == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
-        run: |
-          SYNC_PR_NUMBER="${{ steps.check_pr.outputs.pr_number }}"
-          ORIGINAL_PR_NUMBER="${{ github.event.pull_request.number }}"
-          ORIGINAL_PR_TITLE="${{ github.event.pull_request.title }}"
-          ORIGINAL_PR_URL="${{ github.event.pull_request.html_url }}"
-          ORIGINAL_PR_AUTHOR="${{ github.event.pull_request.user.login }}"
-          CURRENT_DATE=$(date +"%b %d, %Y")
-
-          # Get current PR body
-          CURRENT_BODY=$(gh pr view $SYNC_PR_NUMBER --json body --jq '.body')
-
-          # Create new table row
-          NEW_ROW="| [#${ORIGINAL_PR_NUMBER}](${ORIGINAL_PR_URL}) | ${ORIGINAL_PR_TITLE} | @${ORIGINAL_PR_AUTHOR} | ${CURRENT_DATE} |"
-
-          # Insert new row after the table header (after the |----| line)
-          UPDATED_BODY=$(echo "$CURRENT_BODY" | awk -v new_row="$NEW_ROW" '
-            /^\|-+\|-+\|-+\|-+\|$/ { 
-              print; 
-              print new_row; 
-              next 
-            }
-            { print }
-          ')
-
-          # Update the PR body
-          gh pr edit $SYNC_PR_NUMBER --body "$UPDATED_BODY"
-
-          # Also add a comment for notification
-          COMMENT_BODY=$(cat <<EOF
-          ### 📥 New changes added
-
-          **From PR:** [#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}](${ORIGINAL_PR_URL})
-          **Author:** @${ORIGINAL_PR_AUTHOR}
-
-          _The PR description has been updated with this change._
-          EOF
-          )
-
-          gh pr comment $SYNC_PR_NUMBER --body "$COMMENT_BODY"
-
-          echo "✅ Updated sync PR #$SYNC_PR_NUMBER with new change"
-
-      - name: Determine PR URL for notification
-        if: steps.check_source.outputs.skip == 'false'
+      - name: Set PR info
+        if: steps.check.outputs.skip == 'false'
         id: pr_info
         run: |
-          if [ "${{ steps.check_pr.outputs.exists }}" == "true" ]; then
-            echo "pr_url=${{ steps.check_pr.outputs.pr_url }}" >> $GITHUB_OUTPUT
-            echo "pr_number=${{ steps.check_pr.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "is_new=false" >> $GITHUB_OUTPUT
-          elif [ "${{ steps.create_pr.outputs.created }}" == "true" ]; then
-            echo "pr_url=${{ steps.create_pr.outputs.pr_url }}" >> $GITHUB_OUTPUT
-            echo "pr_number=${{ steps.create_pr.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "is_new=true" >> $GITHUB_OUTPUT
-          else
-            echo "pr_url=" >> $GITHUB_OUTPUT
-            echo "is_new=skip" >> $GITHUB_OUTPUT
-          fi
+          echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "title=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "url=${{ github.event.pull_request.html_url }}" >> $GITHUB_OUTPUT
+          echo "author=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
+          echo "merge_commit=${{ github.event.pull_request.merge_commit_sha }}" >> $GITHUB_OUTPUT
 
-      - name: Notify Slack
-        if: steps.check_source.outputs.skip == 'false' && steps.pr_info.outputs.pr_url != ''
+      # ========================================
+      # BACKPORT TO DEVELOP (using cherry-pick)
+      # ========================================
+      - name: Create backport branch and cherry-pick
+        if: steps.check.outputs.skip == 'false'
+        id: backport
         run: |
-          ORIGINAL_PR_NUMBER="${{ github.event.pull_request.number }}"
-          ORIGINAL_PR_TITLE="${{ github.event.pull_request.title }}"
-          ORIGINAL_PR_URL="${{ github.event.pull_request.html_url }}"
-          SYNC_PR_URL="${{ steps.pr_info.outputs.pr_url }}"
-          SYNC_PR_NUMBER="${{ steps.pr_info.outputs.pr_number }}"
-          IS_NEW="${{ steps.pr_info.outputs.is_new }}"
+          PR_NUMBER="${{ steps.pr_info.outputs.number }}"
+          PR_TITLE="${{ steps.pr_info.outputs.title }}"
+          PR_AUTHOR="${{ steps.pr_info.outputs.author }}"
+          MERGE_COMMIT="${{ steps.pr_info.outputs.merge_commit }}"
 
-          if [ "$IS_NEW" == "true" ]; then
-            MESSAGE="🔄 *Sync PR Created [release → develop]*\n\n*Triggered by:* <${ORIGINAL_PR_URL}|#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}>\n\n*Sync PR:* <${SYNC_PR_URL}|#${SYNC_PR_NUMBER}>\n\n_A new sync PR has been created. Review and merge to keep develop in sync._"
+          echo "PR #$PR_NUMBER: $PR_TITLE"
+          echo "Author: $PR_AUTHOR"
+          echo "Merge commit: $MERGE_COMMIT"
+
+          BACKPORT_BRANCH="backport/release-${PR_NUMBER}-to-develop"
+          git fetch origin develop
+          git checkout -b $BACKPORT_BRANCH origin/develop
+
+          echo "Created branch: $BACKPORT_BRANCH"
+
+          if git cherry-pick -m 1 $MERGE_COMMIT; then
+            echo "success=true" >> $GITHUB_OUTPUT
+            echo "✅ Cherry-pick successful"
+            
+            git push origin $BACKPORT_BRANCH
+            echo "branch=$BACKPORT_BRANCH" >> $GITHUB_OUTPUT
           else
-            MESSAGE="📥 *Changes Added to Sync PR [release → develop]*\n\n*New changes from:* <${ORIGINAL_PR_URL}|#${ORIGINAL_PR_NUMBER} - ${ORIGINAL_PR_TITLE}>\n\n*Sync PR:* <${SYNC_PR_URL}|#${SYNC_PR_NUMBER}>\n\n_The sync PR description has been updated with the new changes._"
+            echo "success=false" >> $GITHUB_OUTPUT
+            echo "❌ Cherry-pick failed - conflicts detected"
+            
+            # Get conflicting files before aborting
+            CONFLICTS=$(git diff --name-only --diff-filter=U 2>/dev/null || echo "Unable to determine conflicts")
+            git cherry-pick --abort 2>/dev/null || true
+            
+            echo "conflicts<<EOF" >> $GITHUB_OUTPUT
+            echo "$CONFLICTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
           fi
+
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+
+      - name: Create backport PR
+        if: steps.check.outputs.skip == 'false' && steps.backport.outputs.success == 'true'
+        id: create_pr
+        env:
+          GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.backport.outputs.pr_number }}"
+          PR_TITLE="${{ steps.backport.outputs.pr_title }}"
+          PR_AUTHOR="${{ steps.backport.outputs.pr_author }}"
+          BRANCH="${{ steps.backport.outputs.branch }}"
+          PR_URL="${{ steps.pr_info.outputs.url }}"
+
+          BODY="## 🔄 Release Hotfix Backport
+
+          This PR backports changes from the \`release\` branch to \`develop\`.
+
+          **Original PR:** [#${PR_NUMBER} - ${PR_TITLE}](${PR_URL})
+          **Original Author:** @${PR_AUTHOR}
+
+          ---
+
+          ### ⚠️ Review Required
+
+          **Please verify:**
+          - [ ] Are these changes applicable to develop?
+          - [ ] Do these changes conflict with ongoing development?
+          - [ ] Should this be merged now or wait?
+
+          **Action options:**
+          - ✅ **If applicable:** Approve and merge to keep develop in sync
+          - ❌ **If not applicable:** Close with reason
+          - 🔧 **If needs changes:** Request modifications
+          - ⏸️ **If should wait:** Keep open, merge later
+
+          ---
+
+          **Why this exists:**
+          - Hotfixes and changes on \`release\` branch need to sync back to \`develop\`
+          - Ensures ongoing development includes all release fixes
+          - Prevents rework and keeps branches aligned
+
+          **Note:** This PR was created automatically by the backport workflow."
+
+          BACKPORT_PR_URL=$(gh pr create \
+            --base develop \
+            --head $BRANCH \
+            --title "Backport (release→develop): $PR_TITLE" \
+            --body "$BODY" \
+            --assignee $PR_AUTHOR \
+            --label "backport" \
+            --label "needs-review")
+
+          BACKPORT_PR_NUMBER=$(echo "$BACKPORT_PR_URL" | grep -oP '\d+$')
+
+          echo "pr_url=$BACKPORT_PR_URL" >> $GITHUB_OUTPUT
+          echo "pr_number=$BACKPORT_PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "✅ Backport PR created: #$BACKPORT_PR_NUMBER"
+
+      # ========================================
+      # NOTIFICATIONS
+      # ========================================
+      - name: Notify Slack on success
+        if: steps.check.outputs.skip == 'false' && steps.backport.outputs.success == 'true'
+        run: |
+          PR_NUMBER="${{ steps.backport.outputs.pr_number }}"
+          PR_TITLE="${{ steps.backport.outputs.pr_title }}"
+          PR_URL="${{ steps.pr_info.outputs.url }}"
+          BACKPORT_PR_URL="${{ steps.create_pr.outputs.pr_url }}"
+          BACKPORT_PR_NUMBER="${{ steps.create_pr.outputs.pr_number }}"
+
+          MESSAGE=":arrows_counterclockwise: *Backport PR Created [release → develop]*\n\n*Original PR:* <${PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n*Backport PR:* <${BACKPORT_PR_URL}|#${BACKPORT_PR_NUMBER}>\n\n_Please review and merge if applicable._"
+
+          curl -X POST $SLACK_WEBHOOK_URL \
+            -H 'Content-Type: application/json' \
+            -d "{\"text\":\"$MESSAGE\"}"
+
+      - name: Notify Slack on conflict
+        if: steps.check.outputs.skip == 'false' && steps.backport.outputs.success == 'false'
+        run: |
+          PR_NUMBER="${{ steps.backport.outputs.pr_number }}"
+          PR_TITLE="${{ steps.backport.outputs.pr_title }}"
+          PR_URL="${{ steps.pr_info.outputs.url }}"
+          CONFLICTS="${{ steps.backport.outputs.conflicts }}"
+          MERGE_COMMIT="${{ steps.pr_info.outputs.merge_commit }}"
+
+          MESSAGE=":warning: *Backport Failed - Manual Resolution Needed*\n\n*Original PR:* <${PR_URL}|#${PR_NUMBER} - ${PR_TITLE}>\n*Reason:* Cherry-pick conflicts detected\n\n*Conflicting files:*\n\`\`\`\n${CONFLICTS}\n\`\`\`\n\n*Action required:*\n  1. Manually create a branch from \`develop\`\n  2. Cherry-pick commit \`${MERGE_COMMIT}\`\n  3. Resolve conflicts\n  4. Create PR to \`develop\`"
 
           curl -X POST $SLACK_WEBHOOK_URL \
             -H 'Content-Type: application/json' \

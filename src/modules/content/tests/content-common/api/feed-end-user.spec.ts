@@ -460,7 +460,7 @@ test.describe(
 
         // Get public site for mention
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available for mention');
         }
@@ -586,7 +586,7 @@ test.describe(
         let siteMention;
         try {
           const publicSiteId =
-            await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+            await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
           if (publicSiteId) {
             siteMention = { id: publicSiteId, label: DEFAULT_PUBLIC_SITE_NAME };
           }
