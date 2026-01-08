@@ -5,10 +5,9 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
-
 import { QAndAApiHelper } from '@/src/modules/content/apis/apiValidation/qAndAApiHelper';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 
 test.describe(
   '@Q&A API',

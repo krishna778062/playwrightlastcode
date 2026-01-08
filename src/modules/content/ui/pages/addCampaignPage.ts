@@ -10,35 +10,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
-export interface IAddCampaignPageActions {
-  selectMemberAsAudience: () => Promise<void>;
-  enterCampaignMessage: (message: string) => Promise<void>;
-  enterCampaignUrl: (url: string, linkText?: string) => Promise<void>;
-  clickCreateCampaignButton: () => Promise<void>;
-  AddCampaignAndCreate: (options: SocialCampaignOptions) => Promise<string>;
-  uncheckNetwork: (networkName: string) => Promise<void>;
-  selectNetworks: (networks: SocialCampaignNetworkUI[]) => Promise<void>;
-  enterAudienceName: (audienceName: string) => Promise<void>;
-}
-
-export interface IAddCampaignPageAssertions {
-  verifyErrorMessagePresence: (errorMessage: string) => Promise<void>;
-  verifyAudienceNameDisplayed: (audienceName: string) => Promise<void>;
-  verifyAudienceNameAndDescription: (
-    audienceCount: string | number,
-    description: string,
-    name: string
-  ) => Promise<void>;
-  verifyAudienceNameAndNoDescription: (
-    audienceCount: string | number,
-    description: string,
-    name: string
-  ) => Promise<void>;
-  verifyAudienceNameAndCount: (count: string | number, name: string) => Promise<void>;
-  verifyAudienceNameAndCountNotVisible: (count: string | number, name: string) => Promise<void>;
-}
-
-export class AddCampaignPage extends BasePage implements IAddCampaignPageActions, IAddCampaignPageAssertions {
+export class AddCampaignPage extends BasePage {
   readonly addCampaignButton: Locator;
   readonly audienceOption: Locator;
   readonly segmentAudienceOption: Locator;
@@ -79,15 +51,6 @@ export class AddCampaignPage extends BasePage implements IAddCampaignPageActions
       page.locator(`div.Panel-item span:has-text('${audienceName}']`).first();
     this.segmentAudienceOption = page.getByRole('radio', { name: 'Audience' });
   }
-
-  get actions(): IAddCampaignPageActions {
-    return this;
-  }
-
-  get assertions(): IAddCampaignPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify add campaign page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.campaignMessageInput, {
