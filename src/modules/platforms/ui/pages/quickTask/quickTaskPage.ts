@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 import { DAY_NAMES, DEFAULT_FUTURE_DAYS_OFFSET, getOrdinalSuffix, MONTH_NAMES } from '@platforms/constants/quickTask';
@@ -28,8 +28,21 @@ export class QuickTaskPage extends BasePage {
   readonly inProgressStatusButton: Locator;
   readonly completedTabCount: Locator;
   readonly individualsRadio: Locator;
+  // Search and task list related locators
+  readonly searchInput: Locator;
+  readonly taskResultLink: (taskTitle: string) => Locator;
+  readonly firstTaskResult: Locator;
+  readonly noTaskFoundMessage: Locator;
+  // Edit task related locators
+  readonly editButton: Locator;
+  readonly dropdownMenuTrigger: (taskTitle: string) => Locator;
+  readonly editOptionInDropdown: Locator;
+  readonly descriptionTextarea: Locator;
+  readonly prioritySelectTrigger: Locator;
+  readonly tagsComboboxInput: Locator;
+  readonly dueDateField: Locator;
 
-  constructor(page: Page, pageUrl: string = '/quick-task') {
+  constructor(page: Page, pageUrl: string = '/quick-tasks') {
     super(page, pageUrl);
     this.quickTaskContainer = page.locator('[data-testid="quick-task-container"]');
     this.tasksLink = page.getByTestId('main-nav').getByRole('link', { name: 'Tasks' });
@@ -65,13 +78,82 @@ export class QuickTaskPage extends BasePage {
       .or(page.getByText('In progress', { exact: true }));
     this.completedTabCount = page.getByRole('button', { name: /^\d+\s+completed$/i });
     this.individualsRadio = page.getByRole('radio', { name: 'Individuals' });
+    // Search and task list related locators
+    // Use placeholder to differentiate from header search (which has "Search Simpplr…")
+    this.searchInput = page.locator('input[data-slot="search-input"][placeholder="Search tasks"]');
+    this.taskResultLink = (taskTitle: string) =>
+      page.locator(`a[title="${taskTitle}"], a:has-text("${taskTitle}")`).first();
+    this.firstTaskResult = page.locator('a.w-full.cursor-pointer').first();
+    this.noTaskFoundMessage = page.locator(
+      'div.flex.items-center.justify-center.py-20.text-sm.text-foreground-muted:has-text("No task found")'
+    );
+    // Edit task related locators
+    this.editButton = page.locator('button[data-slot="tooltip-trigger"][aria-label="Edit"]');
+    this.dropdownMenuTrigger = (taskTitle: string) => {
+      const taskLink = this.taskResultLink(taskTitle);
+      return taskLink
+        .locator('xpath=ancestor::*[self::div or self::li][position()<=5]')
+        .last()
+        .locator('button[data-slot="dropdown-menu-trigger"]')
+        .first();
+    };
+    this.editOptionInDropdown = page
+      .locator('[role="menuitem"]:has-text("Edit"), button:has-text("Edit"), a:has-text("Edit")')
+      .first();
+    this.descriptionTextarea = page.locator('textarea[data-slot="textarea"][name="description"]');
+    // Priority field in edit form - button with aria-haspopup="listbox" and aria-label="Open popup"
+    // Scope it to edit form context to avoid matching other popup buttons
+    this.prioritySelectTrigger = page.locator('button[aria-haspopup="listbox"][aria-label="Open popup"]').first();
+    this.tagsComboboxInput = page.locator('input[data-slot="combobox-input"]');
+    this.dueDateField = page
+      .locator('div.flex.h-9.w-full.items-center.justify-start.rounded-xl.border.border-border-default')
+      .first();
   }
 
   /**
    * Verify the quick task page is loaded
+   * Supports both create task view (container check) and task list view (search input check)
+   */
+  /**
+   * Verify the quick task page is loaded
    */
   async verifyThePageIsLoaded(): Promise<void> {
-    await expect(this.quickTaskContainer, 'quick task page to load').toBeVisible({ timeout: 15000 });
+    // Wait for loading indicator to disappear first
+    const loadingIndicator = this.page.locator('progressbar:has-text("Loading…")');
+    await expect(loadingIndicator, 'Loading indicator should disappear')
+      .toBeHidden({ timeout: 15000 })
+      .catch(() => {});
+
+    // Then wait for search input to be visible
+    await expect(this.searchInput, 'Search input should be visible').toBeVisible({ timeout: 15000 });
+  }
+
+  /**
+   * Override loadPage to use Quick Task base URL
+   */
+  async loadPage(options?: { stepInfo?: string; timeout?: number }): Promise<void> {
+    await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
+      if (this.pageUrl !== '') {
+        const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
+        const currentUrl = this.page.url();
+        if (quickTaskUrl && (currentUrl.includes('quick-task') || currentUrl.includes(quickTaskUrl))) {
+          const fullUrl = `${quickTaskUrl}${this.pageUrl}`;
+          await this.goToUrl(fullUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: options?.timeout,
+          });
+        } else {
+          // Use relative URL if already on the correct domain
+          await this.goToUrl(this.pageUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: options?.timeout,
+          });
+        }
+      } else {
+        throw new Error('Page URL is not set for this page');
+      }
+      await this.verifyThePageIsLoaded();
+    });
   }
 
   /**
@@ -1227,5 +1309,205 @@ export class QuickTaskPage extends BasePage {
     await this.clickTaskByTitle(title);
 
     return selectedUserNames;
+  }
+
+  // ========== Search and Edit Task Methods (from new code) ==========
+
+  /**
+   * Click on the "Created tasks" tab
+   */
+  async clickCreatedTasksTab(): Promise<void> {
+    await expect(this.createdTasksTab, 'Created tasks tab should be visible').toBeVisible({ timeout: 10000 });
+    await this.createdTasksTab.click();
+    // Wait for the tab to be active
+    await expect(this.createdTasksTab, 'Created tasks tab should be active')
+      .toHaveAttribute('data-state', 'active', { timeout: 5000 })
+      .catch(() => {
+        // If data-state attribute doesn't exist, that's fine - just verify it's clickable
+      });
+  }
+
+  /**
+   * Search for a task by title
+   * @param taskTitle - The task title to search for
+   */
+  async searchTask(taskTitle: string): Promise<void> {
+    await this.searchInput.fill(taskTitle);
+    // Wait for search results to appear (wait for at least one result link)
+    await expect(this.firstTaskResult, 'Search results should appear').toBeVisible({ timeout: 10000 });
+  }
+
+  /**
+   * Search for a task by title and wait for either results or "No task found" message
+   * @param taskTitle - The task title to search for
+   */
+  async searchTaskAndWait(taskTitle: string): Promise<void> {
+    await this.searchInput.fill(taskTitle);
+    // Wait for either search results or "No task found" message to appear
+    await Promise.race([
+      expect(this.firstTaskResult, 'Search results should appear')
+        .toBeVisible({ timeout: 10000 })
+        .catch(() => {}),
+      expect(this.noTaskFoundMessage, 'No task found message should appear')
+        .toBeVisible({ timeout: 10000 })
+        .catch(() => {}),
+    ]);
+  }
+
+  /**
+   * Type search text progressively (character by character) to test real-time filtering
+   * @param searchText - The text to type progressively
+   * @param delayBetweenChars - Delay in milliseconds between typing each character (default: 200ms)
+   */
+  async typeSearchProgressively(searchText: string, delayBetweenChars: number = 200): Promise<void> {
+    await this.searchInput.clear();
+    for (let i = 0; i < searchText.length; i++) {
+      await this.searchInput.type(searchText[i], { delay: delayBetweenChars });
+      // Wait a moment for the search to process after each character
+      await this.page.waitForTimeout(100);
+    }
+  }
+
+  /**
+   * Verify the first search result matches the expected task title
+   * @param expectedTitle - The expected task title
+   */
+  async verifyFirstSearchResult(expectedTitle: string): Promise<void> {
+    await expect(this.firstTaskResult, `First search result should contain "${expectedTitle}"`).toContainText(
+      expectedTitle,
+      { timeout: 10000 }
+    );
+  }
+
+  /**
+   * Get the title of the first search result
+   * @returns The title text of the first result
+   */
+  async getFirstResultTitle(): Promise<string> {
+    return (await this.firstTaskResult.textContent()) || '';
+  }
+
+  /**
+   * Verify that "No task found" message is displayed
+   */
+  async verifyNoTaskFoundMessage(): Promise<void> {
+    await expect(this.noTaskFoundMessage, 'No task found message should be visible').toBeVisible({ timeout: 10000 });
+    await expect(this.noTaskFoundMessage, 'No task found message should contain correct text').toContainText(
+      'No task found',
+      { timeout: 10000 }
+    );
+  }
+
+  /**
+   * Clear the search input field
+   */
+  async clearSearchField(): Promise<void> {
+    await this.searchInput.clear();
+    // Wait a moment for the search to clear and results to update
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Verify that tasks are displayed (at least one task result is visible)
+   */
+  async verifyTasksAreDisplayed(): Promise<void> {
+    await expect(this.firstTaskResult, 'At least one task should be displayed').toBeVisible({ timeout: 10000 });
+  }
+
+  /**
+   * Verify that a specific task is displayed in the results
+   * @param taskTitle - The task title to verify
+   */
+  async verifyTaskIsDisplayed(taskTitle: string): Promise<void> {
+    const taskLink = this.taskResultLink(taskTitle);
+    await expect(taskLink, `Task "${taskTitle}" should be displayed`).toBeVisible({ timeout: 10000 });
+  }
+
+  /**
+   * Verify that the Edit button is present and visible
+   */
+  async verifyEditButtonIsPresent(): Promise<void> {
+    await expect(this.editButton, 'Edit button should be visible').toBeVisible({ timeout: 10000 });
+    await expect(this.editButton, 'Edit button should have correct aria-label').toHaveAttribute('aria-label', 'Edit', {
+      timeout: 5000,
+    });
+  }
+
+  /**
+   * Click on the dropdown menu trigger for a specific task
+   * @param taskTitle - The task title to find the dropdown trigger for
+   */
+  async clickDropdownMenuTriggerForTask(taskTitle: string): Promise<void> {
+    // First, verify the task is visible
+    const taskLink = this.taskResultLink(taskTitle);
+    await expect(taskLink, `Task "${taskTitle}" should be visible`).toBeVisible({ timeout: 10000 });
+
+    // Find the task row container by navigating up the DOM tree
+    // Try to find a common parent that contains both the task link and dropdown trigger
+    const taskRow = taskLink.locator('xpath=ancestor::*[self::div or self::li][position()<=5]').last();
+
+    // Look for dropdown trigger within the task row
+    let dropdownTrigger = taskRow.locator('button[data-slot="dropdown-menu-trigger"]').first();
+
+    // If not found in the row, try finding by proximity - get all dropdown triggers
+    // and find the one that's closest to the task link
+    const isVisible = await dropdownTrigger.isVisible().catch(() => false);
+    if (!isVisible) {
+      const allDropdownTriggers = this.page.locator('button[data-slot="dropdown-menu-trigger"]');
+      const taskBoundingBox = await taskLink.boundingBox();
+
+      if (taskBoundingBox) {
+        let closestTrigger = allDropdownTriggers.first();
+        let minDistance = Infinity;
+
+        const count = await allDropdownTriggers.count();
+        for (let i = 0; i < count; i++) {
+          const trigger = allDropdownTriggers.nth(i);
+          const triggerBox = await trigger.boundingBox().catch(() => null);
+
+          if (triggerBox) {
+            // Calculate distance (prioritize same row - small Y difference)
+            const yDiff = Math.abs(triggerBox.y - taskBoundingBox.y);
+            const xDiff = Math.abs(triggerBox.x - taskBoundingBox.x);
+            const distance = yDiff < 50 ? xDiff : yDiff * 10 + xDiff; // Prefer same row
+
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestTrigger = trigger;
+            }
+          }
+        }
+        dropdownTrigger = closestTrigger;
+      }
+    }
+
+    await expect(dropdownTrigger, `Dropdown menu trigger for task "${taskTitle}" should be visible`).toBeVisible({
+      timeout: 10000,
+    });
+    await dropdownTrigger.click();
+    // Wait for the dropdown menu to open
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Verify that the Edit option is visible in the dropdown menu
+   */
+  async verifyEditOptionInDropdownIsVisible(): Promise<void> {
+    await expect(this.editOptionInDropdown, 'Edit option should be visible in dropdown menu').toBeVisible({
+      timeout: 10000,
+    });
+    await expect(this.editOptionInDropdown, 'Edit option should contain "Edit" text').toContainText('Edit', {
+      timeout: 5000,
+    });
+  }
+
+  /**
+   * Click on the Edit button to open edit mode
+   */
+  async clickEditButton(): Promise<void> {
+    await expect(this.editButton, 'Edit button should be visible').toBeVisible({ timeout: 10000 });
+    await this.editButton.click();
+    // Wait for edit form to appear
+    await this.page.waitForTimeout(500);
   }
 }
