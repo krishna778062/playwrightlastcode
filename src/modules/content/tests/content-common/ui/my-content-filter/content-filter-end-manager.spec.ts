@@ -36,9 +36,9 @@ test.describe(
         });
 
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickOnSelectAllButton();
-        await manageContentPage.actions.applyButtonShouldBeDisabled();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.selectSelectAllButton();
+        await manageContentPage.manageContent.applyButtonShouldBeDisabled();
       }
     );
 
@@ -98,82 +98,82 @@ test.describe(
         });
 
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.selectContentFilterByType('manageByme');
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.selectContentFilterByType('manageByme');
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
         const contentCreatedAtDetailsNewest =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_NEWEST, {
             status: 'published',
           });
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
         if (contentCreatedAtDetailsNewest !== null) {
-          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
+          await manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewest[0]
           );
         }
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
         const contentCreatedAtDetailsOldest =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST, {
             status: 'published',
           });
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_OLDEST);
         if (contentCreatedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyCreatedAtDateVisibleInManageContent(
+          await manageContentPage.manageContent.verifyCreatedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldest[0]
           );
         }
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
         const contentCreatedAtDetailsNewestPublished =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_NEWEST, {
             status: 'published',
           });
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await manageContentPage.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
         if (contentCreatedAtDetailsNewestPublished !== null) {
-          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
+          await manageContentPage.manageContent.verifyPublishedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewestPublished[0]
           );
         }
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
         const contentCreatedAtDetailsOldestPublished =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.PUBLISHED_OLDEST, {
             status: 'published',
           });
         if (contentCreatedAtDetailsOldestPublished !== null) {
-          await manageContentPage.assertions.verifyPublishedAtDateVisibleInManageContent(
+          await manageContentPage.manageContent.verifyPublishedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldestPublished[0]
           );
         }
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectEditedNewestOption();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.selectEditedNewestOptionByText();
         const contentCreatedAtDetailsNewestEdited =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_NEWEST, {
             status: 'published',
           });
         if (contentCreatedAtDetailsNewestEdited !== null) {
-          await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
+          await manageContentPage.manageContent.verifyEditedAtDateVisibleInManageContent(
             contentCreatedAtDetailsNewestEdited[0]
           );
         } else {
           console.log('Skipping edited date verification - no modifiedAt date available');
         }
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectEditedOldestOption();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.manageContent.selectEditedOldestOptionByText();
         const contentCreatedAtDetailsOldestEdited =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.MODIFIED_OLDEST, {
             status: 'published',
           });
         if (contentCreatedAtDetailsOldestEdited !== null) {
-          await manageContentPage.assertions.verifyEditedAtDateVisibleInManageContent(
+          await manageContentPage.manageContent.verifyEditedAtDateVisibleInManageContent(
             contentCreatedAtDetailsOldestEdited[0]
           );
         } else {
@@ -194,12 +194,12 @@ test.describe(
           storyId: 'CONT-25057',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_OLDEST);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_OLDEST);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
         const contentCreatedAtDetailsOldest =
           await standardUserFixture.contentManagementHelper.getContentCreatedAtDetails(ContentSortBy.CREATED_OLDEST, {
             status: 'published',
@@ -208,7 +208,7 @@ test.describe(
 
         // Verify all dates from array are visible on UI
         if (contentCreatedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyAllCreatedAtDatesFromArray(contentCreatedAtDetailsOldest);
+          await manageContentPage.manageContent.verifyAllCreatedAtDatesFromArray(contentCreatedAtDetailsOldest);
         }
       }
     );
@@ -224,11 +224,11 @@ test.describe(
           storyId: 'CONT-25056',
         });
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.PUBLISHED_OLDEST);
 
         // Get dates from API
         const contentPublishedAtDetailsOldest =
@@ -239,7 +239,7 @@ test.describe(
 
         // Verify all dates from array are visible on UI
         if (contentPublishedAtDetailsOldest !== null) {
-          await manageContentPage.assertions.verifyAllPublishedAtDatesFromArray(contentPublishedAtDetailsOldest);
+          await manageContentPage.manageContent.verifyAllPublishedAtDatesFromArray(contentPublishedAtDetailsOldest);
         }
       }
     );
@@ -275,12 +275,12 @@ test.describe(
           console.log('contentListResponse', contentListResponse);
         }
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.PUBLISHED);
-        await manageContentPage.assertions.verifyManageContentListItemCount(16);
-        await manageContentPage.actions.clickShowMoreButton();
-        await manageContentPage.assertions.verifyManageContentListItemCount(17);
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
+        await manageContentPage.manageContent.verifyManageContentListItemCount(16);
+        await manageContentPage.manageContent.clickShowMoreButton();
+        await manageContentPage.manageContent.verifyManageContentListItemCount(17);
       }
     );
 
@@ -311,14 +311,14 @@ test.describe(
           console.log('contentListResponse', contentListResponse);
         }
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnContentCard();
-        await manageContentPage.actions.clickSortByButton();
-        await manageContentPage.actions.selectSortOption(SortOptionLabels.CREATED_NEWEST);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.actions.selectPageOption();
-        await manageContentPage.actions.selectTheStatusFilter(ContentStatus.DRAFT);
-        await manageContentPage.actions.clickFilterButton();
-        await manageContentPage.assertions.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
+        await manageFeaturesPage.clickOnContentCard();
+        await manageContentPage.manageContent.clickSortByButton();
+        await manageContentPage.selectSortOption(SortOptionLabels.CREATED_NEWEST);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.selectPageOption();
+        await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.DRAFT);
+        await manageContentPage.manageContent.clickFilterButton();
+        await manageContentPage.manageContent.verifyTagVisibleInManageContent(ManageContentTags.DRAFT);
       }
     );
   }

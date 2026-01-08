@@ -11,23 +11,7 @@ export enum RsvpOption {
   MAYBE = 'maybe',
 }
 
-export interface IEventDetailActions {
-  clickRsvpOption: (option: RsvpOption) => Promise<void>;
-  deleteEvent: () => Promise<void>;
-  unpublishEvent: () => Promise<void>;
-  publishEvent: () => Promise<void>;
-  editEvent: (options: { title?: string; description?: string; location?: string }) => Promise<void>;
-  toggleEventSync: (enable: boolean) => Promise<void>;
-}
-
-export interface IEventDetailAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyEventTitle: (expectedTitle: string) => Promise<void>;
-  verifyRsvpIndicators: () => Promise<void>;
-  verifyRsvpSelection: (expectedOption: RsvpOption | 'yes' | 'no' | 'maybe', maxRetries?: number) => Promise<void>;
-}
-
-export class EventDetailPage extends BasePage implements IEventDetailActions, IEventDetailAssertions {
+export class EventDetailPage extends BasePage {
   // Event detail locators - read-only view
   readonly eventTitleHeading: Locator;
 
@@ -69,17 +53,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
     this.editButtonLocator = page.getByRole('button', { name: 'Edit' });
     this.eventSyncToggleLocator = page.getByRole('switch');
     this.removeSyncButtonLocator = page.getByRole('button', { name: 'Remove sync' });
-  }
-
-  get actions(): IEventDetailActions {
-    return this;
-  }
-
-  get assertions(): IEventDetailAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Clicks on the specified RSVP option (yes, no, or maybe)
    */
   async clickRsvpOption(option: RsvpOption): Promise<void> {
