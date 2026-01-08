@@ -163,14 +163,6 @@ export class FormParticipationPage extends BasePage {
     });
   }
 
-  // async clickOnThreeDotsIcon(): Promise<void> {
-  //   await test.step('Click on three dots icon', async () => {
-  //     await this.verifier.verifyTheElementIsVisible(this.actionLocator("Automation-E2E-Form-4AR6PW"), {
-  //       timeout: TIMEOUTS.MEDIUM,
-  //     });
-  //     await this.clickOnElement(this.actionLocator("Automation-E2E-Form-4AR6PW"));
-  //   });
-  // }
   async verifyTimeFieldIsDisabledOnParticipationPage(): Promise<void> {
     await test.step('Verify time field is disabled', async () => {
       await this.verifier.verifyTheElementIsVisible(this.timecomponent, { timeout: TIMEOUTS.MEDIUM });
