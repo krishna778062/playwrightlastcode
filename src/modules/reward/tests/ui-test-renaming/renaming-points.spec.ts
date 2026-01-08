@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
@@ -36,8 +37,7 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-7008',
         storyId: 'RC-6370',
       });
-      const { page } = appManagerFixture;
-      const renamingPage = new RenamingPage(page);
+      const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       const isElementAlreadyCustomized = await renamingPage.isCardCustomized('points');
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
@@ -47,6 +47,15 @@ test.describe('renaming page', () => {
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.clickEditButtonByCardType('points');
       await renamingPage.validateTheEditModalWithMockedResult();
+      await renamingPage.releaseTheAppConfigAPIData();
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const newCustomValue = await renamingPage.changeSomeDataAndClickOnSave('Points');
+      await renamingPage.verifyThePageIsLoaded();
+      const currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      expect(currentCustomizedValue, `${currentCustomizedValue} is not matching with ${newCustomValue!}`).toEqual(
+        newCustomValue!
+      );
     }
   );
 });

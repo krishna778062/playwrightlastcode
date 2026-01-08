@@ -19,7 +19,7 @@ export class RenamingPage extends BasePage {
 
   readonly recognitionCustomName: Locator;
   readonly pointsCustomName: Locator;
-  readonly rewardsCustomName: Locator;
+  readonly rewardsStoreCustomName: Locator;
 
   readonly recognitionCustomNameLabel: Locator;
   readonly pointsCustomNameLabel: Locator;
@@ -33,6 +33,9 @@ export class RenamingPage extends BasePage {
   readonly dialogCancelButton: Locator;
   readonly dialogCloseButton: Locator;
   readonly dialogErrorMessage: Locator;
+  private recognitionDefaultName: Locator;
+  private pointsDefaultName: Locator;
+  private rewardsStoreDefaultName: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -44,9 +47,25 @@ export class RenamingPage extends BasePage {
     this.pointsEditButton = page.getByRole('button', { name: 'Edit name for points' });
     this.rewardsStoreEditButton = page.getByRole('button', { name: 'Edit name for rewardsStore' });
 
-    this.recognitionCustomName = this.recognitionEditButton.locator('xpath=//parent::div//div//following-sibling::h2');
-    this.pointsCustomName = this.pointsEditButton.locator('xpath=//parent::div//div//following-sibling::h2');
-    this.rewardsCustomName = this.rewardsStoreEditButton.locator('xpath=//parent::div//div//following-sibling::h2');
+    this.recognitionCustomName = this.recognitionEditButton
+      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
+      .locator('h2[data-testid^="naming-card-name-"]');
+    this.pointsCustomName = this.pointsEditButton
+      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
+      .locator('h2[data-testid^="naming-card-name-"]');
+    this.rewardsStoreCustomName = this.rewardsStoreEditButton
+      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
+      .locator('h2[data-testid^="naming-card-name-"]');
+
+    this.recognitionDefaultName = this.recognitionEditButton
+      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
+      .locator('p[data-testid^="naming-card-default-name-"]');
+    this.pointsDefaultName = this.pointsEditButton
+      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
+      .locator('p[data-testid^="naming-card-default-name-"]');
+    this.rewardsStoreDefaultName = this.rewardsStoreEditButton
+      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
+      .locator('p[data-testid^="naming-card-default-name-"]');
 
     this.recognitionCustomNameLabel = this.recognitionEditButton.locator('xpath=//parent::div//parent::div//span');
     this.pointsCustomNameLabel = this.pointsEditButton.locator('xpath=//parent::div//parent::div//span');
@@ -385,10 +404,8 @@ export class RenamingPage extends BasePage {
 
   async changeSomeDataAndClickOnSave(cardType: 'Recognition' | 'Points' | 'Rewards Store'): Promise<string> {
     const editModal = new EditLabelModal(this.page);
-    let customName;
     await editModal.getCustomLabelToggleSwitch().check();
-    customName = await editModal.getCustomLabelInputBox().inputValue();
-    customName = customName + TestDataGenerator.getRandomNo(0, 10000);
+    const customName = 'Reward Store_' + TestDataGenerator.getRandomNo(0, 10000);
     const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelToggleSwitch().isChecked();
     if (!isRecognitionForAllLanguagesChecked) {
       await editModal.getCustomLabelToggleSwitch().check();
@@ -432,7 +449,7 @@ export class RenamingPage extends BasePage {
     let locator: Locator;
     switch (cardType) {
       case 'rewardsStore':
-        locator = this.rewardsCustomName;
+        locator = this.rewardsStoreCustomName;
         break;
       case 'recognition':
         locator = this.recognitionCustomName;
@@ -444,6 +461,9 @@ export class RenamingPage extends BasePage {
         throw new Error(`Invalid card type: ${cardType}`);
     }
     await this.verifier.waitUntilElementIsVisible(locator);
+    await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
+    await this.dismissTheToastMessage({ toastText: 'Saved changes successfully' });
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
     return await locator.textContent();
   }
 }

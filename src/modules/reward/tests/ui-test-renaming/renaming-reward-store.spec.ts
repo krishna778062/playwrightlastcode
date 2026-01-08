@@ -37,8 +37,7 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-7009',
         storyId: 'RC-6370',
       });
-      const { page } = appManagerFixture;
-      const renamingPage = new RenamingPage(page);
+      const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       const isElementAlreadyCustomized = await renamingPage.isCardCustomized('rewardsStore');
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
