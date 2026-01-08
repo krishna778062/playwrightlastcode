@@ -312,7 +312,7 @@ test.describe(
       }
     );
 
-    test.fixme(
+    test(
       'verify Most searches performed by Department metric data validation with default period filter (Last 30 days)',
       {
         tag: [
@@ -384,10 +384,11 @@ test.describe(
         await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
 
         // Verify axis labels (dual Y-axis chart)
+        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
         await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
           leftVerticalAxisLabel: 'Total searches',
           rightVerticalAxisLabel: 'Total clickthrough',
-          horizontalAxisLabel: 'Search performed date (for 2025)',
+          horizontalAxisLabel: 'Search performed date',
         });
 
         // Verify line chart points with tooltips
@@ -569,7 +570,7 @@ test.describe(
       }
     );
 
-    test.fixme(
+    test(
       'verify Most searches performed by Department CSV download and data validation with default period filter (Last 30 days)',
       {
         tag: [

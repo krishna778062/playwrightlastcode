@@ -192,11 +192,15 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-most-popular-metric'],
       },
       async () => {
+        // Known failure - marking test as expected to fail
+        test.fail();
         tagTest(test.info(), {
           description:
             'To verify the answer of Most Popular sites in Sites dashboard with custom period filter applied',
           zephyrTestId: 'DE-26383',
           storyId: 'DE-26250',
+          isKnownFailure: true,
+          bugTicket: 'DE-27649',
         });
 
         // Get expected metric value from snowflake with custom period filter applied

@@ -12,24 +12,17 @@ export const TEST_FILTER_VALUES = {
    * Social Interaction Dashboard filter values
    */
   SOCIAL_INTERACTION: {
-    SEGMENTS: ['USA Operations'],
-    DEPARTMENTS: ['CEO', 'Engineering', 'Finance', 'Human Admin', 'Human Resources'],
-    LOCATIONS: ['Chicago, IL, US', 'Los Angeles, CA, US', 'San Francisco, CA, US'],
+    SEGMENTS: ['india'],
+    DEPARTMENTS: ['Information Analysis', 'Information Technology'],
+    LOCATIONS: ['Kolkata, WEST BENGAL, India'],
   },
 
   /**
    * Search Dashboard filter values
    */
   SEARCH: {
+    SEGMENTS: ['india'],
     DEPARTMENTS: ['Undefined'],
     LOCATIONS: ['Gurugram, Haryana, India', 'India'],
-  },
-
-  /**
-   * People Dashboard filter values
-   * Note: People dashboard typically doesn't use filters in custom period tests
-   */
-  PEOPLE: {
-    // Add filter values here if needed in the future
   },
 } as const;

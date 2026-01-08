@@ -3,19 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IActivityNotificationActions {
-  clickOnNotificationForMention(expectedNotificationMessage: string): Promise<void>;
-}
-
-export interface IActivityNotificationAssertions {
-  verifyNotificationExistsForMention: (expectedNotificationMessage: string) => Promise<void>;
-  verifyNotificationExists: (notificationText: string) => Promise<void>;
-}
-
-export class ActivityNotificationPage
-  extends BasePage
-  implements IActivityNotificationActions, IActivityNotificationAssertions
-{
+export class ActivityNotificationPage extends BasePage {
   readonly notificationItems: (notificationText: string) => Locator;
   readonly notificationItemsList: Locator;
   readonly notificationByText: (notificationText: string) => Locator;
@@ -27,19 +15,10 @@ export class ActivityNotificationPage
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
     this.notificationItemsList = page.locator('div.Notification-body');
     this.notificationByText = (notificationText: string) =>
-      this.page.locator('a div').filter({ hasText: notificationText });
+      this.page.locator("a[class*='Notification']").filter({ hasText: notificationText });
     this.notificationByMention = (notificationText: string) =>
       this.page.getByRole('link', { name: `Notification: MENTIONS_ME_IN_POST - ${notificationText}` });
   }
-
-  get actions(): IActivityNotificationActions {
-    return this;
-  }
-
-  get assertions(): IActivityNotificationAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.notificationItemsList.first(), {
       assertionMessage: 'Notification container should be visible',
@@ -58,6 +37,12 @@ export class ActivityNotificationPage
       await this.clickOnElement(notificationLink);
     });
   }
+  async clickOnNotification(expectedNotificationMessage: string): Promise<void> {
+    await test.step(`Clicking on notification: ${expectedNotificationMessage}`, async () => {
+      const notificationLink = this.notificationByText(expectedNotificationMessage).nth(1);
+      await this.clickOnElement(notificationLink);
+    });
+  }
 
   /**
    * Verifies that a specific notification exists by checking all notification elements
@@ -65,7 +50,7 @@ export class ActivityNotificationPage
    */
   async verifyNotificationExists(notificationText: string): Promise<void> {
     await test.step(`Verify notification exists: ${notificationText}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).nth(1), {
+      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).last(), {
         assertionMessage: `Notification with text "${notificationText}" should be visible`,
       });
     });

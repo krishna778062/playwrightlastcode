@@ -97,6 +97,7 @@ export const PAGE_ENDPOINTS = {
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
   SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  APPS_PAGE: '/manage/app/integrations/apps',
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
   ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
@@ -123,6 +124,7 @@ export const PAGE_ENDPOINTS = {
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
   CONTENT_DASHBOARD: '/analytics/content',
+  FILES_DASHBOARD: '/analytics/file',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page

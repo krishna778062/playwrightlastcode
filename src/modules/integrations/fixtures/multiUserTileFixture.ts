@@ -113,7 +113,12 @@ export const multiUserTileFixture = test.extend<
 
   tileManagementHelper: [
     async ({ appManagerApiContext }, use) => {
-      const tileManagementHelper = new IntegrationTileHelper(appManagerApiContext, getEnvConfig().apiBaseUrl);
+      const envConfig = getEnvConfig();
+      const tileManagementHelper = new IntegrationTileHelper(
+        appManagerApiContext,
+        envConfig.apiBaseUrl,
+        envConfig.frontendBaseUrl
+      );
       try {
         await use(tileManagementHelper);
       } finally {

@@ -316,8 +316,8 @@ export class CustomAppTilesPage extends BasePage {
     this.pageTitle = this.getLocator('h1').filter({ hasText: 'Custom app tiles' });
     // Use getLink helper for consistency
     this.createCustomAppTileButton = this.getLink('Create custom app tile');
-    this.backToTilesListLink = this.getLink('Custom app tiles');
-    this.searchInput = this.getByRole('searchbox').or(this.getLocator('#search'));
+    this.backToTilesListLink = this.getByTestId('pageContainer-page').getByRole('link', { name: 'Custom app tiles' });
+    this.searchInput = this.getByRole('textbox', { name: 'Search…' });
     // Use getButton helper
     this.clearSearchButton = this.getButton('Clear').first();
     // Be more specific to avoid matching "Apps & links" button
@@ -390,8 +390,6 @@ export class CustomAppTilesPage extends BasePage {
     this.dialogModule = this.getLocator('[class*="Dialog-module"]');
     this.dialogFooterButtonSelector = '[class*="Dialog-module__footer"] button';
     this.firstTileRow = this.getLocator('tbody tr').first();
-    // Will be set after cancelLinkButton is initialized
-    this.cancelButtonForVerification = this.getByRole(this.linkRole, { name: 'Cancel' });
     this.formBehaviorDropdownOptions = this.getLocator('select[aria-label="Form behavior"] option:not([disabled])');
     // Reuse existing locator instead of duplicating
     this.incompleteSettingsMessageLocator = this.getByTestId('incomplete-settings-message');

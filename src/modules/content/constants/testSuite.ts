@@ -6,6 +6,7 @@ export enum ContentTestSuite {
   EVENT_APP_MANAGER = '@event-app-manager',
   EVENT_STANDARD_USER = '@event-standard-user',
   FEED_APP_MANAGER = '@feed-app-manager',
+  FEED_SITE_MANAGER = '@feed-site-manager',
   FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER = '@feed-mention-site-topic-user-app-manager',
   FEED_FILE_DELETE_APP_MANAGER = '@feed-file-delete-app-manager',
   FEED_MULTI_USER = '@feed-multi-user',
@@ -27,6 +28,8 @@ export enum ContentTestSuite {
   FEED_COMMENTS_REPLIES_VISIBILITY = '@feed-comments-replies-visibility',
   FEED_POST_CREATION_WITH_EMBED_URL = '@feed-post-creation-with-embed-url',
   HOME_DASHBOARD = '@home-dashboard',
+  SITE_DASHBOARD = '@site-dashboard',
+  ONBOARDING = '@onboarding',
   API = '@api',
   TILES = '@tiles',
 }

@@ -183,7 +183,7 @@ test.describe(
         });
 
         const [publicSiteId, privateSite, unlistedSite] = await Promise.all([
-          appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME),
+          appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME),
           appManagerApiFixture.siteManagementHelper.getSiteByAccessType('private'),
           appManagerApiFixture.siteManagementHelper.getSiteByAccessType('unlisted'),
         ]);

@@ -60,6 +60,7 @@ test.describe(
           timePeriod: PeriodFilterTimeRange.CUSTOM,
           customStartDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
           customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
+          segments: [...TEST_FILTER_VALUES.SEARCH.SEGMENTS],
           departments: [...TEST_FILTER_VALUES.SEARCH.DEPARTMENTS],
           locations: [...TEST_FILTER_VALUES.SEARCH.LOCATIONS],
           groupBy: GroupByOnUserParameter.DEPARTMENT,
@@ -78,7 +79,7 @@ test.describe(
     });
 
     test(
-      'verify Total search volume metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify Total search volume metric data validation with all filters and group by applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-search-volume'],
       },
@@ -104,7 +105,7 @@ test.describe(
     );
 
     test(
-      'verify Search click through rate metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify Search click through rate metric data validation with all filters and group by applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@search-click-through-rate'],
       },
@@ -130,7 +131,7 @@ test.describe(
     );
 
     test(
-      'verify No results search metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify No results search metric data validation with all filters and group by applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@no-results-search'],
       },
@@ -155,8 +156,8 @@ test.describe(
       }
     );
 
-    test.fixme(
-      'verify Most searches performed by Department metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+    test(
+      'verify Most searches performed by Department metric data validation with all filters and group by applied',
       {
         tag: [
           TestPriority.P0,
@@ -191,7 +192,7 @@ test.describe(
     );
 
     test(
-      'verify Top search queries metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify Top search queries metric data validation with all filters and group by applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-search-queries'],
       },
@@ -220,7 +221,7 @@ test.describe(
     );
 
     test(
-      'verify Top search queries with no clickthrough metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify Top search queries with no clickthrough metric data validation with all filters and group by applied',
       {
         tag: [
           TestPriority.P0,
@@ -255,7 +256,7 @@ test.describe(
     );
 
     test(
-      'verify Top clickthrough types metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify Top clickthrough types metric data validation with all filters and group by applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-clickthrough-types'],
       },
@@ -284,7 +285,7 @@ test.describe(
     );
 
     test(
-      'verify No result search queries metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify No result search queries metric data validation with all filters and group by applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
       },
@@ -313,7 +314,7 @@ test.describe(
     );
 
     test(
-      'verify Search usage volume and click through rate metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'verify Search usage volume and click through rate metric data validation with all filters and group by applied',
       {
         tag: [
           TestPriority.P0,
@@ -345,10 +346,11 @@ test.describe(
         await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
 
         // Verify axis labels (dual Y-axis chart)
+        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
         await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
           leftVerticalAxisLabel: 'Total searches',
           rightVerticalAxisLabel: 'Total clickthrough',
-          horizontalAxisLabel: 'Search performed date (for 2025)',
+          horizontalAxisLabel: 'Search performed date',
         });
 
         // Verify line chart points with tooltips

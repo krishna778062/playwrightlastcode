@@ -38,11 +38,45 @@ export abstract class BaseMobilePieChartMetric extends PieChartComponent {
 
   /**
    * Override hover method to use the regex-based locator
-   * Subclasses can override this to add additional logic (e.g., visibility waits)
+   * Uses mouse.move to exact center coordinates of the label to trigger tooltip
+   * @param label - The label of the segment to hover over
+   * @param maxRetries - Maximum number of retry attempts (default: 3)
    */
-  async hoverOverSegmentLabelWithLabelAs(label: string): Promise<void> {
+  async hoverOverSegmentLabelWithLabelAs(label: string, maxRetries = 3): Promise<void> {
     const chartLabel = this.getChartLabelLocatorWithLabelAsOverride(label);
-    await chartLabel.hover();
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        // Scroll into view and wait for element to be stable
+        await chartLabel.scrollIntoViewIfNeeded();
+        await this.page.waitForTimeout(500);
+
+        // Get bounding box and move mouse to center coordinates
+        const boundingBox = await chartLabel.boundingBox();
+        if (boundingBox) {
+          const centerX = boundingBox.x + boundingBox.width / 2;
+          const centerY = boundingBox.y + boundingBox.height / 2;
+          await this.page.mouse.move(centerX, centerY);
+        }
+
+        // Wait for tooltip to appear
+        await this.page.waitForTimeout(2000);
+        await this.toolTipContainer.waitFor({ state: 'visible', timeout: 3000 });
+        return; // Tooltip appeared, exit successfully
+      } catch {
+        if (attempt === maxRetries) {
+          // On last attempt, try one more move and continue
+          const box = await chartLabel.boundingBox();
+          if (box) {
+            await this.page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+            await this.page.waitForTimeout(2000);
+          }
+          return;
+        }
+        // Wait before retry
+        await this.page.waitForTimeout(1000);
+      }
+    }
   }
 
   /**

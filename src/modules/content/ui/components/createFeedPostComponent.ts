@@ -31,58 +31,7 @@ export interface FeedPostApiResponse {
   delay: number;
 }
 
-export interface ICreateFeedPostActions {
-  clickPostWithoutWaitingForResponse(): Promise<void>;
-  createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  editPostWithTopicAndUserName: (params: {
-    currentText: string;
-    newText: string;
-    topicName: string;
-    userName: string;
-  }) => Promise<void>;
-  createPost: (text: string) => Promise<void>;
-  uploadFiles: (files: string[]) => Promise<void>;
-  uploadFilesToReply: (files: string[], postText: string) => Promise<void>;
-  removeAttachedFile: (index?: number) => Promise<void>;
-  clickPostButton: () => Promise<void>;
-  openPostOptionsMenu: (postText: string) => Promise<void>;
-  clickEditOption: () => Promise<void>;
-  updatePostText: (text: string) => Promise<void>;
-  clickUpdateButton: () => Promise<void>;
-  clickReplyUpdateButton: (postText: string) => Promise<void>;
-  searchForSiteName: (siteName: string) => Promise<void>;
-  clickBrowseFilesButton: () => Promise<void>;
-  searchForFileInLibrary: (fileName: string) => Promise<void>;
-  selectFileFromLibrary: (fileName: string) => Promise<void>;
-  clickAttachButton: () => Promise<void>;
-  addFileToPost: (filePath: string) => Promise<void>;
-  waitForFileToAppear: () => Promise<void>;
-  verifyIntranetAndBoxTabsVisible: () => Promise<void>;
-  clickBoxFilesTab: () => Promise<void>;
-  clickBoxFolder: (folderName: string) => Promise<void>;
-  selectBoxFile: (fileName: string) => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  clickRecognitionTab: () => Promise<void>;
-}
-
-export interface ICreateFeedPostAssertions {
-  verifyEditorVisible: () => Promise<void>;
-  verifyReplyEditorVisible: (postText: string) => Promise<void>;
-  verifyNoResultMessage: () => Promise<void>;
-  verifyFileIsAttached: (fileName: string) => Promise<void>;
-  verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
-  verifyUpdateButtonDisabled: () => Promise<void>;
-  verifyPostButtonDisabled: () => Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-}
-
-export class CreateFeedPostComponent
-  extends BaseComponent
-  implements ICreateFeedPostActions, ICreateFeedPostAssertions
-{
+export class CreateFeedPostComponent extends BaseComponent {
   readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
   readonly questionButton = this.page.locator("button:has-text('Question')");
   readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
@@ -203,14 +152,6 @@ export class CreateFeedPostComponent
     super(page);
   }
 
-  get actions(): ICreateFeedPostActions {
-    return this;
-  }
-
-  get assertions(): ICreateFeedPostAssertions {
-    return this;
-  }
-
   /**
    * Verifies that the feed page is loaded by checking if share thoughts button is visible
    */
@@ -228,6 +169,11 @@ export class CreateFeedPostComponent
     return await test.step(`Creating and publishing feed post with text: ${options.text}`, async () => {
       // Add post content
       await this.createPost(options.text);
+
+      // Handle embed URL if provided
+      if (options.embedUrl) {
+        await this.addEmbedUrl(options.embedUrl);
+      }
 
       // Handle attachments if provided
       if (options.attachments) {
@@ -448,7 +394,7 @@ export class CreateFeedPostComponent
           response.url().includes(API_ENDPOINTS.feed.create) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
-        { timeout: 20_000 }
+        { timeout: TIMEOUTS.LONG }
       );
     });
   }
@@ -495,12 +441,12 @@ export class CreateFeedPostComponent
    */
   async clickUpdateButton(): Promise<void> {
     await test.step('Click update button', async () => {
-      await this.clickOnElement(this.updateButton);
+      await this.clickOnElement(this.updateButton.last());
     });
   }
 
-  async clickReplyUpdateButton(): Promise<void> {
-    await test.step('Click update button in reply editor', async () => {
+  async clickReplyUpdateButton(postText: string): Promise<void> {
+    await test.step(`Click update button in reply editor for post ${postText}`, async () => {
       const updateButton = this.updateButton.last();
       await this.clickOnElement(updateButton);
     });
@@ -560,8 +506,8 @@ export class CreateFeedPostComponent
   async addUserNameMention(userName: string): Promise<void> {
     await test.step(`Adding user mention: @${userName}`, async () => {
       await this.typeInElement(this.feedEditor, ` @${userName}`);
-      await this.getDropdownOption(userName).waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
-      await this.clickOnElement(this.getDropdownOption(userName));
+      await this.getDropdownOption(userName).first().waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.getDropdownOption(userName).first());
     });
   }
 
@@ -632,7 +578,7 @@ export class CreateFeedPostComponent
           response.request().method() === 'POST' &&
           response.status() === 201,
         {
-          timeout: 20_000,
+          timeout: TIMEOUTS.LONG,
         }
       );
       return postResponse;
@@ -647,6 +593,7 @@ export class CreateFeedPostComponent
     if (embedUrl) {
       await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
         await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
+        await this.page.keyboard.press('Enter');
       });
     }
   }

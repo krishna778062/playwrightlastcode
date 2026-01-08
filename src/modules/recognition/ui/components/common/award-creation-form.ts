@@ -29,7 +29,7 @@ export class AwardCreationForm extends BasePage {
     this.awardDescriptionInput = page.getByRole('textbox', { name: 'Award description*' });
     this.addBadgeButton = page.getByRole('button', { name: 'Add badges' });
     this.uploadBadgeInput = page.locator('input[type="file"]');
-    this.defaultAwardBadge = page.locator('[class*="BadgeSelector"] img').first();
+    this.defaultAwardBadge = page.locator('[data-testid="field-Badge"]').getByRole('radio').nth(2);
     this.customBadgeImage = page.locator('[class*="BadgeSelector"] img[alt*="badge"]');
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.nextButton = this.awardPageContainer.getByRole('button', { name: 'Next' });
