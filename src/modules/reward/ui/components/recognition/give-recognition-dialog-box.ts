@@ -10,7 +10,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly dialogCloseButton: Locator;
   readonly recipientInput: Locator;
   readonly pointsInput: Locator;
-  readonly messageInput: Locator;
 
   // Additional properties for recognition functionality
   readonly profilePicture: Locator;
@@ -54,7 +53,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.dialogCloseButton = this.dialog.locator('button[aria-label="Close"]');
     this.recipientInput = this.dialog.locator('input[data-testid="recipient-input"]');
     this.pointsInput = this.dialog.locator('input[data-testid="points-input"]');
-    this.messageInput = this.dialog.locator('textarea[data-testid="message-input"]');
 
     // Additional locators for recognition functionality
     this.profilePicture = this.container.locator('[src*="data:image"]');
@@ -67,7 +65,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.suggesterContainer = this.container.getByRole('listbox');
     this.selectOptions = this.container.getByRole('menuitem');
     this.recipientsInput = this.container.locator('[data-testid*="awarding this"] input[type="text"]');
-    this.messageInput = this.container.getByRole('textbox');
     this.descriptionTextArea = this.container.locator('[class*="tiptap ProseMirror"]');
     this.companyValues = this.container.getByTestId('field-Company values');
     this.companyValuesInput = this.container.getByTestId('field-Company values').locator('input[type="text"]');

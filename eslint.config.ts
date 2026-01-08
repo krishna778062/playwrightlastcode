@@ -11,6 +11,9 @@ const typescriptParser = require('@typescript-eslint/parser');
 const playwright = require('eslint-plugin-playwright');
 const unusedImports = require('eslint-plugin-unused-imports');
 
+// Custom plugins
+const customRules = require('./eslint-rules');
+
 const config: Linter.Config[] = [
   // Global ignores
   {
@@ -121,6 +124,18 @@ const config: Linter.Config[] = [
       '@typescript-eslint/prefer-nullish-coalescing': 'off', // Use ?? instead of ||
       '@typescript-eslint/prefer-optional-chain': 'warn', // Use ?. instead of &&
       '@typescript-eslint/no-unnecessary-condition': 'warn', // Warn about unnecessary conditions
+    },
+  },
+
+  // Custom rules - Project-specific code quality rules
+  {
+    files: ['**/*.{ts,tsx,js}'],
+    plugins: {
+      custom: customRules,
+    },
+    rules: {
+      // Catch consecutive duplicate assignment statements
+      'custom/no-duplicate-assignments': 'error',
     },
   },
 
