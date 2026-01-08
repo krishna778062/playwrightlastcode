@@ -20,6 +20,7 @@ export class AwardCreationForm extends BasePage {
   readonly plusButton: Locator;
   readonly minusButton: Locator;
   readonly rangeValueInput: Locator;
+  readonly saveChangesButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -33,6 +34,7 @@ export class AwardCreationForm extends BasePage {
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.nextButton = this.awardPageContainer.getByRole('button', { name: 'Next' });
     this.createButton = this.awardPageContainer.getByRole('button', { name: 'Create', exact: true });
+    this.saveChangesButton = this.awardPageContainer.getByRole('button', { name: 'Save changes', exact: true });
     this.continueButton = page.getByRole('button', { name: 'Continue' });
     this.skeletonButton = page.getByTestId('skeleton').first();
     this.plusButton = page.getByTestId('i-add').last();
