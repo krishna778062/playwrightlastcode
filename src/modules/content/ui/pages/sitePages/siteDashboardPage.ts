@@ -458,4 +458,12 @@ export class SiteDashboardPage extends BaseSitePage {
   async verifyCommentIconIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyCommentIconIsNotVisible();
   }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
+  }
 }
