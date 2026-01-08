@@ -688,50 +688,7 @@ export class ManageApplicationPage extends BasePage {
   }
 
   private async findHelpAndFeedbackInputField(): Promise<Locator> {
-    // Primary strategy: Use the React Select input ID (most reliable)
-    let inputField = this.page.locator('#react-select-2-input');
-    if ((await inputField.count()) > 0) {
-      return inputField;
-    }
-
-    // Fallback strategies if the ID is not found
-    // Strategy 1: Find by type email
-    inputField = this.page.locator('input[type="email"]').first();
-    if ((await inputField.count()) > 0) {
-      return inputField;
-    }
-
-    // Strategy 2: Find near the Help & Feedback heading
-    const helpFeedbackSection = this.page
-      .locator('h2:has-text("Help & Feedback"), h2:has-text("Help and Feedback")')
-      .first();
-    if ((await helpFeedbackSection.count()) > 0) {
-      // Find input in the same section
-      inputField = helpFeedbackSection
-        .locator('..')
-        .locator('input[type="text"], input[type="email"], input[placeholder*="email" i]')
-        .first();
-      if ((await inputField.count()) > 0) {
-        return inputField;
-      }
-    }
-
-    // Strategy 3: Find by placeholder containing email
-    inputField = this.page.locator('input[placeholder*="email" i]').first();
-    if ((await inputField.count()) > 0) {
-      return inputField;
-    }
-
-    // Strategy 4: Find any input in a section containing "Help" or "Feedback"
-    inputField = this.page
-      .locator('div:has-text("Help"), div:has-text("Feedback")')
-      .locator('input[type="text"], input[type="email"]')
-      .first();
-    if ((await inputField.count()) > 0) {
-      return inputField;
-    }
-
-    throw new Error('Help & Feedback input field not found');
+    return this.page.locator('#react-select-2-input');
   }
 
   async clearAllEmailIdsFromHelpAndFeedbackField(): Promise<boolean> {
@@ -990,16 +947,9 @@ export class ManageApplicationPage extends BasePage {
   async clickOnDropdownForHelpTopicsAndSelectOption(option: string): Promise<void> {
     await test.step(`Click on dropdown for "helpTopics" and select "${option}" option`, async () => {
       await this.waitForPageToLoad();
-      // Use getByTestId for SelectInput and selectOption with the value
-      // Map the option text to the actual value used in the select
-      let optionValue = 'give_suggestion'; // Default for "I want to give a suggestion"
-      if (option.toLowerCase().includes('suggestion')) {
-        optionValue = 'give_suggestion';
-      }
-
       const selectInput = this.page.getByTestId('SelectInput');
       await this.verifier.waitUntilElementIsVisible(selectInput, { timeout: 10000 });
-      await selectInput.selectOption(optionValue);
+      await selectInput.selectOption(option);
       await this.page.waitForTimeout(500);
     });
   }
@@ -1105,7 +1055,7 @@ export class ManageApplicationPage extends BasePage {
       await this.clickOnHelpAndFeedbackSectionInFooter();
 
       // Click on dropdown for "helpTopics" and select "I want to give a suggestion" option
-      await this.clickOnDropdownForHelpTopicsAndSelectOption('I want to give a suggestion');
+      await this.clickOnDropdownForHelpTopicsAndSelectOption('give_suggestion');
 
       // Enter description less than "10 char"
       await this.enterDescriptionLessThan(10);
