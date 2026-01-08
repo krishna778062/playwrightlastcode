@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
@@ -17,6 +18,14 @@ export class ImageBlockComponent extends BaseActionUtil {
   readonly imageOptionsField: Locator;
   readonly imageLinkField: Locator;
   readonly altTextInput: Locator;
+  readonly makeImageLinkLabel: Locator;
+
+  // Image search
+  readonly imageSearchInput: Locator;
+  readonly itemsCountText: Locator;
+
+  // Added image
+  readonly addedImageBlock: Locator;
 
   // Close button
   readonly closeButton: Locator;
@@ -36,6 +45,14 @@ export class ImageBlockComponent extends BaseActionUtil {
     this.imageOptionsField = this.page.getByTestId('field-Image options');
     this.imageLinkField = this.page.getByTestId('field-Image link');
     this.altTextInput = this.page.locator('[id="blocks_rootBlock_children_0_options_alt_"]');
+    this.makeImageLinkLabel = this.page.getByText('Make image a link');
+
+    // Image search
+    this.imageSearchInput = this.page.locator('[aria-label="Search…"]');
+    this.itemsCountText = this.page.getByText(/\d{1,3}(?:,\d{3})* items/);
+
+    // Added image
+    this.addedImageBlock = this.page.getByAltText('no image found');
 
     // Close button - try multiple possible selectors
     this.closeButton = this.page
@@ -49,19 +66,25 @@ export class ImageBlockComponent extends BaseActionUtil {
    */
   async addImageBlockWithLink(imageLinkUrl: string): Promise<void> {
     await test.step(`Add image block with link: ${imageLinkUrl}`, async () => {
+      // Dismiss survey dialog if it's blocking the UI
+      try {
+        const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
+        const dismissButton = surveyDialog.getByRole('button', { name: 'Dismiss' });
+        await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_SHORT });
+        await dismissButton.click();
+        await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
+      } catch {
+        // Survey dialog not present, continue
+      }
+
       // Click on Image block in the blocks panel (matching Cypress: cy.get('[data-chockablock-item-id="Image"]'))
       await this.imageBlockButton.click({ force: true });
 
-      // Click find an image button (matching Cypress: cy.findByRole('button', { name: 'find an image' }))
+      // Wait for the modal to appear and the "find an image" button to be visible
+      await expect(this.findImageButton, 'Find image button should be visible in the modal').toBeVisible();
       await this.findImageButton.click({ force: true });
-
-      // Select the first image from picker (matching Cypress: cy.get('div[class*="PickerModal_pickerBlock').first().dblclick())
       await this.pickerModalImages.first().dblclick();
-
-      // Enable image link option - click the visible label (custom styled checkbox)
-      await this.page.getByText('Make image a link').click();
-
-      // Enter the image link URL (field appears after checkbox is enabled)
+      await this.makeImageLinkLabel.click();
       await this.imageLinkField.locator('input').fill(imageLinkUrl);
     });
   }
@@ -102,10 +125,23 @@ export class ImageBlockComponent extends BaseActionUtil {
    */
   async searchAndSelectImage(imageName: string): Promise<void> {
     await test.step(`Search and select image: ${imageName}`, async () => {
+      // Dismiss survey dialog if it's blocking the UI
+      try {
+        const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
+        const dismissButton = surveyDialog.getByRole('button', { name: 'Dismiss' });
+        await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_SHORT });
+        await dismissButton.click();
+        await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
+      } catch {
+        // Survey dialog not present, continue
+      }
+
       await this.imageBlockButton.click({ force: true });
-      await this.findImageButton.click();
-      await this.page.locator('[aria-label="Search…"]').fill(imageName);
-      await expect(this.page.getByText(/\d{1,3}(?:,\d{3})* items/)).toBeVisible();
+      // Wait for the modal to appear and the "find an image" button to be visible
+      await expect(this.findImageButton, 'Find image button should be visible in the modal').toBeVisible();
+      await this.findImageButton.click({ force: true });
+      await this.imageSearchInput.fill(imageName);
+      await expect(this.itemsCountText).toBeVisible();
       await this.pickerModalImages.first().dblclick();
     });
   }
@@ -115,8 +151,7 @@ export class ImageBlockComponent extends BaseActionUtil {
    */
   async clickOnAddedImageBlock(): Promise<void> {
     await test.step('Click on added image block', async () => {
-      const addedImage = this.page.getByAltText('no image found');
-      await addedImage.click({ force: true });
+      await this.addedImageBlock.click({ force: true });
     });
   }
 

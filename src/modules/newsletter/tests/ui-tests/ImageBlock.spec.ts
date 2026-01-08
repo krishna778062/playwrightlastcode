@@ -13,32 +13,40 @@ const IMAGE_LINK_URL = 'https://www.simpplr.com';
 const TEMPLATE_NAME = 'Blank template';
 
 test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
+  let newsletterEditorPage: NewsletterEditorPage;
+  let selectTemplateModal: SelectTemplateModal;
+  let imageBlockComponent: ImageBlockComponent;
+
+  test.beforeEach(async ({ appManagerPage }) => {
+    // Initialize components for all tests
+    newsletterEditorPage = new NewsletterEditorPage(appManagerPage);
+    selectTemplateModal = new SelectTemplateModal(appManagerPage);
+    imageBlockComponent = new ImageBlockComponent(appManagerPage);
+
+    // Create a newsletter for each test (each test needs a fresh newsletter)
+    const newsletterName = `Image_Block_Test_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    await newsletterEditorPage.loadPage();
+    await newsletterEditorPage.clickCreateButton();
+    await newsletterEditorPage.enterNewsletterName(newsletterName);
+    await newsletterEditorPage.clickNextButtonOnNameModal();
+    await selectTemplateModal.selectTemplateByName(TEMPLATE_NAME);
+    await selectTemplateModal.clickNextButton();
+    await newsletterEditorPage.verifyEditorIsLoaded();
+  });
+
   test(
     'Upload Image to newsletter',
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Add an image block with link to a newsletter',
+        zephyrTestId: 'NLP-4870',
+        storyId: 'NL-1',
       });
 
-      const newsletterName = `Image_Block_Newsletter_${Date.now()}`;
-
-      const newsletterEditorPage = new NewsletterEditorPage(appManagerPage);
-      const selectTemplateModal = new SelectTemplateModal(appManagerPage);
-      const imageBlockComponent = new ImageBlockComponent(appManagerPage);
-
-      await newsletterEditorPage.loadPage();
-      await newsletterEditorPage.clickCreateButton();
-      await newsletterEditorPage.enterNewsletterName(newsletterName);
-
-      await newsletterEditorPage.clickNextButtonOnNameModal();
-      await selectTemplateModal.selectTemplateByName(TEMPLATE_NAME);
-      await selectTemplateModal.clickNextButton();
-      await newsletterEditorPage.verifyEditorIsLoaded();
       await imageBlockComponent.addImageBlockWithLink(IMAGE_LINK_URL);
-
       await imageBlockComponent.clickCloseButton();
     }
   );
@@ -48,29 +56,16 @@ test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P2, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Add an image block with alt text to a newsletter',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
-      const newsletterName = `Image_AltText_Newsletter_${Date.now()}`;
       const altText = 'Test image alt text';
-
-      const newsletterEditorPage = new NewsletterEditorPage(appManagerPage);
-      const selectTemplateModal = new SelectTemplateModal(appManagerPage);
-      const imageBlockComponent = new ImageBlockComponent(appManagerPage);
-
-      await newsletterEditorPage.loadPage();
-      await newsletterEditorPage.clickCreateButton();
-      await newsletterEditorPage.enterNewsletterName(newsletterName);
-
-      await newsletterEditorPage.clickNextButtonOnNameModal();
-      await selectTemplateModal.selectTemplateByName(TEMPLATE_NAME);
-      await selectTemplateModal.clickNextButton();
-      await newsletterEditorPage.verifyEditorIsLoaded();
       await imageBlockComponent.addImageBlockWithLink(IMAGE_LINK_URL);
       await imageBlockComponent.addAltTextToImage(altText);
-
       await imageBlockComponent.clickCloseButton();
     }
   );
@@ -80,24 +75,13 @@ test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
-    async ({ appManagerPage }) => {
+    async () => {
       tagTest(test.info(), {
         description: 'Verify image search and filter functionality in newsletter editor',
+        zephyrTestId: 'NLP-5736',
+        storyId: 'NL-1',
       });
 
-      const newsletterName = `Verify_Image_Filters_Search_${Date.now()}`;
-
-      const newsletterEditorPage = new NewsletterEditorPage(appManagerPage);
-      const selectTemplateModal = new SelectTemplateModal(appManagerPage);
-      const imageBlockComponent = new ImageBlockComponent(appManagerPage);
-
-      await newsletterEditorPage.loadPage();
-      await newsletterEditorPage.clickCreateButton();
-      await newsletterEditorPage.enterNewsletterName(newsletterName);
-      await newsletterEditorPage.clickNextButtonOnNameModal();
-      await selectTemplateModal.selectTemplateByName(TEMPLATE_NAME);
-      await selectTemplateModal.clickNextButton();
-      await newsletterEditorPage.verifyEditorIsLoaded();
       await imageBlockComponent.searchAndSelectImage('Google');
     }
   );
