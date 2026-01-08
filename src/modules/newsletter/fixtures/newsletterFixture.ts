@@ -1,20 +1,20 @@
-import { NewsletterNewUxHomePage, NewsletterOldUxHomePage } from '@newsletter/pages/newsletterHomeAdapters';
+import { NewsletterHomePageAdapter } from '@newsletter/pages/newsletterHomeAdapters';
 import { Page, test } from '@playwright/test';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
-import { NewUxHomePage } from '@core/pages/homePage/newUxHomePage';
-import { OldUxHomePage } from '@core/pages/homePage/oldUxHomePage';
+import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { getEnvConfig } from '@core/utils/getEnvConfig';
 
-const adaptHomePage = (homePage: NewUxHomePage | OldUxHomePage) => {
-  if (homePage instanceof NewUxHomePage) {
-    return new NewsletterNewUxHomePage(homePage.page);
-  }
-  return new NewsletterOldUxHomePage(homePage.page);
+/**
+ * Adapts a NewHomePage instance to NewsletterHomePageAdapter.
+ * Since LoginHelper always returns NewHomePage, this is a straightforward conversion.
+ */
+const adaptHomePage = (homePage: NewHomePage): NewsletterHomePageAdapter => {
+  return new NewsletterHomePageAdapter(homePage.page);
 };
 
 export const newsletterFixture = test.extend<{
-  appManagerHomePage: NewUxHomePage | OldUxHomePage;
+  appManagerHomePage: NewsletterHomePageAdapter;
   appManagerPage: Page;
 }>({
   appManagerHomePage: [

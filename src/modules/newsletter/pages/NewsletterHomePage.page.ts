@@ -9,7 +9,7 @@ export class NewsletterHomePagePage extends BasePage {
   readonly pageTitle: Locator;
 
   // Search
-  private readonly searchContainer: Locator;
+  readonly searchContainer: Locator;
   readonly searchInput: Locator;
   readonly searchClearButton: Locator;
 

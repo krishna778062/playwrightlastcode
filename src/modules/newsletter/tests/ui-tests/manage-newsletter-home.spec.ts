@@ -30,6 +30,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     async () => {
       tagTest(test.info(), {
         description: 'Newsletter Home page',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
       await newsletterHomePage.assertPageTitleIsVisible();
@@ -44,6 +46,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     async () => {
       tagTest(test.info(), {
         description: 'Reset newsletter filters via Filters menu',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
@@ -76,6 +80,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     async () => {
       tagTest(test.info(), {
         description: 'Validate sender details visibility in From address filter',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
@@ -92,6 +98,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     async () => {
       tagTest(test.info(), {
         description: 'Validate From address column visibility in newsletter table',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
       await newsletterHomePage.assertFromAddressColumnVisible();
@@ -106,6 +114,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     async () => {
       tagTest(test.info(), {
         description: 'Validate Resend option visibility for Failed to send newsletters',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);
@@ -124,6 +134,8 @@ test.describe('newsletter Home page', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] 
     async () => {
       tagTest(test.info(), {
         description: 'Verify past newsletters can be viewed via filters',
+        zephyrTestId: 'NL-1',
+        storyId: 'NL-1',
       });
 
       const filtersComponent = new NewsletterFiltersComponent(newsletterHomePage.page);

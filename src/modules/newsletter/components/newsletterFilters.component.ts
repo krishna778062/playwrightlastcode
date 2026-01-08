@@ -13,15 +13,15 @@ export type NewsletterFilterState = {
 
 export class NewsletterFiltersComponent extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
-  private readonly filtersButton: Locator;
-  private readonly creatorField: Locator;
-  private readonly statusSelect: Locator;
-  private readonly recipientsSelect: Locator;
-  private readonly dateModifiedSelect: Locator;
-  private readonly resetFiltersButton: Locator;
-  private readonly menuItems: Locator;
-  private readonly fromAddressField: Locator;
-  private readonly fromAddressListbox: Locator;
+  readonly filtersButton: Locator;
+  readonly creatorField: Locator;
+  readonly statusSelect: Locator;
+  readonly recipientsSelect: Locator;
+  readonly dateModifiedSelect: Locator;
+  readonly resetFiltersButton: Locator;
+  readonly menuItems: Locator;
+  readonly fromAddressField: Locator;
+  readonly fromAddressListbox: Locator;
 
   constructor(page: Page) {
     super(page);
