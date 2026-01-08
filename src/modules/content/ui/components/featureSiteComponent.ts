@@ -1,24 +1,35 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export class FeatureSiteComponent extends BaseComponent {
   // Search and add functionality
-  readonly searchSitesInput = this.page
-    .locator("div:has-text('Select site')")
-    .locator("xpath=following-sibling::div/input[not(@type='hidden')]");
-  readonly addButton = this.page.getByRole('button', { name: 'Add', exact: true });
-  readonly doneButton = this.page.getByRole('button', { name: 'Done' });
-  readonly getSiteFromDropdown = (siteName: string) =>
-    this.page.getByRole('menuitem').getByLabel(siteName, { exact: true });
-  readonly siteListingItemByName = (siteName: string) =>
-    this.page.locator(`div[class*="ListingItem-module"] p:text("${siteName}")`);
-  readonly siteListingItemByIndex = (index: number) =>
-    this.page.locator(`div[class*="ListingItem-module"] p`).nth(index);
-  readonly faetureListItems = this.page.locator(`[class*="FeaturedSiteList"] li`);
+  readonly searchSitesInput: Locator;
+  readonly addButton: Locator;
+  readonly doneButton: Locator;
+  readonly getSiteFromDropdown: (siteName: string) => Locator;
+  readonly siteListingItemByName: (siteName: string) => Locator;
+  readonly siteListingItemByIndex: (index: number) => Locator;
+  readonly faetureListItems: Locator;
 
   constructor(page: Page) {
     super(page);
+    this.searchSitesInput = this.page
+      .locator("div:has-text('Select site')")
+      .locator("xpath=following-sibling::div/input[not(@type='hidden')]");
+    this.addButton = this.page.getByRole('button', { name: 'Add', exact: true });
+    this.doneButton = this.page.getByRole('button', { name: 'Done' });
+    this.getSiteFromDropdown = (siteName: string) =>
+      this.page.getByRole('menuitem').getByLabel(siteName, { exact: true });
+    this.siteListingItemByName = (siteName: string) =>
+      this.page.locator(`div[class*="ListingItem-module__details"] p:text("${siteName}")`);
+    this.siteListingItemByIndex = (index: number) =>
+      this.page
+        .locator('[class*="DraggableListItem-module-siteListingRow"]')
+        .nth(index)
+        .locator('[class*="ListingItem-module__details"] p')
+        .first();
+    this.faetureListItems = this.page.locator(`[class*="FeaturedSiteList"] li`);
   }
 
   /**
@@ -33,11 +44,14 @@ export class FeatureSiteComponent extends BaseComponent {
       // Type the site name in the search input
       await this.fillInElement(this.searchSitesInput, siteName);
 
+      await this.page.waitForTimeout(1000);
+
       // Wait for the site to appear in dropdown results
       const siteDropdownOption = this.getSiteFromDropdown(siteName);
       try {
         await this.verifier.verifyTheElementIsVisible(siteDropdownOption);
       } catch (error) {
+        console.log(`Error verifying site dropdown option: ${error}`);
         await this.searchSitesInput.clear();
         await this.fillInElement(this.searchSitesInput, siteName);
         await this.verifier.verifyTheElementIsVisible(siteDropdownOption);

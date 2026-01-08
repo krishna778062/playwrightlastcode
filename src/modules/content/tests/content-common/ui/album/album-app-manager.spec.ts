@@ -51,7 +51,7 @@ test.describe(
     });
 
     test(
-      'create Album with all the fields populated from home page',
+      'create Album with all the fields populated from home page CONT-11065',
       {
         tag: [
           TestPriority.P0,
@@ -68,6 +68,8 @@ test.describe(
             'Verify admin is able to create and publish a new album with all fields populated from home page',
           zephyrTestId: 'CONT-11065',
           storyId: 'CONT-11065',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43081',
         });
 
         await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -86,7 +88,7 @@ test.describe(
         });
 
         // Create and publish the album
-        const { albumId, siteId } = await albumCreationPage.actions.createAndPublishAlbum(albumCreationOptions);
+        const { albumId, siteId } = await albumCreationPage.createAndPublishAlbum(albumCreationOptions);
 
         // Store IDs for cleanup
         publishedAlbumId = albumId;
@@ -94,10 +96,10 @@ test.describe(
         manualCleanupNeeded = true;
 
         // Handle promotion step
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
 
         // Verify content was published successfully
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           albumCreationOptions.title,
           "Created album successfully - it's published"
         );

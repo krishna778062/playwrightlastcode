@@ -35,9 +35,11 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     super(page);
     this.inboxSideBarContainer = inboxSideBarContainer;
     this.inboxHeader = this.inboxSideBarContainer.locator("[class*='Sidebar_inboxMenu']").first();
-    this.createNewMessageIcon = this.inboxSideBarContainer.getByRole('button', {
-      name: 'Create new message',
-    });
+    this.createNewMessageIcon = this.inboxSideBarContainer
+      .getByRole('button', {
+        name: 'Create new message',
+      })
+      .or(this.page.getByTestId('newMessageButton'));
     this.messageOptionsDropDown = this.inboxSideBarContainer.getByTestId('dropdown-menu');
     this.dropDownOptionCreateNewMessage = this.page.getByLabel('Create new message').locator('p');
     this.dropDownOptionCreateNewGroup = this.page.getByLabel('Create new group').locator('p');
@@ -47,7 +49,6 @@ export class ChatInboxSideBarComponent extends BaseComponent {
       .or(this.page.getByRole('combobox', { name: 'Select simpplers' }));
     this.startChatButton = this.page.getByTestId('dmStartChatButton');
     this.userSelectionDropdownOptions = this.page.locator("div[role='menuitem']");
-    this.createNewMessageIcon = this.page.getByTestId('newMessageButton');
     this.leftSideSearchbox = this.page.getByRole('textbox', { name: 'Search...' });
 
     // Group settings locators

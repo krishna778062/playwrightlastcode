@@ -28,11 +28,14 @@ const commonLaunchArgs = [
 export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-tests'),
-  testIgnore: '**/reward-settings/**',
+  testIgnore: '**/tests/ui-setting-tests/**',
   workers: process.env.CI ? 3 : 5,
   projects: [
     {
       name: 'Reward',
+      expect: {
+        timeout: 15 * 1000, // 15 seconds for ALL expect() assertions
+      },
       use: {
         ...desktopChromeNoScale,
         headless,

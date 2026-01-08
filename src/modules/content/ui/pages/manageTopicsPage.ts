@@ -8,47 +8,7 @@ import { AddTopicComponent } from '@/src/modules/content/ui/components/addTopicC
 import { EditTopicComponent } from '@/src/modules/content/ui/components/editTopicComponent';
 import { ManageTopicsComponent } from '@/src/modules/content/ui/components/manageTopicsComponent';
 
-export interface IManageTopicsPageActions {
-  clickOnAddTopic: () => Promise<void>;
-  createTopic: (topicName: string) => Promise<string>;
-  createDuplicateTopic: (topicName: string) => Promise<void>;
-  clickOnEditTopic: () => Promise<void>;
-  fillTopicName: (topicName: string) => Promise<void>;
-  clickOnAddButton: () => Promise<string>;
-  editTopicName: (topicName: string) => Promise<void>;
-  clickOnUpdateButton: () => Promise<void>;
-  searchingTopicInSearchBar: (topicName: string) => Promise<void>;
-  openingSearchedTopic: (topicName: string) => Promise<void>;
-  clickOnDeleteTopic: () => Promise<void>;
-  clickCancelButton: () => Promise<void>;
-  clickDeleteConfirmButton: () => Promise<void>;
-  getTopicNameFromList: () => Promise<string>;
-  clickOnFollowTopic: () => Promise<void>;
-  clickOnUnfollowTopic: () => Promise<void>;
-  openTopicOptionsDropdown: () => Promise<void>;
-  editTopic: (topicName: string) => Promise<void>;
-  deleteTopic: () => Promise<void>;
-  clickOnMergeTopic: () => Promise<void>;
-  fillMergeTopicName: (topicName: string) => Promise<void>;
-  clickMergeConfirmButton: () => Promise<void>;
-  mergeTopic: (targetTopicName: string) => Promise<void>;
-}
-
-export interface IManageTopicsPageAssertions {
-  verifyErroToastMessage: () => Promise<void>;
-  verifyToastMessage: (expectedMessage: string) => Promise<void>;
-  verifyingTheSearhcedTopicIsVisible: (topicName: string) => Promise<void>;
-  verifyingNothingToShowHereText: () => Promise<void>;
-  verifyDeleteTopicPopupIsVisible: () => Promise<void>;
-  verifyTopicIsVisible: (topicName: string) => Promise<void>;
-  verifyTopicIsNotVisible: (topicName: string) => Promise<void>;
-  verifyFollowOptionIsVisible: () => Promise<void>;
-  verifyUnfollowOptionIsVisible: () => Promise<void>;
-  verifyTopicListIsVisible: () => Promise<void>;
-  verifyTopicAppearsAtTop: (topicName: string) => Promise<void>;
-  searchAndVerifyMultipleTopics: (topicNames: string[]) => Promise<void>;
-}
-export class ManageTopicsPage extends BasePage implements IManageTopicsPageActions, IManageTopicsPageAssertions {
+export class ManageTopicsPage extends BasePage {
   private manageTopicsComponent: ManageTopicsComponent;
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
@@ -68,15 +28,6 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
     this.addTopicComponent = new AddTopicComponent(page);
     this.editTopicComponent = new EditTopicComponent(page);
   }
-
-  get actions(): IManageTopicsPageActions {
-    return this;
-  }
-
-  get assertions(): IManageTopicsPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify manage topics page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageTopicsComponent.manageTopicsHeading, {

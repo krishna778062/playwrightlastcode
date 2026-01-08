@@ -15,7 +15,7 @@ test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_
   });
 
   test(
-    '[RC-2835] Verify multiple gifting option using Single Recipient & Multiple Recipient',
+    'RC-2835 Verify multiple gifting option using Single Recipient & Multiple Recipient',
     {
       tag: [REWARD_FEATURE_TAGS.CREATE_RECOGNITION_WITH_POINTS, TestGroupType.REGRESSION, TestPriority.P0],
     },
@@ -77,7 +77,7 @@ test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_
   );
 
   test(
-    '[RC-2835-B] Verify Minimum N points required',
+    'RC-2835-B Verify Minimum N points required',
     {
       tag: [
         REWARD_FEATURE_TAGS.CREATE_RECOGNITION_WITH_POINTS,
