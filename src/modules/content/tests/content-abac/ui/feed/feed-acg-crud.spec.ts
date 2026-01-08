@@ -17,6 +17,8 @@ import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
 import { AccessControlGroupsPage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/accessControlGroupsPage';
 import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
+const POST_IN_HOME_FEED_SYSTEM_ACG = 'Post in home feed | All org';
+const POST_IN_HOME_FEED_CUSTOM_ACG = 'Post in home feed | Engineering';
 const POST_IN_HOME_FEED_FEATURE = 'Post in home feed';
 const MANAGE_HOME_FEED_FEATURE = 'Manage home feed';
 
@@ -66,8 +68,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
           let operationPerformed = false;
 
@@ -195,8 +197,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
@@ -223,8 +225,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Admins section and add user
@@ -269,8 +271,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Admins section and remove user
@@ -328,8 +330,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           const isAdminButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.ADMIN);
@@ -356,8 +358,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Managers section and add user
@@ -403,8 +405,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Navigate to Managers section and remove user
@@ -463,8 +465,8 @@ test.describe(
           await acgPage.loadPage();
           await acgPage.assertions.verifyThePageIsLoaded();
 
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_FEATURE);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_FEATURE);
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
           await acgPage.confirmEditACGModal.clickContinueButton();
 
           // Remove from Managers if present
@@ -1953,6 +1955,120 @@ test.describe(
 
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
+        });
+      }
+    );
+
+    test(
+      "verify SU's Feed post without Restricted Viewers is visible only to users in ACG Target Audience",
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42174', '@feed-acg-crud', '@acg-target-audience'],
+      },
+      async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Feed post created by SU (FO of Post in Home Feed ACG) without Restricted Viewers is visible only to users in ACG Target Audience and blocked for users outside the Target Audience',
+          zephyrTestId: 'CONT-42174',
+          storyId: 'CONT-42174',
+        });
+
+        let suPostText: string;
+        let suPostId: string = '';
+
+        // ==================== Setup: Add SU as Manager of "Custom - Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as Manager of "Custom - Post In Home Feed" ACG', async () => {
+          let operationPerformed = false;
+          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.assertions.verifyThePageIsLoaded();
+
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_CUSTOM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_CUSTOM_ACG);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Remove from Managers if present
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            operationPerformed = await acgPage.editACGModal.addUserToList(standardUserFullName);
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          }
+
+          if (operationPerformed) {
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== SU creates Feed post WITHOUT Restricted Viewers ====================
+        await test.step('SU creates Feed post without Restricted Viewers (visibility based on ACG Target Audience)', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(standardUserFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          suPostText = TestDataGenerator.generateRandomText('SU ACG Target Audience Post', 3, true);
+          await feedPage.actions.clickShareThoughtsButton();
+
+          const postResult = await feedPage.actions.createAndPost({
+            text: suPostText,
+          });
+
+          suPostId = postResult.postId || '';
+          createdPostId = suPostId;
+          await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post has limit visibility (ACG Target Audience)
+          await feedPage.assertions.verifyPostHasLimitVisibility(suPostText);
+        });
+
+        // ==================== SU (creator, in ACG Target Audience) can see the post ====================
+        await test.step('Standard User (creator, in ACG Target Audience) verifies post is visible', async () => {
+          await feedPage.reloadPage();
+          await feedPage.assertions.verifyThePageIsLoaded();
+
+          await feedPage.assertions.waitForPostToBeVisible(suPostText);
+        });
+
+        // ==================== Social Campaign Manager (NOT in ACG Target Audience) cannot see the post ====================
+        await test.step('Social Campaign Manager (NOT in ACG Target Audience) navigates to Home Feed and verifies post is NOT visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.reloadPageWithTimelineMode();
+          await socialCampaignManagerFeedPage.verifyThePageIsLoadedWithTimelineMode();
+
+          await socialCampaignManagerFeedPage.assertions.verifyPostIsNotVisible(suPostText);
+        });
+
+        // ==================== Social Campaign Manager cannot access post via direct URL ====================
+        await test.step('Social Campaign Manager attempts direct URL access and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(socialCampaignManagerFixture.page, suPostId);
+          await socialCampaignManagerFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.assertions.verifyPageNotFoundVisibility({
+            stepInfo:
+              'Verify unauthorized user (NOT in ACG Target Audience) sees Page not found when accessing post via direct URL',
+          });
+        });
+
+        // ==================== Cleanup: Remove SU as Manager from "Custom - Post In Home Feed" ACG ====================
+        await test.step('Cleanup: Remove SU as Manager from "Custom - Post In Home Feed" ACG', async () => {
+          await acgPage.loadPage();
+          await acgPage.verifyThePageIsLoaded();
+
+          await acgPage.searchForACG(POST_IN_HOME_FEED_CUSTOM_ACG);
+          await acgPage.editACG(POST_IN_HOME_FEED_CUSTOM_ACG);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Admins section and remove user
+          await acgPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.MANAGER);
+          await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+          await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+          await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+
+          // Save the ACG changes
+          await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
         });
       }
     );
