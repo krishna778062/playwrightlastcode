@@ -13,10 +13,15 @@ import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
-import { ContentDashboardQueryHelper, SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
+import {
+  ContentDashboardQueryHelper,
+  FilesDashboardQueryHelper,
+  SnowflakeHelper,
+} from '@/src/modules/data-engineering/helpers';
 import { SearchDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboards/app-adoption/appAdoptionDashboard';
+import { FilesDashboard } from '@/src/modules/data-engineering/ui/dashboards/files/filesDashboard';
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
 import { MonthlyReportsDashboard } from '@/src/modules/data-engineering/ui/dashboards/monthly-reports/monthlyReportsDashboard';
 import { OnSitePage } from '@/src/modules/data-engineering/ui/dashboards/on-site/onSitePage';
@@ -421,9 +426,42 @@ export async function setupContentDashboardForTest(
 }
 
 /**
- * Sets up On-Site Analytics Page for testing
- * Gets the site_code dynamically from the database based on tenant code and date range
+ * Sets up Files Dashboard for testing
  */
+export async function setupFilesDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  filesDashboard: FilesDashboard;
+  snowflakeHelper: SnowflakeHelper;
+  filesDashboardQueryHelper: FilesDashboardQueryHelper;
+}> {
+  return await test.step('Setup Files Dashboard', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create files dashboard query helper
+    const orgId = getDataEngineeringConfigFromCache().orgId;
+    const filesDashboardQueryHelper = new FilesDashboardQueryHelper(snowflakeHelper, orgId);
+
+    //create files dashboard
+    const filesDashboard = new FilesDashboard(page);
+    await filesDashboard.loadPage();
+
+    console.log('Files Dashboard loaded successfully');
+
+    return {
+      page,
+      filesDashboard,
+      snowflakeHelper,
+      filesDashboardQueryHelper,
+    };
+  });
+}
+
 export async function setupOnSitePageForTest(
   browser: Browser,
   userRole: UserRole = UserRole.APP_MANAGER,
