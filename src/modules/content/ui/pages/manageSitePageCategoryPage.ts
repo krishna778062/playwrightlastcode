@@ -4,25 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IManageSitePageCategoryActions {
-  clickOnAddCategoryButton: () => Promise<void>;
-  clickOnCustomCategory: (categoryName: string) => Promise<void>;
-  searchCategory: (categoryName: string) => Promise<void>;
-  clickOnShowMoreButton: () => Promise<void>;
-}
-
-export interface IManageSitePageCategoryAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyContentListLoaded: (siteId: string, pageCategoryId: string) => Promise<void>;
-  verifyNoResultsFoundIsNotVisible: () => Promise<void>;
-  verifyShowMoreButtonIsVisible: () => Promise<void>;
-  verifyContentListAfterClickingShowMoreButton: () => Promise<void>;
-}
-
-export class ManageSitePageCategoryPage
-  extends BasePage
-  implements IManageSitePageCategoryActions, IManageSitePageCategoryAssertions
-{
+export class ManageSitePageCategoryPage extends BasePage {
   readonly addCategoryButton: Locator;
   readonly customCategoryLink: (categoryName: string) => Locator;
   readonly searchCategoryTextbox: Locator;
@@ -39,17 +21,7 @@ export class ManageSitePageCategoryPage
     this.noResultsFoundMessage = page.getByText('Nothing to show here', { exact: true });
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.contentListContainer = page.locator('.ManageContentListItem-content');
-  }
-
-  get actions(): IManageSitePageCategoryActions {
-    return this;
-  }
-
-  get assertions(): IManageSitePageCategoryAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Verifies that the Manage Site Page Categories page is loaded
    */
   async verifyThePageIsLoaded(): Promise<void> {
@@ -117,8 +89,12 @@ export class ManageSitePageCategoryPage
   }
 
   async verifyContentListAfterClickingShowMoreButton(): Promise<void> {
-    //element list size should be 16
-    const elementListSize = await this.contentListContainer.count();
-    expect(elementListSize).toBeGreaterThan(16);
+    await test.step('Verify content list has more than 16 items after clicking Show More', async () => {
+      // Wait for the count to increase after clicking Show More
+      await expect(async () => {
+        const elementListSize = await this.contentListContainer.count();
+        expect(elementListSize).toBeGreaterThan(16);
+      }).toPass();
+    });
   }
 }

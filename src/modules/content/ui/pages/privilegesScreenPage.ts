@@ -5,27 +5,6 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { ProtectedAuthorsComponent } from '@/src/modules/content/ui/components/protectedAuthorComponent';
 
-export interface IPrivilegesScreenPageActions {
-  fillProtectedAuthorsAuthorsFieldBarWithLoggedInUser: (value: string) => Promise<void>;
-  fillProtectedAuthorsAllowlistFieldBarWithLoggedInUser: (value: string) => Promise<void>;
-  clickOnSave: () => Promise<void>;
-  clickOnCrossUserFromAuthorList: () => Promise<void>;
-  clickOnCrossAllowlistUser: () => Promise<void>;
-  alertInputBoxFillWithText: (text: string) => Promise<void>;
-  alertInputBoxSelectOption: (option: string) => Promise<void>;
-  mustReadInputBoxFillWithText: (text: string) => Promise<void>;
-  mustReadInputBoxSelectOption: (option: string) => Promise<void>;
-}
-
-export interface IPrivilegesScreenPageAssertions {
-  verifyProtectedAuthorsAuthorsFieldBarIsVisible: () => Promise<void>;
-  verifyProtectedAuthorsAllowlistFieldBarIsVisible: () => Promise<void>;
-  verifyTheChangesConfirmationToastMessageIsVisible: () => Promise<void>;
-  verifyAddedUserGotRemovedFromList: (userName: string) => Promise<void>;
-  verifyMustReadChangesAreSaved: (text: string) => Promise<void>;
-  verifyAlertChangesAreSaved: (text: string) => Promise<void>;
-}
-
 export class PrivilegesScreenPage extends BasePage {
   private protectedAuthorsComponent: ProtectedAuthorsComponent;
   readonly clickOnSaveButton = this.page.getByRole('button', { name: 'Save' });
@@ -47,15 +26,6 @@ export class PrivilegesScreenPage extends BasePage {
     super(page, PAGE_ENDPOINTS.PRIVILEGES_SCREEN);
     this.protectedAuthorsComponent = new ProtectedAuthorsComponent(page);
   }
-
-  get actions(): IPrivilegesScreenPageActions {
-    return this;
-  }
-
-  get assertions(): IPrivilegesScreenPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify governance page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.protectedAuthorsComponent.protectedAuthors, {

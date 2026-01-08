@@ -37,12 +37,12 @@ test.describe(
         const title = MANAGE_CONTENT_TEST_DATA.TITLE;
         await standardUserFixture.homePage.verifyThePageIsLoaded();
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturePage.actions.clickOnContentCard();
-        await manageContentPage.actions.writeRandomTextInSearchBar(title);
-        await manageContentPage.actions.clickSearchIcon();
-        await manageContentPage.assertions.nothingToShowHereText();
-        await manageContentPage.actions.clickXButton();
-        await manageContentPage.assertions.placeHolderTextShouldBeVisible();
+        await manageFeaturePage.clickOnContentCard();
+        await manageContentPage.manageContent.writeRandomTextInSearchBar(title);
+        await manageContentPage.manageContent.searchIcon();
+        await manageContentPage.manageContent.nothingToShowHere();
+        await manageContentPage.manageContent.clickXButton();
+        await manageContentPage.manageContent.placeHolderShouldBeVisible();
       }
     );
   }
