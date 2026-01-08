@@ -11,24 +11,7 @@ export interface ShareWithLimitVisibilityOptions {
   audience: string;
 }
 
-export interface IShareComponentActions {
-  clickShareToFeedButton: () => Promise<void>;
-  enterShareDescription: (description: string) => Promise<void>;
-  enterSiteName: (siteName: string) => Promise<void>;
-  clickShareButton: () => Promise<void>;
-  clickShareButtonAndGetPostId: () => Promise<string>;
-  attemptImagePaste: () => Promise<void>;
-  toggleLimitVisibility: () => Promise<void>;
-  selectAudience: (audienceName: string) => Promise<void>;
-  shareToSiteFeedWithLimitVisibility: (options: ShareWithLimitVisibilityOptions) => Promise<string>;
-}
-
-export interface IShareComponentAssertions {
-  verifyNoAttachmentsInShareModal: () => Promise<void>;
-  verifyShareModalIsFunctional: () => Promise<void>;
-}
-
-export class ShareComponent extends BaseComponent implements IShareComponentActions, IShareComponentAssertions {
+export class ShareComponent extends BaseComponent {
   readonly shareToFeedButton!: Locator;
   readonly shareOptionDropdown!: Locator;
   readonly shareDescriptionInput!: Locator;
@@ -69,15 +52,6 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
   getAudienceOption(audienceName: string): Locator {
     return this.page.getByLabel(audienceName, { exact: true }).getByRole('checkbox').first();
   }
-
-  get actions(): IShareComponentActions {
-    return this;
-  }
-
-  get assertions(): IShareComponentAssertions {
-    return this;
-  }
-
   async clickShareToFeedButton(): Promise<void> {
     await test.step('Click Share to feed button', async () => {
       await this.clickOnElement(this.shareToFeedButton);
@@ -95,6 +69,29 @@ export class ShareComponent extends BaseComponent implements IShareComponentActi
       await this.clickOnElement(this.enterSiteNameInput);
       await this.fillInElement(this.enterSiteNameInput, siteName);
       await this.clickOnElement(this.siteNameInput.locator(`text="${siteName}"`).first());
+    });
+  }
+
+  /**
+   * Gets the text of the currently selected option in the share dropdown
+   * @returns Promise<string> - The text of the selected option (e.g., 'Home Feed', 'Site Feed')
+   */
+  async getSelectedShareOption(): Promise<string> {
+    return await test.step('Get selected share option', async () => {
+      const selectedOptionText = await this.shareOptionDropdown.evaluate((select: HTMLSelectElement) => {
+        return select.options[select.selectedIndex].text;
+      });
+      return selectedOptionText;
+    });
+  }
+
+  /**
+   * Gets the value attribute of the currently selected option in the share dropdown
+   * @returns Promise<string> - The value of the selected option (e.g., 'home', 'site')
+   */
+  async getSelectedShareOptionValue(): Promise<string> {
+    return await test.step('Get selected share option value', async () => {
+      return await this.shareOptionDropdown.inputValue();
     });
   }
 
