@@ -4,6 +4,8 @@ import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-m
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
+import { TestDataGenerator } from '@/src/core';
+
 export class RenamingPage extends BasePage {
   readonly container: Locator;
   readonly pageHeading: Locator;
@@ -14,6 +16,10 @@ export class RenamingPage extends BasePage {
   readonly recognitionEditButton: Locator;
   readonly pointsEditButton: Locator;
   readonly rewardsStoreEditButton: Locator;
+
+  readonly recognitionCustomName: Locator;
+  readonly pointsCustomName: Locator;
+  readonly rewardsCustomName: Locator;
 
   readonly recognitionCustomNameLabel: Locator;
   readonly pointsCustomNameLabel: Locator;
@@ -37,6 +43,10 @@ export class RenamingPage extends BasePage {
     this.recognitionEditButton = page.getByRole('button', { name: 'Edit name for recognition' });
     this.pointsEditButton = page.getByRole('button', { name: 'Edit name for points' });
     this.rewardsStoreEditButton = page.getByRole('button', { name: 'Edit name for rewardsStore' });
+
+    this.recognitionCustomName = this.recognitionEditButton.locator('xpath=//parent::div//div//following-sibling::h2');
+    this.pointsCustomName = this.pointsEditButton.locator('xpath=//parent::div//div//following-sibling::h2');
+    this.rewardsCustomName = this.rewardsStoreEditButton.locator('xpath=//parent::div//div//following-sibling::h2');
 
     this.recognitionCustomNameLabel = this.recognitionEditButton.locator('xpath=//parent::div//parent::div//span');
     this.pointsCustomNameLabel = this.pointsEditButton.locator('xpath=//parent::div//parent::div//span');
@@ -371,8 +381,69 @@ export class RenamingPage extends BasePage {
     await expect(languageAutoTranslationLabel, 'expecting Language 2 heading to be visible').toBeVisible({
       timeout: TIMEOUTS.VERY_SHORT,
     });
-    await this.clickOnElement(editModal.getCancelButton(), {
-      stepInfo: 'Closing the Edit Label modal after validating elements',
+  }
+
+  async changeSomeDataAndClickOnSave(cardType: 'Recognition' | 'Points' | 'Rewards Store'): Promise<string> {
+    const editModal = new EditLabelModal(this.page);
+    let customName;
+    await editModal.getCustomLabelToggleSwitch().check();
+    customName = await editModal.getCustomLabelInputBox().inputValue();
+    customName = customName + TestDataGenerator.getRandomNo(0, 10000);
+    const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelToggleSwitch().isChecked();
+    if (!isRecognitionForAllLanguagesChecked) {
+      await editModal.getCustomLabelToggleSwitch().check();
+    }
+    switch (cardType) {
+      case 'Recognition':
+        await this.fillInElement(editModal.getCustomLabelInputBox(), customName, {
+          stepInfo: `entering custom name ${customName} in Edit Label modal for recognition`,
+        });
+        break;
+      case 'Points':
+        await this.fillInElement(editModal.getCustomLabelInputBox(), customName, {
+          stepInfo: `entering custom name ${customName} in Edit Label modal for recognition`,
+        });
+        break;
+      case 'Rewards Store':
+        await this.fillInElement(editModal.getCustomLabelInputBox(), customName, {
+          stepInfo: `entering custom name ${customName} in Edit Label modal for recognition`,
+        });
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+    await this.clickOnElement(editModal.getSaveButton(), {
+      stepInfo: `Clicking Save button in Edit Label modal for ${cardType}`,
     });
+    return customName;
+  }
+
+  async releaseTheAppConfigAPIData(): Promise<void> {
+    try {
+      // Remove any route handler mocking the appConfig endpoint so real responses are returned
+      await this.page.unroute('**/account/appConfig');
+    } catch (err) {
+      console.warn('Could not unroute appConfig (it may not be mocked):', err);
+    }
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
+  }
+
+  async getTheNewCustomizedValue(cardType: string): Promise<string | null> {
+    let locator: Locator;
+    switch (cardType) {
+      case 'rewardsStore':
+        locator = this.rewardsCustomName;
+        break;
+      case 'recognition':
+        locator = this.recognitionCustomName;
+        break;
+      case 'points':
+        locator = this.pointsCustomName;
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+    await this.verifier.waitUntilElementIsVisible(locator);
+    return await locator.textContent();
   }
 }

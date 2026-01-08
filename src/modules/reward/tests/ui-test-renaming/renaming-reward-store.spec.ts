@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
@@ -47,6 +48,15 @@ test.describe('renaming page', () => {
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.clickEditButtonByCardType('rewardsStore');
       await renamingPage.validateTheEditModalWithMockedResult();
+      await renamingPage.releaseTheAppConfigAPIData();
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const newCustomValue = await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
+      await renamingPage.verifyThePageIsLoaded();
+      const currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
+      expect(currentCustomizedValue, `${currentCustomizedValue} is not matching with ${newCustomValue!}`).toEqual(
+        newCustomValue!
+      );
     }
   );
 });
