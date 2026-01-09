@@ -2074,7 +2074,7 @@ test.describe(
     test(
       "verify FO can view SU's restricted Home Feed post when FO is NOT in restricted audience",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42177', '@feed-acg-crud', '@FO-override'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42177', '@feed-acg-crud'],
       },
       async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2411,7 +2411,7 @@ test.describe(
     test(
       'verify FO can share restricted (Engineering) Home Feed post to Site Feed with different restrictions (UX Designs)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42196', '@feed-acg-crud', '@share-different-audience'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42196', '@feed-acg-crud', '@share-restricted'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2438,6 +2438,11 @@ test.describe(
 
         // ==================== FO creates Home Feed post WITH restrictions (Engineering) ====================
         await test.step('FO creates Home Feed post WITH Restricted Viewers (Engineering audience)', async () => {
+          const manageSitePage = new ManageSitePage(appManagerFixture.page);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+
+          await appManagerFixture.navigationHelper.clickOnHomeIconButton();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(appManagerFixture.page);
           await feedPage.reloadPage();
