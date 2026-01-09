@@ -93,7 +93,6 @@ export class AppsLinksComponents extends BaseComponent {
         img: 'https://www.gstatic.com/images/branding/product/1x/drive_96dp.png',
       },
     ];
-    this.customJsonInputField = this.page.locator('textarea[name="customJson"]');
     this.urlInput = this.page.getByPlaceholder('Link URL');
     this.labelInput = this.page.getByPlaceholder('Link label');
     this.jsonData = [
@@ -173,7 +172,6 @@ export class AppsLinksComponents extends BaseComponent {
 
   async markLinksFavorite(linkName: string): Promise<void> {
     await test.step(`Marking links favorite`, async () => {
-      await this.addedLinksLocatorFn(linkName).hover();
       const starIconLocator = this.starIconLocatorLinkFn(linkName);
       await starIconLocator.waitFor({ state: 'visible' });
       await starIconLocator.click({ force: true });
@@ -214,7 +212,7 @@ export class AppsLinksComponents extends BaseComponent {
     }
 
     // Wait for new tab to open
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
 
     // Get the new tab (index 1)
     const pages = this.page.context().pages();
@@ -230,6 +228,12 @@ export class AppsLinksComponents extends BaseComponent {
     await test.step(`Verifying org links`, async () => {
       const savedOrgLink = this.pHasTextLocatorFn(name);
       await expect(savedOrgLink, 'expecting this to be visible').toBeVisible();
+    });
+  }
+
+  async verifyApps(name: string): Promise<void> {
+    await test.step(`Verifying apps`, async () => {
+      await this.verifyAppsAreMarkedAsFavorite(name);
     });
   }
 

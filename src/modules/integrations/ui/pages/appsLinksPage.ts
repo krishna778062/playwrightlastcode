@@ -90,7 +90,11 @@ export class AppsLinksPage extends BasePage {
     return this.appslinksComponent.clickOnSaveButtonIfEnabled();
   }
 
-  async verifyApps(expectedAppTitles?: string[]): Promise<string[]> {
+  async verifyApps(name: string): Promise<void> {
+    return this.appslinksComponent.verifyApps(name);
+  }
+
+  async verifyAppsByTitle(expectedAppTitles?: string[]): Promise<string[]> {
     return this.appslinksComponent.verifyAllAppsByTitle(expectedAppTitles);
   }
 
