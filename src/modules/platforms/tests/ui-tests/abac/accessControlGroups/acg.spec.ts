@@ -14,6 +14,7 @@ import {
   ACG_EDIT_ASSETS_SUMMARY_SCREEN,
   ACG_FEATURE_FOR_API,
   ACG_STATUS,
+  ACG_TOAST_MESSAGES,
   ACG_TOOLTIPS,
 } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
@@ -806,7 +807,7 @@ test.describe(
     test(
       `Verify that single ACG can be updated without any issue`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@this-one'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -826,10 +827,10 @@ test.describe(
         await accessControlGroupsPage.loadPage();
         acgName.push(await accessControlGroupsPage.createACGWithAllParams(ACGCreationParams));
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
         );
         await accessControlGroupsPage.dismissTheToastMessage({
-          toastText: 'Access control group was successfully updated',
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
         });
         // Test Scenario
         await accessControlGroupsPage.searchForACG(acgName[0]);
@@ -845,16 +846,16 @@ test.describe(
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
         await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Updating access control groups and audience relationships…'
+          ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS
         );
         await accessControlGroupsPage.dismissTheToastMessage({
-          toastText: 'Updating access control groups and audience relationships…',
+          toastText: ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS,
         });
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
         );
         await accessControlGroupsPage.dismissTheToastMessage({
-          toastText: 'Access control group was successfully updated',
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
         });
         // Verify the updated assets count after removing the admin
         await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.TARGET_AUDIENCE, 1);
