@@ -11,26 +11,38 @@ export class TopicDetailsPage extends BasePage {
   private contentPreviewPage: ContentPreviewPage;
   private baseActionUtil: BaseActionUtil;
   private shareSocialCampaignComponent: ShareComponent;
-  readonly clickingOnFeedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
-  readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
-  readonly editOption: Locator = this.page.getByText('Edit');
-  readonly deleteOption: Locator = this.page.getByText('Delete');
-  readonly copyLinkOption: Locator = this.page.getByText('Copy link');
-  readonly favoriteOption: Locator = this.page.getByRole('button', { name: 'Favorite this post' });
-  readonly likePostButton: Locator = this.page.getByRole('button', { name: 'React to this post' });
-  readonly replyField: Locator = this.page.getByRole('button', { name: 'Leave a reply…' });
-  readonly replyButton: Locator = this.page.getByRole('button', { name: 'Reply', exact: true });
-  readonly textField: Locator = this.page
-    .getByRole('textbox', { name: 'You are in the content editor' })
-    .getByRole('paragraph');
-  readonly shareButton: Locator = this.page.getByRole('button', { name: 'Share this post' });
-  readonly topicScreenContentAndFeedTabs: Locator = this.page.getByText('ContentFeed');
+  readonly clickingOnFeedTab: Locator;
+  readonly ellipsesButton: Locator;
+  readonly editOption: Locator;
+  readonly deleteOption: Locator;
+  readonly copyLinkOption: Locator;
+  readonly favoriteOption: Locator;
+  readonly likePostButton: Locator;
+  readonly replyField: Locator;
+  readonly replyButton: Locator;
+  readonly textField: Locator;
+  readonly shareButton: Locator;
+  readonly topicScreenContentAndFeedTabs: Locator;
 
   constructor(page: Page, topicId: string) {
     super(page, PAGE_ENDPOINTS.getTopicDetailsPage(topicId));
     this.contentPreviewPage = new ContentPreviewPage(page);
     this.baseActionUtil = new BaseActionUtil(page);
     this.shareSocialCampaignComponent = new ShareComponent(page);
+
+    // Initialize locators
+    this.clickingOnFeedTab = this.page.getByRole('tab', { name: 'Feed' });
+    this.ellipsesButton = this.page.getByRole('button', { name: 'Show more' });
+    this.editOption = this.page.getByText('Edit');
+    this.deleteOption = this.page.getByText('Delete');
+    this.copyLinkOption = this.page.getByText('Copy link');
+    this.favoriteOption = this.page.getByRole('button', { name: 'Favorite this post' });
+    this.likePostButton = this.page.getByRole('button', { name: 'React to this post' });
+    this.replyField = this.page.getByRole('button', { name: 'Leave a reply…' });
+    this.replyButton = this.page.getByRole('button', { name: 'Reply', exact: true });
+    this.textField = this.page.getByRole('textbox', { name: 'You are in the content editor' }).getByRole('paragraph');
+    this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
+    this.topicScreenContentAndFeedTabs = this.page.getByText('ContentFeed');
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify topic details page is visible', async () => {
