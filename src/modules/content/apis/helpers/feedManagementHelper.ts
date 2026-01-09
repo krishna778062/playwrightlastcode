@@ -127,6 +127,9 @@ export class FeedManagementHelper {
         textHtml = baseTextHtml;
       }
 
+      // Determine uploadContext based on scope
+      const uploadContext = params.scope === 'public' ? 'home-feed' : 'site-feed';
+
       // Use Playwright's polling mechanism for retry
       const response = await this.createFeedWithRetry(async () => {
         if (params.withAttachment) {
@@ -135,6 +138,7 @@ export class FeedManagementHelper {
             params.fileSize,
             params.mimeType,
             params.filePath,
+            uploadContext,
             {
               textJson,
               textHtml,
@@ -903,15 +907,17 @@ export class FeedManagementHelper {
     fileName: string,
     size: number,
     mimeType: string,
+    uploadContext: string,
     options?: {
       altText?: string | null;
       fileId?: string;
       siteId?: string | null;
       contentId?: string | null;
+      type?: string;
     }
   ): Promise<any> {
     return await test.step(`Uploading image "${fileName}" via helper`, async () => {
-      return await this.feedManagementService.uploadImage(fileName, size, mimeType, options);
+      return await this.feedManagementService.uploadImage(fileName, size, mimeType, uploadContext, options);
     });
   }
 

@@ -600,7 +600,8 @@ test.describe(
           const uploadResponse = await standardUserApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'home-feed'
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {

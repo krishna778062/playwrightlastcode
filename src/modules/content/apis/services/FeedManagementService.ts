@@ -876,6 +876,7 @@ export class FeedManagementService implements IFeedManagementOperations {
     fileName: string,
     size: number,
     mimeType: string,
+    uploadContext: string,
     options: {
       altText?: string | null;
       fileId?: string;
@@ -893,7 +894,10 @@ export class FeedManagementService implements IFeedManagementOperations {
         mime_type: mimeType,
         file_id: fileId,
         siteId: siteId,
+        uploadContext: uploadContext,
       };
+
+      log.debug('upload image payload', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
@@ -999,13 +1003,14 @@ export class FeedManagementService implements IFeedManagementOperations {
     fileSize: number,
     mimeType: string,
     filePath: string,
+    uploadContext: string,
     overrides: Partial<CreateFeedPostPayload> = {}
   ): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
       // Default image upload parameters
 
       // Upload image to get fileId
-      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
+      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType, uploadContext);
       const fileId = uploadResponse.result.file_id;
       const attachmentURL = uploadResponse.result.upload_url;
       log.debug('File upload details', { fileId, attachmentURL });

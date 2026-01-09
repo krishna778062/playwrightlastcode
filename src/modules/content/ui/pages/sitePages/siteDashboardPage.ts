@@ -357,7 +357,7 @@ export class SiteDashboardPage extends BaseSitePage {
 
   async verifySiteNameIsDisplayedAfterSearch(siteName: string): Promise<void> {
     await test.step(`Verify site name "${siteName}" is displayed`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+      await this.verifier.verifyTheElementIsVisible(this.siteLinkAfterSearch(siteName), {
         assertionMessage: `Site link "${siteName}" should be visible`,
       });
     });
