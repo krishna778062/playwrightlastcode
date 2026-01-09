@@ -2287,5 +2287,125 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify FO can share restricted Home Feed post to Site Feed without restrictions - visible to all users',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42195', '@feed-acg-crud', '@share-unrestricted'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a Home Feed post (created WITH restrictions - Engineering) to a Public Site Feed WITHOUT restrictions. Post should be visible to ALL users regardless of audience.',
+          zephyrTestId: 'CONT-42195',
+          storyId: 'CONT-42195',
+        });
+
+        let foPostText: string;
+        let sharePostText: string;
+        let sharedPostId: string = '';
+        let publicSiteId: string = '';
+        let publicSiteName: string = '';
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site for sharing', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+          publicSiteName = publicSite.name;
+        });
+
+        // ==================== FO creates Home Feed post WITH restrictions (Engineering) ====================
+        await test.step('FO creates Home Feed post WITH Restricted Viewers (Engineering audience)', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeIconButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          foPostText = TestDataGenerator.generateRandomText('ABAC Restricted Share Test Post', 3, true);
+          await feedPage.clickShareThoughtsButton();
+
+          const postResult = await feedPage.createAndPostWithLimitVisibility({
+            text: foPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post HAS limit visibility (restricted to Engineering)
+          await feedPage.postEditor.verifyPostHasLimitVisibility(foPostText);
+        });
+
+        // ==================== FO shares to Site Feed WITHOUT restrictions ====================
+        await test.step('FO shares restricted post to Public Site Feed WITHOUT Restricted Viewers', async () => {
+          await feedPage.feedList.clickShareIcon(foPostText);
+          await feedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText('Shared without restriction', 2, true);
+
+          // Share to Site Feed WITHOUT enabling limit visibility
+          await shareComponent.selectShareOptionAsSiteFeed();
+          await shareComponent.enterSiteName(publicSiteName);
+          await shareComponent.enterShareDescription(sharePostText);
+
+          sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await feedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== Engineering User can see shared post on Site Feed ====================
+        await test.step('Standard User (in Engineering audience) navigates to Site Feed and verifies shared post is visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to Engineering user
+          await standardUserFeedPage.feedList.waitForPostToBeVisible(foPostText);
+
+          await standardUserFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== Non-Engineering User can ALSO see shared post on Site Feed ====================
+        await test.step('Social Campaign Manager (NOT in Engineering audience) navigates to Site Feed and verifies shared post IS visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(socialCampaignManagerFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to non-Engineering user (no restriction on Site Feed)
+          await socialCampaignManagerFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+
+          await socialCampaignManagerFeedPage.feedList.verifyDeletedPostMessage(sharePostText);
+        });
+
+        // ==================== Non-Engineering User can access shared post via direct URL ====================
+        await test.step('Social Campaign Manager can access shared post via direct URL', async () => {
+          const directAccessFeedPage = new FeedPage(socialCampaignManagerFixture.page, sharedPostId);
+          await socialCampaignManagerFixture.page.goto(directAccessFeedPage.url);
+
+          // Verify the shared post is accessible via direct URL (no Page not found)
+          await directAccessFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+
+          await directAccessFeedPage.feedList.verifyDeletedPostMessage(sharePostText);
+        });
+      }
+    );
   }
 );
