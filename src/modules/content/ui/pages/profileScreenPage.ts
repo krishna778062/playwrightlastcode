@@ -134,8 +134,8 @@ export class ProfileScreenPage extends BasePage {
 
   async saveProfileChanges(): Promise<void> {
     await test.step('Saving profile changes', async () => {
-      const saveButton = await this.saveButton.isVisible();
-      if (saveButton) {
+      const isEnabled = await this.saveButton.isEnabled();
+      if (isEnabled) {
         await this.clickOnElement(this.saveButton, { force: true });
         //wait for the save button to be hidden
         await this.saveButton.waitFor({ state: 'hidden' });

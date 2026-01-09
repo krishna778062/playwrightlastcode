@@ -7,8 +7,8 @@ import { TopNavBarComponent } from '@/src/core/ui/components/topNavBarComponent'
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { SmartFeedBlock } from '@/src/modules/content/constants/smartFeedBlocks';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
-import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
@@ -104,17 +104,16 @@ test.describe(
           eventId = eventInfo.contentId;
 
           // Update user's date of birth for celebration block
-          const today = new Date();
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
 
-          const appManagerUserId = await appManagerFixture.page.evaluate(() => {
-            return (window as any).Simpplr?.CurrentUser?.uid;
-          });
+          const appManagerUserId = (
+            await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email)
+          ).userId;
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
-            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
+            const birthMonth = CONTENT_TEST_DATA.DATES.MONTH;
+            const birthDay = CONTENT_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -212,14 +211,14 @@ test.describe(
           // Update user's date of birth for celebration block
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
 
-          const appManagerUserId = await appManagerFixture.page.evaluate(() => {
-            return (window as any).Simpplr?.CurrentUser?.uid;
-          });
+          const appManagerUserId = (
+            await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email)
+          ).userId;
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
-            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
+            const birthMonth = CONTENT_TEST_DATA.DATES.MONTH;
+            const birthDay = CONTENT_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -316,8 +315,8 @@ test.describe(
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
-            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
+            const birthMonth = CONTENT_TEST_DATA.DATES.MONTH;
+            const birthDay = CONTENT_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
@@ -413,14 +412,14 @@ test.describe(
           // Update user's date of birth for celebration block
           const appManagerTopNavBarComponent = new TopNavBarComponent(appManagerFixture.page);
 
-          const appManagerUserId = await appManagerFixture.page.evaluate(() => {
-            return (window as any).Simpplr?.CurrentUser?.uid;
-          });
+          const appManagerUserId = (
+            await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.appManager.email)
+          ).userId;
 
           if (appManagerUserId) {
             // Set birth month and day (using current month and tomorrow's day)
-            const birthMonth = FEED_TEST_DATA.DATES.MONTH;
-            const birthDay = FEED_TEST_DATA.DATES.UPCOMING_DAY;
+            const birthMonth = CONTENT_TEST_DATA.DATES.MONTH;
+            const birthDay = CONTENT_TEST_DATA.DATES.UPCOMING_DAY;
 
             await appManagerTopNavBarComponent.openViewProfile({
               stepInfo: 'Opening app manager view profile from profile icon',
