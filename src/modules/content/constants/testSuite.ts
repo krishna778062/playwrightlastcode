@@ -5,6 +5,7 @@ export enum ContentTestSuite {
   ALBUM_STANDARD_USER = '@album-standard-user',
   EVENT_APP_MANAGER = '@event-app-manager',
   EVENT_STANDARD_USER = '@event-standard-user',
+  FEED = '@feed',
   FEED_APP_MANAGER = '@feed-app-manager',
   FEED_SITE_MANAGER = '@feed-site-manager',
   FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER = '@feed-mention-site-topic-user-app-manager',

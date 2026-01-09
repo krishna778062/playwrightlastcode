@@ -13,7 +13,7 @@ import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 test.describe(
   'feed Layout Tests',
   {
-    tag: [ContentTestSuite.FEED_LAYOUT],
+    tag: [ContentTestSuite.FEED_LAYOUT, ContentTestSuite.FEED],
   },
   () => {
     let homePage: NewHomePage;
