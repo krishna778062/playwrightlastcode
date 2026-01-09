@@ -9,15 +9,15 @@ import { Roles, RolesId } from '@/src/core/constants/roles';
 import { USER_STATUS } from '@/src/core/constants/status';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { IdentityUserSearchResponse, User } from '@/src/core/types/user.type';
+import { User } from '@/src/core/types/user.type';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import {
   FEATURE_OWNERS_MENU_OPTIONS,
   FEATURE_OWNERS_TABS_OPTIONS,
   FEATURE_OWNERS_TOAST_MESSAGES,
 } from '@/src/modules/platforms/constants/featureOwners';
-import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
+import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 test.describe(
   'feature owners testcases',
@@ -117,7 +117,7 @@ test.describe(
       test(
         `Verify the functionality of edit feature owner modal for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
@@ -162,7 +162,7 @@ test.describe(
       test(
         `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerFixture }) => {
           tagTest(test.info(), {
