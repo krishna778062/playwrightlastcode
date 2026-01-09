@@ -6,6 +6,10 @@ import { APPS_LINKS } from '@/src/modules/integrations/test-data/gamma-data-file
 export class AppsLinksComponents extends BaseComponent {
   readonly customJsonInputField: Locator;
   readonly appsIntegrationDropdown: Locator;
+  readonly apiTokenInput: Locator;
+  readonly oktaLinkInput: Locator;
+  readonly existingOktaConfigurationCheckbox: Locator;
+  readonly oneLoginURLInput: Locator;
   readonly saveButton: Locator;
   readonly saveButtonElement: Locator;
   readonly customLinkBox: Locator;
@@ -34,6 +38,9 @@ export class AppsLinksComponents extends BaseComponent {
   readonly urlInput: Locator;
   readonly labelInput: Locator;
   readonly jsonData: { name: string; url: string; img: string }[];
+  readonly accountEmailInput: Locator;
+  readonly oneLoginEmbeddingCodeInput: Locator;
+  readonly oktaUserNameFormatDropdown: Locator;
   constructor(page: Page) {
     super(page);
     const getButtonByName = (name: string) => this.page.getByRole('button', { name });
@@ -101,6 +108,13 @@ export class AppsLinksComponents extends BaseComponent {
         img: 'https://affinityit.co.uk/uploads/images/content/_large/Microsoft_365_-_New_Website.png',
       },
     ];
+    this.apiTokenInput = this.page.getByPlaceholder(APPS_LINKS.API_TOKEN_PLACEHOLDER);
+    this.oktaLinkInput = this.page.getByPlaceholder(APPS_LINKS.OKTA_LINK_PLACEHOLDER);
+    this.existingOktaConfigurationCheckbox = this.page.getByText(APPS_LINKS.OKTA_CONFIGURATION);
+    this.oneLoginURLInput = this.page.getByPlaceholder(APPS_LINKS.ONE_LOGIN_URL_PLACEHOLDER);
+    this.oneLoginEmbeddingCodeInput = this.page.getByPlaceholder(APPS_LINKS.ONE_LOGIN_EMBEDDING_CODE_PLACEHOLDER);
+    this.accountEmailInput = this.page.getByPlaceholder(APPS_LINKS.ACCOUNT_EMAIL);
+    this.oktaUserNameFormatDropdown = this.page.locator(`select#${APPS_LINKS.OKTA_USER_NAME_FORMAT_DROPDOWN}`);
   }
 
   async clickOnCustomJsonInputField(): Promise<void> {
@@ -219,9 +233,55 @@ export class AppsLinksComponents extends BaseComponent {
     });
   }
 
-  async verifyApps(name: string): Promise<void> {
-    await test.step(`Verifying apps`, async () => {
-      await this.verifyAppsAreMarkedAsFavorite(name);
+  /**
+   * Verifies all apps present in the apps grid by their title names.
+   * This method finds all app links within the AppsGrid container and verifies each app is visible.
+   * @param expectedAppTitles - Optional array of expected app titles to verify. If provided, verifies that all expected apps are present.
+   * @returns Promise that resolves with an array of all app titles found in the grid
+   */
+  async verifyAllAppsByTitle(expectedAppTitles?: string[]): Promise<string[]> {
+    return await test.step(`Verifying all apps in the apps grid by their title names`, async () => {
+      // Locator for the apps grid container
+      const appsGridContainer = this.page.locator('.AppsGrid-module-appsContent___BiELt');
+
+      // Wait for the apps grid to be visible
+      await expect(appsGridContainer, 'Apps grid container should be visible').toBeVisible();
+
+      // Get all app links within the grid
+      const appLinks = appsGridContainer.locator(
+        '.AppsGrid-module-appGrid___CJqJN .AppsGrid-module-appGridItem___rv6SC a[title]'
+      );
+
+      // Wait for at least one app to be visible
+      await expect(appLinks.first(), 'At least one app should be visible').toBeVisible({ timeout: 10000 });
+
+      // Get count of apps
+      const appCount = await appLinks.count();
+      expect(appCount, 'At least one app should be present').toBeGreaterThan(0);
+
+      // Extract all app titles
+      const foundAppTitles: string[] = [];
+      for (let i = 0; i < appCount; i++) {
+        const appLink = appLinks.nth(i);
+        const title = await appLink.getAttribute('title');
+
+        if (title) {
+          foundAppTitles.push(title);
+          // Verify each app is visible
+          await expect(appLink, `App "${title}" should be visible`).toBeVisible();
+        }
+      }
+
+      // If expected titles are provided, verify all expected apps are present
+      if (expectedAppTitles && expectedAppTitles.length > 0) {
+        for (const expectedTitle of expectedAppTitles) {
+          expect(foundAppTitles, `Expected app "${expectedTitle}" should be present in the apps grid`).toContain(
+            expectedTitle
+          );
+        }
+      }
+
+      return foundAppTitles;
     });
   }
 
@@ -472,17 +532,21 @@ export class AppsLinksComponents extends BaseComponent {
   }
 
   async selectOktaUserNameFormat(userNameFormat: string): Promise<void> {
-    await test.step(`Selecting okta user name format`, async () => {});
+    await test.step(`Selecting okta user name format`, async () => {
+      await this.oktaUserNameFormatDropdown.selectOption({ label: userNameFormat });
+    });
   }
 
-  async selectExistingOktaConfigurationCheckbox(existingOktaConfiguration: string): Promise<void> {
+  async selectExistingOktaConfigurationCheckbox(): Promise<void> {
     await test.step(`Selecting existing okta configuration checkbox`, async () => {
       await this.existingOktaConfigurationCheckbox.click();
     });
   }
 
   async enterOneLoginEmbeddingCode(embeddingCode: string): Promise<void> {
-    await test.step(`Entering one login embedding code`, async () => {});
+    await test.step(`Entering one login embedding code`, async () => {
+      await this.oneLoginEmbeddingCodeInput.fill(embeddingCode);
+    });
   }
 
   async enterOneLoginURL(url: string): Promise<void> {

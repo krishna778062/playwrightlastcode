@@ -90,8 +90,8 @@ export class AppsLinksPage extends BasePage {
     return this.appslinksComponent.clickOnSaveButtonIfEnabled();
   }
 
-  async verifyApps(name: string): Promise<void> {
-    return this.appslinksComponent.verifyApps(name);
+  async verifyApps(expectedAppTitles?: string[]): Promise<string[]> {
+    return this.appslinksComponent.verifyAllAppsByTitle(expectedAppTitles);
   }
 
   async verifyURL(type: string, name: string, url: string): Promise<void> {
@@ -195,8 +195,8 @@ export class AppsLinksPage extends BasePage {
     return this.appslinksComponent.selectOktaUserNameFormat(userNameFormat);
   }
 
-  async selectExistingOktaConfigurationCheckbox(existingOktaConfiguration: string): Promise<void> {
-    return this.appslinksComponent.selectExistingOktaConfigurationCheckbox(existingOktaConfiguration);
+  async selectExistingOktaConfigurationCheckbox(): Promise<void> {
+    return this.appslinksComponent.selectExistingOktaConfigurationCheckbox();
   }
 
   async enterOneLoginEmbeddingCode(embeddingCode: string): Promise<void> {

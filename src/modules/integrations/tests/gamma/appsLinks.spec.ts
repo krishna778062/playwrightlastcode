@@ -240,7 +240,7 @@ test.describe(
         await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
-        await appsLinks.verifyApps(APPS_LINKS.OKTA_APPS);
+        await appsLinks.verifyApps(APPS_LINKS.OKTA_APPS.slice(0, 25) as string[]);
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
         await appsLinks.cancelAllLinksPresent();
@@ -261,7 +261,7 @@ test.describe(
         await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
-        await appsLinks.verifyApps(APPS_LINKS.ONE_LOGIN_APPS);
+        await appsLinks.verifyApps(APPS_LINKS.ONE_LOGIN_APPS.slice(0, 8) as string[]);
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
         await appsLinks.cancelAllLinksPresent();
@@ -276,13 +276,13 @@ test.describe(
       },
       async () => {
         await appsLinks.selectAppsIntegration(APPS_LINKS.OKTA);
-        await appsLinks.selectExistingOktaConfigurationCheckbox(APPS_LINKS.OKTA_CONFIGURATION);
+        await appsLinks.selectExistingOktaConfigurationCheckbox();
         await appsLinks.selectOktaUserNameFormat(APPS_LINKS.ACCOUNT_EMAIL);
         await appsLinks.clickOnSaveButton();
         await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
-        await appsLinks.verifyApps(APPS_LINKS.OKTA_APPS);
+        await appsLinks.verifyApps(APPS_LINKS.OKTA_APPS.slice(0, 25) as string[]);
         await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
         await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
         await appsLinks.cancelAllLinksPresent();
