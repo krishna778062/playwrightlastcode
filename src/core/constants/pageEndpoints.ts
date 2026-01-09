@@ -138,4 +138,7 @@ export const PAGE_ENDPOINTS = {
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
   COMMS_PLANNER_PLANNER: '/comms-planner/planner',
   COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
+
+  //Newsletter pages
+  MANAGE_NEWSLETTER_PAGE: '/employee-newsletter',
 };

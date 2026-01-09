@@ -59,8 +59,8 @@ export class SideNavBarComponent extends BaseComponent {
     super(page);
     this.clickOnContentModeration = page.locator('[href="/manage/content-moderation"][data-testid="main-nav-item"]');
     this.createSection = page.locator("[aria-label='Icon']");
-    this.feedLink = page.locator('[href*="/feed"][data-testid="main-nav-item"]');
-    this.homeLink = page.locator('[href*="/home"]').first();
+    this.feedLink = page.locator('[href="/feed"][data-testid="main-nav-item"]');
+    this.homeLink = page.locator('[href="/home"][data-testid="main-nav-item"]');
     this.sitesButton = page.getByRole('menuitem', { name: 'Sites' });
     this.navigateOnApplication = page.locator('[aria-label="Application settings"]');
     this.clickOnManageFeature = page.locator('[aria-label="Manage"]').first();
