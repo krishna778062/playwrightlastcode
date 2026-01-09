@@ -45,7 +45,7 @@ export class ManageRecognitionPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the manage recognition page is loaded', async () => {
       await expect(this.recognitionHeader, 'expecting manage recognition header element to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }

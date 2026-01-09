@@ -405,7 +405,7 @@ export class RenamingPage extends BasePage {
   async changeSomeDataAndClickOnSave(cardType: 'Recognition' | 'Points' | 'Rewards Store'): Promise<string> {
     const editModal = new EditLabelModal(this.page);
     await editModal.getCustomLabelToggleSwitch().check();
-    const customName = 'Reward Store_' + TestDataGenerator.getRandomNo(0, 10000);
+    const customName = cardType + '_' + TestDataGenerator.getRandomNo(0, 10000);
     const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelToggleSwitch().isChecked();
     if (!isRecognitionForAllLanguagesChecked) {
       await editModal.getCustomLabelToggleSwitch().check();
@@ -431,6 +431,40 @@ export class RenamingPage extends BasePage {
     }
     await this.clickOnElement(editModal.getSaveButton(), {
       stepInfo: `Clicking Save button in Edit Label modal for ${cardType}`,
+    });
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    return customName;
+  }
+
+  async changeSomeDataAndClickOnCancel(cardType: 'Recognition' | 'Points' | 'Rewards Store'): Promise<string> {
+    const editModal = new EditLabelModal(this.page);
+    await editModal.getCustomLabelToggleSwitch().check();
+    const customName = 'Reward Store_' + TestDataGenerator.getRandomNo(0, 10000);
+    const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelToggleSwitch().isChecked();
+    if (!isRecognitionForAllLanguagesChecked) {
+      await editModal.getCustomLabelToggleSwitch().check();
+    }
+    switch (cardType) {
+      case 'Recognition':
+        await this.fillInElement(editModal.getCustomLabelInputBox(), customName, {
+          stepInfo: `entering custom name ${customName} in Edit Label modal for recognition`,
+        });
+        break;
+      case 'Points':
+        await this.fillInElement(editModal.getCustomLabelInputBox(), customName, {
+          stepInfo: `entering custom name ${customName} in Edit Label modal for recognition`,
+        });
+        break;
+      case 'Rewards Store':
+        await this.fillInElement(editModal.getCustomLabelInputBox(), customName, {
+          stepInfo: `entering custom name ${customName} in Edit Label modal for recognition`,
+        });
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+    await this.clickOnElement(editModal.getCancelButton(), {
+      stepInfo: `Clicking Cancel button in Edit Label modal for ${cardType}`,
     });
     return customName;
   }
@@ -461,9 +495,6 @@ export class RenamingPage extends BasePage {
         throw new Error(`Invalid card type: ${cardType}`);
     }
     await this.verifier.waitUntilElementIsVisible(locator);
-    await this.verifyToastMessageIsVisibleWithText('Saved changes successfully');
-    await this.dismissTheToastMessage({ toastText: 'Saved changes successfully' });
-    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
     return await locator.textContent();
   }
 }

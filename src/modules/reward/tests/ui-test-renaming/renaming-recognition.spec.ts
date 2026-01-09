@@ -49,10 +49,18 @@ test.describe('renaming page', () => {
       await renamingPage.validateTheEditModalWithMockedResult();
       await renamingPage.releaseTheAppConfigAPIData();
       await renamingPage.verifyThePageIsLoaded();
+      //Cancel button
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const customValue = await renamingPage.changeSomeDataAndClickOnCancel('Recognition');
+      let currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
+      expect(currentCustomizedValue, `${currentCustomizedValue} is matching with ${customValue!}`).not.toEqual(
+        customValue!
+      );
+      //Save button
       await renamingPage.clickEditButtonByCardType('recognition');
       const newCustomValue = await renamingPage.changeSomeDataAndClickOnSave('Recognition');
       await renamingPage.verifyThePageIsLoaded();
-      const currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
+      currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
       expect(currentCustomizedValue, `${currentCustomizedValue} is not matching with ${newCustomValue!}`).toEqual(
         newCustomValue!
       );
