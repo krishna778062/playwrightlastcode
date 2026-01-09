@@ -72,7 +72,7 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
         const siteCreationPage = new SiteCreationPageAbac(appManagerFixture.page);
 
         // STEP 2: Verify site creation form structure and elements
-        await siteCreationPage.assertions.verifySiteCreationFormStructure();
+        await siteCreationPage.verifySiteCreationFormStructure();
 
         // STEP 3: Create the site and capture siteId from URL
         siteId = await siteCreationPage.createSite({
@@ -83,7 +83,7 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
         console.log('INFO: The created siteId', siteId);
 
         // STEP 4: Verify site creation success toast and that siteId is present
-        await siteCreationPage.assertions.verifySiteCreatedSuccessfully(site.name);
+        await siteCreationPage.verifySiteCreatedSuccessfully(site.name);
       }
     );
   }
@@ -100,15 +100,15 @@ test.describe('site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_C
         storyId: 'CONT-35709',
       });
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-      await manageFeaturePage.actions.clickOnSitesCard();
-      await manageSiteSetUpPage.actions.selectSite();
-      await addSiteScreenPage.actions.clickOnRemoveAudienceButton();
-      await addSiteScreenPage.actions.clickOnIUnderstandCheckbox();
-      await addSiteScreenPage.actions.clickOnContinueButton();
-      await addSiteScreenPage.actions.clickOnBrowseButton();
-      await audienceModalPage.actions.verifyingAudienceModalHeading();
-      await audienceModalPage.assertions.clickOnAllOrganizationOption();
-      await audienceModalPage.actions.selectingAudience();
+      await manageFeaturePage.clickOnSitesCard();
+      await manageSiteSetUpPage.selectSite();
+      await addSiteScreenPage.clickOnRemoveAudienceButton();
+      await addSiteScreenPage.clickOnIUnderstandCheckbox();
+      await addSiteScreenPage.clickOnContinueButton();
+      await addSiteScreenPage.clickOnBrowseButton();
+      await audienceModalPage.verifyingAudienceModalHeading();
+      await audienceModalPage.clickOnAllOrganizationOption();
+      await audienceModalPage.selectingAudience();
     }
   );
 });

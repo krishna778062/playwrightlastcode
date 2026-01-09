@@ -2,17 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
-export interface IEditSitePageActions {
-  clickOnEditOption: () => Promise<void>;
-  editSiteNameInput: (siteName: string) => Promise<void>;
-  clickOnUpdateButton: () => Promise<void>;
-}
-
-export interface IEditSitePageAssertions {
-  verifySiteNameIsUpdated: (siteName: string) => Promise<void>;
-}
-
-export class EditSitePage extends BasePage implements IEditSitePageActions, IEditSitePageAssertions {
+export class EditSitePage extends BasePage {
   readonly editOption: Locator;
   private readonly editSiteNameInputLocator: Locator;
   readonly updateButton: Locator;
@@ -23,15 +13,6 @@ export class EditSitePage extends BasePage implements IEditSitePageActions, IEdi
     this.editSiteNameInputLocator = page.getByRole('textbox', { name: 'Site name' });
     this.updateButton = page.locator('[type="submit"]:has-text("Update")');
   }
-
-  get actions(): IEditSitePageActions {
-    return this;
-  }
-
-  get assertions(): IEditSitePageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     // TODO: Add specific locator verification when edit site page structure is finalized
     await test.step('Verify edit site page is loaded', async () => {

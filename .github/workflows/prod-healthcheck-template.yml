@@ -41,6 +41,7 @@ jobs:
             alert-notification,
             employee-listening,
             form-designer,
+            newsletter,
           ] # de is short for data-engineering
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2

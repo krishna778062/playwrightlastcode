@@ -66,7 +66,7 @@ test.describe(
             embedUrl: embedUrl,
           };
           // Use the Page Object Model to create the post
-          const postResult = await feedPage.createAndPost(feedPostOptions);
+          const postResult = await feedPage.postEditor.createAndPost(feedPostOptions);
 
           // Store the created post details
           createdPostText = postText;
@@ -74,8 +74,8 @@ test.describe(
 
         await test.step('Verify post is created with embedded URL', async () => {
           // Use existing functions to verify the post is visible with full content including URL
-          await feedPage.assertions.validatePostText(postText);
-          await feedPage.assertions.verifyEmbededUrlIsVisible(embedUrl);
+          await feedPage.feedList.validatePostText(postText);
+          await feedPage.feedList.verifyEmbededUrlIsVisible(embedUrl);
         });
 
         const editText = TestDataGenerator.generateRandomText();
@@ -83,11 +83,11 @@ test.describe(
           const newEmbedUrl = TestDataGenerator.generateYouTubeEmbedUrl2();
 
           // Use the Page Object Model to edit the post
-          await feedPage.editPost(postText, editText, newEmbedUrl);
+          await feedPage.postEditor.editPost(postText, editText, newEmbedUrl);
 
           // Verify updated content is visible
-          await feedPage.assertions.validatePostText(editText);
-          await feedPage.assertions.verifyEmbededUrlIsVisible(embedUrl);
+          await feedPage.feedList.validatePostText(editText);
+          await feedPage.feedList.verifyEmbededUrlIsVisible(newEmbedUrl);
         });
 
         await test.step('Delete the post', async () => {
@@ -135,30 +135,30 @@ test.describe(
 
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.actions.verifyThePageIsLoaded();
+        await feedPage.verifyThePageIsLoaded();
 
         // Generate test data
         const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
         const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         await test.step(`And Enter the text with video url "${youtubeUrl}" on the Feed Editor section`, async () => {
           const feedPostOptions: FeedPostOptions = {
             text: postText,
             embedUrl: youtubeUrl,
           };
-          const postResult = await feedPage.actions.createAndPost(feedPostOptions);
+          const postResult = await feedPage.postEditor.createAndPost(feedPostOptions);
           createdPostId = postResult.postId || '';
         });
 
-        await feedPage.assertions.waitForPostToBeVisible(postText);
-        await feedPage.assertions.verifyEmbedUrlPreviewIsVisible(youtubeUrl);
+        await feedPage.feedList.waitForPostToBeVisible(postText);
+        await feedPage.feedList.verifyEmbedUrlPreviewIsVisible(youtubeUrl);
 
-        await feedPage.actions.addReplyToPostWithEmbedUrl(replyText, createdPostId, vimeoUrl);
+        await feedPage.feedList.addReplyToPostWithEmbedUrl(replyText, createdPostId, vimeoUrl);
 
-        await feedPage.assertions.verifyReplyIsVisible(replyText);
-        await feedPage.assertions.verifyEmbedUrlPreviewIsVisibleInReply(vimeoUrl, replyText);
+        await feedPage.feedList.verifyReplyIsVisible(replyText);
+        await feedPage.feedList.verifyEmbedUrlPreviewIsVisibleInReply(vimeoUrl, replyText);
       }
     );
 

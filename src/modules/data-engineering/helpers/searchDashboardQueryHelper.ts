@@ -40,6 +40,13 @@ export interface MostSearchesPerformedByDepartmentData {
   avg_searches_per_user: number;
 }
 
+export interface MostSearchesPerformedByLocationData {
+  location: string;
+  total_searches: number;
+  distinct_users: number;
+  avg_searches_per_user: number;
+}
+
 export interface SearchUsageVolumeClickThroughRateData {
   search_date: string;
   total_search_count: number;
@@ -409,6 +416,42 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformMostSearchesPerformedByDepartmentResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to MostSearchesPerformedByLocationData format
+   * @param rawResults - Raw results from database query
+   * @returns MostSearchesPerformedByLocationData[] - Properly typed and transformed data
+   */
+  private transformMostSearchesPerformedByLocationResults(rawResults: any[]): MostSearchesPerformedByLocationData[] {
+    return rawResults.map((item: any) => {
+      const avgSearchesPerUser = Number(item.AVG_SEARCHES_PER_USER || item.avg_searches_per_user);
+      return {
+        location: item.LOCATION || item.location,
+        total_searches: Number(item.TOTAL_SEARCHES || item.total_searches),
+        distinct_users: Number(item.DISTINCT_USERS || item.distinct_users),
+        avg_searches_per_user: isNaN(avgSearchesPerUser) ? 0 : avgSearchesPerUser,
+      };
+    });
+  }
+
+  /**
+   * Gets most searches performed by location data from database with filters applied.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<MostSearchesPerformedByLocationData[]> - Most searches performed by location data
+   */
+  async getMostSearchesPerformedByLocationFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<MostSearchesPerformedByLocationData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: SearchSql.Most_Searches_Performed_By_Location,
+      filterBy: { ...filterBy, tenantCode: this.orgId },
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformMostSearchesPerformedByLocationResults(rawResults);
   }
 
   /**

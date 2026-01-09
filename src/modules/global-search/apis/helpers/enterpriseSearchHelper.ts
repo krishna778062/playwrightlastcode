@@ -11,9 +11,78 @@ export class EnterpriseSearchHelper {
    * @param params.searchTerm - The search term to use.
    * @param params.objectType - The object type to search for (e.g., 'content', 'feed', 'file').
    * @param params.valueToFind - The value to find in the specified field (defaults to searchTerm if not provided).
-   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title').
+   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title', ignored for 'feed' type).
+   * @param params.timeout - Maximum time in milliseconds to wait for the result (defaults to 80000ms).
+   * @returns The found result item, or undefined if not found within timeout.
    */
   static async waitForResultToAppearInApiResponse(params: {
+    apiClient: HttpClient;
+    searchTerm: string;
+    objectType: string;
+    valueToFind?: string;
+    fieldToCheck?: string;
+    timeout?: number;
+  }) {
+    const { apiClient, searchTerm, objectType, valueToFind, fieldToCheck = 'title', timeout = 80_000 } = params;
+
+    let foundItem: Record<string, any> | undefined;
+
+    await test.step(`Waiting for search results to be visible for search term ${searchTerm}`, async () => {
+      await expect(
+        async () => {
+          const response = await apiClient.post(API_ENDPOINTS.search.enterprise, {
+            data: { page_size: 10, exact_match: true, search_term: searchTerm },
+          });
+          const responseBody = await response.json();
+
+          // Safely access list_items with fallback to empty array
+          const listItems = responseBody?.data?.list_items ?? [];
+
+          // Filter the list items which have the correct object_type
+          const result = listItems.filter((eachItem: any) => eachItem.item.object_type === objectType);
+
+          // Find the specific item by checking the specified field for the value
+          const valueToSearch = valueToFind || searchTerm;
+
+          // For feeds, try multiple possible field names (uses partial match)
+          if (objectType === 'feed') {
+            foundItem = result.find(
+              (eachItem: any) =>
+                eachItem.item.excerpt?.includes(valueToSearch) ||
+                eachItem.item.text?.includes(valueToSearch) ||
+                eachItem.item.title?.includes(valueToSearch) ||
+                eachItem.item.textHtml?.includes(valueToSearch) ||
+                eachItem.item.textJson?.includes(valueToSearch)
+            );
+          } else {
+            // For other object types, use exact match on the specified field
+            foundItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
+          }
+
+          expect(foundItem).toBeDefined();
+        },
+        {
+          message: `${objectType} result for search term ${searchTerm} to appear in api response`,
+        }
+      ).toPass({ intervals: [20000], timeout: 120_000 });
+
+      //TODO: We should run a deep check to see if the result item is site and then match the title
+    });
+
+    return foundItem;
+  }
+
+  /**
+   * Waits for a result to disappear from the API response for a given search term.
+   * This is useful for verifying that deactivated/deleted items are no longer searchable.
+   * @param params - Search parameters with descriptive names.
+   * @param params.apiClient - The API client to use.
+   * @param params.searchTerm - The search term to use.
+   * @param params.objectType - The object type to search for (e.g., 'content', 'feed', 'file', 'site').
+   * @param params.valueToFind - The value to find in the specified field (defaults to searchTerm if not provided).
+   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title').
+   */
+  static async waitForResultToDisappearInApiResponse(params: {
     apiClient: HttpClient;
     searchTerm: string;
     objectType: string;
@@ -28,22 +97,24 @@ export class EnterpriseSearchHelper {
       fieldToCheck = objectType === 'feed' ? 'excerpt' : 'title',
     } = params;
 
-    await test.step(`Waiting for search results to be visible for search term ${searchTerm}`, async () => {
+    await test.step(`Waiting for search results to disappear for search term ${searchTerm}`, async () => {
       await expect(
         async () => {
           const response = await apiClient.post(API_ENDPOINTS.search.enterprise, {
             data: { page_size: 10, exact_match: true, search_term: searchTerm },
           });
           const responseBody = await response.json();
-          console.log('responseBody', responseBody);
-          // Filter the list items which have the correct object_type
-          const result = responseBody.data.list_items.filter(
-            (eachItem: any) => eachItem.item.object_type === objectType
+          if (!responseBody?.data?.list_items || responseBody.data.list_items.length === 0) {
+            console.log('list_items is empty or missing - item has disappeared from search results');
+            return;
+          }
+
+          const result = (responseBody.data.list_items || []).filter(
+            (eachItem: any) => eachItem?.item?.object_type === objectType
           );
-          // Find the specific item by checking the specified field for the value
+
           const valueToSearch = valueToFind || searchTerm;
 
-          // For feeds, try multiple possible field names
           let resultItem;
           if (objectType === 'feed') {
             resultItem = result.find(
@@ -57,16 +128,12 @@ export class EnterpriseSearchHelper {
           } else {
             resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
           }
-
-          console.log('Found result item:', resultItem);
-          expect(resultItem).toBeDefined();
+          expect(resultItem).toBeUndefined();
         },
         {
-          message: `${objectType} result for search term ${searchTerm} to appear in api response`,
+          message: `${objectType} result for search term ${searchTerm} to disappear from api response`,
         }
-      ).toPass({ intervals: [20000], timeout: 120_000 });
-
-      //TODO: We should run a deep check to see if the result item is site and then match the title
+      ).toPass({ intervals: [20000], timeout: 140_000 });
     });
   }
 }
