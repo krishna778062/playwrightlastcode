@@ -53,7 +53,7 @@ test.describe('renaming page', () => {
       await renamingPage.clickEditButtonByCardType('recognition');
       const customValue = await renamingPage.changeSomeDataAndClickOnCancel('Recognition');
       let currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
-      expect(currentCustomizedValue, `${currentCustomizedValue} is matching with ${customValue!}`).not.toEqual(
+      expect(currentCustomizedValue, `${currentCustomizedValue} is not matching with ${customValue!}`).not.toEqual(
         customValue!
       );
       //Save button
@@ -61,7 +61,7 @@ test.describe('renaming page', () => {
       const newCustomValue = await renamingPage.changeSomeDataAndClickOnSave('Recognition');
       await renamingPage.verifyThePageIsLoaded();
       currentCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
-      expect(currentCustomizedValue, `${currentCustomizedValue} is not matching with ${newCustomValue!}`).toEqual(
+      expect(currentCustomizedValue, `${currentCustomizedValue} is matching with ${newCustomValue!}`).toEqual(
         newCustomValue!
       );
     }

@@ -432,6 +432,7 @@ export class RenamingPage extends BasePage {
     await this.clickOnElement(editModal.getSaveButton(), {
       stepInfo: `Clicking Save button in Edit Label modal for ${cardType}`,
     });
+    await this.verifyToastMessageIsVisibleWithText('Saved changes successfully', { timeout: TIMEOUTS.VERY_VERY_SHORT });
     await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
     return customName;
   }
