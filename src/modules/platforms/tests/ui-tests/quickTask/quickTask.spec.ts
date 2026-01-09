@@ -139,13 +139,12 @@ test.describe.serial('quick Task', () => {
       const initialCount = await quickTaskPage.getInitialTabCount('new');
 
       await quickTaskTestHelper.createTestTask('medium');
-      // Wait for backend to process the task before reloading
+
       await page.waitForTimeout(2000);
       await quickTaskPage.reloadAndNavigateToTasks();
       await quickTaskPage.verifyNewTabCount(initialCount + 1);
 
       await quickTaskTestHelper.createTestTask('high');
-      // Wait for backend to process the task before reloading
       await page.waitForTimeout(2000);
       await quickTaskPage.reloadAndNavigateToTasks();
       await quickTaskPage.verifyNewTabCount(initialCount + 2);
@@ -306,7 +305,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that the user can search a task using the exact task title',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37278'],
@@ -354,7 +353,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that the task list filters correctly when searching with a partial task title',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37279'],
@@ -392,7 +391,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that no tasks appear when the user searches for a non-existing task title',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37281'],
@@ -423,7 +422,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that clearing the search input displays the full task list again',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37282'],
@@ -463,7 +462,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that tasks are filtered in real-time while typing in the search bar',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37283'],
@@ -524,7 +523,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify the Edit Task option is visible in task view',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37308'],
@@ -558,7 +557,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify the Edit Task option is visible in the task list',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@sanity'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37309'],
