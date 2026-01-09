@@ -540,7 +540,7 @@ test.describe(
           await siteManagerFeedPage.feedList.verifyReplyIsVisible(replyText);
 
           // Verify inline image in the reply
-          await siteManagerFeedPage.feedList.verifyInlineImagePreviewVisible();
+          await siteManagerFeedPage.feedList.clickReplyImagePreview(replyText);
         });
 
         await test.step('Phase 4: Admin Deletes Post', async () => {
@@ -551,6 +551,7 @@ test.describe(
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
           const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.reloadPage();
           await adminFeedPage.verifyThePageIsLoaded();
           await adminFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
