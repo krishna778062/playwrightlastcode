@@ -2,6 +2,7 @@ import { Page, test } from '@playwright/test';
 
 import { AverageSearchesPerLoggedInUser } from './metrics/averageSearchesPerLoggedInUser';
 import { MostSearchesPerformedByDepartment } from './metrics/mostSearchesPerformedByDepartment';
+import { MostSearchesPerformedByLocation } from './metrics/mostSearchesPerformedByLocation';
 import { NoResultSearchMetrics } from './metrics/noResultSearch';
 import { NoResultSearchQueries } from './metrics/noResultSearchQueries';
 import { SearchClickThroughRate } from './metrics/searchClickThroughRate';
@@ -26,6 +27,7 @@ export class SearchDashboard extends BaseAnalyticsDashboardPage {
   readonly topClickthroughTypes: TopClickthroughTypes;
   readonly noResultSearchQueries: NoResultSearchQueries;
   readonly mostSearchesPerformedByDepartment: MostSearchesPerformedByDepartment;
+  readonly mostSearchesPerformedByLocation: MostSearchesPerformedByLocation;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SEARCH_DASHBOARD);
@@ -39,6 +41,7 @@ export class SearchDashboard extends BaseAnalyticsDashboardPage {
     this.topClickthroughTypes = new TopClickthroughTypes(page, this.thoughtSpotIframe);
     this.noResultSearchQueries = new NoResultSearchQueries(page, this.thoughtSpotIframe);
     this.mostSearchesPerformedByDepartment = new MostSearchesPerformedByDepartment(page, this.thoughtSpotIframe);
+    this.mostSearchesPerformedByLocation = new MostSearchesPerformedByLocation(page, this.thoughtSpotIframe);
   }
 
   /**

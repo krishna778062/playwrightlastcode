@@ -51,8 +51,9 @@ test.describe(
       await cleanupDashboardTesting(testEnvironment);
     });
 
+    // 1. Total search volume
     test(
-      'verify Total search volume metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Total search volume in Search Dashboard default period last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -64,7 +65,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Total search volume in Search dashboard with default filter',
+          description: 'TS To verify the answer of Total search volume in Search Dashboard default period last 30 days',
           zephyrTestId: 'DE-25989',
           storyId: 'DE-25920',
         });
@@ -81,8 +82,9 @@ test.describe(
       }
     );
 
+    // 2. Search click through rate
     test(
-      'verify Search click through rate metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Search click through rate in Search Dashboard default filter last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -94,7 +96,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Search click through rate in Search dashboard with default filter',
+          description:
+            'TS To verify the answer of Search click through rate in Search Dashboard default filter last 30 days',
           zephyrTestId: 'DE-25990',
           storyId: 'DE-25921',
         });
@@ -111,8 +114,9 @@ test.describe(
       }
     );
 
+    // 3. No results search
     test(
-      'verify No results search metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of No results search in Search Dashboard default filter with last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -124,7 +128,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of No results search in Search dashboard with default filter',
+          description:
+            'TS To verify the answer of No results search in Search Dashboard default filter with last 30 days',
           zephyrTestId: 'DE-25991',
           storyId: 'DE-25922',
         });
@@ -141,8 +146,9 @@ test.describe(
       }
     );
 
+    // 4. Average searches per logged-in user
     test(
-      'verify Average searches per logged in user metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Average searches per logged-in user in Search Dashboard default filter with last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -155,7 +161,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Average searches per logged in user in Search dashboard with default filter',
+            'TS To verify the answer of Average searches per logged-in user in Search Dashboard default filter with last 30 days',
           zephyrTestId: 'DE-25992',
           storyId: 'DE-25923',
         });
@@ -176,6 +182,93 @@ test.describe(
       }
     );
 
+    // 5. Search usage volume and click through rate metric
+    test(
+      'TS To verify the answer of Search usage volume and click through rate  in Search Dashboard default period last 30 days',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.LINE_CHART,
+          '@search-usage-volume-and-click-through-rate',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer of Search usage volume and click through rate  in Search Dashboard default period last 30 days',
+          zephyrTestId: 'DE-25993',
+          storyId: 'DE-25924',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        // Query helper now returns properly transformed data
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+            filterBy,
+          });
+
+        console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const searchUsageVolumeAndClickThroughRateMetric =
+          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
+        await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
+
+        // Verify axis labels (dual Y-axis chart)
+        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
+        await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
+          leftVerticalAxisLabel: 'Total searches',
+          rightVerticalAxisLabel: 'Total clickthrough',
+          horizontalAxisLabel: 'Search performed date',
+        });
+
+        // Verify line chart points with tooltips
+        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
+      }
+    );
+
+    // 6. Search usage volume and click through rate CSV
+    test(
+      'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard default filter last 30 days',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@search-usage-volume-and-click-through-rate-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard default filter last 30 days',
+          zephyrTestId: 'DE-25549',
+          storyId: 'DE-25924',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        // Query helper now returns properly transformed data
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const dbData =
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+            filterBy,
+          });
+
+        // Component handles CSV validation internally
+        const searchUsageVolumeAndClickThroughRateMetric =
+          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
+        await searchUsageVolumeAndClickThroughRateMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          defaultPeriodFilter
+        );
+      }
+    );
+
+    // 7. Top search queries metric
     test(
       'verify Top search queries metric data validation with default period filter (Last 30 days)',
       {
@@ -209,109 +302,40 @@ test.describe(
       }
     );
 
+    // 8. Top search queries CSV
     test(
-      'verify Top search queries with no clickthrough metric data validation with default period filter (Last 30 days)',
+      'verify Top search queries CSV download and data validation with default period filter (Last 30 days)',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           TestGroupType.HEALTHCHECK,
-          TestCaseType.TABULAR_METRIC,
-          '@top-search-queries-with-no-clickthrough',
+          TestCaseType.CSV_VALIDATION,
+          '@top-search-queries-csv',
         ],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Top search queries with no clickthrough in Search dashboard with default filter',
-          zephyrTestId: 'DE-26002',
-          storyId: 'DE-25928',
+            'To verify CSV download and data validation for Top search queries in Search dashboard with default filter',
+          zephyrTestId: 'DE-25525',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with default period (Last 30 days)
         // Query helper now returns properly transformed data
         const filterBy = createFilterOptions(defaultPeriodFilter);
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
-            filterBy,
-          });
-
-        console.log('Expected Top Search Queries With No Clickthrough Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const topSearchQueriesWithNoClickthroughMetric =
-          testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
-        await topSearchQueriesWithNoClickthroughMetric.verifyDataIsLoaded();
-        await topSearchQueriesWithNoClickthroughMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
-      }
-    );
-
-    test(
-      'verify Top clickthrough types metric data validation with default period filter (Last 30 days)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.TABULAR_METRIC,
-          '@top-clickthrough-types',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'To verify the answer of Top clickthrough types in Search dashboard with default filter',
-          zephyrTestId: 'DE-26006',
-          storyId: 'DE-25929',
+        const dbData = await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesFromDBWithFilters({
+          filterBy,
         });
 
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        // Query helper now returns properly transformed data
-        const filterBy = createFilterOptions(defaultPeriodFilter);
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({ filterBy });
-
-        console.log('Expected Top Clickthrough Types Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
-        await topClickthroughTypesMetric.verifyDataIsLoaded();
-        await topClickthroughTypesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+        // Component handles CSV validation internally
+        const topSearchQueriesMetric = testEnvironment.searchDashboard.topSearchQueries;
+        await topSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, defaultPeriodFilter);
       }
     );
 
-    test(
-      'verify No result search queries metric data validation with default period filter (Last 30 days)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.TABULAR_METRIC,
-          '@no-result-search-queries',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'To verify the answer of No result search queries in Search dashboard with default filter',
-          zephyrTestId: 'DE-25999',
-          storyId: 'DE-25927',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        // Query helper now returns properly transformed data
-        const filterBy = createFilterOptions(defaultPeriodFilter);
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({ filterBy });
-
-        console.log('Expected No Result Search Queries Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
-        await noResultSearchQueriesMetric.verifyDataIsLoaded();
-        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
-      }
-    );
-
+    // 9. Most searches performed by Department metric
     test(
       'verify Most searches performed by Department metric data validation with default period filter (Last 30 days)',
       {
@@ -349,122 +373,152 @@ test.describe(
       }
     );
 
+    // 10. Most searches performed by Department CSV
     test(
-      'verify Search usage volume and click through rate metric data validation with default period filter (Last 30 days)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.LINE_CHART,
-          '@search-usage-volume-and-click-through-rate',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify the answer of Search usage volume and click through rate in Search dashboard with default filter',
-          zephyrTestId: 'DE-25993',
-          storyId: 'DE-25924',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        // Query helper now returns properly transformed data
-        const filterBy = createFilterOptions(defaultPeriodFilter);
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
-            filterBy,
-          });
-
-        console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const searchUsageVolumeAndClickThroughRateMetric =
-          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
-        await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
-
-        // Verify axis labels (dual Y-axis chart)
-        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
-        await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
-          leftVerticalAxisLabel: 'Total searches',
-          rightVerticalAxisLabel: 'Total clickthrough',
-          horizontalAxisLabel: 'Search performed date',
-        });
-
-        // Verify line chart points with tooltips
-        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
-      }
-    );
-
-    test(
-      'verify Search usage volume and click through rate CSV download and data validation with default period filter (Last 30 days)',
+      'verify Most searches performed by Department CSV download and data validation with default period filter (Last 30 days)',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
           TestGroupType.HEALTHCHECK,
           TestCaseType.CSV_VALIDATION,
-          '@search-usage-volume-and-click-through-rate-csv',
+          '@most-searches-performed-by-department-csv',
         ],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Search usage volume and click through rate in Search dashboard with default filter',
-          zephyrTestId: 'DE-25993',
-          storyId: 'DE-25924',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        // Query helper now returns properly transformed data
-        const filterBy = createFilterOptions(defaultPeriodFilter);
-        const dbData =
-          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
-            filterBy,
-          });
-
-        // Component handles CSV validation internally
-        const searchUsageVolumeAndClickThroughRateMetric =
-          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
-        await searchUsageVolumeAndClickThroughRateMetric.verifyCSVDataMatchesWithSnowflakeData(
-          dbData,
-          defaultPeriodFilter
-        );
-      }
-    );
-
-    test(
-      'verify Top search queries CSV download and data validation with default period filter (Last 30 days)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.CSV_VALIDATION,
-          '@top-search-queries-csv',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify CSV download and data validation for Top search queries in Search dashboard with default filter',
-          zephyrTestId: 'DE-25525',
+            'To verify CSV download and data validation for Most searches performed by Department in Search dashboard with default filter',
+          zephyrTestId: 'DE-26546',
           storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with default period (Last 30 days)
         // Query helper now returns properly transformed data
         const filterBy = createFilterOptions(defaultPeriodFilter);
-        const dbData = await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesFromDBWithFilters({
-          filterBy,
-        });
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByDepartmentFromDBWithFilters({
+            filterBy,
+          });
 
         // Component handles CSV validation internally
-        const topSearchQueriesMetric = testEnvironment.searchDashboard.topSearchQueries;
-        await topSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, defaultPeriodFilter);
+        const mostSearchesPerformedByDepartmentMetric =
+          testEnvironment.searchDashboard.mostSearchesPerformedByDepartment;
+        await mostSearchesPerformedByDepartmentMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          defaultPeriodFilter
+        );
       }
     );
 
+    // 11. No result search queries metric
+    test(
+      'verify No result search queries metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@no-result-search-queries',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of No result search queries in Search dashboard with default filter',
+          zephyrTestId: 'DE-25999',
+          storyId: 'DE-25927',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        // Query helper now returns properly transformed data
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({ filterBy });
+
+        console.log('Expected No Result Search Queries Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
+        await noResultSearchQueriesMetric.verifyDataIsLoaded();
+        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 12. No result search queries CSV
+    test(
+      'verify No result search queries CSV download and data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@no-result-search-queries-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and data validation for No result search queries in Search dashboard with default filter',
+          zephyrTestId: 'DE-26078',
+          storyId: 'DE-25933',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        // Pass forCSVValidation=true to convert failure_percentage to decimal format to match CSV format
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
+            filterBy,
+            forCSVValidation: true, // converts failure_percentage to decimal
+          });
+
+        // Component handles CSV validation internally
+        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
+        await noResultSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(transformedData, defaultPeriodFilter);
+      }
+    );
+
+    // 13. Top search queries with no clickthrough metric
+    test(
+      'verify Top search queries with no clickthrough metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@top-search-queries-with-no-clickthrough',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Top search queries with no clickthrough in Search dashboard with default filter',
+          zephyrTestId: 'DE-26002',
+          storyId: 'DE-25928',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        // Query helper now returns properly transformed data
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
+            filterBy,
+          });
+
+        console.log('Expected Top Search Queries With No Clickthrough Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const topSearchQueriesWithNoClickthroughMetric =
+          testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
+        await topSearchQueriesWithNoClickthroughMetric.verifyDataIsLoaded();
+        await topSearchQueriesWithNoClickthroughMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 14. Top search queries with no clickthrough CSV
     test(
       'verify Top search queries with no clickthrough CSV download and data validation with default period filter (Last 30 days)',
       {
@@ -503,6 +557,41 @@ test.describe(
       }
     );
 
+    // 15. Top clickthrough types metric
+    test(
+      'verify Top clickthrough types metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@top-clickthrough-types',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Top clickthrough types in Search dashboard with default filter',
+          zephyrTestId: 'DE-26006',
+          storyId: 'DE-25929',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        // Query helper now returns properly transformed data
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({ filterBy });
+
+        console.log('Expected Top Clickthrough Types Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
+        await topClickthroughTypesMetric.verifyDataIsLoaded();
+        await topClickthroughTypesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 16. Top clickthrough types CSV
     test(
       'verify Top clickthrough types CSV download and data validation with default period filter (Last 30 days)',
       {
@@ -533,77 +622,6 @@ test.describe(
         // Component handles CSV validation internally
         const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
         await topClickthroughTypesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, defaultPeriodFilter);
-      }
-    );
-
-    test(
-      'verify No result search queries CSV download and data validation with default period filter (Last 30 days)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.CSV_VALIDATION,
-          '@no-result-search-queries-csv',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify CSV download and data validation for No result search queries in Search dashboard with default filter',
-          zephyrTestId: 'DE-26078',
-          storyId: 'DE-25933',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        // Pass forCSVValidation=true to convert failure_percentage to decimal format to match CSV format
-        const filterBy = createFilterOptions(defaultPeriodFilter);
-        const transformedData =
-          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
-            filterBy,
-            forCSVValidation: true, // converts failure_percentage to decimal
-          });
-
-        // Component handles CSV validation internally
-        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
-        await noResultSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(transformedData, defaultPeriodFilter);
-      }
-    );
-
-    test(
-      'verify Most searches performed by Department CSV download and data validation with default period filter (Last 30 days)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.CSV_VALIDATION,
-          '@most-searches-performed-by-department-csv',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify CSV download and data validation for Most searches performed by Department in Search dashboard with default filter',
-          zephyrTestId: 'DE-26546',
-          storyId: 'DE-25933',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        // Query helper now returns properly transformed data
-        const filterBy = createFilterOptions(defaultPeriodFilter);
-        const transformedData =
-          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByDepartmentFromDBWithFilters({
-            filterBy,
-          });
-
-        // Component handles CSV validation internally
-        const mostSearchesPerformedByDepartmentMetric =
-          testEnvironment.searchDashboard.mostSearchesPerformedByDepartment;
-        await mostSearchesPerformedByDepartmentMetric.verifyCSVDataMatchesWithSnowflakeData(
-          transformedData,
-          defaultPeriodFilter
-        );
       }
     );
   }

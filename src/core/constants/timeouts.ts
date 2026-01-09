@@ -7,6 +7,7 @@ export const TIMEOUTS = {
   LONG: 45_000,
   VERY_LONG: 60_000,
   VERY_VERY_LONG: 120_000,
+  ULTRA_LONG: 140_000,
 };
 
 // Retry intervals (in milliseconds) - Used in tests
