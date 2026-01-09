@@ -1,4 +1,4 @@
-export type TenantKey = 'primary' | 'rewardSettings';
+export type TenantKey = 'primary' | 'rewardSettings' | 'renaming';
 export type EnvironmentKey =
   | 'dev'
   | 'test'
@@ -322,6 +322,44 @@ export const config = {
       endUserEmail: 'sonu.kumar+3@simpplr.com',
       endUserName: 'Standard User',
       endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+  },
+  renaming: {
+    test: {
+      tenantName: 'Recognition Test Renaming Primary',
+      frontendBaseUrl: 'https://reco-renaming.test.simpplr.xyz',
+      apiBaseUrl: 'https://reco-renaming-api.test.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '5e390df5-16d5-47a7-9019-250bace73f06',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: '485c3d38-cc74-4497-bede-11dc6c885a4a',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: '6fe4e2c7-5e46-4a55-a17d-7c4443740aa5',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    qa: {
+      tenantName: 'Recognition QA Renaming Primary',
+      frontendBaseUrl: 'https://reco-renaming.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reco-renaming-api.qa.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '994bb186-172f-41b4-879a-484da524a07f',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'e7131afd-dec6-4885-8d16-3af5698e6eaf',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: 'b03504e7-6ebd-43cf-b12c-af9cb11dfdbc',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
