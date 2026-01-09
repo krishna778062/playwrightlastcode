@@ -299,14 +299,10 @@ test.describe(
         ],
       },
       async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
         tagTest(test.info(), {
           description: 'TS To verify the answer Most Popular in Sites Dashboard',
           zephyrTestId: 'DE-26383',
           storyId: 'DE-26250',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
         });
 
         const { sitesDashboardQueryHelper, sitesDashboard } = testEnvironment;
@@ -451,14 +447,10 @@ test.describe(
         ],
       },
       async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
         tagTest(test.info(), {
           description: 'TS To verify the CSV Most Popular in Sites Dashboard',
           zephyrTestId: 'DE-26738',
           storyId: 'DE-26250',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
         });
 
         // Get expected metric value from snowflake with default period (Last 30 days)
@@ -484,14 +476,10 @@ test.describe(
         ],
       },
       async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
         tagTest(test.info(), {
           description: 'TS To verify the CSV Least Popular in Sites Dashboard',
           zephyrTestId: 'DE-26739',
           storyId: 'DE-26237',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
         });
 
         // Get expected metric value from snowflake with default period (Last 30 days)
