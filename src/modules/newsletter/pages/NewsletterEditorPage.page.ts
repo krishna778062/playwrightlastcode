@@ -118,11 +118,12 @@ export class NewsletterEditorPage extends BasePage {
       // Dismiss any blocking dialogs (e.g., survey prompts)
       await this.dismissSurveyPromptIfVisible();
 
-      // Check for the Newsletter heading (h1) which is unique on the listing page
-      await expect(
-        this.page.getByRole('heading', { name: 'Newsletter', level: 1 }),
-        'Newsletter listing page should be loaded'
-      ).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      // Use the Create button as the primary verification element (more reliable than heading)
+      // This matches the pattern used in NewsletterHomePagePage which uses searchInput
+      await this.verifier.verifyTheElementIsVisible(this.createButton, {
+        timeout: TIMEOUTS.SHORT,
+        assertionMessage: 'Newsletter listing page should be loaded - Create button not visible',
+      });
     });
   }
 
@@ -353,7 +354,11 @@ export class NewsletterEditorPage extends BasePage {
    */
   async clickBackToEmployeeNewsletterPage(): Promise<void> {
     await test.step('Click Back to return to newsletter list', async () => {
-      await this.backArrowLink.click({ force: true });
+      // Dismiss any blocking dialogs (e.g., survey prompts)
+      await this.dismissSurveyPromptIfVisible();
+      await this.clickOnElement(this.backArrowLink, {
+        stepInfo: 'Click back arrow link',
+      });
       // Wait for navigation to complete
       await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
     });
@@ -388,10 +393,21 @@ export class NewsletterEditorPage extends BasePage {
    */
   async clickSave(): Promise<void> {
     await test.step('Click Save button', async () => {
-      // Use force to bypass any overlay dialogs (matching Cypress behavior)
-      await this.saveButton.click({ force: true });
-      // Wait for save to complete
-      await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
+      // Dismiss any blocking dialogs (e.g., survey prompts)
+      await this.dismissSurveyPromptIfVisible();
+
+      // Wait for save API response before clicking to ensure we catch the response
+      const responsePromise = this.page.waitForResponse(
+        response => response.url().includes('newsletters') && response.status() === 200,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+
+      await this.clickOnElement(this.saveButton, {
+        stepInfo: 'Click Save button',
+      });
+
+      // Wait for save operation to complete via network response
+      await responsePromise;
     });
   }
 }

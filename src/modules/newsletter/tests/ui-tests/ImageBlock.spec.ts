@@ -26,6 +26,7 @@ test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER
     // Create a newsletter for each test (each test needs a fresh newsletter)
     const newsletterName = `Image_Block_Test_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     await newsletterEditorPage.loadPage();
+    await newsletterEditorPage.verifyThePageIsLoaded();
     await newsletterEditorPage.clickCreateButton();
     await newsletterEditorPage.enterNewsletterName(newsletterName);
     await newsletterEditorPage.clickNextButtonOnNameModal();
@@ -48,6 +49,12 @@ test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER
 
       await imageBlockComponent.addImageBlockWithLink(IMAGE_LINK_URL);
       await imageBlockComponent.clickCloseButton();
+
+      // Verify that the image block with link was successfully added to the newsletter
+      await imageBlockComponent.verifier.verifyTheElementIsVisible(imageBlockComponent.imageInEditorCanvas, {
+        assertionMessage:
+          'Image block with link should be successfully added to the newsletter editor - image should be visible in canvas',
+      });
     }
   );
 
@@ -67,6 +74,12 @@ test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER
       await imageBlockComponent.addImageBlockWithLink(IMAGE_LINK_URL);
       await imageBlockComponent.addAltTextToImage(altText);
       await imageBlockComponent.clickCloseButton();
+
+      // Verify that the image block with alt text was successfully added to the newsletter
+      await imageBlockComponent.verifier.verifyTheElementIsVisible(imageBlockComponent.imageInEditorCanvas, {
+        assertionMessage:
+          'Image block with alt text should be successfully added to the newsletter editor - image should be visible in canvas',
+      });
     }
   );
 
@@ -83,6 +96,10 @@ test.describe('Newsletter Image Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER
       });
 
       await imageBlockComponent.searchAndSelectImage('Google');
+      await imageBlockComponent.verifier.verifyTheElementIsVisible(imageBlockComponent.imageOptionsField, {
+        assertionMessage:
+          'Image should be successfully selected and added to the newsletter editor after search - image options panel should be visible',
+      });
     }
   );
 });

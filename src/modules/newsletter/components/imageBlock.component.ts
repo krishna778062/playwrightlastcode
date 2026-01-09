@@ -26,6 +26,7 @@ export class ImageBlockComponent extends BaseActionUtil {
 
   // Added image
   readonly addedImageBlock: Locator;
+  readonly imageInEditorCanvas: Locator;
 
   // Close button
   readonly closeButton: Locator;
@@ -53,11 +54,29 @@ export class ImageBlockComponent extends BaseActionUtil {
 
     // Added image
     this.addedImageBlock = this.page.getByAltText('no image found');
+    // Image in editor canvas - used to verify image was successfully added
+    this.imageInEditorCanvas = this.page.locator('[class*="editor"], [class*="canvas"]').first().locator('img').first();
 
     // Close button - try multiple possible selectors
     this.closeButton = this.page
       .locator('[data-testid="i-closeCircleLight"], [data-testid="i-close"], [aria-label="Close"]')
       .first();
+  }
+
+  /**
+   * Dismisses the survey participation prompt if it's visible
+   * This is a private helper method to avoid code duplication
+   */
+  private async dismissSurveyDialogIfVisible(): Promise<void> {
+    try {
+      const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
+      const dismissButton = surveyDialog.getByRole('button', { name: 'Dismiss' });
+      await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_SHORT });
+      await dismissButton.click();
+      await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
+    } catch {
+      // Survey dialog not present, continue
+    }
   }
 
   /**
@@ -67,25 +86,25 @@ export class ImageBlockComponent extends BaseActionUtil {
   async addImageBlockWithLink(imageLinkUrl: string): Promise<void> {
     await test.step(`Add image block with link: ${imageLinkUrl}`, async () => {
       // Dismiss survey dialog if it's blocking the UI
-      try {
-        const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
-        const dismissButton = surveyDialog.getByRole('button', { name: 'Dismiss' });
-        await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_SHORT });
-        await dismissButton.click();
-        await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
-      } catch {
-        // Survey dialog not present, continue
-      }
+      await this.dismissSurveyDialogIfVisible();
 
       // Click on Image block in the blocks panel (matching Cypress: cy.get('[data-chockablock-item-id="Image"]'))
-      await this.imageBlockButton.click({ force: true });
+      await this.clickOnElement(this.imageBlockButton, {
+        stepInfo: 'Click Image block',
+      });
 
       // Wait for the modal to appear and the "find an image" button to be visible
       await expect(this.findImageButton, 'Find image button should be visible in the modal').toBeVisible();
-      await this.findImageButton.click({ force: true });
+      await this.clickOnElement(this.findImageButton, {
+        stepInfo: 'Click find image button',
+      });
       await this.pickerModalImages.first().dblclick();
-      await this.makeImageLinkLabel.click();
-      await this.imageLinkField.locator('input').fill(imageLinkUrl);
+      await this.clickOnElement(this.makeImageLinkLabel, {
+        stepInfo: 'Click Make image a link',
+      });
+      await this.fillInElement(this.imageLinkField.locator('input'), imageLinkUrl, {
+        stepInfo: 'Enter image link URL',
+      });
     });
   }
 
@@ -95,8 +114,12 @@ export class ImageBlockComponent extends BaseActionUtil {
    */
   async addAltTextToImage(altText: string): Promise<void> {
     await test.step(`Add alt text: ${altText}`, async () => {
-      await this.altTextInput.click({ force: true });
-      await this.altTextInput.fill(altText);
+      await this.clickOnElement(this.altTextInput, {
+        stepInfo: 'Click alt text input',
+      });
+      await this.fillInElement(this.altTextInput, altText, {
+        stepInfo: 'Enter alt text',
+      });
     });
   }
 
@@ -106,7 +129,10 @@ export class ImageBlockComponent extends BaseActionUtil {
   async clickCloseButton(): Promise<void> {
     await test.step('Click close button', async () => {
       // Use force to bypass any overlay dialogs
-      await this.closeButton.click({ force: true });
+      await this.clickOnElement(this.closeButton, {
+        stepInfo: 'Click close button',
+        force: true,
+      });
     });
   }
 
@@ -126,21 +152,19 @@ export class ImageBlockComponent extends BaseActionUtil {
   async searchAndSelectImage(imageName: string): Promise<void> {
     await test.step(`Search and select image: ${imageName}`, async () => {
       // Dismiss survey dialog if it's blocking the UI
-      try {
-        const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
-        const dismissButton = surveyDialog.getByRole('button', { name: 'Dismiss' });
-        await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_SHORT });
-        await dismissButton.click();
-        await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
-      } catch {
-        // Survey dialog not present, continue
-      }
+      await this.dismissSurveyDialogIfVisible();
 
-      await this.imageBlockButton.click({ force: true });
+      await this.clickOnElement(this.imageBlockButton, {
+        stepInfo: 'Click Image block',
+      });
       // Wait for the modal to appear and the "find an image" button to be visible
       await expect(this.findImageButton, 'Find image button should be visible in the modal').toBeVisible();
-      await this.findImageButton.click({ force: true });
-      await this.imageSearchInput.fill(imageName);
+      await this.clickOnElement(this.findImageButton, {
+        stepInfo: 'Click find image button',
+      });
+      await this.fillInElement(this.imageSearchInput, imageName, {
+        stepInfo: 'Enter image search term',
+      });
       await expect(this.itemsCountText).toBeVisible();
       await this.pickerModalImages.first().dblclick();
     });
@@ -151,7 +175,9 @@ export class ImageBlockComponent extends BaseActionUtil {
    */
   async clickOnAddedImageBlock(): Promise<void> {
     await test.step('Click on added image block', async () => {
-      await this.addedImageBlock.click({ force: true });
+      await this.clickOnElement(this.addedImageBlock, {
+        stepInfo: 'Click on added image block',
+      });
     });
   }
 
@@ -161,9 +187,13 @@ export class ImageBlockComponent extends BaseActionUtil {
    */
   async updateAltText(altText: string): Promise<void> {
     await test.step(`Update alt text to: ${altText}`, async () => {
-      await this.altTextInput.click({ force: true });
+      await this.clickOnElement(this.altTextInput, {
+        stepInfo: 'Click alt text input',
+      });
       await this.altTextInput.clear();
-      await this.altTextInput.fill(altText);
+      await this.fillInElement(this.altTextInput, altText, {
+        stepInfo: 'Enter updated alt text',
+      });
     });
   }
 }
