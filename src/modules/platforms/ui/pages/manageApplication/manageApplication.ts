@@ -1,9 +1,12 @@
 import { APIRequestContext, Locator, Page, test } from '@playwright/test';
 
 import { RequestContextFactory } from '@core/api/factories/requestContextFactory';
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { AppConfigurationService } from '@platforms/apis/services/AppConfigurationService';
+import { PLATFORM_GENERIC_MESSAGES } from '@platforms/constants';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
+import { FeedManagementService } from '@/src/modules/content/apis/services/FeedManagementService';
 
 export class ManageApplicationPage extends BasePage {
   readonly clientApplicationHeading: Locator;
@@ -122,11 +125,18 @@ export class ManageApplicationPage extends BasePage {
   }
 
   private async waitForPageToLoad(): Promise<void> {
-    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await this.page
-      .locator('progressbar[aria-label*="Loading"]')
-      .waitFor({ state: 'hidden', timeout: 10000 })
-      .catch(() => {});
+    // Wait for loading progressbar to disappear - this is critical, so we wait with a reasonable timeout
+    // Note: We don't wait for 'networkidle' as it's unreliable in modern web apps with continuous network activity
+    const loadingProgressbar = this.page.locator('progressbar[aria-label*="Loading"]');
+    try {
+      await loadingProgressbar.waitFor({ state: 'hidden', timeout: 15000 });
+    } catch {
+      // If progressbar doesn't exist, that's also fine (page might not show it)
+      const isVisible = await loadingProgressbar.isVisible().catch(() => false);
+      if (isVisible) {
+        throw new Error('Page loading progressbar did not disappear within timeout');
+      }
+    }
   }
 
   async clickOnAddClientApp(): Promise<void> {
@@ -253,7 +263,7 @@ export class ManageApplicationPage extends BasePage {
   async saveAndVerifySuccess(): Promise<void> {
     await test.step('Save changes and verify success message', async () => {
       await this.clickOnSave();
-      await this.verifyTheDisplayOfMessageWithText('Saved changes successfully');
+      await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
       // Wait a bit for the page state to update after save
       await this.page.waitForTimeout(1000);
     });
@@ -296,15 +306,147 @@ export class ManageApplicationPage extends BasePage {
 
   async verifyThePresenceOfFieldWithHtmlTagAndText(tag: string, text: string): Promise<void> {
     await test.step(`Verify presence of ${tag} element with text "${text}"`, async () => {
-      const locator = this.page.locator(`${tag}:has-text("${text}")`).first();
-      await this.verifier.verifyTheElementIsVisible(locator);
+      // Wait for page to finish loading first (progressbar to disappear)
+      await this.waitForPageToLoad();
+      let locator;
+      // Use getByRole for headings (h1, h2, h3, etc.) as suggested by codegen
+      if (tag.toLowerCase().startsWith('h') && tag.length === 2) {
+        const level = parseInt(tag.charAt(1));
+        if (level >= 1 && level <= 6) {
+          locator = this.page.getByRole('heading', { name: text, level });
+        } else {
+          // Fallback: use locator with hasText for non-standard headings
+          // Exclude the main app container (#app) which is always hidden
+          locator = this.page.locator(`${tag}:not(#app)`).filter({ hasText: text }).first();
+        }
+      } else if (tag.toLowerCase() === 'button') {
+        // For buttons, use getByRole which is more reliable
+        locator = this.page.getByRole('button', { name: text, exact: false });
+      } else {
+        // For other tags, use locator with hasText which handles nested text better
+        // hasText checks the element and all its descendants for the text
+        // Exclude the main app container (#app) which is always hidden
+        locator = this.page.locator(`${tag}:not(#app)`).filter({ hasText: text }).first();
+      }
+      // Wait for element to be visible (for buttons and headings) or attached (for other elements)
+      if (tag.toLowerCase() === 'button' || (tag.toLowerCase().startsWith('h') && tag.length === 2)) {
+        await this.verifier.waitUntilElementIsVisible(locator, { timeout: 15000 });
+      } else {
+        await locator.waitFor({ state: 'attached', timeout: 15000 });
+        // Verify the text content exists (more reliable than visibility check for descriptive text)
+        const textContent = await locator.textContent({ timeout: 5000 }).catch(() => '');
+        if (!textContent?.includes(text)) {
+          throw new Error(`Expected text "${text}" not found in ${tag} element`);
+        }
+      }
     });
   }
 
   async verifyTheDisplayOfMessageWithText(message: string): Promise<void> {
     await test.step(`Verify display of message: "${message}"`, async () => {
-      const messageLocator = this.page.locator(`p:has-text("${message}")`).first();
-      await this.verifier.verifyTheElementIsVisible(messageLocator, { timeout: 10000 });
+      // Use getByText which is more reliable for finding text, then filter to exclude app container
+      // The message could be in p, div, span, or other elements
+      const messageLocator = this.page
+        .getByText(message, { exact: false })
+        .filter({ hasNot: this.page.locator('#app') })
+        .first();
+      // Wait for element to be visible and stable (not just attached)
+      // This ensures the element is actually rendered and won't be detached during scroll
+      await this.verifier.waitUntilElementIsVisible(messageLocator, { timeout: 10000 });
+    });
+  }
+
+  async scrollToElementWithHtmlTagAndText(tag: string, text: string): Promise<void> {
+    await test.step(`Scroll to element with html tag "${tag}" and text "${text}"`, async () => {
+      // Wait for page to finish loading first (progressbar to disappear)
+      await this.waitForPageToLoad();
+      let locator;
+      // Use getByRole for headings (h1, h2, h3, etc.) as suggested by codegen
+      if (tag.toLowerCase().startsWith('h') && tag.length === 2) {
+        const level = parseInt(tag.charAt(1));
+        if (level >= 1 && level <= 6) {
+          locator = this.page.getByRole('heading', { name: text, level });
+        } else {
+          // Fallback: use locator with hasText for non-standard headings
+          // Exclude the main app container (#app) which is always hidden
+          locator = this.page.locator(`${tag}:not(#app)`).filter({ hasText: text }).first();
+        }
+      } else {
+        // For other tags, use locator with hasText which handles nested text better
+        // hasText checks the element and all its descendants for the text
+        // Exclude the main app container (#app) which is always hidden
+        locator = this.page.locator(`${tag}:not(#app)`).filter({ hasText: text }).first();
+      }
+      // Wait for element to be attached first, then scroll into view, then check visibility
+      await locator.waitFor({ state: 'attached', timeout: 15000 });
+      await locator.scrollIntoViewIfNeeded();
+      await this.verifier.waitUntilElementIsVisible(locator, { timeout: 15000 });
+    });
+  }
+
+  async navigateToGeneralSetupPage(): Promise<void> {
+    await test.step('Navigate to General setup page', async () => {
+      const zuluUrl = process.env.ZULU_URL;
+      const currentUrl = this.page.url();
+      const path = PAGE_ENDPOINTS.APPLICATION_SETTINGS;
+
+      if (zuluUrl && currentUrl.includes('zulu')) {
+        await this.goToUrl(`${zuluUrl}/${path}`);
+      } else {
+        await this.goToUrl(path);
+      }
+      await this.waitForPresenceOfTextWithTag('Languages', 'h2');
+    });
+  }
+
+  async waitForPresenceOfTextWithTag(text: string, tag: string): Promise<void> {
+    await test.step(`Wait for presence of text "${text}" with tag "${tag}"`, async () => {
+      // Wait for page to finish loading first (progressbar to disappear)
+      await this.waitForPageToLoad();
+      let locator;
+      // Use getByRole for headings (h1, h2, h3, etc.) as suggested by codegen
+      if (tag.toLowerCase().startsWith('h') && tag.length === 2) {
+        const level = parseInt(tag.charAt(1));
+        if (level >= 1 && level <= 6) {
+          locator = this.page.getByRole('heading', { name: text, level });
+        } else {
+          locator = this.page
+            .getByText(text, { exact: false })
+            .filter({ has: this.page.locator(tag) })
+            .first();
+        }
+      } else {
+        // For other tags, use getByText() and filter by tag
+        locator = this.page
+          .getByText(text, { exact: false })
+          .filter({ has: this.page.locator(tag) })
+          .first();
+      }
+      await this.verifier.waitUntilElementIsVisible(locator, { timeout: 10000 });
+    });
+  }
+
+  async scrollAndClickOnSave(): Promise<void> {
+    await test.step('Scroll and click on Save button', async () => {
+      // Wait for page to finish loading first (progressbar to disappear)
+      await this.waitForPageToLoad();
+      // Then wait for Save button to be visible
+      await this.saveButton.waitFor({ state: 'visible', timeout: 15000 });
+      // Then scroll it into view
+      await this.saveButton.scrollIntoViewIfNeeded();
+      // Wait for Save button to become enabled (form recognizes changes)
+      await this.verifier.verifyTheElementIsEnabled(this.saveButton, { timeout: 15000 });
+      await this.clickOnElement(this.saveButton, {
+        stepInfo: 'Click on Save button',
+      });
+    });
+  }
+
+  async getAppConfigViaAPI(apiContext: APIRequestContext, baseUrl: string): Promise<any> {
+    return await test.step('Call AppConfig API', async () => {
+      const feedManagementService = new FeedManagementService(apiContext, baseUrl);
+      const appConfig = await feedManagementService.getAppConfig();
+      return appConfig;
     });
   }
 
@@ -468,6 +610,399 @@ export class ManageApplicationPage extends BasePage {
 
       // Verify the presence of field with html tag "button" and text "Overwrite notification settings for all users"
       await this.verifyThePresenceOfFieldWithHtmlTagAndText('button', 'Overwrite notification settings for all users');
+    });
+  }
+
+  private async findHelpAndFeedbackInputField(): Promise<Locator> {
+    return this.page.locator('#react-select-2-input');
+  }
+
+  async clearAllEmailIdsFromHelpAndFeedbackField(): Promise<boolean> {
+    return await test.step('Clear all email id from Help & Feedback field', async () => {
+      await this.waitForPageToLoad();
+      // Find all Tag-remove buttons (these are the X buttons on email tags in React Select)
+      const removeButtons = this.page.locator('.Tag-remove');
+      let removeButtonCount = await removeButtons.count();
+      let emailsWereCleared = removeButtonCount > 0;
+
+      // Keep removing tags until all are gone (in case count changes dynamically)
+      while (removeButtonCount > 0) {
+        // Click the first remove button
+        const removeButton = removeButtons.first();
+        await this.verifier.waitUntilElementIsVisible(removeButton, { timeout: 5000 });
+        await this.clickOnElement(removeButton, {
+          stepInfo: `Remove email tag`,
+        });
+        // Re-check the count
+        removeButtonCount = await removeButtons.count();
+      }
+
+      // Also clear the input field itself to ensure it's empty
+      const inputField = await this.findHelpAndFeedbackInputField();
+      const inputValue = await inputField.inputValue();
+      if (inputValue) {
+        emailsWereCleared = true;
+      }
+      await inputField.clear();
+      await inputField.blur();
+
+      return emailsWereCleared;
+    });
+  }
+
+  async enterTextInHelpAndFeedbackField(email: string): Promise<void> {
+    await test.step(`Enter "${email}" in Help & Feedback input field`, async () => {
+      await this.waitForPageToLoad();
+      const inputField = this.page.locator('#react-select-2-input');
+      await this.verifier.waitUntilElementIsVisible(inputField, { timeout: 10000 });
+      // Click to focus and open the React Select
+      await inputField.click();
+      // Fill the input field with the email
+      await inputField.fill(email);
+      // Press Enter to confirm/add the email
+      await inputField.press('Enter');
+      // Click on the email text that appears (the tag)
+      const emailText = this.page.getByText(email).first();
+      await this.verifier.waitUntilElementIsVisible(emailText, { timeout: 5000 });
+      await this.clickOnElement(emailText, {
+        stepInfo: `Click on email tag ${email}`,
+      });
+    });
+  }
+
+  async verifyFeedbackRecipientsInAppConfig(
+    apiContext: APIRequestContext,
+    baseUrl: string,
+    expectedEmail: string
+  ): Promise<void> {
+    await test.step(`Verify that feedbackRecipients in response of API appConfig is "${expectedEmail}"`, async () => {
+      // Poll the API with retries to account for backend processing delay
+      const maxRetries = 15;
+      let lastError: Error | null = null;
+      let actualFeedbackRecipients: string[] | null = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const appConfig = await this.getAppConfigViaAPI(apiContext, baseUrl);
+
+          // Validate response structure
+          if (!appConfig?.result) {
+            throw new Error('API response missing result field');
+          }
+
+          const feedbackRecipients = appConfig.result.feedbackRecipients;
+
+          // Validate feedbackRecipients is an array
+          if (!Array.isArray(feedbackRecipients)) {
+            throw new Error(`feedbackRecipients is not an array: ${typeof feedbackRecipients}`);
+          }
+
+          actualFeedbackRecipients = feedbackRecipients;
+
+          // If expectedEmail is empty string, verify array is empty
+          if (expectedEmail === '' && feedbackRecipients.length === 0) {
+            return; // Success
+          }
+
+          // If expectedEmail is provided, verify it's in the array
+          if (expectedEmail !== '' && feedbackRecipients.includes(expectedEmail)) {
+            return; // Success
+          }
+
+          // If not found, prepare error message but continue retrying
+          lastError = new Error(
+            `Expected feedbackRecipients to ${expectedEmail === '' ? 'be empty' : `contain "${expectedEmail}"`} but got ${JSON.stringify(feedbackRecipients)}`
+          );
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error(String(error));
+        }
+      }
+
+      // If we get here, all retries failed - provide detailed error message
+      const errorMsg = lastError ? lastError.message : 'Unknown error';
+      const recipientsMsg = actualFeedbackRecipients
+        ? ` Last seen feedbackRecipients: ${JSON.stringify(actualFeedbackRecipients)}`
+        : ' Could not retrieve feedbackRecipients from API.';
+
+      throw new Error(
+        `Failed to verify feedbackRecipients ${expectedEmail === '' ? 'is empty' : `contains "${expectedEmail}"`} after ${maxRetries} attempts. ` +
+          `${errorMsg}${recipientsMsg} ` +
+          `This may indicate the backend has not processed the change yet, or the API call failed.`
+      );
+    });
+  }
+
+  async verifyHelpAndFeedbackEmailsWorking(): Promise<void> {
+    await test.step('Verify working of Help and Feedback emails under General in Setup in Manage Application', async () => {
+      // Navigate to General setup page
+      await this.navigateToGeneralSetupPage();
+
+      // Wait for the presence of text "Intranet name" with tag "h2"
+      await this.waitForPresenceOfTextWithTag('Intranet name', 'h2');
+
+      // Scroll to element with html tag "h2" and text "Help & Feedback"
+      await this.scrollToElementWithHtmlTagAndText('h2', 'Help & Feedback');
+
+      // Clear all "email id" from "Help & Feedback" field
+      const emailsWereCleared = await this.clearAllEmailIdsFromHelpAndFeedbackField();
+
+      // Scroll and Click on "Save" field only if emails were cleared (form change detected)
+      if (emailsWereCleared) {
+        await this.scrollAndClickOnSave();
+      }
+
+      // Enter "zuluqa.automation@simpplr.com" in Help & Feedback input field
+      await this.enterTextInHelpAndFeedbackField('zuluqa.automation@simpplr.com');
+
+      // Scroll and Click on "Save" field
+      await this.scrollAndClickOnSave();
+
+      // Verify the display of message with text "Saved changes successfully"
+      await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
+
+      // Refresh the page
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+
+      // Wait for the presence of text "Intranet name" with tag "h2"
+      await this.waitForPresenceOfTextWithTag('Intranet name', 'h2');
+
+      // Scroll to element with html tag "h2" and text "Social campaigns"
+      await this.scrollToElementWithHtmlTagAndText('h2', 'Social campaigns');
+
+      // Verify the presence of field with html tag "button" and text "Help & feedback"
+      // Use getByRole directly for buttons as it's more reliable
+      const helpFeedbackButton = this.page.getByRole('button', { name: 'Help & feedback' });
+      await this.verifier.waitUntilElementIsVisible(helpFeedbackButton, { timeout: 15000 });
+
+      // API Login with any login identifiers for "ZuluApplicationManager" with URL "zulu_api_baseURI"
+      const zuluApiUrl = process.env.ZULU_API_URL;
+      if (!zuluApiUrl) {
+        throw new Error('ZULU_API_URL not configured in environment variables');
+      }
+
+      const zuluAppManagerEmail = process.env.ZULU_APPLICATION_MANAGER;
+      const zuluPassword = process.env.ZULU_PASSWORD;
+      if (!zuluAppManagerEmail || !zuluPassword) {
+        throw new Error('ZULU_APPLICATION_MANAGER or ZULU_PASSWORD not configured in environment variables');
+      }
+
+      const apiContext: APIRequestContext = await RequestContextFactory.createAuthenticatedContext(zuluApiUrl, {
+        email: zuluAppManagerEmail,
+        password: zuluPassword,
+      });
+
+      try {
+        // Call Zeus AppConfig API
+        await this.getAppConfigViaAPI(apiContext, zuluApiUrl);
+
+        // Verify that in Zeus "feedbackRecipients" in response of API "appConfig" is "zuluqa.automation@simpplr.com"
+        await this.verifyFeedbackRecipientsInAppConfig(apiContext, zuluApiUrl, 'zuluqa.automation@simpplr.com');
+
+        // Clear all "email id" from "Help & Feedback" field
+        const emailsWereClearedSecond = await this.clearAllEmailIdsFromHelpAndFeedbackField();
+
+        // Scroll and Click on "Save" field only if emails were cleared (form change detected)
+        if (emailsWereClearedSecond) {
+          await this.scrollAndClickOnSave();
+        }
+
+        // Verify the display of message with text "Saved changes successfully"
+        await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
+
+        // Call Zeus AppConfig API first to ensure backend has processed the change
+        await this.getAppConfigViaAPI(apiContext, zuluApiUrl);
+
+        // Verify that in Zeus "feedbackRecipients" in response of API "appConfig" is ""
+        // This ensures the backend has processed the change before checking UI
+        await this.verifyFeedbackRecipientsInAppConfig(apiContext, zuluApiUrl, '');
+
+        // Hard refresh the page to ensure UI reflects the backend changes
+        await this.page.reload({ waitUntil: 'load' });
+
+        // Wait for the presence of text "Intranet name" with tag "h2"
+        await this.waitForPresenceOfTextWithTag('Intranet name', 'h2');
+
+        // Scroll to element with html tag "h2" and text "Social campaigns"
+        await this.scrollToElementWithHtmlTagAndText('h2', 'Social campaigns');
+
+        // Verify the absence of field with html tag "button" and text "Help & feedback"
+        // Use getByRole directly for buttons as it's more reliable
+        const helpFeedbackButton = this.page.getByRole('button', { name: 'Help & feedback' });
+        await this.verifier.verifyTheElementIsNotVisible(helpFeedbackButton, { timeout: 10000 });
+      } finally {
+        await apiContext.dispose();
+      }
+    });
+  }
+
+  async clickOnHelpAndFeedbackSectionInFooter(): Promise<void> {
+    await test.step('Click on "Help & feedback" section in footer', async () => {
+      await this.waitForPageToLoad();
+      const helpFeedbackButton = this.page.getByRole('button', { name: 'Help & feedback' });
+      await this.verifier.waitUntilElementIsVisible(helpFeedbackButton, { timeout: 15000 });
+      await this.clickOnElement(helpFeedbackButton, {
+        stepInfo: 'Click on Help & feedback button in footer',
+      });
+    });
+  }
+
+  async clickOnDropdownForHelpTopicsAndSelectOption(option: string): Promise<void> {
+    await test.step(`Click on dropdown for "helpTopics" and select "${option}" option`, async () => {
+      await this.waitForPageToLoad();
+      const selectInput = this.page.getByTestId('SelectInput');
+      await this.verifier.waitUntilElementIsVisible(selectInput, { timeout: 10000 });
+      await selectInput.selectOption(option);
+    });
+  }
+
+  async enterDescriptionLessThan(characterCount: number): Promise<void> {
+    await test.step(`Enter description less than "${characterCount}" char`, async () => {
+      await this.waitForPageToLoad();
+      // Find the description textarea using getByRole
+      const descriptionTextarea = this.page.getByRole('textbox', { name: 'Tell us more*' });
+      await this.verifier.waitUntilElementIsVisible(descriptionTextarea, { timeout: 10000 });
+
+      // Enter text less than the specified character count
+      const shortText = 'a'.repeat(characterCount - 1);
+      await descriptionTextarea.click();
+      await descriptionTextarea.fill(shortText);
+      await descriptionTextarea.blur();
+    });
+  }
+
+  async enterDescriptionOfHelpAndFeedback(description: string): Promise<void> {
+    await test.step(`Enter description of help and feedback as "${description}"`, async () => {
+      await this.waitForPageToLoad();
+      // Find the description textarea using getByRole
+      const descriptionTextarea = this.page.getByRole('textbox', { name: 'Tell us more*' });
+      await this.verifier.waitUntilElementIsVisible(descriptionTextarea, { timeout: 10000 });
+
+      await descriptionTextarea.click();
+      await descriptionTextarea.fill(description);
+      await descriptionTextarea.blur();
+    });
+  }
+
+  async checkImproveIntranetFieldCheckbox(): Promise<void> {
+    await test.step('Check "improveIntranet" Field Checkbox', async () => {
+      await this.waitForPageToLoad();
+      // Use getByRole for the checkbox with the exact name
+      const checkbox = this.page.getByRole('checkbox', { name: 'I want to help improve my' });
+      await this.verifier.waitUntilElementIsVisible(checkbox, { timeout: 10000 });
+
+      // Check if already checked
+      const isChecked = await checkbox.isChecked();
+      if (!isChecked) {
+        await checkbox.check();
+      }
+    });
+  }
+
+  async clickOnSendButton(): Promise<void> {
+    await test.step('Click on element with tag "button" and text "Send"', async () => {
+      await this.waitForPageToLoad();
+      const sendButton = this.page.getByRole('button', { name: 'Send' });
+      await this.verifier.waitUntilElementIsVisible(sendButton, { timeout: 10000 });
+      await this.clickOnElement(sendButton, {
+        stepInfo: 'Click on Send button',
+      });
+    });
+  }
+
+  async verifyThanksMessageDisplayed(): Promise<void> {
+    await test.step('Verify the display of message with text "Thanks! Your message has been received and will be reviewed shortly."', async () => {
+      await this.waitForPageToLoad();
+      const thanksMessage = this.page.getByText('Thanks! Your message has been', { exact: false });
+      await this.verifier.waitUntilElementIsVisible(thanksMessage, { timeout: 15000 });
+    });
+  }
+
+  async verifyAdditionalCheckboxInHelpAndFeedbackWorking(): Promise<void> {
+    await test.step('Verify the working of additional checkbox in Help and Feedback', async () => {
+      // Navigate to General setup page
+      await this.navigateToGeneralSetupPage();
+
+      // Wait for the presence of text "Intranet name" with tag "h2"
+      await this.waitForPresenceOfTextWithTag('Intranet name', 'h2');
+
+      // Scroll to element with html tag "h2" and text "Help & Feedback"
+      await this.scrollToElementWithHtmlTagAndText('h2', 'Help & Feedback');
+
+      // Clear all "email id" from "Help & Feedback" field
+      const emailsWereCleared = await this.clearAllEmailIdsFromHelpAndFeedbackField();
+
+      // Scroll and Click on "Save" field only if emails were cleared (form change detected)
+      if (emailsWereCleared) {
+        await this.scrollAndClickOnSave();
+      }
+
+      // Enter "zuluqa.automation@simpplr.com" in Help & Feedback input field
+      await this.enterTextInHelpAndFeedbackField('zuluqa.automation@simpplr.com');
+
+      // Scroll and Click on "Save" field
+      await this.scrollAndClickOnSave();
+
+      // Verify the display of message with text "Saved changes successfully"
+      await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
+
+      // Click on "Help & feedback" section in footer
+      await this.clickOnHelpAndFeedbackSectionInFooter();
+
+      // Click on dropdown for "helpTopics" and select "I want to give a suggestion" option
+      await this.clickOnDropdownForHelpTopicsAndSelectOption('give_suggestion');
+
+      // Enter description less than "10 char"
+      await this.enterDescriptionLessThan(10);
+
+      // Enter description of help and feedback as "suggest improvements for help and feedback"
+      await this.enterDescriptionOfHelpAndFeedback('suggest improvements for help and feedback');
+
+      // "Check" "improveIntranet" Field Checkbox
+      await this.checkImproveIntranetFieldCheckbox();
+
+      // Click on element with tag "button" and text "Send"
+      await this.clickOnSendButton();
+
+      // Verify the display of message with text "Thanks! Your message has been received and will be reviewed shortly."
+      await this.verifyThanksMessageDisplayed();
+
+      // API Login with any login identifiers for "ZuluApplicationManager" with URL "zulu_api_baseURI"
+      const zuluApiUrl = process.env.ZULU_API_URL;
+      if (!zuluApiUrl) {
+        throw new Error('ZULU_API_URL not configured in environment variables');
+      }
+
+      const zuluAppManagerEmail = process.env.ZULU_APPLICATION_MANAGER;
+      const zuluPassword = process.env.ZULU_PASSWORD;
+      if (!zuluAppManagerEmail || !zuluPassword) {
+        throw new Error('ZULU_APPLICATION_MANAGER or ZULU_PASSWORD not configured in environment variables');
+      }
+
+      const apiContext: APIRequestContext = await RequestContextFactory.createAuthenticatedContext(zuluApiUrl, {
+        email: zuluAppManagerEmail,
+        password: zuluPassword,
+      });
+
+      try {
+        // Call Zeus AppConfig API
+        await this.getAppConfigViaAPI(apiContext, zuluApiUrl);
+
+        // Verify that in Zeus "feedbackRecipients" in response of API "appConfig" is "zuluqa.automation@simpplr.com"
+        await this.verifyFeedbackRecipientsInAppConfig(apiContext, zuluApiUrl, 'zuluqa.automation@simpplr.com');
+
+        // Clear all "email id" from "Help & Feedback" field
+        const emailsWereClearedSecond = await this.clearAllEmailIdsFromHelpAndFeedbackField();
+
+        // Scroll and Click on "Save" field only if emails were cleared (form change detected)
+        if (emailsWereClearedSecond) {
+          await this.scrollAndClickOnSave();
+        }
+
+        // Verify the display of message with text "Saved changes successfully"
+        await this.verifyTheDisplayOfMessageWithText(PLATFORM_GENERIC_MESSAGES.SAVE_CHANGES_SUCCESS);
+      } finally {
+        await apiContext.dispose();
+      }
     });
   }
 }
