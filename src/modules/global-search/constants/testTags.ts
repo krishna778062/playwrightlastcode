@@ -12,6 +12,8 @@ export enum GlobalSearchSuiteTags {
   VIDEO_FILE_SEARCH = '@video-file-search',
   PEOPLE_SEARCH = '@people-search',
   FEDERATED_SEARCH = '@federated-search',
+  SITE_SEARCH_API = '@site-search-api',
+  GLOBAL_SEARCH_API = '@global-search-api',
 }
 
 export enum GlobalSearchFeatureTags {
