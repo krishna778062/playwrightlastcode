@@ -134,17 +134,10 @@ export class ManageRecognitionPage extends BasePage {
   /**
    * Clean up the created award
    */
-  async cleanupCreatedAward(): Promise<void> {
+  async cleanupCreatedAwardInRecurringAwards(): Promise<void> {
     await test.step('Clean up - Delete recently created award', async () => {
-      const button = this.subTabIndicator.createdColumnButton;
-      for (let i = 0; i < 2; i++) {
-        await button.click();
-        await this.page.waitForTimeout(500);
-      }
-      await this.subTabIndicator.getThreeDotsButton(0).click();
-      await this.subTabIndicator.deleteMenuItem.click();
-      await this.page.waitForTimeout(500);
-      await this.subTabIndicator.deleteButton.click();
+      await this.subTabIndicator.clickOnColumnButton('Created', 2);
+      await this.subTabIndicator.cleanupCreatedAward();
       await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
     });
   }

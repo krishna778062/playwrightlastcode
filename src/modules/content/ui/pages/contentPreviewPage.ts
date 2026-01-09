@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import {
   CreateQuestionComponent,
@@ -55,6 +55,11 @@ export class ContentPreviewPage extends BasePage {
   readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
   readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
   readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+  readonly replyEditorForPost = (postText: string): Locator => {
+    return this.page.locator('._post_eonic_1').first().getByRole('button', { name: 'Leave a reply…' }).first();
+  };
+  readonly replyEditor = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+  readonly submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
   readonly promotionEventDialog = (contentType: string) =>
     this.page.getByRole('dialog', { name: `Promote ${contentType}` });
   readonly skipPromotionEventDialogButton = (contentType: string) =>
@@ -137,6 +142,27 @@ export class ContentPreviewPage extends BasePage {
         assertionMessage: `Content should be in pending status`,
       });
     });
+  }
+
+  async clickReplyEditorForPost(commentText: string): Promise<void> {
+    await test.step('Click on reply editor for post', async () => {
+      const replyEditor = this.replyEditorForPost(commentText);
+      await this.verifier.verifyTheElementIsVisible(replyEditor, {
+        assertionMessage: 'Reply editor should be visible for the post',
+      });
+      await this.clickOnElement(replyEditor);
+    });
+  }
+
+  async addReplyToContentComment(replyText: string): Promise<void> {
+    await test.step('Add reply to content comment', async () => {
+      await this.fillInElement(this.replyEditor, replyText);
+      await this.clickOnElement(this.submitReplyButton);
+    });
+  }
+
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await this.listFeedComponent.clickLoadMoreRepliesButton();
   }
 
   /**
@@ -509,6 +535,14 @@ export class ContentPreviewPage extends BasePage {
    */
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
   }
 
   /**

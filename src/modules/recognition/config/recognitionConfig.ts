@@ -1,5 +1,5 @@
 export type TenantKey = 'primary' | 'onlyPeerToPeer';
-export type EnvironmentKey = 'qa' | 'test';
+export type EnvironmentKey = 'qa' | 'test' | 'uatAU';
 
 /**
  * Get caller function information for debugging
@@ -96,6 +96,24 @@ export const config = {
       endUserPassword: 'simpplr123',
       newUxEnabled: true,
     },
+    uatAU: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com/',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com/',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'simpplr123',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserPassword: 'simpplr123',
+      newUxEnabled: true,
+    },
   },
   onlyPeerToPeer: {
     test: {
@@ -135,18 +153,20 @@ function getCurrentEnvironment(): EnvironmentKey {
         `Please set TEST_ENV before running tests:\n` +
         `  TEST_ENV=qa npm run test\n` +
         `  TEST_ENV=uat npm run test\n` +
+        `  TEST_ENV=uatAU npm run test\n` +
         `  TEST_ENV=prod npm run test`
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test'].includes(testEnv)) {
+  if (!['qa', 'uat', 'prod', 'test', 'uatAU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod\n` +
+        `Valid values are: qa, uat, test, prod, uatAU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
         `Example: TEST_ENV=prod npm run test\n` +
-        `Example: TEST_ENV=test npm run test\n`
+        `Example: TEST_ENV=test npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n`
     );
   }
 
