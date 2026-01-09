@@ -1,29 +1,29 @@
 import { FrameLocator, Page } from '@playwright/test';
 
 import { SEARCH_METRICS } from '../../../../constants/searchMetrics';
-import { MostSearchesPerformedByDepartmentData } from '../../../../helpers/searchDashboardQueryHelper';
+import { MostSearchesPerformedByLocationData } from '../../../../helpers/searchDashboardQueryHelper';
 import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetricsComponent';
 import { CSVValidationUtil } from '../../../../utils/csvValidationUtil';
 
 import { FileUtil } from '@/src/core/utils/fileUtil';
 
-export enum MostSearchesPerformedByDepartmentColumns {
-  DEPARTMENT = 'Department',
+export enum MostSearchesPerformedByLocationColumns {
+  LOCATION = 'Location',
   TOTAL_SEARCH_QUERY_VOLUME = 'Total search query volume',
   UNIQUE_USER_SEARCHING = 'Unique user searching',
   AVERAGE_SEARCHES_PER_USER = 'Average searches per user',
 }
 
 // Re-export the type for convenience
-export type { MostSearchesPerformedByDepartmentData };
+export type { MostSearchesPerformedByLocationData };
 
-export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
+export class MostSearchesPerformedByLocation extends TabluarMetricsComponent {
   constructor(page: Page, thoughtSpotIframe: FrameLocator) {
-    super(page, thoughtSpotIframe, SEARCH_METRICS.MOST_SEARCHES_PERFORMED_BY_DEPARTMENT.title);
+    super(page, thoughtSpotIframe, SEARCH_METRICS.MOST_SEARCHES_PERFORMED_BY_LOCATION.title);
   }
 
   /**
-   * Verifies that the most searches performed by department data is loaded
+   * Verifies that the most searches performed by location data is loaded
    */
   async verifyDataIsLoaded(): Promise<void> {
     await this.verifyTabluarDataIsLoaded();
@@ -31,22 +31,20 @@ export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
 
   /**
    * Verifies that the UI data matches the database data
-   * @param snowflakeDataArray - Array of most searches performed by department data from Snowflake
+   * @param snowflakeDataArray - Array of most searches performed by location data from Snowflake
    */
-  async verifyUIDataMatchesWithSnowflakeData(
-    snowflakeDataArray: MostSearchesPerformedByDepartmentData[]
-  ): Promise<void> {
-    const dataMapper = (item: MostSearchesPerformedByDepartmentData) => ({
-      [MostSearchesPerformedByDepartmentColumns.DEPARTMENT]: item.department,
-      [MostSearchesPerformedByDepartmentColumns.TOTAL_SEARCH_QUERY_VOLUME]: item.total_searches.toString(),
-      [MostSearchesPerformedByDepartmentColumns.UNIQUE_USER_SEARCHING]: item.distinct_users.toString(),
-      [MostSearchesPerformedByDepartmentColumns.AVERAGE_SEARCHES_PER_USER]: item.avg_searches_per_user.toString(),
+  async verifyUIDataMatchesWithSnowflakeData(snowflakeDataArray: MostSearchesPerformedByLocationData[]): Promise<void> {
+    const dataMapper = (item: MostSearchesPerformedByLocationData) => ({
+      [MostSearchesPerformedByLocationColumns.LOCATION]: item.location,
+      [MostSearchesPerformedByLocationColumns.TOTAL_SEARCH_QUERY_VOLUME]: item.total_searches.toString(),
+      [MostSearchesPerformedByLocationColumns.UNIQUE_USER_SEARCHING]: item.distinct_users.toString(),
+      [MostSearchesPerformedByLocationColumns.AVERAGE_SEARCHES_PER_USER]: item.avg_searches_per_user.toString(),
     });
 
     await this.compareUIDataWithDBRecords(
       snowflakeDataArray,
       dataMapper,
-      MostSearchesPerformedByDepartmentColumns.DEPARTMENT
+      MostSearchesPerformedByLocationColumns.LOCATION
     );
   }
 
@@ -59,7 +57,7 @@ export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
    * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
-    snowflakeDataArray: MostSearchesPerformedByDepartmentData[],
+    snowflakeDataArray: MostSearchesPerformedByLocationData[],
     selectedPeriod: string,
     customStartDate?: string,
     customEndDate?: string
@@ -73,19 +71,19 @@ export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
       await CSVValidationUtil.validateAndAssert({
         csvPath: filePath,
         expectedDBData: snowflakeDataArray as any,
-        metricName: 'Most searches performed by Department',
+        metricName: 'Most searches performed by Location',
         selectedPeriod: selectedPeriod,
         customStartDate: customStartDate,
         customEndDate: customEndDate,
         expectedHeaders: [
-          'Department',
+          'Location',
           'Total search query volume',
           'Unique user searching',
           'Average searches per user',
         ],
         transformations: {
           headerMapping: {
-            Department: 'department',
+            Location: 'location',
             'Total search query volume': 'total_searches',
             'Unique user searching': 'distinct_users',
             'Average searches per user': 'avg_searches_per_user',
