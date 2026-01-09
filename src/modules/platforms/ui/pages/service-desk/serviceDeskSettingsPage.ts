@@ -745,27 +745,27 @@ export class ServiceDeskSettingsPage extends BasePage {
    */
   async navigateToMessageTemplate(workspaceName: string): Promise<void> {
     await test.step(`Navigate to Message Template for ${workspaceName} workspace`, async () => {
-      // Go to manage features page first
+      // Navigate to manage features page
       await this.goToUrl(`${this.getServiceDeskUrl()}/nav-manage-features`, {
         waitUntil: 'domcontentloaded',
       });
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
-      // Click on the three lines icon to open the sidebar
+      // Click on the three lines icon to open the sidebar (if visible)
       const threeLinesIcon = this.page.getByRole('button', { name: 'Open main navigation' });
-      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 3000 }).catch(() => false);
+      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 5000 }).catch(() => false);
       if (isThreeLinesVisible) {
         await threeLinesIcon.click();
-        await this.page.waitForTimeout(1000);
+        await this.page.waitForTimeout(2000);
       }
 
       // Click on "Service desk" link in the sidebar
-      const serviceDeskLink = this.page
-        .getByRole('link', { name: 'Service desk' })
-        .or(this.page.getByText('Service desk').first());
-      await serviceDeskLink.first().click();
-      await this.page.waitForTimeout(2000);
+      const serviceDeskLink = this.page.getByRole('link', { name: 'Service desk' }).first();
+      await expect(serviceDeskLink).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await serviceDeskLink.click();
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
       // Click on Settings button in the left sidebar
       const settingsButton = this.page.getByRole('link', { name: 'Settings' });
@@ -936,27 +936,27 @@ export class ServiceDeskSettingsPage extends BasePage {
    */
   async navigateToWorkspaceAdministration(workspaceName: string): Promise<void> {
     await test.step(`Navigate to ${workspaceName} Workspace Administration`, async () => {
-      // Go to manage features page first
+      // Navigate to manage features page
       await this.goToUrl(`${this.getServiceDeskUrl()}/nav-manage-features`, {
         waitUntil: 'domcontentloaded',
       });
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
-      // Click on the three lines icon to open the sidebar
+      // Click on the three lines icon to open the sidebar (if visible)
       const threeLinesIcon = this.page.getByRole('button', { name: 'Open main navigation' });
-      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 3000 }).catch(() => false);
+      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 5000 }).catch(() => false);
       if (isThreeLinesVisible) {
         await threeLinesIcon.click();
-        await this.page.waitForTimeout(1000);
+        await this.page.waitForTimeout(2000);
       }
 
       // Click on "Service desk" link in the sidebar
-      const serviceDeskLink = this.page
-        .getByRole('link', { name: 'Service desk' })
-        .or(this.page.getByText('Service desk').first());
-      await serviceDeskLink.first().click();
-      await this.page.waitForTimeout(2000);
+      const serviceDeskLink = this.page.getByRole('link', { name: 'Service desk' }).first();
+      await expect(serviceDeskLink).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await serviceDeskLink.click();
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
       // Click on Settings button in the left sidebar
       const settingsButton = this.page.getByRole('link', { name: 'Settings' });
@@ -1026,27 +1026,27 @@ export class ServiceDeskSettingsPage extends BasePage {
    */
   async verifyWorkspaceAdministrationNotAccessible(workspaceName: string): Promise<void> {
     await test.step('Verify Workspace Administration is not accessible', async () => {
-      // Go to manage features page first (manual navigation)
+      // Navigate to manage features page
       await this.goToUrl(`${this.getServiceDeskUrl()}/nav-manage-features`, {
         waitUntil: 'domcontentloaded',
       });
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
-      // Click on the three lines icon to open the sidebar
+      // Click on the three lines icon to open the sidebar (if visible)
       const threeLinesIcon = this.page.getByRole('button', { name: 'Open main navigation' });
-      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 3000 }).catch(() => false);
+      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 5000 }).catch(() => false);
       if (isThreeLinesVisible) {
         await threeLinesIcon.click();
-        await this.page.waitForTimeout(1000);
+        await this.page.waitForTimeout(2000);
       }
 
       // Click on "Service desk" link in the sidebar
-      const serviceDeskLink = this.page
-        .getByRole('link', { name: 'Service desk' })
-        .or(this.page.getByText('Service desk').first());
-      await serviceDeskLink.first().click();
-      await this.page.waitForTimeout(2000);
+      const serviceDeskLink = this.page.getByRole('link', { name: 'Service desk' }).first();
+      await expect(serviceDeskLink).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await serviceDeskLink.click();
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
       // Check if Settings button is available (Agent should not have access or have limited access)
       const settingsButton = this.page.getByRole('link', { name: 'Settings' });

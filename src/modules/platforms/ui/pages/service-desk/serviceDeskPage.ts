@@ -114,17 +114,31 @@ export class ServiceDeskPage extends BasePage {
    */
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading Service Desk page`, async () => {
-      // Go to manage features page first
+      // Navigate to manage features page
       await this.goToUrl(`${this.getServiceDeskUrl()}/nav-manage-features`, {
         waitUntil: 'domcontentloaded',
       });
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
-      // Click on Service desk in the left sidebar (use first match)
+      // Click on the three lines icon to open the sidebar (if visible)
+      const threeLinesIcon = this.page.getByRole('button', { name: 'Open main navigation' });
+      const isThreeLinesVisible = await threeLinesIcon.isVisible({ timeout: 5000 }).catch(() => false);
+      if (isThreeLinesVisible) {
+        await threeLinesIcon.click();
+        await this.page.waitForTimeout(2000);
+      }
+
+      // Click on "Service desk" link in the sidebar
       const serviceDeskLink = this.page.getByRole('link', { name: 'Service desk' }).first();
+      await expect(serviceDeskLink).toBeVisible({ timeout: TIMEOUTS.SHORT });
       await serviceDeskLink.click();
-      await this.page.waitForTimeout(2000);
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
+
+      // Wait for Request management link to be visible
+      const requestMgmtLink = this.page.getByRole('link', { name: 'Request management' });
+      await expect(requestMgmtLink).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 

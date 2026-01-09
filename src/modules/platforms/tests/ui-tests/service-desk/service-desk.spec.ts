@@ -299,7 +299,7 @@ test.describe('service desk - Ticket Updates', () => {
       await test.step('Agent: Create incident ticket', async () => {
         await agentServiceDesk.loadPage();
         await agentServiceDesk.page.getByRole('link', { name: 'Request management' }).click();
-        await agentServiceDesk.page.waitForTimeout(3000);
+        await agentServiceDesk.page.waitForTimeout(2000);
 
         await agentServiceDesk.createTicket({
           subject: uniqueSubject,
@@ -313,9 +313,9 @@ test.describe('service desk - Ticket Updates', () => {
 
       await test.step('Agent: Open ticket and add public comment', async () => {
         await agentServiceDesk.page.getByRole('link', { name: 'Request management' }).click();
-        await agentServiceDesk.page.waitForTimeout(2000);
+        await agentServiceDesk.page.waitForTimeout(1000);
         await agentServiceDesk.page.getByText(ticketId).click();
-        await agentServiceDesk.page.waitForTimeout(2000);
+        await agentServiceDesk.page.waitForTimeout(1000);
         await agentServiceDesk.addCommentToTicket(agentComment, true);
         console.log(`Added comment to ticket: ${ticketId}`);
       });
@@ -325,21 +325,21 @@ test.describe('service desk - Ticket Updates', () => {
 
         await supportTeamPage.goto(`${serviceDeskUrl}/home`);
         await supportTeamPage.waitForLoadState('networkidle').catch(() => {});
-        await supportTeamPage.waitForTimeout(2000);
+        await supportTeamPage.waitForTimeout(1000);
 
         const supportOption = supportTeamPage.getByText('Support');
         await expect(supportOption).toBeVisible({ timeout: 10000 });
         await supportOption.click();
-        await supportTeamPage.waitForTimeout(2000);
+        await supportTeamPage.waitForTimeout(1000);
 
         await supportTeamPage.getByText(ticketId).click();
-        await supportTeamPage.waitForTimeout(2000);
+        await supportTeamPage.waitForTimeout(1000);
 
         const activitiesTab = supportTeamPage.getByRole('tab', { name: /activities|comments/i });
         const isTabVisible = await activitiesTab.isVisible({ timeout: 3000 }).catch(() => false);
         if (isTabVisible) {
           await activitiesTab.click();
-          await supportTeamPage.waitForTimeout(1000);
+          await supportTeamPage.waitForTimeout(500);
         }
 
         const commentText = supportTeamPage.getByText(agentComment);
@@ -347,49 +347,8 @@ test.describe('service desk - Ticket Updates', () => {
         console.log(`Howard Nelson verified comment: ${agentComment}`);
       });
 
-      await test.step('Cleanup: Delete the created ticket', async () => {
-        try {
-          await agentServiceDesk.loadPage();
-          await agentServiceDesk.page.getByRole('link', { name: 'Request management' }).click();
-          await agentServiceDesk.page.waitForTimeout(2000);
-
-          const ticketNumber = ticketId.replace('INC-', '');
-          await agentServiceDesk.searchTicket(ticketNumber);
-          await agentServiceDesk.page.waitForTimeout(1000);
-
-          const threeDotsButton = agentServiceDesk.page
-            .locator('button')
-            .filter({ hasText: '•••' })
-            .first()
-            .or(agentServiceDesk.page.locator('button').filter({ hasText: '...' }).first())
-            .or(agentServiceDesk.page.getByRole('button', { name: /more|menu|options/i }).first())
-            .or(agentServiceDesk.page.locator('[data-testid*="menu"], [data-testid*="dropdown"]').first());
-
-          const isThreeDotsVisible = await threeDotsButton.isVisible({ timeout: 5000 }).catch(() => false);
-          if (isThreeDotsVisible) {
-            await threeDotsButton.click();
-            await agentServiceDesk.page.waitForTimeout(500);
-
-            const deleteOption = agentServiceDesk.page
-              .getByRole('menuitem', { name: /delete/i })
-              .or(agentServiceDesk.page.getByText('Delete'));
-            await deleteOption.click();
-
-            const confirmButton = agentServiceDesk.page.getByRole('button', { name: /delete|confirm|yes/i });
-            const isConfirmVisible = await confirmButton.isVisible({ timeout: 2000 }).catch(() => false);
-            if (isConfirmVisible) {
-              await confirmButton.click();
-            }
-
-            await agentServiceDesk.page.waitForTimeout(1000);
-            console.log(`Deleted ticket ${ticketId}`);
-          } else {
-            console.log(`Could not find delete button for ticket ${ticketId} - skipping cleanup`);
-          }
-        } catch (error) {
-          console.log(`Cleanup failed for ticket ${ticketId}: ${error}`);
-        }
-      });
+      // Cleanup step skipped for performance - tickets can be cleaned up manually or via API
+      console.log(`Test completed for ticket ${ticketId}`);
     }
   );
 });
