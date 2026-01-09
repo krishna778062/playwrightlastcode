@@ -5,12 +5,14 @@ import { ContentDashboard } from '../ui/dashboards/content-dashboard/contentDash
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { MonthlyReportsQueryHelper } from './monthlyReportsQueryHelper';
+import { OnSiteQueryHelper } from './onSiteQueryHelper';
 import { PeopleDashboardQueryHelper } from './peopleDashboardQueryHelper';
 import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
+import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
 import {
   ContentDashboardQueryHelper,
   FilesDashboardQueryHelper,
@@ -22,6 +24,7 @@ import { AppAdoptionDashboard } from '@/src/modules/data-engineering/ui/dashboar
 import { FilesDashboard } from '@/src/modules/data-engineering/ui/dashboards/files/filesDashboard';
 import { MobileDashboard } from '@/src/modules/data-engineering/ui/dashboards/mobile-dashboard/mobileDashboard';
 import { MonthlyReportsDashboard } from '@/src/modules/data-engineering/ui/dashboards/monthly-reports/monthlyReportsDashboard';
+import { OnSitePage } from '@/src/modules/data-engineering/ui/dashboards/on-site/onSitePage';
 import { OverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards/overview/overviewDashboard';
 import { PeopleDashboard } from '@/src/modules/data-engineering/ui/dashboards/people/peopleDashboard';
 import { SearchDashboard } from '@/src/modules/data-engineering/ui/dashboards/search/searchDashboard';
@@ -455,6 +458,56 @@ export async function setupFilesDashboardForTest(
       filesDashboard,
       snowflakeHelper,
       filesDashboardQueryHelper,
+    };
+  });
+}
+
+export async function setupOnSitePageForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER,
+  timePeriod?: string
+): Promise<{
+  page: Page;
+  onSitePage: OnSitePage;
+  onSiteQueryHelper: OnSiteQueryHelper;
+  snowflakeHelper: SnowflakeHelper;
+  siteCode: string;
+}> {
+  return await test.step('Setup On-Site Analytics Page', async () => {
+    //login user
+    const page = await createAuthenticatedSession(browser, userRole);
+    //create snowflake connection
+    const snowflakeHelper = await createSnowflakeConnection();
+
+    //create on-site query helper
+    const orgId = getDataEngineeringConfigFromCache().orgId;
+    const onSiteQueryHelper = new OnSiteQueryHelper(snowflakeHelper, orgId);
+
+    // Get site_code from database using default time period (Last 90 days) or provided time period
+    const filterOptions = {
+      tenantCode: orgId,
+      timePeriod: (timePeriod as any) || PeriodFilterTimeRange.LAST_90_DAYS,
+    };
+
+    const siteCode = await onSiteQueryHelper.getSiteCodeFromDB({ filterBy: filterOptions });
+
+    if (!siteCode) {
+      throw new Error(
+        `No site_code found matching the criteria for tenant ${orgId} with time period ${filterOptions.timePeriod}`
+      );
+    }
+
+    //create on-site page with the dynamically retrieved site_code
+    const onSitePage = new OnSitePage(page, siteCode);
+    //load on-site page
+    await onSitePage.loadPage();
+
+    return {
+      page,
+      onSitePage,
+      onSiteQueryHelper,
+      snowflakeHelper,
+      siteCode,
     };
   });
 }
