@@ -37,6 +37,12 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-6980',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description:
+          'Validate success message after saving the change on edit program name and translation page of recognition',
+        zephyrTestId: 'RC-6988',
+        storyId: 'RC-6370',
+      });
       const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       const isElementAlreadyCustomized = await renamingPage.isCardCustomized('recognition');
