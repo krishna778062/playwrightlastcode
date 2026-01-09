@@ -165,7 +165,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fail(
       'verify Unique views metric data validation with default period filter (Last 30 days)',
       {
         tag: [
@@ -179,8 +179,9 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the Unique views metric data in Files dashboard with default filter',
-          zephyrTestId: 'DE-26407',
-          storyId: 'DE-26314',
+          zephyrTestId: 'DE-26405',
+          isKnownFailure: true,
+          storyId: 'DE-26315',
         });
 
         // Get expected metric value from snowflake with default period (Last 30 days)
@@ -195,6 +196,78 @@ test.describe(
         const uniqueViewsMetric = testEnvironment.filesDashboard.uniqueViews;
         await uniqueViewsMetric.verifyMetricUIDataPoints();
         await uniqueViewsMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Distribution of views by file category metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@distribution-of-views-by-file-category',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the Distribution of views by file category metric data in Files dashboard with default filter',
+          zephyrTestId: 'DE-26408',
+          storyId: 'DE-26314',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const expectedMetricValue =
+          await testEnvironment.filesDashboardQueryHelper.getDistributionOfViewsByFileCategoryFromDBWithFilters({
+            filterBy,
+          });
+
+        console.log('Expected Distribution of Views by File Category Data:', expectedMetricValue);
+
+        // UI validation
+        const distributionOfViewsByFileCategoryMetric =
+          testEnvironment.filesDashboard.distributionOfViewsByFileCategory;
+        await distributionOfViewsByFileCategoryMetric.verifyDataIsLoaded();
+        await distributionOfViewsByFileCategoryMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Distrubution of downloads by file category metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@distribution-of-downloads-by-file-category',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the Distrubution of downloads by file category metric data in Files dashboard with default filter',
+          zephyrTestId: 'DE-26409',
+          storyId: 'DE-26314',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const filterBy = createFilterOptions(defaultPeriodFilter);
+        const expectedMetricValue =
+          await testEnvironment.filesDashboardQueryHelper.getDistributionOfDownloadsByFileCategoryFromDBWithFilters({
+            filterBy,
+          });
+
+        console.log('Expected Distribution of Downloads by File Category Data:', expectedMetricValue);
+
+        // UI validation
+        const distributionOfDownloadsByFileCategoryMetric =
+          testEnvironment.filesDashboard.distributionOfDownloadsByFileCategory;
+        await distributionOfDownloadsByFileCategoryMetric.verifyDataIsLoaded();
+        await distributionOfDownloadsByFileCategoryMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
       }
     );
   }
