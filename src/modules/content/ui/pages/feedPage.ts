@@ -77,6 +77,7 @@ export class FeedPage extends BasePage {
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
   readonly feedPostContainer: Locator;
+  readonly topicLinkLocator: (topicName: string, postContainer: Locator) => Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -112,7 +113,8 @@ export class FeedPage extends BasePage {
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
     this.getUserCardFromCelebrationBlock = (userName: string) =>
       this.page.locator("[class*='UserCard--withCelebrations']").filter({ hasText: `Birthday${userName}` });
-
+    this.topicLinkLocator = (topicName: string, postContainer: Locator) =>
+      postContainer.getByRole('link', { name: `#${topicName}` });
     this.feedPostContainer = this.page.locator("[class*='PostInner']");
   }
 
@@ -646,7 +648,7 @@ export class FeedPage extends BasePage {
 
       // Find the topic link within the post
       // Topics are rendered as links with data-type="topic" and href="/topic/{topicId}"
-      const topicLink = postContainer.getByRole('link', { name: `#${topicName}` });
+      const topicLink = this.topicLinkLocator(topicName, postContainer);
 
       // Verify the link is visible
       await this.verifier.verifyTheElementIsVisible(topicLink, {
