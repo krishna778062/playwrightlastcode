@@ -14,6 +14,8 @@ export enum ContentTestSuite {
   FEED_STANDARD_USER = '@feed-standard-user',
   SITE_APP_MANAGER = '@site-app-manager',
   CONTENT_APP_MANAGER = '@content-app-manager',
+  CONTENT = '@content',
+  SITE = '@site',
   ATTACHMENTS = '@attachments',
   FEATURED_SITES = '@featured-sites',
   FEED_COMMENT_MENTION_NOTIFICATION = '@feed-comment-mention-notification',
@@ -33,4 +35,6 @@ export enum ContentTestSuite {
   ONBOARDING = '@onboarding',
   API = '@api',
   TILES = '@tiles',
+  FAVORITE = '@favorite',
+  CAROUSEL = '@carousel',
 }

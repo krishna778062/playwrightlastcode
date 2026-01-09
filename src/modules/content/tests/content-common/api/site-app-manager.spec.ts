@@ -11,7 +11,7 @@ import { SITE_ACCESS_TYPES, SITE_TYPES } from '@/src/modules/content/constants/s
 test.describe(
   '@SiteAPI',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.SITE],
   },
   () => {
     test.afterEach(async ({ appManagerApiFixture }) => {

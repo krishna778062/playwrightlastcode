@@ -21,7 +21,7 @@ import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-
 test.describe(
   '@FeedAPI',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.FEED],
   },
   () => {
     let feedApiHelper: FeedApiHelper;

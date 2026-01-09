@@ -20,7 +20,7 @@ import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-
 test.describe(
   '@FeedAPI - End User',
   {
-    tag: [ContentTestSuite.API, ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.API, ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedApiHelper: FeedApiHelper;

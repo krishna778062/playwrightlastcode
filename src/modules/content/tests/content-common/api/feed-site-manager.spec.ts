@@ -18,7 +18,7 @@ import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-
 test.describe(
   '@FeedAPI - Site Manager',
   {
-    tag: [ContentTestSuite.API, ContentTestSuite.FEED_APP_MANAGER],
+    tag: [ContentTestSuite.API, ContentTestSuite.FEED_SITE_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let feedApiHelper: FeedApiHelper;
