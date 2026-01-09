@@ -587,8 +587,19 @@ export class LoginWithOtpPage extends BasePage {
   }
 
   private async clickResendAndVerifySuccess(otpType: 'email' | 'mobile'): Promise<void> {
-    await this.clickOnElement(this.resendOtpButton);
-    await this.verifyOtpSentConfirmation(otpType, { timeout: TIMEOUTS.MEDIUM });
+    const verificationMessage = otpType === 'email' ? this.verificationCodeMessage : this.verificationCodeMessageMobile;
+
+    await Promise.all([
+      verificationMessage.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM }),
+      this.clickOnElement(this.resendOtpButton),
+    ]);
+
+    await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading, {
+      timeout: TIMEOUTS.MEDIUM,
+    });
+    await this.verifier.verifyTheElementIsVisible(this.enterOtpTextbox, {
+      timeout: TIMEOUTS.MEDIUM,
+    });
   }
 
   private async clickResendAndVerifyLockout(): Promise<void> {
