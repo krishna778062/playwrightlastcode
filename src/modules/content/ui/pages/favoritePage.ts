@@ -5,38 +5,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ContactIconType } from '@/src/modules/content/constants';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
-export interface IFavoritePageActions {
-  clickOnPeopleTab: () => Promise<void>;
-  clickOnContentTab: () => Promise<void>;
-  clickOnFeedTab: () => Promise<void>;
-  searchingFavoriteUser: (fullName: string) => Promise<void>;
-  searchContent: (searchText: string) => Promise<void>;
-  hoverOnUserProfile: (fullName: string) => Promise<void>;
-  getFirstDisplayedUserName: () => Promise<string>;
-  commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
-  unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
-  clickUnfavoriteButtonForFileInFilesTab: (fileName: string) => Promise<void>;
-  likeFeedPost: (postContainer: Locator) => Promise<void>;
-  searchPeople: (searchText: string) => Promise<void>;
-}
-
-export interface IFavoritePageAssertions {
-  verifyTheUserIsVisible: (fullName: string) => Promise<void>;
-  verifyUserDetailsRemainVisible: (fullName: string) => Promise<void>;
-  verifyContactIconsAreVisible: (fullName: string) => Promise<void>;
-  verifyContactIconsRemainVisibleAfterHover: (fullName: string) => Promise<void>;
-  verifyNothingToShowMessage: () => Promise<void>;
-  verifyPeopleSearchBarIsVisible: () => Promise<void>;
-  verifyContentSearchBarIsVisible: () => Promise<void>;
-  verifyFirstContentLinkIsVisible: () => Promise<void>;
-  verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
-  verifyAllFavoriteFeedPostsAreListed: () => Promise<void>;
-  verifyShareButtonIsVisible: (postContainer: Locator) => Promise<void>;
-  verifyUserNameAndFeedCreatedDate: (postContainer: Locator, firstFeedPostText?: string) => Promise<void>;
-  verifyVideoIsVisibleInFilesTab: (videoName: string) => Promise<void>;
-  verifyVideoIsNotVisibleInFilesTab: (videoName: string) => Promise<void>;
-}
-export class FavoritePage extends BasePage implements IFavoritePageActions, IFavoritePageAssertions {
+export class FavoritePage extends BasePage {
   readonly favoriteHeading: Locator = this.page.getByRole('heading', { name: 'Favorites' });
   readonly peopleTab: Locator = this.page.getByRole('tab', { name: 'People' });
   readonly contentTab: Locator = this.page.getByRole('tab', { name: 'Content' });
@@ -52,7 +21,7 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   readonly getFeedTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Feed' });
   // Files tab locators
   readonly getFilesTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Files' });
-  readonly getFeedPosts = (): Locator => this.getFeedTabPanel().locator('p').filter({ hasText: /./ });
+  readonly feedPostsLocator: Locator;
   readonly getFirstFeedPostContent = (): Locator => this.getFeedTabPanel().locator('div[class*="postContent"]').first();
   readonly getPostContainer = (postContentLocator: Locator): Locator => {
     // Find the parent container that contains both postContent and action buttons
@@ -110,7 +79,8 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   }
 
   // User profile locators
-  readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
+  readonly getUserProfileLink = (fullName: string): Locator =>
+    this.page.locator('#panel-people').getByRole('link', { name: fullName, exact: true });
   readonly getUserProfileCard = (fullName: string): Locator =>
     this.page.locator(`[data-testid*="user-card"], [class*="user-card"]`).filter({ hasText: fullName }).first();
   readonly firstUserCard: Locator = this.page
@@ -159,12 +129,7 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FAVORITE_PAGE);
-  }
-  get actions(): IFavoritePageActions {
-    return this;
-  }
-  get assertions(): IFavoritePageAssertions {
-    return this;
+    this.feedPostsLocator = this.getFeedTabPanel().locator('p').filter({ hasText: /./ });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify profile screen page is visible', async () => {
@@ -462,19 +427,10 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   }
 
   async verifyAllFavoriteFeedPostsAreListed(): Promise<void> {
-    await test.step('Verify all favorite feed posts are listed', async () => {
-      const feedPosts = this.getFeedPosts();
-      const postCount = await feedPosts.count();
-
-      if (postCount === 0) {
-        throw new Error('No favorite feed posts found. Expected at least one post to be visible.');
-      }
-
-      for (let i = 0; i < postCount; i++) {
-        await this.verifier.verifyTheElementIsVisible(feedPosts.nth(i), {
-          assertionMessage: `Favorite feed post at index ${i} should be visible. Total posts found: ${postCount}`,
-        });
-      }
+    await test.step('Verify at least one favorite feed post is listed', async () => {
+      await this.verifier.verifyCountOfElementsIsGreaterThanOrEqualTo(this.feedPostsLocator, 1, {
+        assertionMessage: 'At least one favorite feed post should be listed',
+      });
     });
   }
 

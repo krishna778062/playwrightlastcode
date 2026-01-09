@@ -124,6 +124,7 @@ export const PAGE_ENDPOINTS = {
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
   CONTENT_DASHBOARD: '/analytics/content',
+  FILES_DASHBOARD: '/analytics/file',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
@@ -137,4 +138,7 @@ export const PAGE_ENDPOINTS = {
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
   COMMS_PLANNER_PLANNER: '/comms-planner/planner',
   COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
+
+  //Newsletter pages
+  MANAGE_NEWSLETTER_PAGE: '/employee-newsletter',
 };

@@ -38,7 +38,13 @@ test.describe(
     test(
       'creating Custom People tile on Public Site Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-13054'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.TILES,
+          ContentTestSuite.SITE_DASHBOARD,
+          '@CONT-13054',
+        ],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -55,7 +61,8 @@ test.describe(
         await tileApiHelper.validateAppGovernanceResponse(governanceResponse);
 
         // Get site ID by name (using DEFAULT_PUBLIC_SITE_NAME as the default public site)
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Get end user info for the people tile
         const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
@@ -98,7 +105,13 @@ test.describe(
     test(
       'creating Custom Content tile on Unlisted site Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-13037'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.TILES,
+          ContentTestSuite.SITE_DASHBOARD,
+          '@CONT-13037',
+        ],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -171,7 +184,13 @@ test.describe(
     test(
       'creating Content Pages tile on Private site Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-13019'],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentTestSuite.TILES,
+          ContentTestSuite.SITE_DASHBOARD,
+          '@CONT-13019',
+        ],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
