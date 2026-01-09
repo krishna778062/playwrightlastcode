@@ -10,8 +10,6 @@ import { QuickTaskPage } from '@platforms/ui/pages/quickTask/quickTaskPage';
  * Test suite for Quick Task functionality
  */
 test.describe.serial('quick Task', () => {
-  // Store taskId (_id from create response) for cleanup after all tests
-  // This will be updated each time a task is created
   let taskIdToCleanup: string | null = null;
   /**
    * Verifies that error message is displayed when attempting to create a task
@@ -141,10 +139,14 @@ test.describe.serial('quick Task', () => {
       const initialCount = await quickTaskPage.getInitialTabCount('new');
 
       await quickTaskTestHelper.createTestTask('medium');
+      // Wait for backend to process the task before reloading
+      await page.waitForTimeout(2000);
       await quickTaskPage.reloadAndNavigateToTasks();
       await quickTaskPage.verifyNewTabCount(initialCount + 1);
 
       await quickTaskTestHelper.createTestTask('high');
+      // Wait for backend to process the task before reloading
+      await page.waitForTimeout(2000);
       await quickTaskPage.reloadAndNavigateToTasks();
       await quickTaskPage.verifyNewTabCount(initialCount + 2);
     }
@@ -321,8 +323,6 @@ test.describe.serial('quick Task', () => {
       console.log(`Task created with ID: ${taskIdToCleanup}`);
       console.log(`Full task details:`, JSON.stringify(taskDetails.response.result, null, 2));
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
@@ -364,8 +364,6 @@ test.describe.serial('quick Task', () => {
       const fullTaskTitle = 'Search with exact title';
       const partialSearchText = 'Search';
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
@@ -403,8 +401,6 @@ test.describe.serial('quick Task', () => {
       // Use a non-existing task title for search
       const nonExistingTaskTitle = 'NonExistingTaskTitle12345';
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
@@ -427,7 +423,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that clearing the search input displays the full task list again',
-    { tag: [TestPriority.P0, '@quick-task '] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37282'],
@@ -436,8 +432,6 @@ test.describe.serial('quick Task', () => {
       // Reuse the task created in the first test case
       const taskTitle = 'Search with exact title';
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
@@ -479,8 +473,6 @@ test.describe.serial('quick Task', () => {
       const taskTitle = 'Search with exact title';
       const searchText = 'Search';
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
@@ -541,8 +533,6 @@ test.describe.serial('quick Task', () => {
       // Reuse the task created in the first test case
       const taskTitle = 'Search with exact title';
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
@@ -577,8 +567,6 @@ test.describe.serial('quick Task', () => {
       // Reuse the task created in the first test case
       const taskTitle = 'Search with exact title';
 
-      // Note: quickTaskPage fixture already handles login and verifies home page is loaded
-      // Verify we're logged in by checking the current URL doesn't include 'login' or 'authenticate'
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
