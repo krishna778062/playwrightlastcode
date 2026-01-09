@@ -2407,5 +2407,122 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify FO can share restricted (Engineering) Home Feed post to Site Feed with different restrictions (UX Designs)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42196', '@feed-acg-crud', '@share-different-audience'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a Home Feed post (restricted to Engineering) to a Public Site Feed with different Restricted Viewers (UX Designs). Site Feed post should be visible only to UX Designs users, not Engineering users.',
+          zephyrTestId: 'CONT-42196',
+          storyId: 'CONT-42196',
+        });
+
+        let foPostText: string;
+        let sharePostText: string;
+        let sharedPostId: string = '';
+        let publicSiteId: string = '';
+        let publicSiteName: string = '';
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site for sharing', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+          publicSiteName = publicSite.name;
+        });
+
+        // ==================== FO creates Home Feed post WITH restrictions (Engineering) ====================
+        await test.step('FO creates Home Feed post WITH Restricted Viewers (Engineering audience)', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          foPostText = TestDataGenerator.generateRandomText('ABAC Different Audience Share Test', 3, true);
+          await feedPage.clickShareThoughtsButton();
+
+          const postResult = await feedPage.createAndPostWithLimitVisibility({
+            text: foPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post HAS limit visibility (restricted to Engineering)
+          await feedPage.postEditor.verifyPostHasLimitVisibility(foPostText);
+        });
+
+        // ==================== FO shares to Site Feed WITH Restricted Viewers (UX Designs - different audience) ====================
+        await test.step('FO shares restricted post to Public Site Feed WITH Restricted Viewers (UX Designs)', async () => {
+          await feedPage.feedList.clickShareIcon(foPostText);
+          await feedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText('Shared with UX restriction', 2, true);
+
+          // Share to Site Feed WITH limit visibility (UX audience - different from Home Feed)
+          sharedPostId = await shareComponent.shareToSiteFeedWithLimitVisibility({
+            siteName: publicSiteName,
+            description: sharePostText,
+            audience: 'UX',
+          });
+
+          // Verify share was successful
+          await feedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== UX Designs User (socialCampaignManagerFixture) CAN see shared post on Site Feed ====================
+        await test.step('Social Campaign Manager (UX Designs audience) navigates to Site Feed and verifies shared post IS visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(socialCampaignManagerFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to UX Designs user
+          await socialCampaignManagerFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+
+          await socialCampaignManagerFeedPage.feedList.verifyDeletedPostMessage(sharePostText);
+        });
+
+        // ==================== Engineering User (standardUserFixture) CANNOT see shared post on Site Feed ====================
+        await test.step('Standard User (Engineering audience) navigates to Site Feed and verifies shared post is NOT visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post is NOT visible to Engineering user (Site Feed restricted to UX)
+          await standardUserFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
+        });
+
+        // ==================== Engineering User cannot access shared post via direct URL ====================
+        await test.step('Standard User (Engineering) attempts direct URL access to shared post and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(standardUserFixture.page, sharedPostId);
+          await standardUserFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.verifyPageNotFoundVisibility({
+            stepInfo:
+              'Verify Engineering user sees Page not found when accessing UX-restricted shared post via direct URL',
+          });
+        });
+      }
+    );
   }
 );

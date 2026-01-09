@@ -158,7 +158,7 @@ export class CreateFeedPostComponent extends BaseComponent {
     this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
 
   readonly postContainerLocator = (postText: string): Locator =>
-    this.page.locator('._postBody_eonic_8').filter({ hasText: postText }).first();
+    this.page.locator('div[class*="PostInner"]').filter({ hasText: postText }).first();
 
   /**
    * Gets a locator for the post options menu
