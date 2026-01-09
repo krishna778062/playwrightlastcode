@@ -283,8 +283,11 @@ export class SideNavBarComponent extends BaseComponent {
   async clickRecognitionLinkUnderHomeNavMenu(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking recognition link under home side navigation menu`, async () => {
       await this.clickOnElement(this.homeNavMenu, { stepInfo: `clicking home side navigation menu` });
-      await expect(this.recognitionLink, `expecting recognition link to be visible on side bar menu`).toBeVisible();
-      await this.clickOnElement(this.recognitionLink, {
+      await expect(
+        this.recognitionLink.first(),
+        `expecting recognition link to be visible on side bar menu`
+      ).toBeVisible();
+      await this.clickOnElement(this.recognitionLink.first(), {
         stepInfo: `clicking recognition link under home side navigation menu`,
       });
     });

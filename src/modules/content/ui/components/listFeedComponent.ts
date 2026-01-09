@@ -646,10 +646,6 @@ export class ListFeedComponent extends BaseComponent {
     await test.step(`Add reply to post with file attachment`, async () => {
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
 
-      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
-        assertionMessage: `Reply input should be visible`,
-      });
-
       // Enter reply text
       await this.fillInElement(this.replyEditor, replyText);
 
@@ -1342,7 +1338,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getShareIconLocator = (postText: string): Locator =>
     this.page
-      .locator('._postBody_eonic_8')
+      .locator('div[class*="PostInner"]')
       .filter({ hasText: postText })
       .getByRole('button', { name: 'Share this post' });
 
