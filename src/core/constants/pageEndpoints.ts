@@ -124,6 +124,7 @@ export const PAGE_ENDPOINTS = {
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
   CONTENT_DASHBOARD: '/analytics/content',
+  ON_SITE_PAGE: (siteId: string) => `/manage/sites/${siteId}/analytics`,
   FILES_DASHBOARD: '/analytics/file',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
