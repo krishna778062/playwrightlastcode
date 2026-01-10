@@ -2,9 +2,9 @@ import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 import { DAY_NAMES, DEFAULT_FUTURE_DAYS_OFFSET, getOrdinalSuffix, MONTH_NAMES } from '@platforms/constants/quickTask';
+import { QuickTaskModalComponent } from '@platforms/ui/components/quickTaskModal';
 
 export class QuickTaskPage extends BasePage {
-  readonly quickTaskContainer: Locator;
   readonly tasksLink: Locator;
   readonly createNewTaskButton: Locator;
   readonly taskTypeSelector: Locator;
@@ -28,12 +28,11 @@ export class QuickTaskPage extends BasePage {
   readonly inProgressStatusButton: Locator;
   readonly completedTabCount: Locator;
   readonly individualsRadio: Locator;
-  // Search and task list related locators
   readonly searchInput: Locator;
   readonly taskResultLink: (taskTitle: string) => Locator;
   readonly firstTaskResult: Locator;
+  readonly allTaskLinks: Locator;
   readonly noTaskFoundMessage: Locator;
-  // Edit task related locators
   readonly editButton: Locator;
   readonly dropdownMenuTrigger: (taskTitle: string) => Locator;
   readonly editOptionInDropdown: Locator;
@@ -42,9 +41,10 @@ export class QuickTaskPage extends BasePage {
   readonly tagsComboboxInput: Locator;
   readonly dueDateField: Locator;
 
+  readonly quickTaskModal: QuickTaskModalComponent;
+
   constructor(page: Page, pageUrl: string = '/quick-tasks') {
     super(page, pageUrl);
-    this.quickTaskContainer = page.locator('[data-testid="quick-task-container"]');
     this.tasksLink = page.getByTestId('main-nav').getByRole('link', { name: 'Tasks' });
     this.createNewTaskButton = page.getByRole('button', { name: 'Create new task' });
     this.taskTypeSelector = page.locator(
@@ -84,6 +84,8 @@ export class QuickTaskPage extends BasePage {
     this.taskResultLink = (taskTitle: string) =>
       page.locator(`a[title="${taskTitle}"], a:has-text("${taskTitle}")`).first();
     this.firstTaskResult = page.locator('a.w-full.cursor-pointer').first();
+    // All task links - use same locator as firstTaskResult but get all (without .first())
+    this.allTaskLinks = page.locator('a.w-full.cursor-pointer');
     this.noTaskFoundMessage = page.locator(
       'div.flex.items-center.justify-center.py-20.text-sm.text-foreground-muted:has-text("No task found")'
     );
@@ -101,19 +103,15 @@ export class QuickTaskPage extends BasePage {
       .locator('[role="menuitem"]:has-text("Edit"), button:has-text("Edit"), a:has-text("Edit")')
       .first();
     this.descriptionTextarea = page.locator('textarea[data-slot="textarea"][name="description"]');
-    // Priority field in edit form - button with aria-haspopup="listbox" and aria-label="Open popup"
-    // Scope it to edit form context to avoid matching other popup buttons
     this.prioritySelectTrigger = page.locator('button[aria-haspopup="listbox"][aria-label="Open popup"]').first();
     this.tagsComboboxInput = page.locator('input[data-slot="combobox-input"]');
     this.dueDateField = page
       .locator('div.flex.h-9.w-full.items-center.justify-start.rounded-xl.border.border-border-default')
       .first();
+
+    this.quickTaskModal = new QuickTaskModalComponent(page);
   }
 
-  /**
-   * Verify the quick task page is loaded
-   * Supports both create task view (container check) and task list view (search input check)
-   */
   /**
    * Verify the quick task page is loaded
    */
@@ -158,11 +156,14 @@ export class QuickTaskPage extends BasePage {
 
   /**
    * Opens the create task form by navigating to Tasks and clicking create new task button
+   * Verifies that the create task modal is opened before proceeding
    */
   async openCreateTaskForm(): Promise<void> {
     await this.tasksLink.click();
     await this.createNewTaskButton.click();
     await this.taskTypeSelector.click();
+    // Verify create task modal is opened
+    await this.quickTaskModal.verifyCreateTaskModalIsVisible();
   }
 
   /**
@@ -568,6 +569,7 @@ export class QuickTaskPage extends BasePage {
 
   /**
    * Clicks on a task by its title
+   * Verifies that the task detail page is opened and displays the task title before proceeding
    * @param taskTitle - The title of the task to click
    */
   async clickTaskByTitle(taskTitle: string): Promise<void> {
@@ -594,6 +596,10 @@ export class QuickTaskPage extends BasePage {
       await expect(taskElement).toBeVisible({ timeout: 5000 });
       await taskElement.click();
     }).toPass({ timeout: 30000 });
+
+    // Verify task detail page is opened, task title is visible, and basic components are displayed
+    await this.quickTaskModal.verifyTaskDetailPageIsOpened(taskTitle);
+    await this.verifyTaskDetailPageComponents();
   }
 
   /**
@@ -667,12 +673,8 @@ export class QuickTaskPage extends BasePage {
       await markCompletedButton.click();
     }).toPass({ timeout: 20000 });
 
-    // Wait for dialog/modal to be visible
-    await this.page
-      .locator('[role="dialog"]')
-      .or(this.page.locator('form'))
-      .waitFor({ state: 'visible', timeout: 10000 })
-      .catch(() => {});
+    // Verify mark as completed modal is opened
+    await this.quickTaskModal.verifyMarkAsCompletedModalIsVisible();
 
     // Enter comment in the textbox - try multiple locator strategies
     await expect(async () => {
@@ -1205,6 +1207,30 @@ export class QuickTaskPage extends BasePage {
   }
 
   /**
+   * Verifies basic components on task detail page (assigned to and created by)
+   * This should be called after opening the task detail page to ensure all components are loaded
+   */
+  async verifyTaskDetailPageComponents(): Promise<void> {
+    await test.step('Verify basic components on task detail page', async () => {
+      // Get assigned user name and created by user name
+      const assignedUserName = await this.getAssignedUserName();
+      const createdByUserName = await this.getCreatedByUserName();
+
+      // Verify assigned to shows a user name
+      expect(assignedUserName).toBeTruthy();
+      expect(assignedUserName.length).toBeGreaterThan(0);
+
+      // Verify created by shows a user name
+      expect(createdByUserName).toBeTruthy();
+      expect(createdByUserName.length).toBeGreaterThan(0);
+
+      // Verify both are displayed correctly
+      await this.verifyAssignedToUser(assignedUserName);
+      await this.verifyCreatedByUser(createdByUserName);
+    });
+  }
+
+  /**
    * Verifies that the task is assigned to multiple users
    * @param expectedUserNames - Array of expected user names (optional, if empty will verify count from page)
    * @param expectedCount - Expected number of users (default: 3)
@@ -1411,7 +1437,50 @@ export class QuickTaskPage extends BasePage {
    * Verify that tasks are displayed (at least one task result is visible)
    */
   async verifyTasksAreDisplayed(): Promise<void> {
-    await expect(this.firstTaskResult, 'At least one task should be displayed').toBeVisible({ timeout: 10000 });
+    await expect(this.firstTaskResult, 'All tasks should be visible').toBeVisible({ timeout: 10000 });
+  }
+
+  /**
+   * Get the current count of visible tasks in the task list
+   * @returns The number of visible task links
+   */
+  async getTaskCount(): Promise<number> {
+    await this.page
+      .locator('progressbar')
+      .filter({ hasText: 'Loading…' })
+      .waitFor({ state: 'hidden', timeout: 15000 })
+      .catch(() => {});
+
+    await expect(this.firstTaskResult, 'At least one task should be visible').toBeVisible({
+      timeout: 15000,
+    });
+
+    await this.page.waitForTimeout(500);
+    return await this.allTaskLinks.count();
+  }
+
+  /**
+   * Verify that all expected tasks are displayed in the task list
+   * @param expectedCount - The expected number of tasks to be displayed
+   */
+  async verifyAllTasksAreDisplayed(expectedCount: number): Promise<void> {
+    await test.step(`Verify all ${expectedCount} tasks are displayed`, async () => {
+      await this.page
+        .locator('progressbar')
+        .filter({ hasText: 'Loading…' })
+        .waitFor({ state: 'hidden', timeout: 15000 })
+        .catch(() => {});
+
+      await expect(this.firstTaskResult, 'At least one task should be visible').toBeVisible({
+        timeout: 15000,
+      });
+
+      await this.page.waitForTimeout(500);
+
+      const taskCount = await this.allTaskLinks.count();
+
+      expect(taskCount, `Expected ${expectedCount} tasks to be displayed, but found ${taskCount}`).toBe(expectedCount);
+    });
   }
 
   /**
@@ -1503,11 +1572,12 @@ export class QuickTaskPage extends BasePage {
 
   /**
    * Click on the Edit button to open edit mode
+   * Verifies that the edit modal is opened before proceeding
    */
   async clickEditButton(): Promise<void> {
     await expect(this.editButton, 'Edit button should be visible').toBeVisible({ timeout: 10000 });
     await this.editButton.click();
-    // Wait for edit form to appear
-    await this.page.waitForTimeout(500);
+    // Verify edit modal is opened
+    await this.quickTaskModal.verifyEditTaskModalIsVisible();
   }
 }

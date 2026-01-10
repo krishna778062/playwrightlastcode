@@ -10,7 +10,59 @@ import { QuickTaskPage } from '@platforms/ui/pages/quickTask/quickTaskPage';
  * Test suite for Quick Task functionality
  */
 test.describe.serial('quick Task', () => {
-  let taskIdToCleanup: string | null = null;
+  // Store task IDs and titles for each test that needs them
+  let testTaskIds: string[] = [];
+  let testTaskTitles: string[] = [];
+
+  /**
+   * Creates multiple tasks (more than 3) before each test that needs them
+   * Only runs for tests tagged with @requires-task-prerequisite
+   */
+  test.beforeEach(async ({ quickTaskApiFixture }, testInfo) => {
+    // Only create tasks for tests that have the @requires-task-prerequisite tag
+    const testTags = testInfo.tags || [];
+    const needsTasks = testTags.includes('@requires-task-prerequisite');
+
+    if (needsTasks) {
+      // Create more than 3 tasks (creating 4 tasks) with dynamic names using faker
+      const taskCount = 4;
+      testTaskIds = [];
+      testTaskTitles = [];
+
+      for (let i = 0; i < taskCount; i++) {
+        // Generate completely random task title using faker
+        const uniqueTitle = `${faker.lorem.words({ min: 2, max: 4 })} ${Date.now()}-${i}`;
+        const taskDetails = await quickTaskApiFixture.quickTaskService.createTaskAsPrerequisite(uniqueTitle, 'urgent');
+        testTaskIds.push(taskDetails.taskId);
+        testTaskTitles.push(taskDetails.title);
+        console.log(`Created task ${i + 1}/${taskCount} for test: ${testInfo.title}`);
+        console.log(`Task ID: ${taskDetails.taskId}, Title: ${taskDetails.title}`);
+      }
+      console.log(`Total ${taskCount} tasks created for test: ${testInfo.title}`);
+    }
+  });
+
+  /**
+   * Cleans up all tasks created in beforeEach after each test
+   */
+  test.afterEach(async ({ quickTaskApiFixture }, testInfo) => {
+    if (testTaskIds.length > 0) {
+      console.log(`Cleaning up ${testTaskIds.length} task(s) for test: ${testInfo.title}`);
+      for (const taskId of testTaskIds) {
+        try {
+          console.log(`Deleting task ID: ${taskId}`);
+          await quickTaskApiFixture.quickTaskService.deleteTask(taskId);
+          console.log(`Successfully deleted task with ID: ${taskId}`);
+        } catch (error) {
+          console.warn(`Failed to delete task with ID: ${taskId}:`, error);
+          // Don't throw - cleanup failures shouldn't fail the test suite
+        }
+      }
+      testTaskIds = [];
+      testTaskTitles = [];
+    }
+  });
+
   /**
    * Verifies that error message is displayed when attempting to create a task
    * without filling the required "Assigned to" field
@@ -305,28 +357,24 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that the user can search a task using the exact task title',
-    { tag: [TestPriority.P0, '@quick-task'] },
-    async ({ quickTaskPage, quickTaskApiFixture }) => {
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37278'],
       });
 
-      // Use createTaskAsPrerequisite to create a task with title and priority
-      const taskDetails = await quickTaskApiFixture.quickTaskService.createTaskAsPrerequisite(
-        'Search with exact title',
-        'urgent'
-      );
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
 
-      // Store taskId (_id from response) for cleanup - update it for each task creation cycle
-      taskIdToCleanup = taskDetails.taskId;
-      console.log(`Task created with ID: ${taskIdToCleanup}`);
-      console.log(`Full task details:`, JSON.stringify(taskDetails.response.result, null, 2));
+      // Use the first dynamically created task title for searching
+      const searchTaskTitle = testTaskTitles[0];
 
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
 
-      // Wait a moment for the task to be available in the UI after API creation
+      // Wait a moment for the tasks to be available in the UI after API creation
       await quickTaskPage.waitForTimeout(2000);
 
       // Navigate to quick tasks page (user is already logged in via fixture)
@@ -337,31 +385,34 @@ test.describe.serial('quick Task', () => {
       // Click on the "Created tasks" tab before searching
       await quickTaskPageObj.clickCreatedTasksTab();
 
-      // Search for the task
-      await quickTaskPageObj.searchTask('Search with exact title');
+      // Search for the task using dynamically created task title
+      await quickTaskPageObj.searchTask(searchTaskTitle);
 
-      // Verify the first result is "Task for Testing"
-      await quickTaskPageObj.verifyFirstSearchResult('Search with exact title');
+      // Verify the first result matches the searched task title
+      await quickTaskPageObj.verifyFirstSearchResult(searchTaskTitle);
 
       // Additional verification: Get the first result title and verify it matches
       const firstResultTitle = await quickTaskPageObj.getFirstResultTitle();
-      expect(firstResultTitle.trim(), 'First result should be "Search with exact title"').toBe(
-        'Search with exact title'
-      );
+      expect(firstResultTitle.trim(), `First result should be "${searchTaskTitle}"`).toBe(searchTaskTitle);
     }
   );
 
   test(
     'verify that the task list filters correctly when searching with a partial task title',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37279'],
       });
 
-      // Reuse the task created in the first test case - search using partial text
-      const fullTaskTitle = 'Search with exact title';
-      const partialSearchText = 'Search';
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
+
+      // Use the first dynamically created task title and extract partial text
+      const fullTaskTitle = testTaskTitles[0];
+      // Extract first word from the task title for partial search
+      const partialSearchText = fullTaskTitle.split(' ')[0];
 
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
@@ -391,7 +442,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that no tasks appear when the user searches for a non-existing task title',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task1'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37281'],
@@ -422,55 +473,61 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that clearing the search input displays the full task list again',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37282'],
       });
 
-      // Reuse the task created in the first test case
-      const taskTitle = 'Search with exact title';
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
+
+      const taskTitle = testTaskTitles[0];
 
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
       expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
 
-      // Navigate to quick tasks page (user is already logged in via fixture)
       const quickTaskPageObj = new QuickTaskPage(quickTaskPage);
       await quickTaskPageObj.loadPage();
       await quickTaskPageObj.verifyThePageIsLoaded();
 
-      // Click on the "Created tasks" tab before searching
       await quickTaskPageObj.clickCreatedTasksTab();
 
-      // First, search for the task to filter results
+      const initialTaskCount = await quickTaskPageObj.getTaskCount();
+      expect(initialTaskCount, 'Initial task count should be greater than 0').toBeGreaterThan(0);
+
       await quickTaskPageObj.searchTask(taskTitle);
 
-      // Verify the search result is displayed
       await quickTaskPageObj.verifyFirstSearchResult(taskTitle);
+      const filteredTaskCount = await quickTaskPageObj.getTaskCount();
+      expect(filteredTaskCount, 'Filtered task count should be less than initial count').toBeLessThan(initialTaskCount);
 
-      // Clear the search field
       await quickTaskPageObj.clearSearchField();
 
-      // Verify that tasks are displayed after clearing search
-      await quickTaskPageObj.verifyTasksAreDisplayed();
+      await quickTaskPageObj.verifyAllTasksAreDisplayed(initialTaskCount);
 
-      // Verify that the created task is still visible in the list
       await quickTaskPageObj.verifyTaskIsDisplayed(taskTitle);
     }
   );
 
   test(
     'verify that tasks are filtered in real-time while typing in the search bar',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37283'],
       });
 
-      // Reuse the task created in the first test case
-      const taskTitle = 'Search with exact title';
-      const searchText = 'Search';
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
+
+      // Use the first dynamically created task title
+      const taskTitle = testTaskTitles[0];
+      // Extract first word from the task title for progressive typing
+      const searchText = taskTitle.split(' ')[0];
 
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
@@ -488,27 +545,19 @@ test.describe.serial('quick Task', () => {
       await quickTaskPageObj.verifyTasksAreDisplayed();
 
       // Type search text progressively (character by character) to test real-time filtering
-      // Start with first character 'S'
-      await quickTaskPageObj.searchInput.type('S', { delay: 200 });
+      // Start with first character
+      await quickTaskPageObj.searchInput.type(searchText[0], { delay: 200 });
       await quickTaskPage.waitForTimeout(300);
-      // Verify results are filtered after typing 'S'
+      // Verify results are filtered after typing first character
       await quickTaskPageObj.verifyTasksAreDisplayed();
 
-      // Type second character 'e'
-      await quickTaskPageObj.searchInput.type('e', { delay: 200 });
-      await quickTaskPage.waitForTimeout(300);
-      // Verify results are still displayed after typing 'Se'
-      await quickTaskPageObj.verifyTasksAreDisplayed();
-
-      // Type third character 'a'
-      await quickTaskPageObj.searchInput.type('a', { delay: 200 });
-      await quickTaskPage.waitForTimeout(300);
-      // Verify results are still displayed after typing 'Sea'
-      await quickTaskPageObj.verifyTasksAreDisplayed();
-
-      // Type remaining characters 'rch'
-      await quickTaskPageObj.searchInput.type('rch', { delay: 200 });
-      await quickTaskPage.waitForTimeout(500);
+      // Type remaining characters progressively
+      for (let i = 1; i < searchText.length; i++) {
+        await quickTaskPageObj.searchInput.type(searchText[i], { delay: 200 });
+        await quickTaskPage.waitForTimeout(300);
+        // Verify results are still displayed after each character
+        await quickTaskPageObj.verifyTasksAreDisplayed();
+      }
 
       // Verify the final search result contains the task title
       await quickTaskPageObj.verifyFirstSearchResult(taskTitle);
@@ -523,14 +572,18 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify the Edit Task option is visible in task view',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37308'],
       });
 
-      // Reuse the task created in the first test case
-      const taskTitle = 'Search with exact title';
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
+
+      // Use the first dynamically created task title
+      const taskTitle = testTaskTitles[0];
 
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
@@ -548,6 +601,8 @@ test.describe.serial('quick Task', () => {
       await quickTaskPageObj.verifyTaskIsDisplayed(taskTitle);
 
       // Click on the task to open its details
+      // This automatically verifies the task detail page is opened, task title is visible,
+      // and basic components (assigned to, created by) are displayed
       await quickTaskPageObj.clickTaskByTitle(taskTitle);
 
       // Verify the Edit button is present
@@ -557,14 +612,18 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify the Edit Task option is visible in the task list',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37309'],
       });
 
-      // Reuse the task created in the first test case
-      const taskTitle = 'Search with exact title';
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
+
+      // Use the first dynamically created task title
+      const taskTitle = testTaskTitles[0];
 
       const currentUrl = quickTaskPage.url();
       expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
@@ -588,20 +647,4 @@ test.describe.serial('quick Task', () => {
       await quickTaskPageObj.verifyEditOptionInDropdownIsVisible();
     }
   );
-
-  // Cleanup: Delete the task created in the first test case using the _id from response
-  test.afterAll(async ({ quickTaskApiFixture }) => {
-    if (taskIdToCleanup) {
-      try {
-        console.log(`Starting cleanup for task ID: ${taskIdToCleanup}`);
-        await quickTaskApiFixture.quickTaskService.deleteTask(taskIdToCleanup);
-        console.log(`Successfully deleted task with ID: ${taskIdToCleanup}`);
-      } catch (error) {
-        console.warn(`Failed to delete task with ID: ${taskIdToCleanup}:`, error);
-        // Don't throw - cleanup failures shouldn't fail the test suite
-      }
-    } else {
-      console.log('No task ID to cleanup');
-    }
-  });
 });
