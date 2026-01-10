@@ -426,7 +426,7 @@ export class BaseActionUtil {
   /**
    * Dismisses the toast message.
    */
-  async dismissTheToastMessage(options?: { toastText?: string }): Promise<void> {
+  async dismissTheToastMessage(options?: { toastText?: string; timeout?: number }): Promise<void> {
     await test.step(
       options?.toastText
         ? `Dismissing the toast message having text ${options?.toastText}`
@@ -434,7 +434,7 @@ export class BaseActionUtil {
       async () => {
         options?.toastText
           ? await this.clickOnElement(this.dismissToastMessageByText(options?.toastText))
-          : await this.clickOnElement(this.dismissToastMessage);
+          : await this.clickOnElement(this.dismissToastMessage, { timeout: options?.timeout ?? 5_000 });
       }
     );
   }
