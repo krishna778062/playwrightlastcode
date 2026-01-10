@@ -2529,5 +2529,126 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify FO can share unrestricted Site Feed post to Home Feed with Restricted Viewers (UX Designs)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42197', '@feed-acg-crud'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share an unrestricted Site Feed post to Home Feed with Restricted Viewers (UX Designs). Home Feed post should be visible only to UX Designs users and FO, not to Engineering users.',
+          zephyrTestId: 'CONT-42197',
+          storyId: 'CONT-42197',
+        });
+
+        let siteFeedPostText: string;
+        let sharePostText: string;
+        let sharedPostId: string = '';
+        let publicSiteId: string = '';
+        let siteDashboardPage: SiteDashboardPage;
+        let siteFeedPage: FeedPage;
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+        });
+
+        // ==================== FO creates Site Feed post WITHOUT restrictions ====================
+        await test.step('FO creates Site Feed post WITHOUT Restricted Viewers (unrestricted)', async () => {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          siteFeedPage = new FeedPage(appManagerFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          siteFeedPostText = TestDataGenerator.generateRandomText('ABAC Site to Home Share Test', 3, true);
+          await siteFeedPage.clickShareThoughtsButton();
+
+          const postResult = await siteFeedPage.postEditor.createAndPost({
+            text: siteFeedPostText,
+          });
+
+          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post does NOT have limit visibility (unrestricted)
+          await siteFeedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(siteFeedPostText);
+        });
+
+        // ==================== FO shares Site Feed post to Home Feed WITH Restricted Viewers (UX Designs) ====================
+        await test.step('FO shares Site Feed post to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
+          await siteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+          await siteFeedPage.feedList.clickShareIcon(siteFeedPostText);
+          await siteFeedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText('Shared to Home Feed with UX restriction', 2, true);
+
+          // Share to Home Feed (default option) WITH limit visibility
+          await shareComponent.enterShareDescription(sharePostText);
+          await shareComponent.toggleLimitVisibility();
+          await shareComponent.selectAudience('UX');
+
+          sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await siteFeedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== UX Designs User (socialCampaignManagerFixture) CAN see shared post on Home Feed ====================
+        await test.step('Social Campaign Manager (UX Designs audience) navigates to Home Feed and verifies shared post IS visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.reloadPageWithTimelineMode();
+          await socialCampaignManagerFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to UX Designs user
+          await socialCampaignManagerFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== Engineering User (standardUserFixture) CANNOT see shared post on Home Feed ====================
+        await test.step('Standard User (Engineering audience) navigates to Home Feed and verifies shared post is NOT visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.reloadPageWithTimelineMode();
+          await standardUserFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post is NOT visible to Engineering user (Home Feed restricted to UX)
+          await standardUserFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
+        });
+
+        // ==================== Engineering User cannot access shared post via direct URL ====================
+        await test.step('Standard User (Engineering) attempts direct URL access to shared post and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(standardUserFixture.page, sharedPostId);
+          await standardUserFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.verifyPageNotFoundVisibility({
+            stepInfo:
+              'Verify Engineering user sees Page not found when accessing UX-restricted Home Feed post via direct URL',
+          });
+        });
+
+        // ==================== FO can see shared post on Home Feed ====================
+        await test.step('FO navigates to Home Feed and verifies shared post IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPageWithTimelineMode();
+          await appManagerFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to FO (creator/sharer always sees their posts)
+          await appManagerFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+      }
+    );
   }
 );
