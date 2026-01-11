@@ -669,6 +669,11 @@ export class ContentManagementHelper {
   async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0) {
     return await this.contentManagementService.getTopicList();
   }
+  async getTopicIdByName(topicName: string): Promise<string> {
+    const topicList = await this.contentManagementService.getTopicList();
+    const topic = topicList.result.listOfItems.find(t => t.name === topicName);
+    return topic?.topic_id || '';
+  }
 
   async getTopicListWithName(topicName: string) {
     const topicList = await this.contentManagementService.getTopicList();
