@@ -23,27 +23,23 @@ export interface QuestionResult {
 
 export class CreateQuestionComponent extends BaseComponent {
   // Question editor elements
-  readonly questionEditor = this.page.locator("div[aria-describedby='question-description']");
-  readonly questionTitleInput = this.page.getByRole('textbox', { name: 'Question*' });
-  readonly questionBodyEditor = this.page.locator(
-    "div[contenteditable='true'][data-placeholder*='question' i], div[contenteditable='true'][data-placeholder*='body' i]"
-  );
-  readonly fileUploadInput = this.page.locator("input[type='file']");
-  readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
-  readonly deleteFileIcon = this.page.locator("button[class*='delete']");
-  readonly askQuestionButton = this.page.getByRole('button', { name: 'Ask question' });
+  readonly questionEditor: Locator;
+  readonly questionTitleInput: Locator;
+  readonly questionBodyEditor: Locator;
+  readonly fileUploadInput: Locator;
+  readonly attachedFiles: Locator;
+  readonly deleteFileIcon: Locator;
+  readonly askQuestionButton: Locator;
 
-  readonly editButton = this.page.locator("div[role='menuitem'] > div").filter({ hasText: /^Edit$/ });
-  readonly updateButton = this.page.getByRole('button', { name: 'Update' });
+  readonly editButton: Locator;
+  readonly updateButton: Locator;
 
   // Question type selection
-  readonly questionTypeButton = this.page.locator(
-    "button:has-text('Question'), div[role='button']:has-text('Question')"
-  );
+  readonly questionTypeButton: Locator;
 
   // File upload section
-  readonly fileItemNameSelector = "div[class='FileItem-name']";
-  readonly deleteButtonSelector = "button[class*='delete']";
+  readonly fileItemNameSelector: string;
+  readonly deleteButtonSelector: string;
 
   // Dynamic locator functions
   /**
@@ -51,24 +47,50 @@ export class CreateQuestionComponent extends BaseComponent {
    * @param text - The text content to find
    * @returns Locator for the question text
    */
-  readonly getQuestionTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='questionContent'], div[class*='postContent']").getByText(text, { exact: true });
+  readonly getQuestionTextLocator: (text: string) => Locator;
 
   /**
    * Gets a locator for the post options menu
    * @param postText - The text of the post to find options menu for
    * @returns Locator for the options menu button
    */
-  readonly getQuestionOptionsMenuLocator = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator("button[class*='optionlauncher']")
-      .first();
+  readonly getQuestionOptionsMenuLocator: (postText: string) => Locator;
 
   constructor(page: Page) {
     super(page);
+
+    // Initialize locators
+    this.questionEditor = this.page.locator("div[aria-describedby='question-description']");
+    this.questionTitleInput = this.page.getByRole('textbox', { name: 'Question*' });
+    this.questionBodyEditor = this.page.locator(
+      "div[contenteditable='true'][data-placeholder*='question' i], div[contenteditable='true'][data-placeholder*='body' i]"
+    );
+    this.fileUploadInput = this.page.locator("input[type='file']");
+    this.attachedFiles = this.page.locator("div[class='FileItem-name']");
+    this.deleteFileIcon = this.page.locator("button[class*='delete']");
+    this.askQuestionButton = this.page.getByRole('button', { name: 'Ask question' });
+
+    this.editButton = this.page.locator("div[role='menuitem'] > div").filter({ hasText: /^Edit$/ });
+    this.updateButton = this.page.getByRole('button', { name: 'Update' });
+
+    // Question type selection
+    this.questionTypeButton = this.page.locator("button:has-text('Question'), div[role='button']:has-text('Question')");
+
+    // File upload section
+    this.fileItemNameSelector = "div[class='FileItem-name']";
+    this.deleteButtonSelector = "button[class*='delete']";
+
+    // Dynamic locator functions
+    this.getQuestionTextLocator = (text: string): Locator =>
+      this.page.locator("div[class*='questionContent'], div[class*='postContent']").getByText(text, { exact: true });
+
+    this.getQuestionOptionsMenuLocator = (postText: string): Locator =>
+      this.page
+        .locator('p')
+        .filter({ hasText: postText })
+        .locator('xpath=./ancestor::div[4]')
+        .locator("button[class*='optionlauncher']")
+        .first();
   } /**
    * Verifies that the question creation page is loaded
    */
