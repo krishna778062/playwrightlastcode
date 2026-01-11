@@ -578,7 +578,6 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       const siteInfoForCreateContent = await standardUserFixture.siteManagementHelper.getListOfSites({
         filter: `active`,
       });
-      // Create page using API with the topic
       const pageInfo = await standardUserFixture.contentManagementHelper.getContentId({
         accessType: SITE_TYPES.PUBLIC,
       });
