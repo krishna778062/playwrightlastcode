@@ -14,8 +14,7 @@ import { getRecognitionTenantConfigFromCache } from '@recognition/config/recogni
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { expect } from 'playwright/test';
 
-// eslint-disable-next-line playwright/no-focused-test
-test.describe.only('Add comments to non-unified posts', () => {
+test.describe('Add comments to non-unified posts', () => {
   test(
     'Verify add new comments to non-unified posts when comments are enabled',
     {
