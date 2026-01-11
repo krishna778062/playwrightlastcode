@@ -259,16 +259,24 @@ export class IntranetFileListComponent extends ContentListComponent {
    */
   async verifyAutocompleteNavigationToFileLink(fileId: string, fileName: string) {
     await test.step(`Verifying autocomplete navigation to intranet file "${fileName}"`, async () => {
+      // Wait for autocomplete item to be visible and stable before clicking
+      await this.verifier.waitUntilElementIsVisible(this.autocompleteSiteName, {
+        timeout: 40000,
+        stepInfo: `Waiting for autocomplete item "${fileName}" to be visible`,
+      });
+
       // Click the autocomplete item
       await this.clickOnElement(this.autocompleteSiteName, { timeout: 40000 });
 
-      try {
-        await this.page.waitForURL(url => url.toString().includes(fileId), { timeout: 30000 });
-      } catch (error) {
-        throw new Error(
-          `Verifying autocomplete navigation to intranet file "${fileName}" failed. URL should contain file ID "${fileId}".\n${error}`
-        );
-      }
+      // Wait for navigation to complete with retry mechanism
+      await expect(async () => {
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+        const currentUrl = this.page.url();
+        expect(currentUrl).toContain(fileId);
+      }).toPass({
+        intervals: [2000, 5000, 10000],
+        timeout: 60000,
+      });
     });
   }
 }

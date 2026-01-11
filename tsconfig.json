@@ -31,6 +31,7 @@
       "@content-abac/tests/*": ["./src/modules/content-abac/tests/*"],
       "@content-abac/components/*": ["./src/modules/content-abac/ui/components/*"],
       "@rewards/*": ["./src/modules/reward/*"],
+      "@newsletter/*": ["./src/modules/newsletter/*"],
       "@rewards-components/*": ["./src/modules/reward/ui/components/*"],
       "@rewards-pages/*": ["./src/modules/reward/ui/pages/*"],
       "@frontline/*": ["./src/modules/frontline/*"],
