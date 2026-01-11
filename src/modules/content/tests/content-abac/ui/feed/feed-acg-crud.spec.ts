@@ -2925,5 +2925,138 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify FO can share a comment on Public Site Feed post to Home Feed with Restricted Viewers (UX Designs) - ABAC enforced',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42201', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a comment from a non-restricted Public Site Feed post to Home Feed with Restricted Viewers (UX Designs). The shared comment should be visible only to the selected audience and FO.',
+          zephyrTestId: 'CONT-42201',
+          storyId: 'CONT-42201',
+        });
+
+        let siteFeedPostText: string;
+        let commentText: string;
+        let shareCommentText: string;
+        let sharedCommentId: string = '';
+        let publicSiteId: string = '';
+        let siteFeedPostId: string = '';
+        let siteDashboardPage: SiteDashboardPage;
+        let siteFeedPage: FeedPage;
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+        });
+
+        // ==================== FO creates non-restricted Site Feed post ====================
+        await test.step('FO creates non-restricted Site Feed post on Public Site', async () => {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          siteFeedPage = new FeedPage(appManagerFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          siteFeedPostText = TestDataGenerator.generateRandomText('ABAC Restricted Comment Share Test Post', 3, true);
+          await siteFeedPage.clickShareThoughtsButton();
+
+          const postResult = await siteFeedPage.postEditor.createAndPost({ text: siteFeedPostText });
+          siteFeedPostId = postResult.postId || '';
+
+          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post does NOT have limit visibility (unrestricted)
+          await siteFeedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(siteFeedPostText);
+        });
+
+        // ==================== FO adds a comment to the Site Feed post ====================
+        await test.step('FO adds a comment/reply to the Site Feed post', async () => {
+          commentText = TestDataGenerator.generateRandomText('ABAC Restricted Comment to share', 2, true);
+
+          // Add reply to the post
+          await siteFeedPage.feedList.addReplyToPost(commentText, siteFeedPostId);
+
+          // Verify comment is visible
+          await siteFeedPage.feedList.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== FO shares the comment to Home Feed WITH Restricted Viewers (UX Designs) ====================
+        await test.step('FO shares the comment to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
+          // Click share on the comment
+          await siteFeedPage.feedList.clickShareOnComment();
+          await siteFeedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          shareCommentText = TestDataGenerator.generateRandomText('Shared restricted comment to Home Feed', 2, true);
+
+          // Share to Home Feed (default option) WITH limit visibility (UX audience)
+          await shareComponent.enterShareDescription(shareCommentText);
+          await shareComponent.toggleLimitVisibility();
+          await shareComponent.selectAudience('UX');
+
+          sharedCommentId = await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await siteFeedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== UX Designs User (socialCampaignManagerFixture) CAN see shared comment on Home Feed ====================
+        await test.step('Social Campaign Manager (UX Designs audience) navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const scmHomeFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmHomeFeedPage.reloadPageWithTimelineMode();
+          await scmHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to UX Designs user
+          await scmHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+
+        // ==================== Non-UX User (standardUserFixture) CANNOT see shared comment on Home Feed ====================
+        await test.step('Standard User (NOT in UX Designs audience) navigates to Home Feed and verifies shared comment is NOT visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const standardUserHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserHomeFeedPage.reloadPageWithTimelineMode();
+          await standardUserHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment is NOT visible to non-UX user
+          await standardUserHomeFeedPage.feedList.verifyPostIsNotVisible(shareCommentText);
+        });
+
+        // ==================== Non-UX User cannot access shared comment via direct URL ====================
+        await test.step('Standard User (NOT in UX Designs) attempts direct URL access to shared comment and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(standardUserFixture.page, sharedCommentId);
+          await standardUserFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.verifyPageNotFoundVisibility({
+            stepInfo:
+              'Verify non-UX user sees Page not found when accessing UX-restricted shared comment via direct URL',
+          });
+        });
+
+        // ==================== FO can see shared comment on Home Feed ====================
+        await test.step('FO navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const appManagerHomeFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerHomeFeedPage.reloadPage();
+          await appManagerHomeFeedPage.feedList.verifyThePageIsLoaded();
+
+          // Verify the shared comment IS visible to FO (creator/sharer always sees their content)
+          await appManagerHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+      }
+    );
   }
 );
