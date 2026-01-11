@@ -992,4 +992,19 @@ export class FeedManagementHelper {
       };
     });
   }
+
+  /**
+   * Changes the dashboard layout
+   * @param layout - The layout value to set (e.g., 'a', 'b', 'c', etc.)
+   * @param type - The type of dashboard ('home' for home dashboard, 'site' for site dashboard)
+   * @param siteId - Optional site ID (required for site dashboard, null for home dashboard)
+   * @returns Promise with the API response
+   */
+  async layoutChange(layout: string, type: string = 'home', siteId: string | null = null): Promise<any> {
+    return await test.step(`Changing dashboard layout to "${layout}"`, async () => {
+      const response = await this.feedManagementService.updateDashboardLayout(type, layout, siteId);
+      log.debug('Layout change completed', { layout, type, siteId, response });
+      return response;
+    });
+  }
 }
