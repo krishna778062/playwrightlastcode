@@ -13,7 +13,7 @@ import { TILE_TEST_DATA } from '@/src/modules/content/test-data/tile.test-data';
 test.describe(
   '@Home Dashboard API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.HOME_DASHBOARD, ContentTestSuite.TILES],
   },
   () => {
     let tileApiHelper: TileApiHelper;
@@ -42,13 +42,7 @@ test.describe(
     test(
       'app manager can configure Home Dashboard to App Manager control and End User control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-42758',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42758'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -87,13 +81,7 @@ test.describe(
     test(
       'app manager can create, verify, and remove Files tile on Home Dashboard',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-42763',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42763'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -163,13 +151,7 @@ test.describe(
     test(
       'app manager can manage Sites tile with public, private, and unlisted sites',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-42762',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42762'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -229,13 +211,7 @@ test.describe(
     test(
       'app manager can create Site Categories tile on Home Dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-42765',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-42765'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -275,13 +251,7 @@ test.describe(
     test(
       'app manager can create Custom People tile on Home Dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-42766',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-42766'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -324,13 +294,7 @@ test.describe(
     test(
       'creating New Hires tile on Home Dashboard using  App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          '@CONT-13056',
-          ContentTestSuite.TILES,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-13056'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -377,13 +341,7 @@ test.describe(
     test(
       'remove Hires tile on Home Dashboard using  App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          '@CONT-42133',
-          ContentTestSuite.TILES,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42133'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -424,13 +382,7 @@ test.describe(
     test(
       'creating New Hires tile on Home Dashboard using  App Manager with User Dashboard Control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          '@CONT-13068',
-          ContentTestSuite.TILES,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-13068'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -480,13 +432,7 @@ test.describe(
     test(
       'remove Hires tile on Home Dashboard using  App Manager with User Dashboard Control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          '@CONT-42137',
-          ContentTestSuite.TILES,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42137'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -527,13 +473,7 @@ test.describe(
     test(
       'creating Content latest and popular tile on Home Dashboard using App Manager with User Dashboard Control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          '@CONT-13038',
-          ContentTestSuite.TILES,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-13038'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -566,13 +506,7 @@ test.describe(
     test(
       'creating Content latest and popular tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13014',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-13014'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -607,13 +541,7 @@ test.describe(
     test(
       'creating Content Pages tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13018',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13018'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -657,13 +585,7 @@ test.describe(
     test(
       'creating Content Events tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13022',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13022'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -707,13 +629,7 @@ test.describe(
     test(
       'creating Content Albums tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13026',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13026'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -757,13 +673,7 @@ test.describe(
     test(
       'creating HTML tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13112',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13112'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -800,7 +710,7 @@ test.describe(
     test(
       'creating Content Custom tile with specific items on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, ContentTestSuite.TILES],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -851,13 +761,7 @@ test.describe(
     test(
       'creating Links tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13116',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13116'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -902,13 +806,7 @@ test.describe(
     test(
       'creating RSS tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-4085',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-4085'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -944,13 +842,7 @@ test.describe(
     test(
       'creating Twitter tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-2843',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-2843'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -985,13 +877,7 @@ test.describe(
     test(
       'creating Facebook tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13098',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13098'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1029,13 +915,7 @@ test.describe(
     test(
       'creating Countdown tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13123',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13123'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1076,13 +956,7 @@ test.describe(
     test(
       'creating Content from Category tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-42854',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-42854'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1129,13 +1003,7 @@ test.describe(
     test(
       'creating Rich Text tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13108',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13108'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1171,13 +1039,7 @@ test.describe(
     test(
       'creating Video tile on Home Dashboard using App Manager with App Manager Dashboard Control',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13120',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.HOME_DASHBOARD, '@CONT-13120'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1235,13 +1097,7 @@ test.describe(
     test(
       'validating Home Control setting options functionality on Home Dashboard using App Manager and Standard User',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.HOME_DASHBOARD,
-          ContentTestSuite.TILES,
-          '@CONT-13007',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-13007'],
       },
       async ({ appManagerApiFixture, standardUserApiFixture }) => {
         tagTest(test.info(), {

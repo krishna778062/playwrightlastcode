@@ -121,7 +121,11 @@ export class SideNavBarComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
-        await this.clickOnElement(this.homeLink);
+        try {
+          await this.clickOnElement(this.homeLink);
+        } catch (error) {
+          await this.clickOnElement(this.homeLink);
+        }
       }
     });
   }

@@ -1663,4 +1663,51 @@ export class FeedManagementService implements IFeedManagementOperations {
       return questionDetails;
     });
   }
+
+  /**
+   * Updates the dashboard layout
+   * @param type - The type of dashboard ('home' for home dashboard)
+   * @param layout - The layout value (e.g., 'a', 'b', 'c', etc.)
+   * @param siteId - Optional site ID (null for home dashboard)
+   * @returns Promise with the API response
+   */
+  async updateDashboardLayout(type: string, layout: string, siteId: string | null = null): Promise<any> {
+    return await test.step(`Updating dashboard layout to "${layout}" for type "${type}"`, async () => {
+      // Extract CSRF token from storage state
+      const storageState = await this.context.storageState();
+      const cookies = storageState.cookies || [];
+      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
+
+      const payload = {
+        type,
+        site_id: siteId,
+        layout,
+      };
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: '*/*',
+      };
+
+      if (csrfid) {
+        headers['x-smtip-csrfid'] = csrfid;
+      }
+
+      log.debug('Dashboard layout update payload', { payload: JSON.stringify(payload, null, 2) });
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.dashboardLayout, {
+        data: payload,
+        headers,
+      });
+
+      const responseBody = await response.json();
+      log.debug('Dashboard layout update response', { response: JSON.stringify(responseBody, null, 2) });
+
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to update dashboard layout. Status: ${response.status()}`);
+      }
+
+      return responseBody;
+    });
+  }
 }

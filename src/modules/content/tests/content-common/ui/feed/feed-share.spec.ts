@@ -17,7 +17,7 @@ import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 test.describe(
   'feed share modal view post test',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     test(

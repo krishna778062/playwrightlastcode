@@ -11,40 +11,32 @@ import { ManageSitesComponent } from '@/src/modules/content/ui/components/manage
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export class ManageSitePage extends BasePage {
-  readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
-  readonly searchButton = this.page.locator('button[name="submitbutton"]');
-  readonly siteList = this.page.locator('.type--title').first();
-  readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
-  readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
-  readonly fileFavoriteButton = this.page.getByTestId('favorite-button');
-  readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
-    // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
-    const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
-    return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
-  };
-  readonly contentPostsPermissionRadio = (state: ContentPostingPermission) =>
-    this.page.getByRole('radio', { name: state });
-  readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
-  readonly siteReferenceEllipses = (siteName: string) =>
-    this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
-  readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
-  readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
-  readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
-  readonly editOptionLocator = this.page.getByTestId('edit-button');
+  readonly searchSiteBar: Locator;
+  readonly searchButton: Locator;
+  readonly siteList: Locator;
+  readonly showMoreButton: Locator;
+  readonly setupTab: Locator;
+  readonly fileFavoriteButton: Locator;
+  readonly feedPostingPermissionRadio: (permission: FeedPostingPermission) => Locator;
+  readonly contentPostsPermissionRadio: (state: ContentPostingPermission) => Locator;
+  readonly optionsDropdown: (optionName: string) => Locator;
+  readonly siteReferenceEllipses: (siteName: string) => Locator;
+  readonly filterOptionsDropdown: (optionName: string) => Locator;
+  readonly reactSelectInput: Locator;
+  readonly siteTab: (tabName: SitePageTab) => Locator;
+  readonly editOptionLocator: Locator;
 
   private manageSitesComponent: ManageSitesComponent;
   // Locators for setExternalFilesProvider method
-  readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
-  readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
-  readonly disconnectDialog: Locator = this.page.getByRole('dialog', { name: 'Disconnect' });
+  readonly externalFilesSection: Locator;
+  readonly storageProviderInput: Locator;
+  readonly disconnectDialog: Locator;
 
-  readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+  readonly saveButton: Locator;
   // Target the option in the dropdown list, not the selected value
-  readonly providerOption = (providerName: string) =>
-    this.page.locator('#storageProvider-list').getByText(providerName, { exact: true });
+  readonly providerOption: (providerName: string) => Locator;
   // Locator for the currently selected value in the combobox
-  readonly selectedProviderValue = (provider: string) =>
-    this.page.locator('div[class*="css-15bnrdl-singleValue"]').filter({ hasText: provider });
+  readonly selectedProviderValue: (provider: string) => Locator;
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
 
@@ -53,6 +45,41 @@ export class ManageSitePage extends BasePage {
     super(page, pageUrl);
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+
+    // Initialize locators
+    this.searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
+    this.searchButton = this.page.locator('button[name="submitbutton"]');
+    this.siteList = this.page.locator('.type--title').first();
+    this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
+    this.setupTab = this.page.getByRole('tab', { name: 'Setup' });
+    this.fileFavoriteButton = this.page.getByTestId('favorite-button');
+    this.feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
+      // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
+      const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
+      return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
+    };
+    this.contentPostsPermissionRadio = (state: ContentPostingPermission) =>
+      this.page.getByRole('radio', { name: state });
+    this.optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
+    this.siteReferenceEllipses = (siteName: string) =>
+      this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
+    this.filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
+    this.reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
+    this.siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
+    this.editOptionLocator = this.page.getByTestId('edit-button');
+
+    // Locators for setExternalFilesProvider method
+    this.externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
+    this.storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
+    this.disconnectDialog = this.page.getByRole('dialog', { name: 'Disconnect' });
+
+    this.saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+    // Target the option in the dropdown list, not the selected value
+    this.providerOption = (providerName: string) =>
+      this.page.locator('#storageProvider-list').getByText(providerName, { exact: true });
+    // Locator for the currently selected value in the combobox
+    this.selectedProviderValue = (provider: string) =>
+      this.page.locator('div[class*="css-15bnrdl-singleValue"]').filter({ hasText: provider });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
