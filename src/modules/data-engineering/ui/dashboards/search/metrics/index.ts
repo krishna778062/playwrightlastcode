@@ -1,5 +1,6 @@
 export * from './averageSearchesPerLoggedInUser';
 export * from './mostSearchesPerformedByDepartment';
+export * from './mostSearchesPerformedByLocation';
 export * from './noResultSearch';
 export * from './noResultSearchQueries';
 export * from './searchClickThroughRate';

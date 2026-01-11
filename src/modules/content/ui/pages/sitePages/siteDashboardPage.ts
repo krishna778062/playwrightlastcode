@@ -8,6 +8,7 @@ import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '../../
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
+import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
 export class SiteDashboardPage extends BaseSitePage {
@@ -36,6 +37,7 @@ export class SiteDashboardPage extends BaseSitePage {
   readonly createQuestionComponent: CreateQuestionComponent;
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
+  private changeLayoutComponent: ChangeLayoutComponent;
   private addTileComponent: AddTileComponent;
   constructor(page: Page, siteId: string) {
     super(page, siteId);
@@ -45,6 +47,7 @@ export class SiteDashboardPage extends BaseSitePage {
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
+    this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
@@ -145,6 +148,26 @@ export class SiteDashboardPage extends BaseSitePage {
     await test.step('Click on edit dashboard', async () => {
       await this.clickOnElement(this.editDashboardButton);
     });
+  }
+
+  async clickOnChangeLayout(): Promise<void> {
+    return this.editbarComponent.clickChangeLayout();
+  }
+
+  async clickIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickIncludeFeed();
+  }
+
+  async checkIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.checkIncludeFeed();
+  }
+
+  async selectTileLayout(layoutSign: string): Promise<void> {
+    return this.changeLayoutComponent.selectTileLayout(layoutSign);
+  }
+
+  async clickExcludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickExcludeFeed();
   }
 
   async clickOnAddTile(): Promise<void> {

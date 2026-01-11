@@ -221,6 +221,23 @@ WHERE s.tenant_code = '{tenantCode}'
 GROUP BY u.department
 ORDER BY total_searches DESC;
 `,
+  Most_Searches_Performed_By_Location: `
+SELECT
+  u.location,
+  COUNT(s.code) AS total_searches,
+  COUNT(DISTINCT u.code) AS distinct_users,
+  (COUNT(s.code) / NULLIF(COUNT(DISTINCT u.code), 0)) AS avg_searches_per_user
+FROM udl.search AS s
+INNER JOIN udl.user AS u ON s.search_performed_by_user_code = u.code
+WHERE s.tenant_code = '{tenantCode}'
+  AND DATE(s.search_performed_datetime) >= '{startDate}'
+  AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
+  {locationFilter}
+  {departmentFilter}
+GROUP BY u.location
+ORDER BY total_searches DESC;
+`,
   Search_Usage_Volume_And_Click_Through_Rate: `
 SELECT
     DATE(s.search_performed_datetime) AS search_date,
