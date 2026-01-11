@@ -1,4 +1,4 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { FeatureSiteComponent } from '@content/ui/components/featureSiteComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';

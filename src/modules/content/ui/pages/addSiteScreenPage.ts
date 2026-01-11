@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/ui/pages/basePage';
