@@ -5,6 +5,7 @@ export * from './dateHelper';
 export * from './filesDashboardQueryHelper';
 export * from './mobileDashboardQueryHelper';
 export * from './monthlyReportsQueryHelper';
+export * from './onSiteQueryHelper';
 export * from './peopleDashboardQueryHelper';
 export * from './searchDashboardQueryHelper';
 export * from './sitesDashboardQueryHelper';
