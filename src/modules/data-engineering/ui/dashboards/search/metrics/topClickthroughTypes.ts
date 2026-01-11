@@ -47,10 +47,14 @@ export class TopClickthroughTypes extends TabluarMetricsComponent {
    * Handles all CSV validation logic internally including data transformation
    * @param snowflakeDataArray - Raw database data from Snowflake (query helper handles transformation with forCSVValidation=true)
    * @param selectedPeriod - Selected period filter for validation
+   * @param customStartDate - Optional custom start date (required for CUSTOM period)
+   * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
     snowflakeDataArray: TopClickthroughTypesData[],
-    selectedPeriod: string
+    selectedPeriod: string,
+    customStartDate?: string,
+    customEndDate?: string
   ): Promise<void> {
     await this.verifyDataIsLoaded();
     const { filePath } = await this.downloadDataAsCSV();
@@ -70,6 +74,8 @@ export class TopClickthroughTypes extends TabluarMetricsComponent {
         expectedDBData: transformedData as any,
         metricName: 'Top clickthrough types',
         selectedPeriod: selectedPeriod,
+        customStartDate: customStartDate,
+        customEndDate: customEndDate,
         expectedHeaders: ['Type', 'Total click-through', 'Percentage of click-through types'],
         transformations: {
           headerMapping: {

@@ -40,6 +40,13 @@ export interface MostSearchesPerformedByDepartmentData {
   avg_searches_per_user: number;
 }
 
+export interface MostSearchesPerformedByLocationData {
+  location: string;
+  total_searches: number;
+  distinct_users: number;
+  avg_searches_per_user: number;
+}
+
 export interface SearchUsageVolumeClickThroughRateData {
   search_date: string;
   total_search_count: number;
@@ -323,16 +330,23 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     // Get base filter strings (they use 'u' alias by default)
     const baseLocationFilter = this.addLocationFilter(filterBy.locations);
     const baseDepartmentFilter = this.addDepartmentFilter(filterBy.departments);
+    const baseSegmentFilter = this.addSegmentFilter(filterBy.segments);
 
     // Create filter strings with correct aliases for each subquery
     const locationFilterU2 = baseLocationFilter.replace(/u\.location/g, 'u2.location');
     const departmentFilterU2 = baseDepartmentFilter.replace(/u\.department/g, 'u2.department');
+    const segmentFilterU2 = baseSegmentFilter.replace(/u\.segment_name/g, 'u2.segment_name');
     const locationFilterU3 = baseLocationFilter.replace(/u\.location/g, 'u3.location');
     const departmentFilterU3 = baseDepartmentFilter.replace(/u\.department/g, 'u3.department');
+    const segmentFilterU3 = baseSegmentFilter.replace(/u\.segment_name/g, 'u3.segment_name');
 
     let query = SearchSql.No_Result_Search_Queries;
 
     // Replace placeholders in first subquery (u2) - must be done before base helper replacement
+    query = query.replace(
+      /(SELECT COUNT\(\*\)[\s\S]*?INNER JOIN udl\.user u2[\s\S]*?WHERE[\s\S]*?)\{segmentFilter\}/,
+      `$1${segmentFilterU2}`
+    );
     query = query.replace(
       /(SELECT COUNT\(\*\)[\s\S]*?INNER JOIN udl\.user u2[\s\S]*?WHERE[\s\S]*?)\{locationFilter\}/,
       `$1${locationFilterU2}`
@@ -343,6 +357,10 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     );
 
     // Replace placeholders in second subquery (u3) - must be done before base helper replacement
+    query = query.replace(
+      /(SELECT COUNT\(\*\)[\s\S]*?INNER JOIN udl\.user u3[\s\S]*?WHERE[\s\S]*?)\{segmentFilter\}/,
+      `$1${segmentFilterU3}`
+    );
     query = query.replace(
       /(SELECT COUNT\(\*\)[\s\S]*?INNER JOIN udl\.user u3[\s\S]*?WHERE[\s\S]*?)\{locationFilter\}/,
       `$1${locationFilterU3}`
@@ -398,6 +416,42 @@ export class SearchDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformMostSearchesPerformedByDepartmentResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to MostSearchesPerformedByLocationData format
+   * @param rawResults - Raw results from database query
+   * @returns MostSearchesPerformedByLocationData[] - Properly typed and transformed data
+   */
+  private transformMostSearchesPerformedByLocationResults(rawResults: any[]): MostSearchesPerformedByLocationData[] {
+    return rawResults.map((item: any) => {
+      const avgSearchesPerUser = Number(item.AVG_SEARCHES_PER_USER || item.avg_searches_per_user);
+      return {
+        location: item.LOCATION || item.location,
+        total_searches: Number(item.TOTAL_SEARCHES || item.total_searches),
+        distinct_users: Number(item.DISTINCT_USERS || item.distinct_users),
+        avg_searches_per_user: isNaN(avgSearchesPerUser) ? 0 : avgSearchesPerUser,
+      };
+    });
+  }
+
+  /**
+   * Gets most searches performed by location data from database with filters applied.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<MostSearchesPerformedByLocationData[]> - Most searches performed by location data
+   */
+  async getMostSearchesPerformedByLocationFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<MostSearchesPerformedByLocationData[]> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: SearchSql.Most_Searches_Performed_By_Location,
+      filterBy: { ...filterBy, tenantCode: this.orgId },
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformMostSearchesPerformedByLocationResults(rawResults);
   }
 
   /**

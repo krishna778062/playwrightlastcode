@@ -27,8 +27,8 @@ import {
  * and decide which one to pick for the test.
  */
 
-test.describe.fixme(
-  'app Adoption Dashboard - All Filters Applied + Group by Applied (FIXME: This test is failing because the data is not available in the DB for given filters)',
+test.describe(
+  'app Adoption Dashboard - All Filters Applied + Group by Applied',
   {
     tag: [DataEngineeringTestSuite.ADOPTION],
   },

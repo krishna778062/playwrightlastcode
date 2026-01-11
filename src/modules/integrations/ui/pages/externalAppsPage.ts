@@ -84,6 +84,12 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
   readonly auth0UsernameInput: Locator;
   readonly auth0PasswordInput: Locator;
   readonly auth0ContinueButton: Locator;
+  // Multi-connection selection dialog elements
+  readonly connectionSelectionDialog: Locator;
+  readonly connectionSelectionTitle: Locator;
+  readonly connectionSelectionCancelButton: Locator;
+  readonly connectionSelectionConnectButton: Locator;
+  readonly connectionSelectionCloseButton: Locator;
   private cachedUserId?: string;
 
   constructor(page: Page) {
@@ -109,6 +115,13 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
     this.auth0UsernameInput = page.locator('input[name="username"], input[type="email"]').first();
     this.auth0PasswordInput = page.locator('input[name="password"], input[type="password"]').first();
     this.auth0ContinueButton = page.locator('button[type="submit"], button:has-text("Continue")').first();
+
+    // Multi-connection selection dialog
+    this.connectionSelectionDialog = page.locator('div[role="dialog"][class*="MultiConnectionDialog"]');
+    this.connectionSelectionTitle = page.locator('h2:has-text("Select")');
+    this.connectionSelectionCancelButton = this.connectionSelectionDialog.getByRole('button', { name: 'Cancel' });
+    this.connectionSelectionConnectButton = this.connectionSelectionDialog.getByRole('button', { name: 'Connect' });
+    this.connectionSelectionCloseButton = this.connectionSelectionDialog.getByRole('button', { name: 'Close' });
   }
 
   get actions(): IExternalAppsActions {
@@ -138,6 +151,16 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
    */
   getCustomAppButton(appName: string, buttonText: string): Locator {
     return this.page.locator(`li:has(h3:has-text("${appName}")) button:has-text("${buttonText}")`);
+  }
+
+  /**
+   * Get connection card by connection name from the multi-connection selection dialog
+   * @param connectionName - The name of the connection to select
+   */
+  getConnectionCard(connectionName: string): Locator {
+    return this.connectionSelectionDialog.locator(
+      `button[class*="connectionCard"]:has(p:text-is("${connectionName}"))`
+    );
   }
 
   /**
@@ -520,11 +543,63 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
     });
   }
 
-  async connectServiceNowAccount(): Promise<void> {
+  /**
+   * Select a connection from the multi-connection selection dialog
+   * @param connectionName - The name of the connection to select
+   */
+  async selectConnectionFromDialog(connectionName: string): Promise<void> {
+    await test.step(`Select connection "${connectionName}" from dialog`, async () => {
+      // Wait for the dialog to appear
+      await this.connectionSelectionDialog.waitFor({ state: 'visible', timeout: 10_000 });
+
+      // Verify the dialog title is visible
+      await expect(this.connectionSelectionTitle).toBeVisible({ timeout: 5_000 });
+
+      // Click on the connection card with the specified name
+      const connectionCard = this.getConnectionCard(connectionName);
+      await connectionCard.waitFor({ state: 'visible', timeout: 10_000 });
+      await connectionCard.click();
+
+      // Click the Connect button
+      await this.connectionSelectionConnectButton.waitFor({ state: 'visible', timeout: 5_000 });
+      await expect(this.connectionSelectionConnectButton).toBeEnabled({ timeout: 5_000 });
+      await this.connectionSelectionConnectButton.click();
+
+      await this.page.waitForLoadState('domcontentloaded');
+    });
+  }
+
+  /**
+   * Verify the connection selection dialog is visible
+   */
+  async verifyConnectionSelectionDialogIsVisible(): Promise<void> {
+    await test.step('Verify connection selection dialog is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.connectionSelectionDialog, {
+        timeout: 10_000,
+        assertionMessage: 'Connection selection dialog should be visible',
+      });
+    });
+  }
+
+  /**
+   * Connect ServiceNow account
+   * @param connectionName - Optional: The name of the connection to select if multiple connections exist
+   */
+  async connectServiceNowAccount(connectionName?: string): Promise<void> {
     await test.step('Connect ServiceNow account', async () => {
       await this.getConnectButton(ExternalAppProvider.SERVICENOW).click();
       await this.page.waitForLoadState('domcontentloaded');
-      await this.page.waitForTimeout(10000);
+      await this.page.waitForTimeout(3000);
+
+      // Check if the multi-connection selection dialog appears
+      const isDialogVisible = await this.connectionSelectionDialog.isVisible().catch(() => false);
+
+      if (isDialogVisible && connectionName) {
+        await test.step(`Select connection: ${connectionName}`, async () => {
+          await this.selectConnectionFromDialog(connectionName);
+        });
+        await this.page.waitForTimeout(5000);
+      }
 
       // Check if user is already logged in (allowAccessButton is visible)
       const isAllowAccessVisible = await this.allowAccessButton.isVisible().catch(() => false);
@@ -535,18 +610,23 @@ export class ExternalAppsPage extends BasePage implements IExternalAppsActions, 
           await this.page.waitForLoadState('domcontentloaded');
         });
       } else {
-        await test.step('Logging in to ServiceNow', async () => {
-          await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
-          await this.serviceNowUserName.fill(SERVICE_NOW_VALUES.USER_NAME);
-          await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
-          await this.serviceNowPassword.fill(SERVICE_NOW_VALUES.PASSWORD);
-          await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
-          await this.serviceNowLoginButton.click();
-          await this.page.waitForLoadState('domcontentloaded');
-          await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
-          await this.allowAccessButton.click();
-          await this.page.waitForLoadState('domcontentloaded');
-        });
+        // Check if ServiceNow login page is visible
+        const isLoginVisible = await this.serviceNowUserName.isVisible({ timeout: 5000 }).catch(() => false);
+
+        if (isLoginVisible) {
+          await test.step('Logging in to ServiceNow', async () => {
+            await this.serviceNowUserName.waitFor({ state: 'visible', timeout: 15_000 });
+            await this.serviceNowUserName.fill(SERVICE_NOW_VALUES.USER_NAME);
+            await this.serviceNowPassword.waitFor({ state: 'visible', timeout: 15_000 });
+            await this.serviceNowPassword.fill(SERVICE_NOW_VALUES.PASSWORD);
+            await this.serviceNowLoginButton.waitFor({ state: 'visible', timeout: 15_000 });
+            await this.serviceNowLoginButton.click();
+            await this.page.waitForLoadState('domcontentloaded');
+            await this.allowAccessButton.waitFor({ state: 'visible', timeout: 15_000 });
+            await this.allowAccessButton.click();
+            await this.page.waitForLoadState('domcontentloaded');
+          });
+        }
       }
       await expect(this.getDisconnectButton(ExternalAppProvider.SERVICENOW)).toBeVisible({ timeout: 10_000 });
     });

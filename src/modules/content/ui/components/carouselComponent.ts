@@ -2,11 +2,7 @@ import { Locator, Page } from '@playwright/test';
 
 import { BaseComponent } from '@core/components/baseComponent';
 
-export interface ICarouselActions {}
-
-export interface ICarouselAssertions {}
-
-export class CarouselComponent extends BaseComponent implements ICarouselActions, ICarouselAssertions {
+export class CarouselComponent extends BaseComponent {
   // Carousel items
   readonly carouselItemLink: (text: string) => Locator;
   readonly selectSiteName: (text: string) => Locator;
@@ -26,16 +22,6 @@ export class CarouselComponent extends BaseComponent implements ICarouselActions
     this.homeDashboardDoneButton = page.getByLabel('Edit carousel').getByRole('button', { name: 'Done' });
     this.selectSiteName = (text: string) =>
       page.locator('//div[@class="Mention-name"]/div').filter({ hasText: text }).first();
-  }
-
-  // Actions
-  get actions(): ICarouselActions {
-    return this;
-  }
-
-  // Assertions
-  get assertions(): ICarouselAssertions {
-    return this;
   }
 
   async getSearchCarouselInput(text: string): Promise<void> {

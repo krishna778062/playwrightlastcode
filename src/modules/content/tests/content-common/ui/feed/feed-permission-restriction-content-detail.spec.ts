@@ -76,18 +76,18 @@ test.describe(
         await siteOwnerContentPreviewPage.loadPage();
 
         // Verify that comment option is visible on content detail page feed form
-        await siteOwnerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await siteOwnerContentPreviewPage.verifyCommentOptionIsVisible();
 
         // Click "Share your thoughts" button to open comment editor
-        await siteOwnerContentPreviewPage.actions.clickShareThoughtsButton();
+        await siteOwnerContentPreviewPage.clickShareThoughtsButton();
 
         // Create CreateFeedPostComponent instance to post the comment
         const siteOwnerCreateFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-        await siteOwnerCreateFeedPostComponent.actions.createPost(siteOwnerCommentText);
-        await siteOwnerCreateFeedPostComponent.actions.clickPostButton();
+        await siteOwnerCreateFeedPostComponent.createPost(siteOwnerCommentText);
+        await siteOwnerCreateFeedPostComponent.clickPostButton();
 
         // Verify Site Owner comment
-        await siteOwnerContentPreviewPage.assertions.waitForPostToBeVisible(siteOwnerCommentText);
+        await siteOwnerContentPreviewPage.waitForPostToBeVisible(siteOwnerCommentText);
 
         // Test as Site Manager - Post comment
         const siteManagerContentPreviewPage = new ContentPreviewPage(
@@ -99,18 +99,18 @@ test.describe(
         await siteManagerContentPreviewPage.loadPage();
 
         // Verify that comment option is visible on content detail page feed form
-        await siteManagerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await siteManagerContentPreviewPage.verifyCommentOptionIsVisible();
 
         // Click "Share your thoughts" button to open comment editor
-        await siteManagerContentPreviewPage.actions.clickShareThoughtsButton();
+        await siteManagerContentPreviewPage.clickShareThoughtsButton();
 
         // Create CreateFeedPostComponent instance to post the comment
         const siteManagerCreateFeedPostComponent = new CreateFeedPostComponent(siteManagerFixture.page);
-        await siteManagerCreateFeedPostComponent.actions.createPost(siteManagerCommentText);
-        await siteManagerCreateFeedPostComponent.actions.clickPostButton();
+        await siteManagerCreateFeedPostComponent.createPost(siteManagerCommentText);
+        await siteManagerCreateFeedPostComponent.clickPostButton();
 
         // Verify Site Manager comment
-        await siteManagerContentPreviewPage.assertions.waitForPostToBeVisible(siteManagerCommentText);
+        await siteManagerContentPreviewPage.waitForPostToBeVisible(siteManagerCommentText);
       }
     );
   }

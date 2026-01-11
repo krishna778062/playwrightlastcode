@@ -539,7 +539,8 @@ export class CSVValidationUtil {
     // Fields that are allowed to be empty
     // - Day(User Active Datetime): Can be empty if user was never activated
     // - Email: Can be empty for some users (e.g., in Profile Completeness CSV)
-    const allowedEmptyFields = new Set(['Day(User Active Datetime)', 'Email']);
+    // - Phone number: Can be empty when DB has null values (e.g., in Reactions Made CSV)
+    const allowedEmptyFields = new Set(['Day(User Active Datetime)', 'Email', 'Phone number']);
 
     for (const csvHeader of csvHeaders) {
       const dbField = headerMapping[csvHeader];
@@ -587,6 +588,11 @@ export class CSVValidationUtil {
       // Transform headers and values
       for (const [csvHeader, dbField] of Object.entries(transformations.headerMapping)) {
         let value = csvRecord[csvHeader];
+
+        // Trim string values to handle whitespace in CSV data
+        if (typeof value === 'string') {
+          value = value.trim();
+        }
 
         // Validate date fields are in readable format (not epoch)
         // Note: "User activated on" can be empty, so skip validation for empty values
