@@ -68,17 +68,18 @@ test.describe(
       await cleanupDashboardTesting(testEnvironment);
     });
 
+    // 1. Total search volume
     test(
-      'verify Total search volume metric data validation with custom period filter applied',
+      'TS To verify the answer of Total search volume in Search Dashboard with custom period filter applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-search-volume'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Total search volume in Search dashboard with custom period filter applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Total search volume in Search Dashboard with custom period filter applied',
+          zephyrTestId: 'DE-27745',
+          storyId: 'DE-25920',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
@@ -94,17 +95,18 @@ test.describe(
       }
     );
 
+    // 2. Search click through rate
     test(
-      'verify Search click through rate metric data validation with custom period filter applied',
+      'TS To verify the answer of Search click through rate in Search Dashboard with custom period filter applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@search-click-through-rate'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Search click through rate in Search dashboard with custom period filter applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Search click through rate in Search Dashboard with custom period filter applied',
+          zephyrTestId: 'DE-27762',
+          storyId: 'DE-25921',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
@@ -120,17 +122,18 @@ test.describe(
       }
     );
 
+    // 3. No results search
     test(
-      'verify No results search metric data validation with custom period filter applied',
+      'TS To verify the answer of No results search in Search Dashboard with custom period filter applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@no-results-search'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of No results search in Search dashboard with custom period filter applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of No results search in Search Dashboard with custom period filter applied',
+          zephyrTestId: 'DE-27765',
+          storyId: 'DE-25922',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
@@ -146,17 +149,18 @@ test.describe(
       }
     );
 
+    // 4. Average searches per logged-in user
     test(
-      'verify Average searches per logged in user metric data validation with custom period filter applied',
+      'TS To verify the answer of Average searches per logged-in user in Search Dashboard with custom period filter applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@average-searches-per-logged-in-user'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Average searches per logged in user in Search dashboard with custom period filter applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Average searches per logged-in user in Search Dashboard with custom period filter applied',
+          zephyrTestId: 'DE-27768',
+          storyId: 'DE-25923',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
@@ -174,6 +178,90 @@ test.describe(
       }
     );
 
+    // 5. Search usage volume and click through rate metric
+    test(
+      'TS To verify the answer of Search usage volume and click through rate in Search Dashboard with custom period filter filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.LINE_CHART,
+          '@search-usage-volume-and-click-through-rate',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer of Search usage volume and click through rate in Search Dashboard with custom period filter filters applied',
+          zephyrTestId: 'DE-27771',
+          storyId: 'DE-25924',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        // Query helper now returns properly transformed data
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const searchUsageVolumeAndClickThroughRateMetric =
+          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
+        await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
+
+        // Verify axis labels (dual Y-axis chart)
+        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
+        await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
+          leftVerticalAxisLabel: 'Total searches',
+          rightVerticalAxisLabel: 'Total clickthrough',
+          horizontalAxisLabel: 'Search performed date',
+        });
+
+        // Verify line chart points with tooltips
+        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
+      }
+    );
+
+    // 6. Search usage volume and click through rate CSV
+    test(
+      'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard with custom period filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@search-usage-volume-and-click-through-rate-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard with custom period filters applied',
+          zephyrTestId: 'DE-27775',
+          storyId: 'DE-25924',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        const dbData =
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Component handles CSV validation internally
+        const searchUsageVolumeAndClickThroughRateMetric =
+          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
+        await searchUsageVolumeAndClickThroughRateMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 7. Top search queries metric
     test(
       'verify Top search queries metric data validation with custom period filter applied',
       {
@@ -203,99 +291,37 @@ test.describe(
       }
     );
 
+    // 8. Top search queries CSV
     test(
-      'verify Top search queries with no clickthrough metric data validation with custom period filter applied',
+      'verify Top search queries CSV download and data validation with custom period filter applied',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestCaseType.TABULAR_METRIC,
-          '@top-search-queries-with-no-clickthrough',
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@top-search-queries-csv'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Top search queries with no clickthrough in Search dashboard with custom period filter applied',
+            'To verify CSV download and data validation for Top search queries in Search dashboard with custom period filter applied',
           zephyrTestId: '',
           storyId: '',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
-        // Query helper now returns properly transformed data
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
-            filterBy: testFiltersConfig,
-          });
-
-        console.log('Expected Top Search Queries With No Clickthrough Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const topSearchQueriesWithNoClickthroughMetric =
-          testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
-        await topSearchQueriesWithNoClickthroughMetric.verifyDataIsLoaded();
-        await topSearchQueriesWithNoClickthroughMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
-      }
-    );
-
-    test(
-      'verify Top clickthrough types metric data validation with custom period filter applied',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-clickthrough-types'],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify the answer of Top clickthrough types in Search dashboard with custom period filter applied',
-          zephyrTestId: '',
-          storyId: '',
+        const dbData = await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesFromDBWithFilters({
+          filterBy: testFiltersConfig,
         });
 
-        // Get expected metric value from snowflake with custom period filter applied
-        // Query helper now returns properly transformed data
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({
-            filterBy: testFiltersConfig,
-          });
-
-        console.log('Expected Top Clickthrough Types Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
-        await topClickthroughTypesMetric.verifyDataIsLoaded();
-        await topClickthroughTypesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+        // Component handles CSV validation internally
+        const topSearchQueriesMetric = testEnvironment.searchDashboard.topSearchQueries;
+        await topSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
       }
     );
 
-    test(
-      'verify No result search queries metric data validation with custom period filter applied',
-      {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify the answer of No result search queries in Search dashboard with custom period filter applied',
-          zephyrTestId: '',
-          storyId: '',
-        });
-
-        // Get expected metric value from snowflake with custom period filter applied
-        // Query helper now returns properly transformed data
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
-            filterBy: testFiltersConfig,
-          });
-
-        console.log('Expected No Result Search Queries Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
-        await noResultSearchQueriesMetric.verifyDataIsLoaded();
-        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
-      }
-    );
-
+    // 9. Most searches performed by Department metric
     test(
       'verify Most searches performed by Department metric data validation with custom period filter applied',
       {
@@ -331,20 +357,53 @@ test.describe(
       }
     );
 
+    // 10. Most searches performed by Department CSV
     test(
-      'verify Search usage volume and click through rate metric data validation with custom period filter applied',
+      'verify Most searches performed by Department CSV download and data validation with custom period filter applied',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
-          TestCaseType.LINE_CHART,
-          '@search-usage-volume-and-click-through-rate',
+          TestCaseType.CSV_VALIDATION,
+          '@most-searches-performed-by-department-csv',
         ],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Search usage volume and click through rate in Search dashboard with custom period filter applied',
+            'To verify CSV download and data validation for Most searches performed by Department in Search dashboard with custom period filter applied',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByDepartmentFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Component handles CSV validation internally
+        const mostSearchesPerformedByDepartmentMetric =
+          testEnvironment.searchDashboard.mostSearchesPerformedByDepartment;
+        await mostSearchesPerformedByDepartmentMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 11. No result search queries metric
+    test(
+      'verify No result search queries metric data validation with custom period filter applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of No result search queries in Search dashboard with custom period filter applied',
           zephyrTestId: '',
           storyId: '',
         });
@@ -352,27 +411,186 @@ test.describe(
         // Get expected metric value from snowflake with custom period filter applied
         // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
             filterBy: testFiltersConfig,
           });
 
-        console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
+        console.log('Expected No Result Search Queries Data:', expectedMetricValue);
 
         // UI validation - component handles transformation internally
-        const searchUsageVolumeAndClickThroughRateMetric =
-          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
-        await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
+        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
+        await noResultSearchQueriesMetric.verifyDataIsLoaded();
+        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
 
-        // Verify axis labels (dual Y-axis chart)
-        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
-        await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
-          leftVerticalAxisLabel: 'Total searches',
-          rightVerticalAxisLabel: 'Total clickthrough',
-          horizontalAxisLabel: 'Search performed date',
+    // 12. No result search queries CSV
+    test(
+      'verify No result search queries CSV download and data validation with custom period filter applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@no-result-search-queries-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and data validation for No result search queries in Search dashboard with custom period filter applied',
+          zephyrTestId: '',
+          storyId: '',
         });
 
-        // Verify line chart points with tooltips
-        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
+        // Get expected metric value from snowflake with custom period filter applied
+        // Pass forCSVValidation=true to convert failure_percentage to decimal format to match CSV format
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+            forCSVValidation: true, // converts failure_percentage to decimal
+          });
+
+        // Component handles CSV validation internally
+        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
+        await noResultSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 13. Top search queries with no clickthrough metric
+    test(
+      'verify Top search queries with no clickthrough metric data validation with custom period filter applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.TABULAR_METRIC,
+          '@top-search-queries-with-no-clickthrough',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Top search queries with no clickthrough in Search dashboard with custom period filter applied',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        // Query helper now returns properly transformed data
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log('Expected Top Search Queries With No Clickthrough Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const topSearchQueriesWithNoClickthroughMetric =
+          testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
+        await topSearchQueriesWithNoClickthroughMetric.verifyDataIsLoaded();
+        await topSearchQueriesWithNoClickthroughMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 14. Top search queries with no clickthrough CSV
+    test(
+      'verify Top search queries with no clickthrough CSV download and data validation with custom period filter applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@top-search-queries-with-no-clickthrough-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and data validation for Top search queries with no clickthrough in Search dashboard with custom period filter applied',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        // Pass forCSVValidation=true to convert percentage to decimal format to match CSV format
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
+            filterBy: testFiltersConfig,
+            forCSVValidation: true, // converts no_click_rate from percentage to decimal
+          });
+
+        // Component handles CSV validation internally
+        const topSearchQueriesWithNoClickthroughMetric =
+          testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
+        await topSearchQueriesWithNoClickthroughMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 15. Top clickthrough types metric
+    test(
+      'verify Top clickthrough types metric data validation with custom period filter applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-clickthrough-types'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Top clickthrough types in Search dashboard with custom period filter applied',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        // Query helper now returns properly transformed data
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log('Expected Top Clickthrough Types Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
+        await topClickthroughTypesMetric.verifyDataIsLoaded();
+        await topClickthroughTypesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 16. Top clickthrough types CSV
+    test(
+      'verify Top clickthrough types CSV download and data validation with custom period filter applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@top-clickthrough-types-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and data validation for Top clickthrough types in Search dashboard with custom period filter applied',
+          zephyrTestId: '',
+          storyId: '',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        // Pass forCSVValidation=true to convert percentage to decimal format to match CSV format
+        const dbData = await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({
+          filterBy: testFiltersConfig,
+          forCSVValidation: true, // converts percentage to decimal
+        });
+
+        // Component handles CSV validation internally
+        const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
+        await topClickthroughTypesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
       }
     );
   }
