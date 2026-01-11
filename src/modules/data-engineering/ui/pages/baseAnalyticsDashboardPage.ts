@@ -23,7 +23,7 @@ export abstract class BaseAnalyticsDashboardPage extends BasePage {
     this.analyticsBaseComponent = new AnalyticsBaseComponent(page);
     this.analyticsFiltersComponent = new AnalyticsFiltersComponent(page);
     this.analyticsDashboardNavigationTabComponent = new AnalyticsDashboardNavigationTabComponent(page);
-    this.thoughtSpotIframe = page.locator('iframe[name="ThoughtSpot Embedded Analytics"]').contentFrame();
+    this.thoughtSpotIframe = page.locator('iframe[name="ThoughtSpot Embedded Analytics"]').first().contentFrame();
     this.answerSectionContainer = (metricTitle: string) =>
       this.thoughtSpotIframe.locator('[data-testid="answer-content"]').filter({ hasText: metricTitle });
   }

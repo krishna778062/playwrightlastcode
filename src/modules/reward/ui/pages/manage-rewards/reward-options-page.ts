@@ -227,6 +227,7 @@ export class RewardOptionsPage extends BasePage {
     const columnHeader = this.rewardsOptionsTableHeaders.getByText(columnName);
     const columnIndex = await columnHeader.evaluate(el => Array.from(el.parentElement!.children).indexOf(el) + 1);
     const columnCells = this.page.locator(`tbody tr td:nth-child(${columnIndex})`);
+    await columnCells.last().waitFor({ state: 'visible', timeout: 5000 });
     const originalValues = await columnCells.allTextContents();
 
     await this.clickOnElement(columnHeader, {

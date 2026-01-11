@@ -451,6 +451,7 @@ export class ListFeedComponent extends BaseComponent {
       const postLocator = this.postTextLocator(expectedText);
       await this.verifier.verifyTheElementIsNotVisible(postLocator, {
         assertionMessage: `Post with text "${expectedText}" should not be visible`,
+        timeout: TIMEOUTS.SHORT,
       });
     });
   }
