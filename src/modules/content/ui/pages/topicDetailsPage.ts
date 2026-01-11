@@ -12,6 +12,7 @@ export class TopicDetailsPage extends BasePage {
   private baseActionUtil: BaseActionUtil;
   private shareSocialCampaignComponent: ShareComponent;
   readonly clickingOnFeedTab: Locator;
+  readonly contentTab: Locator;
   readonly ellipsesButton: Locator;
   readonly editOption: Locator;
   readonly deleteOption: Locator;
@@ -32,6 +33,7 @@ export class TopicDetailsPage extends BasePage {
 
     // Initialize locators
     this.clickingOnFeedTab = this.page.getByRole('tab', { name: 'Feed' });
+    this.contentTab = this.page.getByRole('tab', { name: 'Content' });
     this.ellipsesButton = this.page.getByRole('button', { name: 'Show more' });
     this.editOption = this.page.getByText('Edit');
     this.deleteOption = this.page.getByText('Delete');
