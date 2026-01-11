@@ -145,4 +145,12 @@ export class TopicDetailsPage extends BasePage {
   async verifyingSharePostToastMessage(message: string): Promise<void> {
     await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message);
   }
+
+  async verifyContentTabIsSelected(): Promise<void> {
+    await test.step('Verify Content tab is selected by default', async () => {
+      await this.verifier.verifyElementHasAttribute(this.contentTab, 'aria-selected', 'true', {
+        assertionMessage: 'Content tab should be selected by default',
+      });
+    });
+  }
 }
