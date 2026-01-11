@@ -1,5 +1,16 @@
-export type TenantKey = 'primary' | 'rewardSettings';
-export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU';
+export type TenantKey = 'primary' | 'rewardSettings' | 'renaming';
+export type EnvironmentKey =
+  | 'dev'
+  | 'test'
+  | 'qa'
+  | 'uat'
+  | 'uatEU'
+  | 'uatCA'
+  | 'uatAU'
+  | 'prodUS'
+  | 'prodEU'
+  | 'prodCA'
+  | 'prodAU';
 
 /**
  * Get caller function information for debugging
@@ -60,24 +71,6 @@ export interface AppConfig {
 // Main configuration object
 export const config = {
   primary: {
-    qa: {
-      tenantName: 'Reward QA Primary',
-      frontendBaseUrl: 'https://reward.qa.simpplr.xyz',
-      apiBaseUrl: 'https://reward-api.qa.simpplr.xyz',
-      appManagerEmail: 'sonu.kumar+1@simpplr.com',
-      appManagerName: 'App Manager',
-      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
-      appManagerPassword: 'Simpplr123',
-      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
-      recognitionManagerName: 'Recognition Manager',
-      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
-      recognitionManagerPassword: 'Simpplr123',
-      endUserEmail: 'sonu.kumar+3@simpplr.com',
-      endUserName: 'Standard User',
-      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
-      endUserPassword: 'Simpplr123',
-      newUxEnabled: true,
-    },
     test: {
       tenantName: 'Reward Test Primary',
       frontendBaseUrl: 'https://rewards.test.simpplr.xyz/',
@@ -93,6 +86,24 @@ export const config = {
       endUserEmail: 'sonu.kumar+3@simpplr.com',
       endUserName: 'Standard User',
       endUserUserId: '9e2ac2e5-7ccd-4037-b7c4-c176b4eba380',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    qa: {
+      tenantName: 'Reward QA Primary',
+      frontendBaseUrl: 'https://reward.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reward-api.qa.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
@@ -116,42 +127,132 @@ export const config = {
     },
     uatEU: {
       tenantName: 'Reward UAT-EU Primary',
-      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz/',
-      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
-      appManagerEmail: 'shubham.garg@simpplr.com',
-      appManagerName: 'Shubham Garga',
-      appManagerUserId: '5ab37f4b-fadb-44ab-827c-e304c203ff3b',
-      appManagerPassword: 'Simpplr@123',
+      frontendBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://rewards-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
       recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
       recognitionManagerName: 'Recognition Manager',
-      recognitionManagerUserId: 'dfc92d03-692e-4c8d-867f-d678bb681e36',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    uatAU: {
+      tenantName: 'Reward UAT-AU Primary',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    uatCA: {
+      tenantName: 'Reward UAT-CA Primary',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '5ec27443-c91a-42aa-8bc1-8f42c05765ed',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: '6304280b-9525-4333-b95c-5e922150abe0',
       recognitionManagerPassword: 'Simpplr123',
       endUserEmail: 'sonu.kumar+3@simpplr.com',
       endUserName: 'Standard User',
-      endUserUserId: '4f70223d-8db4-4ff0-bd0a-db294ae534d5',
+      endUserUserId: '65f4574f-a2a4-44d3-b3bc-f73a04b4d02c',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodUS: {
+      tenantName: 'Reward Prod-US Primary',
+      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com',
+      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta@simpplr.com',
+      endUserName: 'Aishma enduser',
+      endUserUserId: 'f0d7c666-aa81-4813-95f8-220bdd7d5a8e',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodEU: {
+      tenantName: 'Reward Prod-EU Primary',
+      frontendBaseUrl: 'https://zeus.eu.simpplr.com',
+      apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'Sonu Kumar',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Reco Standard User',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodCA: {
+      tenantName: 'Reward Prod-CA Primary',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '6c1db8e4-adf7-4382-b9c9-50bf77f7190d',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: '3d6ad941-3b7e-4d12-a851-91483402f107',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: 'b8383705-c313-431e-a2be-714f6f4e35ce',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    prodAU: {
+      tenantName: 'Reward Prod-AU Primary',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com',
+      apiBaseUrl: 'https://au-5-api.au.simpplr.com',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: 'aad73edd-d4c8-4c00-8b89-98629c6388dc',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: '36214352-4922-4277-8eb1-eb72bc5d9527',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: '011f3870-a43f-4746-9cce-3ebde1df89cc',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
   },
   rewardSettings: {
-    qa: {
-      tenantName: 'Reward Settings QA',
-      frontendBaseUrl: 'https://reward-settings.qa.simpplr.xyz',
-      apiBaseUrl: 'https://reward-settings-api.qa.simpplr.xyz',
-      appManagerEmail: 'sonu.kumar+1@simpplr.com',
-      appManagerName: 'App Manager',
-      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
-      appManagerPassword: 'Simpplr123',
-      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
-      recognitionManagerName: 'Recognition Manager',
-      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
-      recognitionManagerPassword: 'Simpplr123',
-      endUserEmail: 'sonu.kumar+3@simpplr.com',
-      endUserName: 'Standard User',
-      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
-      endUserPassword: 'Simpplr123',
-      newUxEnabled: true,
-    },
     test: {
       tenantName: 'Reward Settings Test',
       frontendBaseUrl: 'https://reward-setting.test.simpplr.xyz',
@@ -170,10 +271,28 @@ export const config = {
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
+    qa: {
+      tenantName: 'Reward Settings QA',
+      frontendBaseUrl: 'https://reward-settings.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reward-settings-api.qa.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: 'b2ce6a1f-65e2-438b-969e-ebc57499a5f7',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: '661a5459-3eb9-4019-b4f4-f38701a14691',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: '10713c06-3bae-4764-979e-9c6dbaf54b8c',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
     uat: {
       tenantName: 'Reward Primary UAT',
-      frontendBaseUrl: 'https://reward-settings.uat.simpplr.xyz',
-      apiBaseUrl: 'https://reward-settings-api.uat.simpplr.xyz',
+      frontendBaseUrl: 'https://reward-setting.uat.simpplr.xyz/',
+      apiBaseUrl: 'https://reward-setting-api.uat.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
       appManagerUserId: 'bdfcdf8d-e148-4b93-87d2-838b336806e2',
@@ -189,20 +308,58 @@ export const config = {
       newUxEnabled: true,
     },
     uatEU: {
-      tenantName: 'Reward UAT-EU Primary',
-      frontendBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
-      apiBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
+      tenantName: 'Reward Setting UAT-EU',
+      frontendBaseUrl: 'https://reward-setting.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://reward-setting-api.uat-eu.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
-      appManagerUserId: '4d6bb514-e57d-449c-9f8b-e78e96f343fe',
+      appManagerUserId: 'cef802b7-041a-4071-8692-cf3c5cb4d6c9',
       appManagerPassword: 'Simpplr123',
       recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
       recognitionManagerName: 'Recognition Manager',
-      recognitionManagerUserId: '10af260e-3449-4309-be5d-98de62efdcf7',
+      recognitionManagerUserId: 'c66f7568-6c12-4ab0-ae00-058bcb81f8a2',
       recognitionManagerPassword: 'Simpplr123',
       endUserEmail: 'sonu.kumar+3@simpplr.com',
       endUserName: 'Standard User',
-      endUserUserId: 'b6e789e5-4024-43ee-b976-2dcdb217c7a1',
+      endUserUserId: '3edeb210-b1b6-4aaa-a1be-9534e4cff39d',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+  },
+  renaming: {
+    test: {
+      tenantName: 'Recognition Test Renaming Primary',
+      frontendBaseUrl: 'https://reco-renaming.test.simpplr.xyz',
+      apiBaseUrl: 'https://reco-renaming-api.test.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar+1@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '5e390df5-16d5-47a7-9019-250bace73f06',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: '485c3d38-cc74-4497-bede-11dc6c885a4a',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: '6fe4e2c7-5e46-4a55-a17d-7c4443740aa5',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+    qa: {
+      tenantName: 'Recognition QA Renaming Primary',
+      frontendBaseUrl: 'https://reco-renaming.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reco-renaming-api.qa.simpplr.xyz',
+      appManagerEmail: 'sonu.kumar@simpplr.com',
+      appManagerName: 'App Manager',
+      appManagerUserId: '994bb186-172f-41b4-879a-484da524a07f',
+      appManagerPassword: 'Simpplr123',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'e7131afd-dec6-4885-8d16-3af5698e6eaf',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Standard User',
+      endUserUserId: 'b03504e7-6ebd-43cf-b12c-af9cb11dfdbc',
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
@@ -229,15 +386,23 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'uatEU', 'prod', 'test'].includes(testEnv)) {
+  if (
+    !['dev', 'qa', 'test', 'uat', 'uatEU', 'uatCA', 'uatAU', 'prodUS', 'prodEU', 'prodCA', 'prodAU'].includes(testEnv)
+  ) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod\n` +
+        `Valid values are: dev, test, qa, uat, uatEU, prodUS, prodEU, prodCA\n` +
+        `Example: TEST_ENV=dev npm run test\n` +
+        `Example: TEST_ENV=test npm run test\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
         `Example: TEST_ENV=uatEU npm run test\n` +
-        `Example: TEST_ENV=prod npm run test\n` +
-        `Example: TEST_ENV=test npm run test\n`
+        `Example: TEST_ENV=uatCA npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n` +
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=prodCA npm run test\n` +
+        `Example: TEST_ENV=prodAU npm run test\n`
     );
   }
 

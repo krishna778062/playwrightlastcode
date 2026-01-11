@@ -78,7 +78,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnTheMembersTab = page.getByRole('tab', { name: 'Members' });
     this.clickOnStartIcon = page.getByRole('button', { name: 'Favorite this user' });
     this.clickOnAlreadyStarIcon = page.getByRole('button', { name: 'Unfavorite this user' });
-    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites Favorites' });
+    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites' });
 
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
@@ -128,7 +128,12 @@ export class ManageSitesComponent extends BaseComponent {
     return this.page.locator(`a:has-text("${name}")`);
   }
   getMembersListInPeopleTab(membersName: string): Locator {
-    return this.page.getByRole('link', { name: membersName });
+    // Scope to the members list to avoid matching navigation links
+    // Find the listitem containing the member, then get the link within it
+    return this.page
+      .getByRole('listitem')
+      .filter({ hasText: membersName })
+      .getByRole('link', { name: membersName, exact: true });
   }
 
   getSiteOwnerStatusForMember(membersName: string): Locator {
@@ -151,10 +156,8 @@ export class ManageSitesComponent extends BaseComponent {
 
   // Action methods
   async clickOnSiteAction(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Clicking on site', async () => {
       await this.clickOnElement(this.clickOnSite);
-      await this.clickOnSite.press('Tab');
-      await this.clickOnSite.press('Enter');
     });
   }
 
@@ -467,7 +470,9 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
   getFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
-    return this.page.locator('#react-select-2-listbox').getByText(bulkActionOption);
+    // Use role-based locator instead of brittle ID selector
+    // React Select listbox has role="listbox", find it and then get the text option
+    return this.page.getByRole('listbox').getByText(bulkActionOption);
   }
   async selectFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
     await test.step('Select filter by text', async () => {
@@ -830,9 +835,6 @@ export class ManageSitesComponent extends BaseComponent {
 
   async searchContentInManageSite(contentName: string): Promise<void> {
     await test.step(`Search content ${contentName} in manage site`, async () => {
-      if (!contentName || typeof contentName !== 'string') {
-        throw new Error(`Invalid contentName provided: ${contentName}. Expected a non-empty string.`);
-      }
       await this.typeInElement(this.contentSearchBar, contentName);
       await this.contentSearchBar.press('Enter');
     });

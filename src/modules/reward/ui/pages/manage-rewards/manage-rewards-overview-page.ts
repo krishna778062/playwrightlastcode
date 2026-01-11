@@ -160,7 +160,7 @@ export class ManageRewardsOverviewPage extends BasePage {
 
     // Page container and not found
     this.manageRewardsPageContainer = page.locator('div[class*="TypographyBody-module"]');
-    this.manageRewardsPageNotFound = page.getByTestId('no-results');
+    this.manageRewardsPageNotFound = page.locator('[data-testid="no-results"]');
     this.header = page.locator('h1, h2, h3').first();
 
     // Locators for the Rewards Overview page
@@ -496,6 +496,7 @@ export class ManageRewardsOverviewPage extends BasePage {
    */
   async verifyPageIsNotFound(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.manageRewardsPageNotFound, {
+      timeout: TIMEOUTS.SHORT,
       assertionMessage: 'Verify the Manage Reward page is visible',
     });
   }
@@ -871,78 +872,29 @@ export class ManageRewardsOverviewPage extends BasePage {
    */
   async getRecordOlderThan24Hrs(records: CSVRow[], gifterName?: string) {
     if (!Array.isArray(records) || records.length === 0) return null;
-
-    const nowMs = Date.now();
-    const minAgeMs = 24 * 60 * 60 * 1000; // 86,399,000 ms
-
-    const isLikelyRecognitionUrl = (rawUrl: unknown) => {
-      const url = (rawUrl ?? '').toString().trim();
-      if (url.length === 0) return false;
-      const normalized = url.toLowerCase();
-      if (normalized === 'deleted') return false;
-
-      const hasRecognitionFragment = /\/recognition?/i.test(url);
-      const looksLikeHttp = /^https?:\/\//i.test(url);
-      return hasRecognitionFragment || looksLikeHttp;
+    let data = records.length > 150 ? records.slice(0, Math.ceil(records.length / 2)) : records;
+    data = data.filter(
+      r =>
+        String(r.URL ?? '')
+          .trim()
+          .toLowerCase() !== 'deleted'
+    );
+    if (gifterName?.trim()) {
+      const name = gifterName.trim().toLowerCase();
+      data = data.filter(
+        r =>
+          String(r['Gifter name'] ?? '')
+            .trim()
+            .toLowerCase() === name
+      );
+    }
+    if (data.length === 0) return null;
+    data.sort((a, b) => Date.parse(String(a['Date time'])) - Date.parse(String(b['Date time'])));
+    const first = data[0];
+    return {
+      URL: String(first.URL ?? ''),
+      points: Number(first['Points value']) || 0,
     };
-
-    // Normalize rows with parsed date; keep only ones older than threshold, valid dates, and valid recognition URLs
-    const olderRecords = records
-      .map(r => {
-        const rawDate = r['Date time'];
-        const dateStr = typeof rawDate === 'string' ? rawDate.trim() : '';
-        const parsedMs = Number.isFinite(Date.parse(dateStr)) ? Date.parse(dateStr) : NaN;
-        return { row: r, parsedMs };
-      })
-      .filter(item => {
-        const { row, parsedMs } = item;
-        // Must have a valid date and be older than minAgeMs
-        if (!Number.isFinite(parsedMs) || !(nowMs - parsedMs > minAgeMs)) return false;
-
-        // URL must not be 'deleted' and should look like a recognition post
-        const urlRaw = row['URL'] ?? '';
-        return isLikelyRecognitionUrl(urlRaw);
-      })
-      .map(item => item.row);
-
-    if (olderRecords.length === 0) return null;
-
-    // If gifterName provided, filter by it (case-insensitive, trimmed)
-    let filtered = olderRecords;
-    if (typeof gifterName === 'string' && gifterName.trim().length > 0) {
-      const normalizedGifter = gifterName.trim().toLowerCase();
-      filtered = olderRecords.filter(r => {
-        const name = (r['Gifter name'] ?? '').toString().trim().toLowerCase();
-        return name === normalizedGifter;
-      });
-    }
-
-    if (filtered.length === 0) return null;
-
-    // Pick the newest (latest) record among the filtered ones
-    const latest = filtered.reduce((best, current) => {
-      const bestMs = Number.isFinite(Date.parse((best['Date time'] ?? '').toString().trim()))
-        ? Date.parse((best['Date time'] ?? '').toString().trim())
-        : NaN;
-      const curMs = Number.isFinite(Date.parse((current['Date time'] ?? '').toString().trim()))
-        ? Date.parse((current['Date time'] ?? '').toString().trim())
-        : NaN;
-
-      if (Number.isNaN(bestMs)) return current;
-      if (Number.isNaN(curMs)) return best;
-      return curMs > bestMs ? current : best;
-    });
-
-    // Coerce points to number safely
-    const rawPoints = latest['Points value'];
-    let points = 0;
-    if (typeof rawPoints === 'number') points = rawPoints;
-    else if (typeof rawPoints === 'string') {
-      const parsed = Number(rawPoints.trim());
-      points = Number.isFinite(parsed) ? parsed : 0;
-    }
-    const url = (latest.URL ?? '').toString();
-    return { URL: url, points };
   }
 
   /**

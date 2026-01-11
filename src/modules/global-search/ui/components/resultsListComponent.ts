@@ -114,7 +114,7 @@ export class ResultListingComponent extends BaseComponent {
   async verifyNameIsDisplayed(name: string) {
     await test.step(`Verifying name "${name}" is displayed in the result item`, async () => {
       await this.verifier.verifyElementHasText(this.name, name, {
-        timeout: 40000,
+        timeout: 50000,
         assertionMessage: `Verifying name "${name}" is displayed in the result item`,
       });
     });

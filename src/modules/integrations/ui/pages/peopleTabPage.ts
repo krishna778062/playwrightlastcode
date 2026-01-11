@@ -103,4 +103,55 @@ export class PeopleTabPage extends BasePage {
   async verifyToastMessage(message: string): Promise<void> {
     await this.verifyToastMessageIsVisibleWithText(message);
   }
+
+  async verifySpecificFieldsUncheckedAndDisabledForSyncing(): Promise<void> {
+    await this.peopleTabComponent.verifySpecificFieldsUncheckedAndDisabledForSyncing();
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForProvisioning(): Promise<void> {
+    await this.peopleTabComponent.verifySpecificFieldsUncheckedAndDisabledForProvisioning();
+  }
+
+  async verifyFieldOrder(firstFieldName: string, secondFieldName: string): Promise<void> {
+    await this.peopleTabComponent.verifyFieldOrder(firstFieldName, secondFieldName);
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInColumn(
+    columnType: 'display' | 'editable',
+    condition: 'enabled' | 'disabled' = 'enabled'
+  ): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInColumn(columnType, condition);
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInDisplayColumn(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInDisplayColumn();
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInEditableColumn();
+  }
+
+  async clickOnAddIntegrationButton(): Promise<void> {
+    await this.peopleTabComponent.clickOnAddIntegrationButton();
+  }
+
+  async searchBambooHRInModal(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.searchBambooHRInModal(sourceName);
+  }
+
+  async verifyNoResultsFoundMessage(): Promise<void> {
+    await this.peopleTabComponent.verifyNoResultsFoundMessage();
+  }
+
+  async verifyBambooHROptionInProvisioningSource(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.verifyBambooHROptionInProvisioningSource(sourceName);
+  }
+
+  async verifyBambooHROptionInSyncingSource(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.verifyBambooHROptionInSyncingSource(sourceName);
+  }
+
+  async verifyNamePronunciationFieldUncheckedAndDisabled(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldUncheckedAndDisabled();
+  }
 }

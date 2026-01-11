@@ -68,9 +68,15 @@ on:
         required: false
         default: 'all'
         type: string
-  schedule:
-    # Run daily at 3 AM UTC for content regression tests
-    - cron: '0 4 * * *'
+      is_browserstack:
+        description: 'Run tests with BrowserStack Test Observability'
+        required: false
+        default: false
+        type: boolean
+  # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
+  # schedule:
+  #   # Run daily at 5:00 AM UTC (10:30 AM IST)
+  #   - cron: '0 5 * * *'
 
 permissions:
   contents: read
@@ -94,6 +100,11 @@ jobs:
       MODULE_NAME: ${{ inputs.module_name || 'content' }}-${{ matrix.test_category }}
       E2E_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
       CONTENT_QA_SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+      # BrowserStack Test Observability
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ github.ref_name }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -214,9 +225,30 @@ jobs:
 
           echo "Using config file: $CONFIG_FILE"
 
+          # Set environment variables for test execution
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+          export TEST_ENV="${{ inputs.environment || 'qa' }}"
+          export MODULE_NAME="${{ inputs.module_name || 'content' }}"
+
+          # Determine run command based on BrowserStack toggle
+          # TEMPORARILY DISABLED: Preserving quota for QA release testing
+          # For scheduled runs, BrowserStack is disabled to conserve quota
+          IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
+          # if [ "${{ github.event_name }}" = "schedule" ]; then
+          #   IS_BROWSERSTACK="true"
+          # fi
+
+          if [ "$IS_BROWSERSTACK" = "true" ]; then
+            echo "🔬 Running with BrowserStack Test Observability..."
+            RUN_CMD="npx browserstack-node-sdk playwright test"
+          else
+            echo "🧪 Running locally..."
+            RUN_CMD="npx playwright test"
+          fi
+
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --workers="$WORKERS"
+            $RUN_CMD --config="$CONFIG_FILE" --workers="$WORKERS"
           else
             # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
             # This ensures tests match ALL specified tags, not just one
@@ -229,7 +261,7 @@ jobs:
               GREP_REGEX="${ALL_TAGS[0]}"
             fi
             echo "Running Content tests with grep filter: $GREP_REGEX"
-            TEST_ENV=${{ inputs.environment || 'qa' }} MODULE_NAME=content npx playwright test --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
+            $RUN_CMD --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
           fi
 
       - name: Upload test report to github artifact backup

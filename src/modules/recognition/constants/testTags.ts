@@ -10,13 +10,18 @@ export enum RecognitionFeatureTags {
   RECOGNITION_HUB = '@recognition-hub',
   ONLY_P2P_RECOGNITION = '@only-p2p-recognition',
   CUSTOM_RECURRING_AWARD = '@custom-recurring-award',
+  CUSTOM_RECURRING_AWARD_STATUS_DB = '@custom-recurring-award-status-db',
   CUSTOM_NOMINATION = '@rc-custom-nomination',
+  EDIT_CUSTOM_RECURRING_AWARD = '@edit-custom-recurring-award',
 }
 
 export enum RecurringAwardsFeatureTags {
   RECURRING_AWARD = '@recurring-award',
   NOMINATION_RECURRING_AWARD = '@nomination-recurring-award',
   DELEGATE_RECURRING_AWARD = '@delegate-recurring-award',
+  RECURRING_AWARD_CREATION = '@recurring-award-creation',
+  RECURRING_AWARD_STATUS_DB = '@RECURRING_AWARD_STATUS_DB',
+  EDIT_CUSTOM_RECURRING_AWARD = '@EDIT_CUSTOM_RECURRING_AWARD',
 }
 
 export const RecognitionTestTags = [

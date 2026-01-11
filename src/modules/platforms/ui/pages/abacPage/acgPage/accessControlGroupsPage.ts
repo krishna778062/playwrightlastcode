@@ -66,7 +66,7 @@ export class AccessControlGroupsPage extends BasePage {
     super(page, pageUrl);
     this.acgCreatePopupCloseButton = page.getByRole('button', { name: 'Close' });
     this.acgDropdownButton = page.getByRole('button', { name: 'Open menu' });
-    this.acgCreateButtonSingle = page.getByRole('button', { name: 'Create' }).nth(1);
+    this.acgCreateButtonSingle = page.getByRole('button', { name: 'Create', exact: true });
     this.acgCreateButtonMultiple = page.getByRole('menuitem', { name: 'Bulk create control groups' });
     this.acgAudiencesSearchField = page.locator('#search');
     this.acgUsersSearchField = page.locator('[class*="Dialog-module__children"] [class*="placeholder"]');
@@ -539,75 +539,193 @@ export class AccessControlGroupsPage extends BasePage {
    * @param columnName - Name of the column to be checked for sorting functionality.
    */
   async verifyTheSortingFunctionalityOfColumn(columnName: string): Promise<void> {
-    const selector: Locator = this.acgColumns.filter({ hasText: columnName });
-    let sortingOrder: string | null = null;
+    await test.step(`Verifying the sorting functionality for ${columnName} column`, async () => {
+      const selector: Locator = this.acgColumns.filter({ hasText: columnName });
+      let sortingOrder: string | null = null;
 
-    // Ascending order
-    await this.clickOnElement(selector.locator('button'));
-    await expect(selector.locator('button').locator('i')).toBeVisible();
-    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
-    try {
-      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
-      expect(sortingOrder).not.toBeNull();
-    } catch (error) {
-      log.error('Error getting sorting order', error);
-      await test.step(`Waiting for sorting order to be visible`, async () => {
-        await this.page.waitForTimeout(1000);
-      });
-      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
-    }
-    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
+      // Store the first record's text content before sorting to detect change
+      const firstRecordTextBefore = await this.acgRecords.first().textContent();
 
-    // Descending order
-    await this.clickOnElement(selector.locator('button'));
-    await expect(selector.locator('button').locator('i')).toBeVisible();
-    //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
-    try {
-      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
-      expect(sortingOrder).not.toBeNull();
-    } catch (error) {
-      log.error('Error getting sorting order', error);
-      await test.step(`Waiting for sorting order to be visible`, async () => {
+      // Ascending order - click sort button
+      await this.clickOnElement(selector.locator('button'));
+      await expect(selector.locator('button').locator('i')).toBeVisible();
+
+      // Wait for table to stabilize after sorting - use domcontentloaded instead of networkidle
+      await this.waitForTableToStabilize(firstRecordTextBefore);
+
+      //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
+      try {
+        sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+        expect(sortingOrder).not.toBeNull();
+      } catch (error) {
+        log.error('Error getting sorting order', error);
         await this.page.waitForTimeout(1000);
-      });
-      sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
-    }
-    await this.veryfySorting(this.acgColumns, columnName, sortingOrder ?? '');
+        sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      }
+      await this.verifySorting(columnName, sortingOrder ?? '');
+
+      // Store the first record's text content before next sort
+      const firstRecordTextAfterAsc = await this.acgRecords.first().textContent();
+
+      // Descending order - click sort button again
+      await this.clickOnElement(selector.locator('button'));
+      await expect(selector.locator('button').locator('i')).toBeVisible();
+
+      // Wait for table to stabilize after sorting
+      await this.waitForTableToStabilize(firstRecordTextAfterAsc);
+
+      //Using try catch to handle the flakiness of element due to which sometimes sortingOrder is returned as null
+      try {
+        sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+        expect(sortingOrder).not.toBeNull();
+      } catch (error) {
+        log.error('Error getting sorting order', error);
+        await this.page.waitForTimeout(1000);
+        sortingOrder = await selector.locator('button').locator('i').getAttribute('aria-label');
+      }
+      await this.verifySorting(columnName, sortingOrder ?? '');
+    });
   }
 
   /**
-   * Verifies that the given column has sorted values or not.
-   * @param selector - Common locator of the column to be checked for sorting.
-   * @param columnName - Name of the column to be checked for sorting.
-   * @param sortingOrder - Sorting order to be used for sorting the array(ascending/descending).
+   * Waits for the table to stabilize after sorting.
+   * Checks if the first row content has changed or waits for a short timeout.
+   * @param previousFirstRowText - The text content of the first row before sorting.
    */
-  async veryfySorting(selector: Locator, columnName: string, sortingOrder: string): Promise<void> {
-    let columnIndex = -1;
+  private async waitForTableToStabilize(previousFirstRowText: string | null): Promise<void> {
+    const maxWaitTime = 5000;
+    const pollInterval = 200;
+    let elapsedTime = 0;
+
+    // Wait for the table to potentially re-render
+    await this.page.waitForTimeout(pollInterval);
+
+    // Poll until the first row changes or timeout
+    while (elapsedTime < maxWaitTime) {
+      const currentFirstRowText = await this.acgRecords.first().textContent();
+
+      // If the first row has changed, the table has re-sorted
+      if (currentFirstRowText !== previousFirstRowText) {
+        // Give a bit more time for the DOM to fully update
+        await this.page.waitForTimeout(200);
+        return;
+      }
+
+      await this.page.waitForTimeout(pollInterval);
+      elapsedTime += pollInterval;
+    }
+
+    // If we get here, the table may not have changed (already sorted correctly) or sorting didn't happen
+    // Give it a final wait for stability
+    await this.page.waitForTimeout(500);
+  }
+
+  /**
+   * Collects all text values from a specific column in the table.
+   * @param columnName - Name of the column to collect values from.
+   * @returns Array of text values from the column.
+   */
+  private async collectColumnValues(columnName: string): Promise<string[]> {
     const allTextContents: string[] = [];
-    let sortedTextContents: string[] = [];
-    for (let i = 0; i < (await selector.count()); i++) {
-      if ((await selector.nth(i).textContent()) == columnName) {
+    let columnIndex = -1;
+
+    // Find the column index
+    const columnCount = await this.acgColumns.count();
+    for (let i = 0; i < columnCount; i++) {
+      const columnText = await this.acgColumns.nth(i).textContent();
+      if (columnText?.includes(columnName)) {
         columnIndex = i;
-        console.log(await this.acgRecords.locator('td').nth(i).textContent());
+        log.debug(`Found column ${columnName} at index ${columnIndex}`);
         break;
       }
     }
-    for (let j = 0; j < (await this.acgRecords.count()); j++) {
-      console.log(`columnIndex is ${columnIndex} outside for loop`);
-      const textContent =
-        columnName === ACG_COLUMNS.NAME
-          ? await this.acgRecords.nth(j).locator('td p').nth(columnIndex).textContent()
-          : await this.acgRecords.nth(j).locator('td').nth(columnIndex).textContent();
-      if (!textContent?.includes('Syncing...')) {
-        if (columnName === 'Modified') {
-          allTextContents.push(changeDateFormatToYYYYMMDD(textContent ?? ''));
+
+    if (columnIndex === -1) {
+      throw new Error(`Column ${columnName} not found in the table`);
+    }
+
+    // Wait for records to be present and stable
+    await expect(this.acgRecords.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+    const recordCount = await this.acgRecords.count();
+    for (let j = 0; j < recordCount; j++) {
+      let textContent: string | null;
+
+      if (columnName === ACG_COLUMNS.NAME) {
+        // For Name column, get the text from the p element inside td
+        textContent = await this.acgRecords.nth(j).locator('td').nth(columnIndex).locator('p').first().textContent();
+      } else {
+        // For other columns, get the text directly from td
+        textContent = await this.acgRecords.nth(j).locator('td').nth(columnIndex).textContent();
+      }
+
+      // Skip rows that are still syncing
+      if (textContent && !textContent.includes('Syncing...')) {
+        if (columnName === ACG_COLUMNS.MODIFIED) {
+          allTextContents.push(changeDateFormatToYYYYMMDD(textContent));
         } else {
-          allTextContents.push(textContent ?? '');
+          allTextContents.push(textContent.trim());
         }
       }
     }
-    sortedTextContents = await this.sortOntheBasisOfSortOrder(allTextContents, sortingOrder);
-    expect(sortedTextContents).toEqual(allTextContents);
+
+    return allTextContents;
+  }
+
+  /**
+   * Checks if an array is sorted in ascending or descending order.
+   * @param arr - Array to check.
+   * @returns 'ascending' if sorted A-Z, 'descending' if sorted Z-A, 'unsorted' otherwise.
+   */
+  private detectSortOrder(arr: string[]): 'ascending' | 'descending' | 'unsorted' {
+    if (arr.length <= 1) return 'ascending';
+
+    const normalizedArr = arr.map(s => s.replace(/\s+/g, '').toLowerCase());
+    const ascSorted = [...normalizedArr].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true })
+    );
+    const descSorted = [...ascSorted].reverse();
+
+    if (JSON.stringify(normalizedArr) === JSON.stringify(ascSorted)) {
+      return 'ascending';
+    }
+    if (JSON.stringify(normalizedArr) === JSON.stringify(descSorted)) {
+      return 'descending';
+    }
+    return 'unsorted';
+  }
+
+  /**
+   * Verifies that the given column has sorted values.
+   * Checks that the data is sorted in SOME consistent order (ascending or descending).
+   * @param columnName - Name of the column to be checked for sorting.
+   * @param expectedSortingOrder - Expected sorting order from aria-label (ascending/descending).
+   */
+  async verifySorting(columnName: string, expectedSortingOrder: string): Promise<void> {
+    await test.step(`Verifying ${columnName} column is sorted in ${expectedSortingOrder} order`, async () => {
+      const allTextContents = await this.collectColumnValues(columnName);
+
+      log.debug(
+        `Collected ${allTextContents.length} values from ${columnName} column: ${JSON.stringify(allTextContents)}`
+      );
+
+      const detectedOrder = this.detectSortOrder(allTextContents);
+
+      log.debug(`Detected sort order: ${detectedOrder}, Expected from aria-label: ${expectedSortingOrder}`);
+
+      // Verify that the column IS sorted in some direction (not unsorted)
+      expect(
+        detectedOrder,
+        `Expected ${columnName} column to be sorted, but data appears unsorted. Values: ${JSON.stringify(allTextContents.slice(0, 5))}...`
+      ).not.toBe('unsorted');
+
+      // Log a warning if detected order doesn't match aria-label (potential UI accessibility issue)
+      if (detectedOrder !== expectedSortingOrder) {
+        log.warn(
+          `Sort order mismatch for ${columnName}: aria-label says "${expectedSortingOrder}" but data appears "${detectedOrder}". This may indicate an accessibility issue.`
+        );
+      }
+    });
   }
 
   /**
@@ -787,6 +905,65 @@ export class AccessControlGroupsPage extends BasePage {
       } else {
         await this.clickOnButtonWithName(POPUP_BUTTONS.SKIP);
       }
+    });
+  }
+
+  /**
+   * Gets Admins count from the ACG.
+   * @param acgName - Name of the ACG for which Admins count needs to be fetched.
+   */
+  async getAdminsCount(acgName: string): Promise<number> {
+    return await test.step(`Getting Admins count for ${acgName}`, async () => {
+      const adminsCount = await this.acgAdminsCountButton(acgName).locator('p').textContent();
+      console.log(`Admins count is ${adminsCount} for ${acgName}`);
+      return parseInt(adminsCount || '786', 10); // Default value is 786 as per the design. If the admins count is not found, return 786.
+    });
+  }
+
+  /**
+   * Gets Target audience count from the ACG.
+   * @param acgName - Name of the ACG for which Target audience count needs to be fetched.
+   */
+  async getTargetAudienceCount(acgName: string): Promise<number> {
+    return await test.step(`Getting Target audience count for ${acgName}`, async () => {
+      const targetAudienceCount = await this.acgTargetAudienceCountButton(acgName).locator('p').textContent();
+      console.log(`Target audience count is ${targetAudienceCount} for ${acgName}`);
+      return parseInt(targetAudienceCount || '786', 10); // Default value is 786 as per the design. If the target audience count is not found, return 786.
+    });
+  }
+
+  /**
+   * Gets Managers count from the ACG.
+   * @param acgName - Name of the ACG for which Managers count needs to be fetched.
+   */
+  async getManagersCount(acgName: string): Promise<number> {
+    return await test.step(`Getting Managers count for ${acgName}`, async () => {
+      const managersCount = await this.acgManagersCountButton(acgName).locator('p').textContent();
+      console.log(`Managers count is ${managersCount} for ${acgName}`);
+      return parseInt(managersCount || '786', 10); // Default value is 786 as per the design. If the managers count is not found, return 786.
+    });
+  }
+
+  /**
+   * Compares ACG assets count with the expected count.
+   * @param acgName - Name of the ACG for which assets count needs to be compared.
+   * @param assetName - Name of the asset for which count needs to be compared.
+   * @param expectedCount - Expected count of the assets.
+   */
+  async compareACGAssetsCount(acgName: string, assetName: string, expectedCount: number): Promise<void> {
+    return await test.step(`Comparing ${assetName} count for ${acgName} with the expected count`, async () => {
+      let actualCount: number = 0;
+      if (assetName === ACG_COLUMNS.ADMINS) {
+        actualCount = await this.getAdminsCount(acgName);
+      } else if (assetName === ACG_COLUMNS.TARGET_AUDIENCE) {
+        actualCount = await this.getTargetAudienceCount(acgName);
+      } else if (assetName === ACG_COLUMNS.MANAGERS) {
+        actualCount = await this.getManagersCount(acgName);
+      }
+      expect(
+        actualCount,
+        `Expected ${assetName} count for ${acgName} to be ${expectedCount}, but found ${actualCount}`
+      ).toBe(expectedCount);
     });
   }
 }

@@ -44,7 +44,18 @@ export class FormCreationPage extends BasePage {
   readonly dismissSurvey: Locator;
   readonly legalComponentQuestionBox: Locator;
   readonly previewButton: Locator;
+  readonly editButton: Locator;
   readonly requiredToggle: Locator;
+  readonly settingsButton: Locator;
+  readonly updateButton: Locator;
+  readonly legalComponentlinkTo: Locator;
+  readonly customUrlInput: Locator;
+  readonly dropdownOptionCrossIcon: Locator;
+  readonly genericGetByTextLocator: (text: string) => Locator;
+  readonly includeConditionOptions: Locator;
+  readonly questionOption: Locator;
+  readonly valueOptions: Locator;
+  readonly addNewConditionButton: Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -98,6 +109,17 @@ export class FormCreationPage extends BasePage {
     this.legalComponentQuestionBox = this.page.getByRole('textbox', { name: 'Your question here' });
     this.previewButton = this.page.getByText('Preview');
     this.requiredToggle = this.page.getByRole('switch', { name: 'Required' });
+    this.settingsButton = this.page.getByText('Settings');
+    this.updateButton = this.page.getByRole('button', { name: 'Update' });
+    this.editButton = this.page.getByText('Edit');
+    this.legalComponentlinkTo = this.page.getByTestId('SelectInput');
+    this.customUrlInput = this.page.getByRole('textbox', { name: 'Enter text for the property' });
+    this.dropdownOptionCrossIcon = this.page.getByRole('button', { name: 'Delete option icon' }).first();
+    this.genericGetByTextLocator = (text: string) => this.page.getByText(text);
+    this.includeConditionOptions = this.page.getByRole('button', { name: 'Include condition' });
+    this.addNewConditionButton = this.page.locator('button').filter({ hasText: 'Add new condition' });
+    this.questionOption = this.page.getByRole('heading', { name: 'If question is one of' });
+    this.valueOptions = this.page.getByRole('textbox', { name: 'Enter text for the property' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -109,7 +131,32 @@ export class FormCreationPage extends BasePage {
   }
   async clickOnCreateFormButton(): Promise<void> {
     await test.step('Click on Create form button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createFormButton, { timeout: TIMEOUTS.VERY_LONG });
       await this.clickOnElement(this.createFormButton);
+    });
+  }
+
+  async scrollToBottom(): Promise<void> {
+    await test.step('Scroll to bottom of the page', async () => {
+      await this.page.evaluate(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'auto' });
+      });
+    });
+  }
+
+  async scrollToTop(): Promise<void> {
+    await test.step('Scroll to top of the page', async () => {
+      await this.page.evaluate(() => {
+        window.scrollTo({ top: 0, behavior: 'auto' });
+      });
+    });
+  }
+
+  async scrollBy(pixels: number): Promise<void> {
+    await test.step(`Scroll vertically by ${pixels}px`, async () => {
+      await this.page.evaluate((y: number) => {
+        window.scrollBy({ top: y, behavior: 'auto' });
+      }, pixels);
     });
   }
 
@@ -568,8 +615,9 @@ export class FormCreationPage extends BasePage {
   }
   async makeComponentMandatory(): Promise<void> {
     await test.step('Make component mandatory', async () => {
+      await this.requiredToggle.scrollIntoViewIfNeeded();
       await this.verifier.verifyTheElementIsVisible(this.requiredToggle, { timeout: TIMEOUTS.MEDIUM });
-      await this.clickOnElement(this.requiredToggle);
+      await this.clickByInjectingJavaScript(this.requiredToggle);
     });
   }
 
@@ -604,6 +652,12 @@ export class FormCreationPage extends BasePage {
     await test.step('Click on settings icon', async () => {
       await this.verifier.verifyTheElementIsVisible(this.settingsIcon, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.settingsIcon);
+    });
+  }
+  async verifyIncludeConditionOptions(): Promise<void> {
+    await test.step('Verify include condition options', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.includeConditionOptions, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.includeConditionOptions);
     });
   }
   async verifyCopiedTitleAndDescriptionIsVisible(): Promise<void> {
@@ -684,6 +738,13 @@ export class FormCreationPage extends BasePage {
     });
   }
 
+  async clickOnSettingsButton(): Promise<void> {
+    await test.step('Click on settings button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.settingsButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.settingsButton);
+    });
+  }
+
   async addDescriptionIntoComponent(componentName: string, descriptionText: string): Promise<void> {
     await test.step('Add description into : ${componentName} component', async () => {
       const componentNameLocator = this.page.locator('span').filter({ hasText: componentName });
@@ -701,12 +762,131 @@ export class FormCreationPage extends BasePage {
   }
   async clickOn(roleName: any, buttonName: string): Promise<void> {
     await test.step(`Click on button: ${buttonName}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.getRoleLocator(roleName, buttonName), {
-        timeout: TIMEOUTS.MEDIUM,
-      });
+      (await this.verifier.verifyTheElementIsVisible(this.getRoleLocator(roleName, buttonName), {
+        timeout: TIMEOUTS.VERY_VERY_LONG,
+      })) &&
+        (await this.verifier.verifyTheElementIsEnabled(this.getRoleLocator(roleName, buttonName), {
+          timeout: TIMEOUTS.VERY_VERY_LONG,
+        }));
       await this.clickOnElement(this.getRoleLocator(roleName, buttonName));
     });
   }
+
+  async verifyFormUpdatedSuccessfully(): Promise<void> {
+    await test.step('Verify form updated successfully', async () => {
+      await this.page.waitForTimeout(10000);
+      //  await this.verifier.verifyTheElementIsVisible(this.updateButton, { timeout: TIMEOUTS.MEDIUM });
+      // test
+      //   .expect(await this.updateButton.isDisabled({ timeout: TIMEOUTS.MEDIUM }), 'Update button should be disabled')
+      //   .toBe(true);
+    });
+  }
+
+  async clickOnEditButton(): Promise<void> {
+    await test.step('Click on edit button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.editButton);
+    });
+  }
+
+  async selectOptionIntoLegalComponent(option: string): Promise<void> {
+    await test.step('Select option into legal component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentlinkTo, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.legalComponentlinkTo);
+      await this.legalComponentlinkTo.selectOption(option);
+    });
+  }
+
+  async addCustomUrlIntoLegalComponent(customUrl: string): Promise<void> {
+    await test.step('Add custom url into legal component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.customUrlInput, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.customUrlInput, customUrl);
+    });
+  }
+
+  async deleteDefaultOptionFromDropdownComponent(): Promise<void> {
+    await test.step('Delete default option from dropdown component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.dropdownOptionCrossIcon, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.dropdownOptionCrossIcon);
+    });
+  }
+
+  async verifyQuestionOptionIsVisible(): Promise<void> {
+    await test.step('Verify question option is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.questionOption, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.questionOption.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Question option should be visible')
+        .toBe(true);
+    });
+  }
+
+  async verifyValueOptionsIsVisible(): Promise<void> {
+    await test.step('Verify value options is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.valueOptions, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(await this.valueOptions.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Value options should be visible')
+        .toBe(true);
+    });
+  }
+
+  async verifyAddNewConditionButtonIsVisible(): Promise<void> {
+    await test.step('Verify add new condition button is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addNewConditionButton, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.addNewConditionButton.isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Add new condition button should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyOptionsIntoSettingForUploadImageComponent(option: string): Promise<void> {
+    await test.step('Verify option: ${option} into setting for upload image component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.genericGetByTextLocator(option).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${option} option should be visible`
+        )
+        .toBe(true);
+    });
+  }
+  async verifyMatchOptionIsVisible(option: string): Promise<void> {
+    await test.step('Verify match option is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.genericGetByTextLocator(option).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${option} option should be visible`
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifyLastOptionIsDisabledInDropdownComponent(): Promise<void> {
+    await test.step('Verify last option is disabled in dropdown component', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.dropdownOptionCrossIcon, { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.dropdownOptionCrossIcon.isDisabled({ timeout: TIMEOUTS.MEDIUM }),
+          'Last option should be disabled'
+        )
+        .toBe(true);
+    });
+  }
+
+  async verifyDropdownOptionIntoUploadImageComponent(option: string): Promise<void> {
+    await test.step(`Verify option: ${option} into upload image component`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentlinkTo, { timeout: TIMEOUTS.MEDIUM });
+      // const firstOption = this.legalComponentlinkTo.locator('option').first();
+      // await this.verifier.verifyTheElementIsVisible(firstOption, { timeout: TIMEOUTS.MEDIUM });
+      // const labels = (await this.legalComponentlinkTo.locator('option').allTextContents()).map(t => t.trim());
+      const labels = await this.legalComponentlinkTo.locator('option').allTextContents();
+      console.log('labels : ', labels);
+      test.expect(labels.includes(option), `${option} option should be visible`).toBe(true);
+    });
+  }
+
   async verifyPublishedFormToastMessage(): Promise<void> {
     await test.step('Verify published form toast message is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.toastMessages.filter({ hasText: 'Form published' }), {

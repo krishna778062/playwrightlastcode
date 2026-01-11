@@ -276,12 +276,12 @@ export const ContentSql = {
         1
       ) AS AVG_REF
     FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
-    INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c 
-      ON c.code = i.content_code 
+    RIGHT JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c 
+      ON c.code = i.content_code and c.tenant_code = i.tenant_code
     INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_utm_source_as_is u 
       ON i.utm_source_code = u.code
     WHERE 
-      i.tenant_code = '{tenantCode}' 
+      c.tenant_code = '{tenantCode}' 
       AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
       AND c.content_type_code IN ('CT001','CT002','CT003','CT004') 
       AND i.interaction_content_post_first_publish = 'true'

@@ -1122,4 +1122,29 @@ export class SiteDashboard {
   async clickSaveButtonInEditModal(): Promise<void> {
     await this.appTileComponent.clickButton(DASHBOARD_BUTTONS.SAVE);
   }
+  /**
+   * Complete workflow to add an app tile with app manager defined settings and text area input and dropdown
+   */
+  async addTilewithDefinedSettingsTextAreaAndDropdown(
+    tileTitle: string,
+    appName: string,
+    tileName: string,
+    siteManagerDefined: string,
+    fieldName: string,
+    query: string,
+    dropdownFieldName: string,
+    dropdownValue: string,
+    destination: string
+  ): Promise<void> {
+    await test.step(`Add ${appName} tile: ${tileTitle}`, async () => {
+      await this.openModalSelectAppTileAndSetTitle(appName, tileName, tileTitle);
+      await this.appTileComponent.enterTextAreaInputJQL(fieldName, siteManagerDefined, query);
+      await this.selectRadioOptionandValue(
+        dropdownFieldName,
+        ORGANIZATION_SETTINGS.SITE_MANAGER_DEFINED,
+        dropdownValue
+      );
+      await this.appTileComponent.submitTileToHomeOrDashboard(destination);
+    });
+  }
 }
