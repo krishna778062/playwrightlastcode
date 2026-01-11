@@ -32,6 +32,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private browseUsersButton: Locator;
   private addUsersButton: Locator;
   private addUserDialog: Locator;
+  private userSearchInput: Locator;
+  private userSearchResult: (userName: string) => Locator;
+  private userRow: (userName: string) => Locator;
   private doneButton: Locator;
 
   constructor(page: Page, accessControlGroupModalMode: AccessControlGroupModalMode) {
@@ -62,6 +65,10 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     this.addUsersButton = this.acgDialog.getByRole('button', { name: 'Add users' });
     this.browseUsersButton = this.acgDialog.getByRole('button', { name: 'Browse' });
     this.addUserDialog = this.page.getByRole('dialog', { name: 'Users' });
+    this.userSearchInput = this.page.getByRole('combobox').first();
+    this.userSearchResult = (userName: string) => this.page.getByRole('menuitem', { name: `profile icon ${userName}` });
+    this.userRow = (userName: string) =>
+      this.page.locator('[class*="Spacing-module__divider__bvKBb"]').filter({ hasText: userName });
     this.doneButton = this.addUserDialog.getByRole('button', { name: 'Done' });
   }
 
@@ -286,8 +293,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   }
 
   async isUserVisibleInList(userName: string): Promise<boolean> {
-    const userRow = this.page.locator('[class*="Spacing-module__divider__bvKBb"]').filter({ hasText: userName });
-    return await this.verifier.isTheElementVisible(userRow, { timeout: TIMEOUTS.VERY_SHORT });
+    return await this.verifier.isTheElementVisible(this.userRow(userName), { timeout: TIMEOUTS.VERY_SHORT });
   }
 
   async removeUserIfPresentInList(userName: string): Promise<boolean> {
@@ -333,9 +339,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       }
 
       // Search for user in the user picker
-      await this.typeInElement(this.page.getByRole('combobox').first(), userName);
+      await this.typeInElement(this.userSearchInput, userName);
 
-      await this.clickOnElement(this.page.getByRole('menuitem', { name: `profile icon ${userName}` }));
+      await this.clickOnElement(this.userSearchResult(userName));
 
       await this.clickOnElement(this.doneButton);
       return true;

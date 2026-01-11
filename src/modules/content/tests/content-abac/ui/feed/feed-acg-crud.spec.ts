@@ -52,12 +52,12 @@ test.describe(
     test(
       'verify SU who is FO of "Post In Home Feed" ACG can view Feed form and create posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42178', '@feed-acg-crud', '@FO-feed'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42178', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Standard User who is Functional Owner of "Post In Home Feed" ACG can view and use the Feed Post creation form on Home Feed',
+            'ABAC: Verify Standard User who is Feature Owner of "Post In Home Feed" ACG can view and use the Feed Post creation form on Home Feed',
           zephyrTestId: 'CONT-42178',
           storyId: 'CONT-42178',
         });
@@ -162,7 +162,7 @@ test.describe(
     test(
       'verify SU who is Admin of "Post In Home Feed" ACG can view Feed form and create posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42179', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42179', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -295,7 +295,7 @@ test.describe(
     test(
       'verify SU who is Manager of "Post In Home Feed" ACG can view Feed form and create posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42180', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42180', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -429,7 +429,7 @@ test.describe(
     test(
       'verify SU who is only in Target Audience of "Post In Home Feed" ACG cannot create Feed Post',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42181', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42181', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -517,7 +517,7 @@ test.describe(
     test(
       'verify FO can edit their own Home Feed Post',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42182', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42182', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -629,7 +629,7 @@ test.describe(
     test(
       'verify SU without "Manage Home Feed" ACG role cannot edit other users\' Feed posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42189', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42189', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -740,7 +740,7 @@ test.describe(
     test(
       'verify SU who is FO of "Manage Home Feed" ACG can edit other users\' Feed posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42190', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42190', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -840,7 +840,7 @@ test.describe(
     test(
       'verify SU who is Manager of "Manage Home Feed" ACG can edit other users\' Feed posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42191', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42191', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -960,7 +960,7 @@ test.describe(
     test(
       'verify SU who is Admin of "Manage Home Feed" ACG can edit other users\' Feed posts',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42192', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42192', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1080,7 +1080,7 @@ test.describe(
     test(
       "verify FO can edit and remove limit visibility of End User's restricted Home Feed post",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42183', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42183', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1209,7 +1209,7 @@ test.describe(
     test(
       "verify FO can edit End User's restricted Home Feed post and change audience from Engineering to UX team",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42184', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42184', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1308,7 +1308,7 @@ test.describe(
     test(
       'verify favorited Home Feed post becomes invisible when FO changes audience from Engineering to UX',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42185', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42185', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1422,7 +1422,7 @@ test.describe(
     test(
       'verify FO can mention user outside audience in restricted post - mention shows as plain text',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42186', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42186', '@FO-feed'],
       },
       async ({ appManagerFixture, appManagerApiFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -1509,7 +1509,7 @@ test.describe(
     test(
       'verify SU can edit only their own Feed Posts (without Limited Visibility) on Home Feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42187', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42187', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1616,7 +1616,7 @@ test.describe(
     test(
       'verify SU can edit only their own Feed Posts (with Limited Visibility) on Home Feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42188', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42188', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1735,7 +1735,7 @@ test.describe(
     test(
       "verify FO's Feed post without Restricted Viewers is visible to all users",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42171', '@feed-acg-crud', '@FO-feed'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42171', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -1787,7 +1787,7 @@ test.describe(
     test(
       "verify FO's Feed post with Restricted Viewers is visible only to specified users",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42172', '@feed-acg-crud', '@FO-feed'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42172', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -1861,7 +1861,7 @@ test.describe(
     test(
       "verify SU's Feed post with Restricted Viewers is visible only to specified users",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42175', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42175', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -1961,7 +1961,7 @@ test.describe(
     test(
       "verify SU's Feed post without Restricted Viewers is visible only to users in ACG Target Audience",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42174', '@feed-acg-crud', '@acg-target-audience'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42174', '@FO-feed', '@acg-target-audience'],
       },
       async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2074,7 +2074,7 @@ test.describe(
     test(
       "verify FO can view SU's restricted Home Feed post when FO is NOT in restricted audience",
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42177', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42177', '@FO-feed'],
       },
       async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2176,7 +2176,7 @@ test.describe(
     test(
       'verify FO can share unrestricted Home Feed post to Site Feed with Restricted Viewers (UX audience)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42194', '@feed-acg-crud', '@share-restricted'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42194', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2291,7 +2291,7 @@ test.describe(
     test(
       'verify FO can share restricted Home Feed post to Site Feed without restrictions - visible to all users',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42195', '@feed-acg-crud', '@share-unrestricted'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42195', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2411,7 +2411,7 @@ test.describe(
     test(
       'verify FO can share restricted (Engineering) Home Feed post to Site Feed with different restrictions (UX Designs)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42196', '@feed-acg-crud', '@share-restricted'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42196', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2533,7 +2533,7 @@ test.describe(
     test(
       'verify FO can share unrestricted Site Feed post to Home Feed with Restricted Viewers (UX Designs)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42197', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42197', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2654,7 +2654,7 @@ test.describe(
     test(
       'verify FO can share restricted (Engineering) Site Feed post to Home Feed with different restrictions (UX Designs)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42199', '@feed-acg-crud'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42199', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
@@ -2802,6 +2802,126 @@ test.describe(
 
           // Verify the shared post IS visible to FO (creator/sharer always sees their posts)
           await appManagerHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+      }
+    );
+
+    test(
+      'verify FO can share a comment on non-restricted Public Site Feed post to Home Feed - visible to all users',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42200', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a comment from a non-restricted Public Site Feed post to Home Feed without restrictions. The shared comment should be visible to all users.',
+          zephyrTestId: 'CONT-42200',
+          storyId: 'CONT-42200',
+        });
+
+        let siteFeedPostText: string;
+        let commentText: string;
+        let shareCommentText: string;
+        let publicSiteId: string = '';
+        let siteFeedPostId: string = '';
+        let siteDashboardPage: SiteDashboardPage;
+        let siteFeedPage: FeedPage;
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+        });
+
+        // ==================== FO creates non-restricted Site Feed post ====================
+        await test.step('FO creates non-restricted Site Feed post on Public Site', async () => {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          siteFeedPage = new FeedPage(appManagerFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          siteFeedPostText = TestDataGenerator.generateRandomText('ABAC Comment Share Test Post', 3, true);
+          await siteFeedPage.clickShareThoughtsButton();
+
+          const postResult = await siteFeedPage.postEditor.createAndPost({ text: siteFeedPostText });
+          siteFeedPostId = postResult.postId || '';
+
+          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post does NOT have limit visibility (unrestricted)
+          await siteFeedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(siteFeedPostText);
+        });
+
+        // ==================== FO adds a comment to the Site Feed post ====================
+        await test.step('FO adds a comment/reply to the Site Feed post', async () => {
+          commentText = TestDataGenerator.generateRandomText('ABAC Comment to share', 2, true);
+
+          // Add reply to the post
+          await siteFeedPage.feedList.addReplyToPost(commentText, siteFeedPostId);
+
+          // Verify comment is visible
+          await siteFeedPage.feedList.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== FO shares the comment to Home Feed (NO restrictions) ====================
+        await test.step('FO shares the comment to Home Feed WITHOUT Restricted Viewers', async () => {
+          // Click share on the comment
+          await siteFeedPage.feedList.clickShareOnComment();
+          await siteFeedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          shareCommentText = TestDataGenerator.generateRandomText('Shared comment to Home Feed', 2, true);
+
+          // Share to Home Feed (default option) WITHOUT limit visibility
+          await shareComponent.enterShareDescription(shareCommentText);
+
+          // Home Feed is the default - just click share
+          await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await siteFeedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== FO navigates to Home Feed and verifies shared comment IS visible ====================
+        await test.step('FO navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const appManagerHomeFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerHomeFeedPage.reloadPageWithTimelineMode();
+          await appManagerHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to FO
+          await appManagerHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+
+        // ==================== Standard User navigates to Home Feed and verifies shared comment IS visible ====================
+        await test.step('Standard User navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const standardUserHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserHomeFeedPage.reloadPageWithTimelineMode();
+          await standardUserHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to Standard User
+          await standardUserHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+
+        // ==================== Social Campaign Manager navigates to Home Feed and verifies shared comment IS visible ====================
+        await test.step('Social Campaign Manager navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const scmHomeFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmHomeFeedPage.reloadPageWithTimelineMode();
+          await scmHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to Social Campaign Manager
+          await scmHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
         });
       }
     );
