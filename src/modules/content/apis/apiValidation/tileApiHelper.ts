@@ -153,7 +153,6 @@ export class TileApiHelper {
    */
   async validateTileDeletion(deleteResponse: any): Promise<void> {
     await test.step('Validate tile deletion response', async () => {
-      console.log('deleteResponse hidjkqhfioq', deleteResponse);
       expect(deleteResponse.status, 'Status should be success').toBe('success');
       expect(deleteResponse.message, 'Message should indicate successful deletion').toContain(
         'Deleted tile successfully'
