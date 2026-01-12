@@ -217,12 +217,12 @@ test.describe(
         const privilegesScreenPage = new PrivilegesScreenPage(appManagerFixture.page);
         await privilegesScreenPage.loadPage();
         await privilegesScreenPage.verifyThePageIsLoaded();
-        await privilegesScreenPage.actions.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
-        await privilegesScreenPage.actions.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
-        await privilegesScreenPage.actions.clickOnSave();
-        await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+        await privilegesScreenPage.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.clickOnSave();
+        await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
         await privilegesScreenPage.reloadScreen();
-        await privilegesScreenPage.assertions.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
       }
     );
   }
