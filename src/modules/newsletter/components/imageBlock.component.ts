@@ -72,7 +72,9 @@ export class ImageBlockComponent extends BaseActionUtil {
       const surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
       const dismissButton = surveyDialog.getByRole('button', { name: 'Dismiss' });
       await surveyDialog.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_SHORT });
-      await dismissButton.click();
+      await this.clickOnElement(dismissButton, {
+        stepInfo: 'Click Dismiss button on survey dialog',
+      });
       await surveyDialog.waitFor({ state: 'hidden', timeout: TIMEOUTS.VERY_SHORT });
     } catch {
       // Survey dialog not present, continue
