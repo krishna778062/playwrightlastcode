@@ -3,11 +3,14 @@ import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { tagTest } from '@/src/core/utils/testDecorator';
+import { ContentType } from '@/src/modules/content/constants/contentType';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -2652,7 +2655,7 @@ test.describe(
     );
 
     test(
-      'verify FO can share restricted (Engineering) Site Feed post to Home Feed with different restrictions (UX Designs)',
+      'Verify FO can share a post created for Restricted viewers (Engineering) on Public Site Feed to Home Feed with Restricted viewers (UX Designs)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42199', '@FO-feed', '@share-restriction'],
       },
@@ -2807,76 +2810,78 @@ test.describe(
     );
 
     test(
-      'verify FO can share a comment on non-restricted Public Site Feed post to Home Feed - visible to all users',
+      'Verify FO can share a comment made on a Non-Restricted Content (Public Site) to Home Feed with No Restrictions',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42200', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify FO can share a comment from a non-restricted Public Site Feed post to Home Feed without restrictions. The shared comment should be visible to all users.',
+            'ABAC: Verify FO can share a comment from a non-restricted Page to Home Feed without restrictions. The shared comment should be visible to all users.',
           zephyrTestId: 'CONT-42200',
           storyId: 'CONT-42200',
         });
 
-        let siteFeedPostText: string;
-        let commentText: string;
+        let pageId: string = '';
+        let pageCommentText: string;
         let shareCommentText: string;
         let publicSiteId: string = '';
-        let siteFeedPostId: string = '';
-        let siteDashboardPage: SiteDashboardPage;
-        let siteFeedPage: FeedPage;
+        let contentPreviewPage: ContentPreviewPage;
 
-        // ==================== Get or create Public Site ====================
-        await test.step('Get or create a Public Site', async () => {
+        // ==================== Get or create Public Site with Pages ====================
+        await test.step('Get or create a Public Site with Pages', async () => {
           const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            hasPages: true,
             waitForSearchIndex: true,
           });
           publicSiteId = publicSite.siteId;
         });
 
-        // ==================== FO creates non-restricted Site Feed post ====================
-        await test.step('FO creates non-restricted Site Feed post on Public Site', async () => {
-          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
-          await siteDashboardPage.loadPage();
-          await siteDashboardPage.verifyThePageIsLoaded();
-
-          await siteDashboardPage.clickOnFeedLink();
-
-          siteFeedPage = new FeedPage(appManagerFixture.page);
-          await siteFeedPage.verifyThePageIsLoaded();
-
-          siteFeedPostText = TestDataGenerator.generateRandomText('ABAC Comment Share Test Post', 3, true);
-          await siteFeedPage.clickShareThoughtsButton();
-
-          const postResult = await siteFeedPage.postEditor.createAndPost({ text: siteFeedPostText });
-          siteFeedPostId = postResult.postId || '';
-
-          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
-
-          // Verify post does NOT have limit visibility (unrestricted)
-          await siteFeedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(siteFeedPostText);
+        // ==================== FO creates a Page with No Restrictions on Public Site ====================
+        await test.step('FO creates a Page with No Restrictions on Public Site', async () => {
+          const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: publicSiteId,
+            contentInfo: {
+              contentType: 'page',
+              contentSubType: 'news',
+            },
+            options: {
+              waitForSearchIndex: false,
+            },
+          });
+          pageId = pageInfo.contentId;
         });
 
-        // ==================== FO adds a comment to the Site Feed post ====================
-        await test.step('FO adds a comment/reply to the Site Feed post', async () => {
-          commentText = TestDataGenerator.generateRandomText('ABAC Comment to share', 2, true);
+        // ==================== FO navigates to Page and creates a comment ====================
+        await test.step('FO navigates to Page and creates a comment', async () => {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            publicSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
 
-          // Add reply to the post
-          await siteFeedPage.feedList.addReplyToPost(commentText, siteFeedPostId);
+          // Create comment on the Page
+          pageCommentText = TestDataGenerator.generateRandomText('Page Comment to share', 2, true);
+          await contentPreviewPage.clickShareThoughtsButton();
+
+          const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+          await createFeedPostComponent.createAndPost({ text: pageCommentText });
 
           // Verify comment is visible
-          await siteFeedPage.feedList.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
         });
 
-        // ==================== FO shares the comment to Home Feed (NO restrictions) ====================
-        await test.step('FO shares the comment to Home Feed WITHOUT Restricted Viewers', async () => {
-          // Click share on the comment
-          await siteFeedPage.feedList.clickShareOnComment();
-          await siteFeedPage.verifyShareModalIsOpen();
+        // ==================== FO shares the Page comment to Home Feed (NO restrictions) ====================
+        await test.step('FO shares the Page comment to Home Feed WITHOUT Restricted Viewers', async () => {
+          const feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.feedList.clickShareIcon(pageCommentText);
+          await feedPage.verifyShareModalIsOpen();
 
           const shareComponent = new ShareComponent(appManagerFixture.page);
-          shareCommentText = TestDataGenerator.generateRandomText('Shared comment to Home Feed', 2, true);
+          shareCommentText = TestDataGenerator.generateRandomText('Shared Page comment to Home Feed', 2, true);
 
           // Share to Home Feed (default option) WITHOUT limit visibility
           await shareComponent.enterShareDescription(shareCommentText);
@@ -2885,7 +2890,7 @@ test.describe(
           await shareComponent.clickShareButtonAndGetPostId();
 
           // Verify share was successful
-          await siteFeedPage.feedList.verifyShareModalIsClosed();
+          await feedPage.feedList.verifyShareModalIsClosed();
         });
 
         // ==================== FO navigates to Home Feed and verifies shared comment IS visible ====================
@@ -2893,8 +2898,8 @@ test.describe(
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
           const appManagerHomeFeedPage = new FeedPage(appManagerFixture.page);
-          await appManagerHomeFeedPage.reloadPageWithTimelineMode();
-          await appManagerHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+          await appManagerHomeFeedPage.reloadPage();
+          await appManagerHomeFeedPage.feedList.verifyThePageIsLoaded();
 
           // Verify the shared comment IS visible to FO
           await appManagerHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
@@ -2927,77 +2932,83 @@ test.describe(
     );
 
     test(
-      'verify FO can share a comment on Public Site Feed post to Home Feed with Restricted Viewers (UX Designs) - ABAC enforced',
+      'Verify FO can share a comment made on a Non-Restricted Content (Public Site) to Home Feed with Restricted viewers (e.g., UX Designs)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42201', '@FO-feed', '@share-restriction'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify FO can share a comment from a non-restricted Public Site Feed post to Home Feed with Restricted Viewers (UX Designs). The shared comment should be visible only to the selected audience and FO.',
+            'ABAC: Verify FO can share a comment from a non-restricted Page to Home Feed with Restricted Viewers (UX Designs). The shared comment should be visible only to the selected audience and FO.',
           zephyrTestId: 'CONT-42201',
           storyId: 'CONT-42201',
         });
 
-        let siteFeedPostText: string;
-        let commentText: string;
+        let pageId: string = '';
+        let pageCommentText: string;
         let shareCommentText: string;
         let sharedCommentId: string = '';
         let publicSiteId: string = '';
-        let siteFeedPostId: string = '';
-        let siteDashboardPage: SiteDashboardPage;
-        let siteFeedPage: FeedPage;
+        let contentPreviewPage: ContentPreviewPage;
 
-        // ==================== Get or create Public Site ====================
-        await test.step('Get or create a Public Site', async () => {
+        // ==================== Get or create Public Site with Pages ====================
+        await test.step('Get or create a Public Site with Pages', async () => {
           const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            hasPages: true,
             waitForSearchIndex: true,
           });
           publicSiteId = publicSite.siteId;
         });
 
-        // ==================== FO creates non-restricted Site Feed post ====================
-        await test.step('FO creates non-restricted Site Feed post on Public Site', async () => {
-          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
-          await siteDashboardPage.loadPage();
-          await siteDashboardPage.verifyThePageIsLoaded();
-
-          await siteDashboardPage.clickOnFeedLink();
-
-          siteFeedPage = new FeedPage(appManagerFixture.page);
-          await siteFeedPage.verifyThePageIsLoaded();
-
-          siteFeedPostText = TestDataGenerator.generateRandomText('ABAC Restricted Comment Share Test Post', 3, true);
-          await siteFeedPage.clickShareThoughtsButton();
-
-          const postResult = await siteFeedPage.postEditor.createAndPost({ text: siteFeedPostText });
-          siteFeedPostId = postResult.postId || '';
-
-          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
-
-          // Verify post does NOT have limit visibility (unrestricted)
-          await siteFeedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(siteFeedPostText);
+        // ==================== FO creates a Page with No Restrictions on Public Site ====================
+        await test.step('FO creates a Page with No Restrictions on Public Site', async () => {
+          const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: publicSiteId,
+            contentInfo: {
+              contentType: 'page',
+              contentSubType: 'news',
+            },
+            options: {
+              waitForSearchIndex: false,
+            },
+          });
+          pageId = pageInfo.contentId;
         });
 
-        // ==================== FO adds a comment to the Site Feed post ====================
-        await test.step('FO adds a comment/reply to the Site Feed post', async () => {
-          commentText = TestDataGenerator.generateRandomText('ABAC Restricted Comment to share', 2, true);
+        // ==================== FO navigates to Page and creates a comment ====================
+        await test.step('FO navigates to Page and creates a comment', async () => {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            publicSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
 
-          // Add reply to the post
-          await siteFeedPage.feedList.addReplyToPost(commentText, siteFeedPostId);
+          // Create comment on the Page
+          pageCommentText = TestDataGenerator.generateRandomText('Page Comment to share with restriction', 2, true);
+          await contentPreviewPage.clickShareThoughtsButton();
+
+          const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+          await createFeedPostComponent.createAndPost({ text: pageCommentText });
 
           // Verify comment is visible
-          await siteFeedPage.feedList.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
         });
 
-        // ==================== FO shares the comment to Home Feed WITH Restricted Viewers (UX Designs) ====================
-        await test.step('FO shares the comment to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
-          // Click share on the comment
-          await siteFeedPage.feedList.clickShareOnComment();
-          await siteFeedPage.verifyShareModalIsOpen();
+        // ==================== FO shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs) ====================
+        await test.step('FO shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
+          const feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.feedList.clickShareIcon(pageCommentText);
+          await feedPage.verifyShareModalIsOpen();
 
           const shareComponent = new ShareComponent(appManagerFixture.page);
-          shareCommentText = TestDataGenerator.generateRandomText('Shared restricted comment to Home Feed', 2, true);
+          shareCommentText = TestDataGenerator.generateRandomText(
+            'Shared restricted Page comment to Home Feed',
+            2,
+            true
+          );
 
           // Share to Home Feed (default option) WITH limit visibility (UX audience)
           await shareComponent.enterShareDescription(shareCommentText);
@@ -3007,7 +3018,7 @@ test.describe(
           sharedCommentId = await shareComponent.clickShareButtonAndGetPostId();
 
           // Verify share was successful
-          await siteFeedPage.feedList.verifyShareModalIsClosed();
+          await feedPage.feedList.verifyShareModalIsClosed();
         });
 
         // ==================== UX Designs User (socialCampaignManagerFixture) CAN see shared comment on Home Feed ====================
