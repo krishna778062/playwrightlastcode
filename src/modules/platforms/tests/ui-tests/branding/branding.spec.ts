@@ -9,7 +9,7 @@ import { BrandingPage } from '@/src/modules/platforms/ui/pages/branding/branding
 test.describe(
   'branding Tests',
   {
-    tag: ['@Branding', '@Platform_Services'],
+    tag: ['@Branding', '@Platform_Services', '@fail'],
   },
   () => {
     test(

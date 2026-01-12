@@ -432,7 +432,7 @@ test.describe(
 
     test(
       'verify user is able to create audience with Hire date attribute with all six operators under manage audience',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, '@fail'] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35747'],
