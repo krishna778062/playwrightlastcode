@@ -6,7 +6,7 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 
-import { DialogContainerForm } from '@/src/modules/recognition/ui/components/common/workAnniversary-dialog-container-form';
+import { DialogContainerForm } from '@/src/modules/recognition/ui/components/workAnniversary-dialog-container-form';
 
 export class EditAutomatedAwardPage extends BasePage {
   readonly container: Locator;

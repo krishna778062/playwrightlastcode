@@ -25,10 +25,20 @@ export enum RecurringAwardsFeatureTags {
   EDIT_CUSTOM_RECURRING_AWARD = '@EDIT_CUSTOM_RECURRING_AWARD',
 }
 
+export enum WorkAnniversaryFeatureTags {
+  WORK_ANNIVERSARY = '@work-anniversary',
+}
+
+export enum WorkAnniversarySuitTags {
+  MANAGE_WORK_ANNIVERSARY = '@manage-work-anniversary',
+}
+
 export const RecognitionTestTags = [
   ...Object.values(RecognitionSuitTags),
   ...Object.values(RecognitionFeatureTags),
   ...Object.values(RecurringAwardsFeatureTags),
+  ...Object.values(WorkAnniversaryFeatureTags),
+  ...Object.values(WorkAnniversarySuitTags),
 ] as const;
 
 export default RecognitionTestTags;

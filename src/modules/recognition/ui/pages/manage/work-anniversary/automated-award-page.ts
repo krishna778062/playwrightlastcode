@@ -4,7 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { ManageRecognitionPage } from '../manageRecognitionPage';
+import { ManageAutomatedAwardPage } from './manageAutomatedAwardPage';
 
 export class AutomatedAwardPage extends BasePage {
   readonly tableGridFirstRow: Locator;
@@ -90,11 +90,11 @@ export class AutomatedAwardPage extends BasePage {
 
   /**
    * Verify and deactivate automated award
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param manageRecognitionPage - ManageAutomatedAwardPage instance
    * @param automatedAwardMsgs - Messages object for assertions
    */
   async verifyAndDeactivateAward(
-    manageRecognitionPage: ManageRecognitionPage,
+    manageRecognitionPage: ManageAutomatedAwardPage,
     automatedAwardMsgs: {
       deactivateAwardTitle: string;
       deactivateAwardConfirmationMsg: string;
@@ -137,9 +137,9 @@ export class AutomatedAwardPage extends BasePage {
 
   /**
    * Verify menu items for the Work Anniversary default award
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param manageRecognitionPage - ManageAutomatedAwardPage instance
    */
-  async verifyMenuItemsForWorkAnniversaryAward(manageRecognitionPage: ManageRecognitionPage): Promise<void> {
+  async verifyMenuItemsForWorkAnniversaryAward(manageRecognitionPage: ManageAutomatedAwardPage): Promise<void> {
     await test.step('Verify menu items for the Work Anniversary default award', async () => {
       await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
       await expect(manageRecognitionPage.automatedAwards.editMenuItem).toBeVisible({
@@ -157,9 +157,9 @@ export class AutomatedAwardPage extends BasePage {
 
   /**
    * Activate award from listing page
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param manageRecognitionPage - ManageAutomatedAwardPage instance
    */
-  async activateAwardFromListingPage(manageRecognitionPage: ManageRecognitionPage): Promise<void> {
+  async activateAwardFromListingPage(manageRecognitionPage: ManageAutomatedAwardPage): Promise<void> {
     await test.step('Validate user is able to activate automated award from award listing page', async () => {
       await manageRecognitionPage.automatedAwards.getThreeDotsButton(0).click();
       await this.pause(5000);
@@ -171,9 +171,9 @@ export class AutomatedAwardPage extends BasePage {
 
   /**
    * Inactivate the award if active (for test setup)
-   * @param manageRecognitionPage - ManageRecognitionPage instance
+   * @param manageRecognitionPage - ManageAutomatedAwardPage instance
    */
-  async inactivateAwardIfActive(manageRecognitionPage: ManageRecognitionPage): Promise<void> {
+  async inactivateAwardIfActive(manageRecognitionPage: ManageAutomatedAwardPage): Promise<void> {
     await test.step('Inactivate the award if active', async () => {
       const statusText = await this.tableGridFirstRow.nth(3).textContent();
       if (statusText?.trim() === 'Active') {
