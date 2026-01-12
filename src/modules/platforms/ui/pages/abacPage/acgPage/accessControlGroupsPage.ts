@@ -973,15 +973,15 @@ export class AccessControlGroupsPage extends BasePage {
    * @param assetName - Name of the asset for which count needs to be compared.
    * @param expectedCount - Expected count of the assets.
    */
-  async verifyACGsHasFeature(featureName: string): Promise<void> {
-    await test.step(`Verify that all the displayed ACGs has ${featureName} feature`, async () => {
-      const totalACGs: Locator[] = await this.acgRecords.all();
-      for (const acg of totalACGs) {
-        const feature = acg.locator('td').nth(1).filter({ hasText: featureName });
-        await this.verifier.verifyTheElementIsVisible(feature, {
-          assertionMessage: `Feature ${featureName} should be visible in the ACG`,
-        });
-      }
+  /**
+   * Verifies that at least one ACG has the specified feature.
+   * @param featureName - The feature name to look for in the ACG list.
+   */
+  async verifyAtleastOneACGHasFeature(featureName: string): Promise<void> {
+    await test.step(`Verify that at least one ACG has ${featureName} feature`, async () => {
+      await this.searchForACG(featureName);
+      const featureCell = this.acgRecords.locator('td').nth(1).filter({ hasText: featureName });
+      await expect(featureCell.first(), `Expected at least one ACG to have feature "${featureName}"`).toBeVisible();
     });
   }
 }

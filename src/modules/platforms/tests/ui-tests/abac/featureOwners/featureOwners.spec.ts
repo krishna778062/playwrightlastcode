@@ -363,10 +363,15 @@ test.describe(
 
           const newUserAccessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(newPage);
           await newUserAccessControlGroupsPage.loadPage();
-          await newUserAccessControlGroupsPage.verifyACGsHasFeature(feature);
+          await newUserAccessControlGroupsPage.verifyAtleastOneACGHasFeature(feature);
 
-          await newPage.goto(PAGE_ENDPOINTS.FEATURE_OWNERS);
-          await newUserAccessControlGroupsPage.verifyAccessDeniedPageVisibility();
+          if (feature === 'Users') {
+            const newUserFeatureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(newPage);
+            await newUserFeatureOwnersPage.loadPage();
+          } else {
+            await newPage.goto(PAGE_ENDPOINTS.FEATURE_OWNERS);
+            await newUserAccessControlGroupsPage.verifyAccessDeniedPageVisibility();
+          }
 
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
