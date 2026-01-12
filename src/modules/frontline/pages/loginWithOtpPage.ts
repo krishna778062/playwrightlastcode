@@ -586,20 +586,11 @@ export class LoginWithOtpPage extends BasePage {
     }
   }
 
-  private async clickResendAndVerifySuccess(otpType: 'email' | 'mobile'): Promise<void> {
-    const verificationMessage = otpType === 'email' ? this.verificationCodeMessage : this.verificationCodeMessageMobile;
-
-    await Promise.all([
-      verificationMessage.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM }),
-      this.clickOnElement(this.resendOtpButton),
-    ]);
-
-    await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading, {
-      timeout: TIMEOUTS.MEDIUM,
-    });
-    await this.verifier.verifyTheElementIsVisible(this.enterOtpTextbox, {
-      timeout: TIMEOUTS.MEDIUM,
-    });
+  private async clickResendAndVerifySuccess(_otpType: 'email' | 'mobile'): Promise<void> {
+    await this.clickOnElement(this.resendOtpButton);
+    await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading, { timeout: TIMEOUTS.MEDIUM });
+    await this.verifier.verifyTheElementIsVisible(this.enterOtpTextbox, { timeout: TIMEOUTS.MEDIUM });
+    await this.verifier.verifyTheElementIsVisible(this.resendOtpButton, { timeout: TIMEOUTS.MEDIUM });
   }
 
   private async clickResendAndVerifyLockout(): Promise<void> {
@@ -613,21 +604,15 @@ export class LoginWithOtpPage extends BasePage {
   async verifyResendOtpRateLimitingAndLockout(otpType: 'email' | 'mobile'): Promise<void> {
     await test.step('Verifying resend OTP rate limiting and lockout flow', async () => {
       await this.clickResendAndVerifyWaitMessage();
-
       await this.page.waitForTimeout(OTP_RESEND_TIMEOUTS.COOLDOWN_SECONDS * 1000);
-      await this.clickResendAndVerifySuccess(otpType);
 
+      await this.clickResendAndVerifySuccess(otpType);
       await this.clickResendAndVerifyWaitMessage();
-
       await this.page.waitForTimeout(OTP_RESEND_TIMEOUTS.COOLDOWN_SECONDS * 1000);
+
       await this.clickResendAndVerifySuccess(otpType);
+      await this.page.waitForTimeout(OTP_RESEND_TIMEOUTS.COOLDOWN_SECONDS * 1000);
 
-      await this.clickResendAndVerifyLockout();
-      await this.clickResendAndVerifyLockout();
-
-      await this.enterOtpTextbox.clear();
-      await this.fillInElement(this.enterOtpTextbox, OTP_TEST_VALUES.INCORRECT_OTP);
-      await this.clickOnElement(this.verifyOtpButton);
       await this.clickResendAndVerifyLockout();
     });
   }

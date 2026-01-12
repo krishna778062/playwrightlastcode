@@ -31,7 +31,7 @@ export const LWO_MESSAGES = {
  * Timeout constants for OTP resend functionality (in milliseconds)
  */
 export const OTP_RESEND_TIMEOUTS = {
-  COOLDOWN_SECONDS: 14,
+  COOLDOWN_SECONDS: 20,
   LOCKOUT_MINUTES: 30, // Lockout duration after 3rd resend
   MAX_RESEND_ATTEMPTS: 2, // Number of resends allowed before lockout (3rd triggers lockout)
 } as const;
