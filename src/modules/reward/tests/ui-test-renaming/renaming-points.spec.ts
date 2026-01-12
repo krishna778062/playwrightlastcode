@@ -72,4 +72,40 @@ test.describe('renaming page', () => {
       );
     }
   );
+
+  test(
+    '[RC-7010] Validate reset all translation to automatic option on edit program name and translation page of points',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate reset all translation to automatic option on edit program name and translation page of points',
+        zephyrTestId: 'RC-7010',
+        storyId: 'RC-6370',
+      });
+      // Enable the language if already not enabled.
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.enableTheLanguageInTenantIfNotEnabled(['English (UK)', 'French', 'German']);
+      await renamingPage.loadPage();
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      const newCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.clickEditButtonByCardType('points');
+
+      // Uncheck the Use the <card custom Name> for all language, if checked
+      await renamingPage.unCheckTheCustomLanguageForAll(newCustomizedValue!);
+
+      // Enable the all available language using switch, and enter the custom value
+      await renamingPage.enableTheOtherLanguageAndEnterCustomValue('Points');
+      await renamingPage.verifyThePageIsLoaded();
+
+      // Verify the Reset all translation to automatic button visible
+      await renamingPage.clickEditButtonByCardType('points');
+      await renamingPage.clickOnResetButton();
+      await renamingPage.validateTheLanguageDataRested();
+      await renamingPage.clickOnSaveButton();
+    }
+  );
 });

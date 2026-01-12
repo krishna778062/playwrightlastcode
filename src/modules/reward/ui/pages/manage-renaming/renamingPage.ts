@@ -4,7 +4,7 @@ import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-m
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { TestDataGenerator } from '@/src/core';
+import { PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
 
 export class RenamingPage extends BasePage {
   readonly container: Locator;
@@ -38,7 +38,7 @@ export class RenamingPage extends BasePage {
   private rewardsStoreDefaultName: Locator;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
     this.container = page.locator('[data-testid*="pageContainer"]');
     this.pageHeading = page.getByRole('heading', { name: 'Make recognition truly yours' });
     this.searchInput = page.getByPlaceholder('Search Recognition custom label...');
@@ -497,5 +497,115 @@ export class RenamingPage extends BasePage {
     }
     await this.verifier.waitUntilElementIsVisible(locator);
     return await locator.textContent();
+  }
+
+  async enableTheLanguageInTenantIfNotEnabled(languages: string[]) {
+    await test.step('Enable tenant languages from General Settings if only default language is enabled', async () => {
+      // 1) Visit General Settings page and 2) capture /v1/account/appConfig response
+      const appConfigResponse = await this.performActionAndWaitForResponse(
+        async () => {
+          await this.page.goto(PAGE_ENDPOINTS.APPLICATION_GENERAL_SETTINGS_PAGE);
+        },
+        resp => resp.url().includes('/v1/account/appConfig') && resp.status() === 200,
+        { timeout: TIMEOUTS.MEDIUM, stepInfo: 'Navigate to General Settings and capture appConfig response' }
+      );
+
+      await appConfigResponse.json();
+      const count = languages.length;
+      for (let i = 0; i < count; i++) {
+        const checkbox = this.page.locator(`#${languages[i]}`);
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          await checkbox.check();
+          console.log(`Checked language: ${await checkbox.innerText()}`);
+        } else {
+          console.log(`Already checked: ${await checkbox.innerText()}`);
+        }
+      }
+
+      // expect(Array.isArray(ids), 'Expected appConfig.result.selectedLanguages.ids to be an array').toBeTruthy();
+      // expect(
+      //   Array.isArray(defaultIds),
+      //   'Expected appConfig.result.selectedLanguages.defaultIds to be an array'
+      // ).toBeTruthy();
+      // expect(ids, 'Expected ids to be present').toBeDefined();
+      // expect(defaultIds, 'Expected defaultIds to be present').toBeDefined();
+      //
+      // // At minimum, English (id=1) should exist as default
+      // expect(defaultIds, 'Expected defaultIds to include 1').toContain(1);
+      //
+      // // 4) If only one language is enabled (id=1), enable all requested languages in UI
+      // const shouldEnableLanguages = Array.isArray(ids) && ids.length === 1 && ids[0] === 1;
+      // if (!shouldEnableLanguages) {
+      //   return;
+      // }
+      //
+      // // Extra strict validation for the "only default language enabled" case
+      // expect(ids, 'Expected ids to be [1] when only default language is enabled').toEqual([1]);
+      //
+      // const languagesHeading = this.page.getByRole('heading', { name: 'Languages' }).first();
+      // await expect(languagesHeading, 'Expected Languages section to be visible on General Settings page').toBeVisible({
+      //   timeout: TIMEOUTS.MEDIUM,
+      // });
+      // await languagesHeading.scrollIntoViewIfNeeded();
+      //
+      // for (const language of languages) {
+      //   const langRegex = new RegExp(escapeRegExp(language), 'i');
+      //
+      //   // Prefer role-based checkbox lookup, then fall back to label-based.
+      //   const checkboxByRole = this.page.getByRole('checkbox', { name: langRegex }).first();
+      //   const checkboxByLabel = this.page.getByLabel(langRegex).first();
+      //
+      //   const target = (await checkboxByRole.count()) > 0 ? checkboxByRole : checkboxByLabel;
+      //
+      //   // Use existing helper (it no-ops if already checked)
+      //   await this.checkElement(target, { stepInfo: `Enable language: ${language}` });
+      // }
+
+      // 5) Click Save
+      const saveButton = this.page.getByRole('button', { name: 'Save' }).first();
+      await saveButton.scrollIntoViewIfNeeded();
+      await this.clickOnElement(saveButton, { stepInfo: 'Click Save button on General Settings page' });
+
+      // 6) Validate toast
+      await this.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  async unCheckTheCustomLanguageForAll(cartType: string): Promise<void> {
+    const editModal = new EditLabelModal(this.page);
+    await this.unCheckElement(editModal.getCustomLabelForAllLanguageCheckbox(cartType));
+  }
+
+  async enableTheOtherLanguageAndEnterCustomValue(cardType: string) {
+    const editModal = new EditLabelModal(this.page);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    const otherLanguageCustomValueInputBox = editModal.getOtherLanguageCustomInputBox();
+    for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
+      await manualTranslationSwitches.nth(i).check();
+      await otherLanguageCustomValueInputBox.fill(
+        `${cardType}_${i + 1}_Custom_Language_${TestDataGenerator.getRandomNo(0, 200)}`
+      );
+    }
+    await this.clickOnSaveButton();
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+  }
+
+  async clickOnResetButton() {
+    const editModal = new EditLabelModal(this.page);
+    await this.clickOnElement(editModal.getResetAllTranslationToAutomatic());
+  }
+
+  async validateTheLanguageDataRested() {
+    const editModal = new EditLabelModal(this.page);
+    console.log(await editModal.getOtherLanguageCustomInputBox().inputValue());
+    console.log(await editModal.getCustomLabelInputBox().inputValue());
+  }
+
+  async clickOnSaveButton() {
+    const editModal = new EditLabelModal(this.page);
+    await editModal.getSaveButton().click();
   }
 }
