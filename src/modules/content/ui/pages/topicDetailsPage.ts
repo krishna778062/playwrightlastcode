@@ -7,33 +7,12 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
-export interface ITopicDetailsPageActions {
-  clickAndVerifyTheCreatedAlbum: (albumName: string) => Promise<void>;
-  clickOnFeedTab: () => Promise<void>;
-  clickingOnUsername: () => Promise<void>;
-  hoveringOnFeed: () => Promise<void>;
-  likingTheFeed: () => Promise<void>;
-  replyingToTheFeed: () => Promise<void>;
-  clickingOnShareButton: () => Promise<void>;
-  clickingOnSharePostButton: () => Promise<void>;
-}
-
-export interface ITopicDetailsPageAssertions {
-  verifyingCreatedContentInTopicDetailsPage: (
-    albumName: string,
-    eventName: string,
-    randomPageName: string
-  ) => Promise<void>;
-  verifyingCreatedFeedInTopicDetailsPage: (feedText: string) => Promise<void>;
-  verifyingEllipsesOptions: () => Promise<void>;
-  verifyingFavoriteOption: () => Promise<void>;
-  verifyingSharePostToastMessage: (message: string) => Promise<void>;
-}
-export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActions, ITopicDetailsPageAssertions {
+export class TopicDetailsPage extends BasePage {
   private contentPreviewPage: ContentPreviewPage;
   private baseActionUtil: BaseActionUtil;
   private shareSocialCampaignComponent: ShareComponent;
   readonly clickingOnFeedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
+  readonly contentTab: Locator = this.page.getByRole('tab', { name: 'Content' });
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
   readonly editOption: Locator = this.page.getByText('Edit');
   readonly deleteOption: Locator = this.page.getByText('Delete');
@@ -54,15 +33,6 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
     this.baseActionUtil = new BaseActionUtil(page);
     this.shareSocialCampaignComponent = new ShareComponent(page);
   }
-
-  get actions(): ITopicDetailsPageActions {
-    return this;
-  }
-
-  get assertions(): ITopicDetailsPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify topic details page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.topicScreenContentAndFeedTabs, {
@@ -96,7 +66,7 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
     await test.step(`Clicking on created content "${contentName}"`, async () => {
       await this.clickOnElement(this.page.getByRole('link', { name: contentName }));
     });
-    await this.contentPreviewPage.assertions.verifyingAlbumHeadingOnContentPreviewPage();
+    await this.contentPreviewPage.verifyingAlbumHeadingOnContentPreviewPage();
   }
 
   async clickOnFeedTab(): Promise<void> {
@@ -163,5 +133,13 @@ export class TopicDetailsPage extends BasePage implements ITopicDetailsPageActio
 
   async verifyingSharePostToastMessage(message: string): Promise<void> {
     await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async verifyContentTabIsSelected(): Promise<void> {
+    await test.step('Verify Content tab is selected by default', async () => {
+      await this.verifier.verifyElementHasAttribute(this.contentTab, 'aria-selected', 'true', {
+        assertionMessage: 'Content tab should be selected by default',
+      });
+    });
   }
 }

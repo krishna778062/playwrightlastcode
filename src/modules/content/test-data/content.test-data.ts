@@ -58,4 +58,65 @@ export const CONTENT_TEST_DATA = {
     NAVIGATION: 15_000,
     VIDEO_UPLOAD: 90_000,
   },
+  B2B_LANGUAGES: [
+    'en-US',
+    'en-GB',
+    'fr-FR',
+    'fr-CA',
+    'es-ES',
+    'de-DE',
+    'it-IT',
+    'ja-JP',
+    'pt-BR',
+    'zh-CN',
+    'nl-NL',
+    'ro-RO',
+    'hy-AM',
+    'bg-BG',
+    'da-DA',
+    'ms-MY',
+    'th-TH',
+    'el-GR',
+    'ko-KR',
+    'tl-PH',
+    'sq-AL',
+    'hi-IN',
+    'fi-FI',
+    'sv-SE',
+    'es-419',
+    'pt-PT',
+    'no-NO',
+    'vi-VN',
+    'cs-CZ',
+  ],
+  DATES: {
+    UPCOMING_DATE: (() => {
+      const today = new Date();
+      const upcoming = new Date(today);
+      upcoming.setDate(today.getDate() + Math.floor(Math.random() * 7) + 1);
+      return upcoming.toISOString().split('T')[0];
+    })(),
+    PAST_DATE: (() => {
+      const today = new Date();
+      const past = new Date(today);
+      past.setDate(today.getDate() - Math.floor(Math.random() * 7) - 1);
+      return past.toISOString().split('T')[0];
+    })(),
+    CURRENT_DATE: (() => {
+      const today = new Date();
+      return today.toISOString().split('T')[0];
+    })(),
+    MONTH: (() => {
+      const today = new Date();
+      return today.getMonth();
+    })(),
+    DAY: (() => {
+      const today = new Date();
+      return today.getDate();
+    })(),
+    UPCOMING_DAY: (() => {
+      const today = new Date();
+      return today.getDate() + Math.floor(Math.random() * 7);
+    })(),
+  },
 } as const;

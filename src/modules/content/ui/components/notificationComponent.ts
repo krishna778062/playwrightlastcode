@@ -66,7 +66,7 @@ export class NotificationComponent
     });
   }
 
-  async clickOnViewAllNotifications(options?: { stepInfo?: string }): Promise<ActivityNotificationPage> {
+  async clickOnViewAllNotifications(_options?: { stepInfo?: string }): Promise<ActivityNotificationPage> {
     return await test.step('Clicking on view all notifications', async () => {
       await this.clickOnElement(this.viewAllNotificationsButton.first());
       return new ActivityNotificationPage(this.page);

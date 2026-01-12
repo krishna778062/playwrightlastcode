@@ -31,15 +31,15 @@ test.describe(
       contentPreviewPage = new ContentPreviewPage(page, siteId, contentId, contentType.toLowerCase());
       await contentPreviewPage.loadPage({ stepInfo: `Load ${contentType} preview page` });
       await contentPreviewPage.verifyThePageIsLoaded();
-      await contentPreviewPage.actions.clickOnOptionMenuButton();
-      await contentPreviewPage.actions.clickOnMustReadButton();
-      await contentPreviewPage.actions.clickOnMustReadModalCancelButton();
-      await contentPreviewPage.assertions.verifyMustReadModalIsNotVisible();
-      await contentPreviewPage.assertions.verifyContentIsNotAMustRead();
+      await contentPreviewPage.clickOnOptionMenuButton();
+      await contentPreviewPage.clickOnMustReadButton();
+      await contentPreviewPage.clickOnMustReadModalCancelButton();
+      await contentPreviewPage.verifyMustReadModalIsNotVisible();
+      await contentPreviewPage.verifyContentIsNotAMustRead();
     }
 
     test(
-      'verify Must read Modal cancel button for Page, Event and Album Content',
+      'verify Must read Modal cancel button for Page, Event and Album Content CONT-21123',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-21123', '@healthcheck'],
       },
@@ -93,7 +93,7 @@ test.describe(
     );
 
     test(
-      'verify that app manager can make the content as must read for all the employee in organization',
+      'verify that app manager can make the content as must read for all the employee in organization CONT-5171',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5171'],
       },
@@ -126,17 +126,17 @@ test.describe(
         );
         await contentPreviewPage.loadPage({ stepInfo: `Load ${ContentType.PAGE} preview page` });
         await contentPreviewPage.verifyThePageIsLoaded();
-        await contentPreviewPage.actions.clickOnOptionMenuButton();
-        await contentPreviewPage.actions.clickOnMustReadButton();
-        await contentPreviewPage.assertions.verifyMustReadModalIsNotVisible();
-        await contentPreviewPage.actions.makeContentForEveryoneInOrganization();
-        await contentPreviewPage.actions.clickOnMakeMustReadButton();
-        await contentPreviewPage.assertions.verifyContentIsMustRead();
+        await contentPreviewPage.clickOnOptionMenuButton();
+        await contentPreviewPage.clickOnMustReadButton();
+        await contentPreviewPage.verifyMustReadModalIsNotVisible();
+        await contentPreviewPage.makeContentForEveryoneInOrganization();
+        await contentPreviewPage.clickOnMakeMustReadButton();
+        await contentPreviewPage.verifyContentIsMustRead();
       }
     );
 
     test(
-      'verify that must read button is not visible for standard user when content is already must read',
+      'verify that must read button is not visible for standard user when content is already must read CONT-5521',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5521'],
       },
@@ -162,8 +162,8 @@ test.describe(
           ContentType.PAGE.toLowerCase()
         );
         await contentDetails.loadPage();
-        await contentDetails.actions.clickOnOptionMenuButton();
-        await contentDetails.assertions.verifyMustReadButtonIsNotVisible();
+        await contentDetails.clickOnOptionMenuButton();
+        await contentDetails.verifyMustReadButtonIsNotVisible();
       }
     );
 
@@ -187,15 +187,15 @@ test.describe(
         const privilegesScreenPage = new PrivilegesScreenPage(appManagerFixture.page);
         await privilegesScreenPage.loadPage();
         await privilegesScreenPage.verifyThePageIsLoaded();
-        await privilegesScreenPage.actions.alertInputBoxFillWithText(sitesNotInControl.site.name);
-        await privilegesScreenPage.actions.alertInputBoxSelectOption(sitesNotInControl.site.name);
-        await privilegesScreenPage.actions.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
-        await privilegesScreenPage.actions.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
-        await privilegesScreenPage.actions.clickOnSave();
-        await privilegesScreenPage.assertions.verifyTheChangesConfirmationToastMessageIsVisible();
+        await privilegesScreenPage.alertInputBoxFillWithText(sitesNotInControl.site.name);
+        await privilegesScreenPage.alertInputBoxSelectOption(sitesNotInControl.site.name);
+        await privilegesScreenPage.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.clickOnSave();
+        await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
         await privilegesScreenPage.reloadScreen();
-        await privilegesScreenPage.assertions.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
-        await privilegesScreenPage.assertions.verifyAlertChangesAreSaved(sitesNotInControl.site.name);
+        await privilegesScreenPage.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.verifyAlertChangesAreSaved(sitesNotInControl.site.name);
       }
     );
     test(

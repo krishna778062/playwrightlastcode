@@ -39,12 +39,12 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
         storyId: 'CONT-38912',
       });
       await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-      await manageFeaturePage.actions.clickOnSitesCard();
-      await manageSiteSetUpPage.actions.selectSite();
-      await siteDetailsPage.actions.removingAudienceGroup();
-      await editAudienceGroupModalPage.actions.clickingOnIUnderstandCheckbox();
-      await editAudienceGroupModalPage.actions.clickingOnContinueButton();
-      await siteDetailsPage.assertions.verifyWarningMessage();
+      await manageFeaturePage.clickOnSitesCard();
+      await manageSiteSetUpPage.selectSite();
+      await siteDetailsPage.removingAudienceGroup();
+      await editAudienceGroupModalPage.clickingOnIUnderstandCheckbox();
+      await editAudienceGroupModalPage.clickingOnContinueButton();
+      await siteDetailsPage.verifyWarningMessage();
     }
   );
 });

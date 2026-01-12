@@ -642,7 +642,7 @@ export class TagComponent extends BaseComponent {
     await test.step(`Verify tag icon is visible for "${expectedText}"`, async () => {
       const tagContainer = this.tagContainer.filter({ hasText: expectedText }).first();
       await expect(tagContainer, `Tag container for "${expectedText}" should be visible`).toBeVisible();
-      const iconElement = tagContainer.locator('img._iconImg_6ubwg_24').first();
+      const iconElement = tagContainer.locator('img[alt=""]').first();
       await expect(iconElement, `Icon for tag "${expectedText}" should be visible`).toBeVisible();
       await expect(iconElement, `Icon for tag "${expectedText}" should have a src attribute`).toHaveAttribute('src');
       if (expectedUrlPattern) {
@@ -809,15 +809,13 @@ export class TagComponent extends BaseComponent {
     context: string,
     includeRemoveButton: boolean = false
   ): Promise<void> {
-    const iconImage = container.locator('img._iconImg_6ubwg_24').first();
-    const fileName = container
-      .locator('div._contentWrapper_12l59_28')
-      .locator('p.Typography-module__paragraph__OGpiQ')
-      .first();
-    const fileSize = container
-      .locator('div._contentWrapper_12l59_28')
-      .locator('p.Typography-module__secondary__OGpiQ')
-      .filter({ hasText: /kb|KB|mb|MB/ })
+    const iconImage = container.locator('img[alt=""]').first();
+    const fileSize = container.getByText(/kb|KB|mb|MB/i).first();
+    const fileInfoParent = fileSize.locator('xpath=parent::div').first();
+    const fileName = fileInfoParent
+      .locator(
+        'xpath=.//p[not(contains(., "KB") or contains(., "MB") or contains(., "kb") or contains(., "mb")) and normalize-space(.) != "" and not(starts-with(@id, "radix-"))]'
+      )
       .first();
     const editButton = container.getByRole('button', { name: 'Edit icon' }).first();
 
@@ -873,8 +871,8 @@ export class TagComponent extends BaseComponent {
    * @param context - Context for error messages (e.g., "Mapping rule icon" or "Fallback icon")
    */
   private async verifyIconPreviewWithUrl(container: Locator, expectedUrl: string, context: string): Promise<void> {
-    const iconImage = container.locator('img._iconImg_6ubwg_24').first();
-    const iconLink = container.locator('a._urlLink_12l59_9[target="_blank"]').first();
+    const iconImage = container.locator('img[alt=""]').first();
+    const iconLink = container.locator('a[target="_blank"]').first();
 
     await expect(iconImage, `${context} image should be visible`).toBeVisible();
     await expect(iconLink, `${context} URL link should be visible`).toBeVisible();
@@ -986,11 +984,10 @@ export class TagComponent extends BaseComponent {
       const mappingRulesSection = this.getMappingRulesSection();
       const fallbackSection = this.getFallbackSection();
 
-      // Use specific class names for better reliability: _iconImg_6ubwg_24 for images, _urlLink_12l59_9 for links
-      const mappingRuleIconImage = mappingRulesSection.locator('img._iconImg_6ubwg_24[alt=""]').first();
-      const mappingRuleIconLink = mappingRulesSection.locator('a._urlLink_12l59_9[target="_blank"]').first();
-      const fallbackIconImage = fallbackSection.locator('img._iconImg_6ubwg_24[alt=""]').first();
-      const fallbackIconLink = fallbackSection.locator('a._urlLink_12l59_9[target="_blank"]').first();
+      const mappingRuleIconImage = mappingRulesSection.locator('img[alt=""]').first();
+      const mappingRuleIconLink = mappingRulesSection.locator('a[target="_blank"]').first();
+      const fallbackIconImage = fallbackSection.locator('img[alt=""]').first();
+      const fallbackIconLink = fallbackSection.locator('a[target="_blank"]').first();
 
       await expect(mappingRuleIconImage, 'Mapping rule icon image should be visible').toBeVisible();
       await expect(mappingRuleIconLink, 'Mapping rule icon link should be visible').toBeVisible();

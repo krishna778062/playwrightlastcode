@@ -14,7 +14,7 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
   });
 
   test(
-    '[RC-3015] Validate successful reward redemption based on type of reward',
+    'RC-3015 Validate successful reward redemption based on type of reward',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -58,15 +58,9 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
   );
 
   test(
-    '[RC-3001] Validate Reward Order confirmation Dialog',
+    'RC-3001 Validate Reward Order confirmation Dialog',
     {
-      tag: [
-        REWARD_FEATURE_TAGS.REWARD_STORE,
-        TestGroupType.REGRESSION,
-        TestPriority.P0,
-        TestGroupType.SMOKE,
-        TestGroupType.HEALTHCHECK,
-      ],
+      tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -147,7 +141,7 @@ test.describe('rewards Success Dialog box message', { tag: [REWARD_SUITE_TAGS.RE
   );
 
   test(
-    '[RC-3068] Verify if a redemption of reward fails then points should be refunded',
+    'RC-3068 Verify if a redemption of reward fails then points should be refunded',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

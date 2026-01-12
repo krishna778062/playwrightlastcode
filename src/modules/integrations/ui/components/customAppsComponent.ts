@@ -28,6 +28,7 @@ export class CustomAppsComponent extends BaseComponent {
   readonly prebuiltAppDialog: Locator;
   readonly prebuiltAppSearchInput: Locator;
   readonly addCustomAppDropdownButton: Locator;
+  readonly addCustomAppMenu: Locator;
   readonly addPrebuiltAppMenuItem: Locator;
   readonly connectorOptionsButton: Locator;
   readonly connectorOptionsMenu: Locator;
@@ -92,6 +93,7 @@ export class CustomAppsComponent extends BaseComponent {
     this.prebuiltAppDialog = page.getByRole('dialog', { name: APP_LABELS.PREBUILT_APP_LABEL });
     this.prebuiltAppSearchInput = page.getByRole('textbox', { name: 'Search…', exact: true });
     this.addCustomAppDropdownButton = page.locator('button[aria-label="Add custom app dropdown"]');
+    this.addCustomAppMenu = page.getByRole('menu', { name: 'Add custom app dropdown' });
     this.addPrebuiltAppMenuItem = page.locator('[role="menuitem"]:has-text("Add prebuilt app")');
     this.connectorOptionsButton = page.getByRole('button', { name: 'connector options', exact: true });
     this.connectorOptionsMenu = page.getByRole('menu');
@@ -661,7 +663,17 @@ export class CustomAppsComponent extends BaseComponent {
   async clickMenuItem(itemText: string, stepName?: string): Promise<void> {
     const step = stepName || `Click ${itemText} menu item`;
     await test.step(step, async () => {
-      await this.clickOnElement(this.getMenuItem(itemText), { timeout: 30_000 });
+      // Try to find menu item in any visible menu
+      const menuItem = this.page.getByRole('menuitem', { name: itemText }).first();
+
+      // Wait for menu item to be visible and enabled
+      await expect(menuItem).toBeVisible({ timeout: 10_000 });
+      await expect(menuItem).toBeEnabled({ timeout: 5_000 });
+
+      // Small wait to ensure menu is fully rendered
+      await this.page.waitForTimeout(200);
+
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
     });
   }
 
@@ -680,8 +692,15 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async selectConnectorOption(option: AppConnectorOptions): Promise<void> {
     await test.step(`Select connector option: ${option}`, async () => {
+      await this.connectorOptionsButton.waitFor({ state: 'visible', timeout: 30_000 });
+      await expect(this.connectorOptionsButton).toBeEnabled({ timeout: 10_000 });
       await this.clickOnElement(this.connectorOptionsButton, { timeout: 30_000 });
-      await this.clickMenuItem(option);
+      await this.connectorOptionsMenu.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.page.waitForTimeout(300); // Wait for menu items to render
+      const menuItem = this.connectorOptionsMenu.getByRole('menuitem', { name: option });
+      await expect(menuItem).toBeVisible({ timeout: 10_000 });
+      await expect(menuItem).toBeEnabled({ timeout: 5_000 });
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
     });
   }
 
@@ -701,9 +720,14 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async clickAddCustomAppOption(option: string): Promise<void> {
     await test.step(`Add custom app → ${option}`, async () => {
-      await this.clickOnElement(this.getButton(APP_LABELS.ADD_CUSTOM_APP_LABEL), { timeout: 30_000 });
-      await this.page.waitForTimeout(2000);
-      await this.clickMenuItem(option);
+      await this.addCustomAppDropdownButton.waitFor({ state: 'visible', timeout: 30_000 });
+      await this.clickOnElement(this.addCustomAppDropdownButton, { timeout: 30_000 });
+      await expect(this.addCustomAppMenu).toBeVisible({ timeout: 10_000 });
+      await this.page.waitForTimeout(500);
+      const menuItem = this.addCustomAppMenu.getByRole('menuitem').filter({ hasText: option });
+      await expect(menuItem).toBeVisible({ timeout: 10_000 });
+      await expect(menuItem).toBeEnabled({ timeout: 5_000 });
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
     });
   }
 
@@ -725,10 +749,16 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async openConnectorOptions(service: string): Promise<void> {
     await test.step(`Open ${service} connector options`, async () => {
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
       const btn = this.connectorOptionsButton.last();
+      await btn.waitFor({ state: 'visible', timeout: 30_000 });
+      await expect(btn).toBeEnabled({ timeout: 10_000 });
       await btn.click();
+      await this.connectorOptionsMenu.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.page.waitForTimeout(300);
       await this.clickMenuItem(APP_LABELS.ENABLE_LABEL, 'Enable connector');
-      if (await this.enableConfirmButton.isVisible()) {
+      if (await this.enableConfirmButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+        await expect(this.enableConfirmButton).toBeEnabled({ timeout: 5_000 });
         await this.clickButton(APP_LABELS.ENABLE_LABEL, 'Confirm enable');
       }
     });

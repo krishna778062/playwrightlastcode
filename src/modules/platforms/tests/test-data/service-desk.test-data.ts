@@ -1,3 +1,5 @@
+import { FileUtil } from '@core/utils/fileUtil';
+
 /**
  * Test Data for Service Desk Module
  *
@@ -56,6 +58,25 @@ export const ServiceDeskTestData = {
     validDocument: 'test-document.pdf',
     validSpreadsheet: 'test-data.xlsx',
   },
+
+  // Image files for ticket attachments
+  getImageFilePaths: (testFileDir: string) => {
+    return {
+      image1: FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'image1.jpg'),
+      image3: FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'image3.jpg'),
+      image4: FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'image4.jpg'),
+      favicon: FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'favicon.png'),
+      all: [
+        FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'image1.jpg'),
+        FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'image3.jpg'),
+        FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'image4.jpg'),
+        FileUtil.getFilePath(testFileDir, '..', '..', 'test-data', 'static-files', 'images', 'favicon.png'),
+      ],
+    };
+  },
+
+  // Image file names for verification (without paths)
+  imageFileNames: ['image1.jpg', 'image3.jpg', 'image4.jpg', 'favicon.png'],
 
   // Expected Validation Messages
   validationMessages: {
@@ -124,6 +145,62 @@ export const ServiceDeskTestData = {
       everyone: 'Enable Service desk with Support (for everyone)',
     },
     successToastMessage: 'Saved changes successfully',
+  },
+
+  // Workspaces
+  workspaces: {
+    finance: 'Finance',
+    hr: 'HR',
+    it: 'IT',
+  },
+
+  // Workspace Settings
+  workspaceSettings: {
+    tabs: {
+      workspaceManagement: 0,
+      userManagement: 1,
+      serviceManagement: 2,
+      automationAndProductivity: 3,
+    },
+    workspaceManagement: {
+      workspace: 'Workspace',
+      emailNotification: 'Email notification',
+    },
+    userManagement: {
+      agentGroups: 'Agent groups',
+    },
+    serviceManagement: {
+      serviceCatalog: 'Service catalog',
+      businessHoursSetup: 'Business hours setup',
+      slaAndOlaPolicy: 'SLA and OLA policy',
+    },
+    automationAndProductivity: {
+      messageTemplate: 'Message template',
+    },
+    serviceCatalogs: {
+      finance: ['Finance Applications'],
+      hr: [
+        'Employee Records and Documents',
+        'Employee Relations',
+        'Hardware Requests',
+        'Employee Benefits',
+        'Payroll',
+        'Invoicing and Billing',
+        'Finance Applications',
+        'Software Installation',
+      ],
+      it: ['Hardware Requests Managing'],
+    },
+  },
+
+  // Agent Management
+  agents: {
+    roles: {
+      agent: 'Agent',
+      accountAdmin: 'Account Admin',
+      workspaceAdmin: 'Workspace Admin',
+      hrAgent: 'HR Agent',
+    },
   },
 };
 

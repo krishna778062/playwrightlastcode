@@ -1,0 +1,104 @@
+# ============================================================================
+# QA RELEASE REGRESSION TESTS
+# ============================================================================
+#
+# PURPOSE:
+#   Runs regression tests for QA release validation.
+#   Branch depends on CURRENT_STAGE repository variable.
+#
+# SCHEDULE:
+#   - Runs Mon, Wed, Fri at 7:30 AM UTC (1:00 PM IST)
+#
+# BRANCH LOGIC:
+#   - CURRENT_STAGE = 'production' → 'main' branch
+#   - CURRENT_STAGE = 'qa' → 'release' branch
+#   - CURRENT_STAGE = 'uat' → SKIPPED
+#
+# CALLS:
+#   regression-unified-template.yml with trigger_type=qa_release
+#
+# ============================================================================
+
+name: QA Release Regression (v2)
+
+on:
+  # TEMPORARILY DISABLED: Manual QA release testing for next 10 days
+  # Re-enable after QA cycle completion
+  # schedule:
+  #   - cron: '30 7 * * 1,3,5'
+
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g., 25.01-qa.1) - for BrowserStack tracking'
+        required: false
+        default: ''
+        type: string
+
+      environment:
+        description: 'Environment'
+        required: false
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
+          - 'reward'
+          - 'reward-settings'
+          - 'reward-workAnniversary'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'form-designer'
+          - 'comms-planner'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        # DISABLED: BrowserStack disabled to preserve quota
+        default: false
+        type: boolean
+
+jobs:
+  regression:
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      environment: ${{ inputs.environment || 'qa' }}
+      trigger_type: qa_release
+      slack_prefix: QA Release Regression
+      git_ref: ''
+      # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
+      modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
+      # BrowserStack disabled by default (SDK not in main/release branches)
+      is_browserstack: ${{ github.event_name == 'schedule' && false || inputs.is_browserstack }}
+      # Release tag for BrowserStack tracking
+      release_tag: ${{ inputs.release_tag || '' }}
+    secrets: inherit

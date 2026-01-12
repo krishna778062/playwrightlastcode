@@ -8,7 +8,8 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -20,8 +21,23 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
+    const createdPostIds: string[] = [];
+
+    test.afterEach(async ({ appManagerApiFixture }) => {
+      // Cleanup: Delete all shared posts
+      for (const sharedPostId of createdPostIds) {
+        if (sharedPostId) {
+          try {
+            await appManagerApiFixture.feedManagementHelper.deleteFeed(sharedPostId);
+          } catch (error) {
+            console.warn(`Failed to delete shared post ${sharedPostId}:`, error);
+          }
+        }
+      }
+    });
+
     test(
-      'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page',
+      'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page CONT-27696',
       {
         tag: [TestPriority.P1, TestGroupType.SMOKE, '@CONT-27696'],
       },
@@ -58,31 +74,31 @@ test.describe(
 
             const feedPage = new FeedPage(standardUserFixture.page);
             await feedPage.verifyThePageIsLoaded();
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon on post
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Click "View Post" link in Share modal
-            await feedPage.actions.clickViewPostLinkInShareModal();
+            await feedPage.feedList.clickViewPostLinkInShareModal();
 
             // Verify we're on the Feed Detail page
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon again from Feed Detail page
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Click "View Post" link again
-            await feedPage.actions.clickViewPostLinkInPostDetailPage();
+            await feedPage.feedList.clickViewPostLinkInPostDetailPage();
 
             // Verify Share modal closes
-            await feedPage.assertions.verifyShareModalIsClosed();
+            await feedPage.feedList.verifyShareModalIsClosed();
           });
 
           // ==================== SITE DASHBOARD SCENARIO ====================
@@ -107,34 +123,34 @@ test.describe(
             // Navigate to Site Dashboard as Standard User
             const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-            await siteDashboardPage.actions.clickOnFeedLink();
+            await siteDashboardPage.clickOnFeedLink();
 
             const feedPage = new FeedPage(standardUserFixture.page);
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon on post
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Click "View Post" link in Share modal
-            await feedPage.actions.clickViewPostLinkInShareModal();
+            await feedPage.feedList.clickViewPostLinkInShareModal();
 
             // Verify we're on the Feed Detail page
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon again from Feed Detail page
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Click "View Post" link again
-            await feedPage.actions.clickViewPostLinkInPostDetailPage();
+            await feedPage.feedList.clickViewPostLinkInPostDetailPage();
 
             // Verify Share modal closes
-            await feedPage.assertions.verifyShareModalIsClosed();
+            await feedPage.feedList.verifyShareModalIsClosed();
           });
 
           // ==================== CONTENT DETAIL PAGE SCENARIO ====================
@@ -166,31 +182,31 @@ test.describe(
             await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
 
             const feedPage = new FeedPage(standardUserFixture.page);
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon on post
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Click "View Post" link in Share modal
-            await feedPage.actions.clickViewPostLinkInShareModal();
+            await feedPage.feedList.clickViewPostLinkInShareModal();
 
             // Verify we're on the Feed Detail page
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon again from Feed Detail page
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Click "View Post" link again
-            await feedPage.actions.clickViewPostLinkInPostDetailPage();
+            await feedPage.feedList.clickViewPostLinkInPostDetailPage();
 
             // Verify Share modal closes
-            await feedPage.assertions.verifyShareModalIsClosed();
+            await feedPage.feedList.verifyShareModalIsClosed();
           });
         } finally {
           // Cleanup: Delete all created posts
@@ -208,7 +224,7 @@ test.describe(
     );
 
     test(
-      'verify link preview is disabled while sharing feed posts',
+      'verify link preview is disabled while sharing feed posts CONT-27697',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27697'],
       },
@@ -246,31 +262,33 @@ test.describe(
 
             const feedPage = new FeedPage(standardUserFixture.page);
             await feedPage.verifyThePageIsLoaded();
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
             // Click Share icon on Admin's feed post
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Enter embedded URL in Share Modal
-            await feedPage.actions.enterShareDescription(embedUrl);
+            await feedPage.share.enterShareDescription(embedUrl);
 
             // Click Share and get shared post ID
             const shareComponent = new ShareComponent(standardUserFixture.page);
-            const sharedPostId = await shareComponent.actions.clickShareButtonAndGetPostId();
+            const sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
             sharedPostIds.push(sharedPostId);
 
             // Verify success message
-            await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+            await feedPage.feedList.verifyToastMessageIsVisibleWithText(
+              FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+            );
 
             // Reload page and verify the shared post
             await feedPage.reloadPage();
-            await feedPage.assertions.waitForPostToBeVisible(embedUrl);
+            await feedPage.feedList.waitForPostToBeVisible(embedUrl);
 
             // Verify that the embedded URL does NOT unfurl on the shared feed post
-            await feedPage.assertions.verifyEmbededUrlIsNotUnfurled(embedUrl, embedUrl);
+            await feedPage.feedList.verifyEmbededUrlIsNotUnfurled(embedUrl, embedUrl);
           });
 
           // ==================== SITE FEED SCENARIO ====================
@@ -283,40 +301,42 @@ test.describe(
             const feedPage = new FeedPage(standardUserFixture.page);
 
             // Click Share icon again for the same feed post
-            await feedPage.assertions.waitForPostToBeVisible(createdPostText);
-            await feedPage.actions.clickShareIconOnPost(createdPostText);
+            await feedPage.feedList.waitForPostToBeVisible(createdPostText);
+            await feedPage.feedList.clickShareIcon(createdPostText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Enter Embedded URL
-            await feedPage.actions.enterShareDescription(embedUrl);
+            await feedPage.share.enterShareDescription(embedUrl);
 
             // Select Post in: Site Feed
-            await feedPage.actions.selectShareOptionAsSiteFeed();
+            await feedPage.share.selectShareOptionAsSiteFeed();
 
             // Choose a Public Site
-            await feedPage.actions.enterSiteNameForShare(siteName);
+            await feedPage.share.enterSiteName(siteName);
 
             // Click Share and get shared post ID
             const shareComponent = new ShareComponent(standardUserFixture.page);
-            const sharedPostId = await shareComponent.actions.clickShareButtonAndGetPostId();
+            const sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
             sharedPostIds.push(sharedPostId);
 
             // Verify success message
-            await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+            await feedPage.feedList.verifyToastMessageIsVisibleWithText(
+              FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+            );
 
             // Navigate to that Public site
             const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load public site dashboard page' });
-            await siteDashboardPage.actions.clickOnFeedLink();
+            await siteDashboardPage.clickOnFeedLink();
             await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
             const siteFeedPage = new FeedPage(standardUserFixture.page);
-            await siteFeedPage.assertions.waitForPostToBeVisible(embedUrl);
+            await siteFeedPage.feedList.waitForPostToBeVisible(embedUrl);
 
             // Verify that the embedded URL does NOT unfurl
-            await siteFeedPage.assertions.verifyEmbededUrlIsNotUnfurled(embedUrl, embedUrl);
+            await siteFeedPage.feedList.verifyEmbededUrlIsNotUnfurled(embedUrl, embedUrl);
           });
 
           // ==================== CONTENT PAGE SCENARIO ====================
@@ -342,28 +362,30 @@ test.describe(
 
             // Create a comment first (as Admin) so we can share it
             const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
-            await contentPreviewPage.actions.clickShareThoughtsButton();
+            await contentPreviewPage.clickShareThoughtsButton();
             const feedPage = new FeedPage(standardUserFixture.page);
-            await feedPage.actions.enterFeedPostText(commentText);
-            await feedPage.actions.clickPostButton();
-            await feedPage.assertions.waitForPostToBeVisible(commentText);
+            await feedPage.postEditor.createPost(commentText);
+            await feedPage.postEditor.clickPostButton();
+            await feedPage.feedList.waitForPostToBeVisible(commentText);
 
             // Click Share icon on the comment
-            await feedPage.actions.clickShareIconOnPost(commentText);
+            await feedPage.feedList.clickShareIcon(commentText);
 
             // Verify Share modal is open
-            await feedPage.assertions.verifyShareModalIsVisible();
+            await feedPage.feedList.verifyShareModalIsVisible();
 
             // Enter Embedded URL
-            await feedPage.actions.enterShareDescription(embedUrl);
+            await feedPage.share.enterShareDescription(embedUrl);
 
             // Share into Home Feed (default, no need to change) and get shared post ID
             const shareComponent = new ShareComponent(standardUserFixture.page);
-            const sharedPostId = await shareComponent.actions.clickShareButtonAndGetPostId();
+            const sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
             sharedPostIds.push(sharedPostId);
 
             // Verify success message
-            await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+            await feedPage.feedList.verifyToastMessageIsVisibleWithText(
+              FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+            );
 
             // Navigate to Home
             await standardUserFixture.homePage.loadPage();
@@ -372,10 +394,10 @@ test.describe(
 
             const homeFeedPage = new FeedPage(standardUserFixture.page);
             await homeFeedPage.verifyThePageIsLoaded();
-            await homeFeedPage.assertions.waitForPostToBeVisible(embedUrl);
+            await homeFeedPage.feedList.waitForPostToBeVisible(embedUrl);
 
             // Verify that the embedded URL does NOT unfurl
-            await homeFeedPage.assertions.verifyEmbededUrlIsNotUnfurled(embedUrl, embedUrl);
+            await homeFeedPage.feedList.verifyEmbededUrlIsNotUnfurled(embedUrl, embedUrl);
           });
         } finally {
           // Cleanup: Delete all shared posts first
@@ -402,7 +424,7 @@ test.describe(
     );
 
     test(
-      'verify Share icon is visible for Feed posts and comments on Private and Unlisted sites',
+      'verify Share icon is visible for Feed posts and comments on Private and Unlisted sites CONT-19565',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-19565'],
       },
@@ -453,24 +475,24 @@ test.describe(
             // Navigate to Private site feed
             const privateSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, privateSiteId);
             await privateSiteDashboardPage.loadPage({ stepInfo: 'Load private site dashboard page' });
-            await privateSiteDashboardPage.actions.clickOnFeedLink();
+            await privateSiteDashboardPage.clickOnFeedLink();
 
             const privateFeedPage = new FeedPage(appManagerFixture.page);
-            await privateFeedPage.assertions.waitForPostToBeVisible(privateFeedTestData.text);
+            await privateFeedPage.feedList.waitForPostToBeVisible(privateFeedTestData.text);
 
             // Verify Share icon is visible on Private site feed post
-            await privateFeedPage.assertions.verifyShareIconIsVisible(privateFeedTestData.text);
+            await privateFeedPage.feedList.verifyShareIconIsVisible(privateFeedTestData.text);
 
             // Navigate to Unlisted site feed
             const unlistedSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, unlistedSiteId);
             await unlistedSiteDashboardPage.loadPage({ stepInfo: 'Load unlisted site dashboard page' });
-            await unlistedSiteDashboardPage.actions.clickOnFeedLink();
+            await unlistedSiteDashboardPage.clickOnFeedLink();
 
             const unlistedFeedPage = new FeedPage(appManagerFixture.page);
-            await unlistedFeedPage.assertions.waitForPostToBeVisible(unlistedFeedTestData.text);
+            await unlistedFeedPage.feedList.waitForPostToBeVisible(unlistedFeedTestData.text);
 
             // Verify Share icon is visible on Unlisted site feed post
-            await unlistedFeedPage.assertions.verifyShareIconIsVisible(unlistedFeedTestData.text);
+            await unlistedFeedPage.feedList.verifyShareIconIsVisible(unlistedFeedTestData.text);
           });
 
           // ==================== CREATE CONTENT AND COMMENTS ====================
@@ -512,14 +534,14 @@ test.describe(
             await privateContentPreviewPage.verifyThePageIsLoaded();
 
             const privateCommentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
-            await privateContentPreviewPage.actions.clickShareThoughtsButton();
+            await privateContentPreviewPage.clickShareThoughtsButton();
             const privateFeedPage = new FeedPage(appManagerFixture.page);
-            await privateFeedPage.actions.enterFeedPostText(privateCommentText);
-            await privateFeedPage.actions.clickPostButton();
-            await privateFeedPage.assertions.waitForPostToBeVisible(privateCommentText);
+            await privateFeedPage.postEditor.createPost(privateCommentText);
+            await privateFeedPage.postEditor.clickPostButton();
+            await privateFeedPage.feedList.waitForPostToBeVisible(privateCommentText);
 
             // Verify Share icon is visible on Private site comment
-            await privateContentPreviewPage.assertions.verifyShareIconIsVisible(privateCommentText);
+            await privateContentPreviewPage.verifyShareIconIsVisible(privateCommentText);
 
             // Create comment on Unlisted site content
             const unlistedContentPreviewPage = new ContentPreviewPage(
@@ -538,14 +560,14 @@ test.describe(
               waitForSearchIndex: false,
             }).text;
 
-            await unlistedContentPreviewPage.actions.clickShareThoughtsButton();
+            await unlistedContentPreviewPage.clickShareThoughtsButton();
             const unlistedFeedPage = new FeedPage(appManagerFixture.page);
-            await unlistedFeedPage.actions.enterFeedPostText(unlistedCommentText);
-            await unlistedFeedPage.actions.clickPostButton();
-            await unlistedFeedPage.assertions.waitForPostToBeVisible(unlistedCommentText);
+            await unlistedFeedPage.postEditor.createPost(unlistedCommentText);
+            await unlistedFeedPage.postEditor.clickPostButton();
+            await unlistedFeedPage.feedList.waitForPostToBeVisible(unlistedCommentText);
 
             // Verify Share icon is visible on Unlisted site comment
-            await unlistedContentPreviewPage.assertions.verifyShareIconIsVisible(unlistedCommentText);
+            await unlistedContentPreviewPage.listFeedComponent.verifyShareIconIsVisible(unlistedCommentText);
 
             // ==================== VERIFY SHARE ICON IN CONTENTS SECTION ====================
             await test.step('Verify Share icon visibility in Contents section', async () => {
@@ -559,7 +581,7 @@ test.describe(
               await privateContentPreviewPage.verifyThePageIsLoaded();
 
               // Verify Share icon is visible on comment in Contents section
-              await privateContentPreviewPage.assertions.verifyShareIconIsVisible(privateCommentText);
+              await privateContentPreviewPage.listFeedComponent.verifyShareIconIsVisible(privateCommentText);
 
               // Navigate to Contents section of Unlisted site
               const unlistedSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, unlistedSiteId);
@@ -571,7 +593,7 @@ test.describe(
               await unlistedContentPreviewPage.verifyThePageIsLoaded();
 
               // Verify Share icon is visible on comment in Contents section
-              await unlistedContentPreviewPage.assertions.verifyShareIconIsVisible(unlistedCommentText);
+              await unlistedContentPreviewPage.listFeedComponent.verifyShareIconIsVisible(unlistedCommentText);
             });
           });
         } finally {
@@ -597,6 +619,138 @@ test.describe(
             }
           }
         }
+      }
+    );
+
+    test(
+      'verify shared post remains visible with deleted message when original post is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26726'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that when original feed post is deleted, shared post remains visible with "This Post has been deleted" message',
+          zephyrTestId: 'CONT-26726',
+          storyId: 'CONT-26726',
+        });
+
+        let originalPostText: string = '';
+        let sharedPostId: string = '';
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+        // ==================== PART 1: ADMIN CREATES FEED POST ====================
+        await test.step('Part 1: Admin creates feed post with mentions, topics, and message', async () => {
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+
+          const endUserFullName = endUserInfo.fullName;
+          const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
+
+          const simpplrTopic = await appManagerFixture.contentManagementHelper.getTopicListWithName(
+            FEED_TEST_DATA.DEFAULT_TOPIC_NAME
+          );
+
+          // Navigate to Home Feed as Admin
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+
+          // Create feed post with mentions, topics, and message
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
+
+          await adminFeedPage.clickShareThoughtsButton();
+
+          const postResult = await adminFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
+            text: postText,
+            userName: endUserFullName,
+            topicName: simpplrTopic.name,
+            siteName: [publicSiteName],
+            embedUrl: embedUrl,
+          });
+
+          originalPostText = postResult.postText;
+          createdPostIds.push(postResult.postId || '');
+
+          // Wait for post to be visible
+          await adminFeedPage.feedList.waitForPostToBeVisible(originalPostText);
+        });
+
+        // ==================== PART 2: ENDUSER SHARES TO HOME FEED ====================
+        await test.step('Part 2: EndUser shares post to Home Feed and verifies View Post link', async () => {
+          // Navigate to Home Feed as EndUser
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+          await endUserFeedPage.feedList.waitForPostToBeVisible(originalPostText);
+
+          // Click Share button on Admin's feed post
+          await endUserFeedPage.feedList.clickShareOnPost(originalPostText);
+
+          // Verify Share modal is open
+          await endUserFeedPage.feedList.verifyShareModalIsVisible();
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          await shareComponent.verifyViewPostLinkInShareDialog();
+
+          await endUserFeedPage.share.enterShareDescription(shareMessage);
+
+          sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
+          createdPostIds.push(sharedPostId);
+
+          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+          );
+
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
+        });
+
+        // ==================== PART 3: ADMIN DELETES ORIGINAL POST ====================
+        await test.step('Part 3: Admin deletes original post', async () => {
+          // Navigate to Home Feed as Admin
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+          await adminFeedPage.feedList.waitForPostToBeVisible(originalPostText);
+
+          await adminFeedPage.deletePost(originalPostText);
+
+          await adminFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.DELETED_POST_SUCCESSFULLY
+          );
+
+          await adminFeedPage.reloadPage();
+
+          // Verify original post is no longer visible
+          await adminFeedPage.feedList.verifyPostIsNotVisible(originalPostText);
+        });
+
+        // ==================== PART 4: ENDUSER VERIFIES DELETED MESSAGE ====================
+        await test.step('Part 4: EndUser verifies shared post shows deleted message', async () => {
+          // Navigate to Home Feed as EndUser
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
+
+          await endUserFeedPage.feedList.verifyDeletedPostMessage(shareMessage);
+        });
       }
     );
   }

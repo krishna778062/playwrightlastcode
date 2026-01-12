@@ -35,33 +35,33 @@ test.describe(
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
 
-        await feedPage.actions.clickOnGiveRecognition();
+        await feedPage.clickOnGiveRecognition();
 
         const recognitionDialog = new RecognitionDialogComponent(appManagerFixture.page);
 
-        await recognitionDialog.assertions.verifyRecognitionDialogIsLoaded();
+        await recognitionDialog.verifyRecognitionDialogIsLoaded();
 
-        await recognitionDialog.actions.selectPeerRecognitionAward(0);
+        await recognitionDialog.selectPeerRecognitionAward(0);
 
-        await recognitionDialog.actions.selectUserForRecognition(0);
+        await recognitionDialog.selectUserForRecognition(0);
 
         const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
-        await recognitionDialog.actions.enterRecognitionMessage(recognitionMessage);
+        await recognitionDialog.enterRecognitionMessage(recognitionMessage);
 
         await expect(recognitionDialog.recognizeButton).toBeEnabled();
 
-        await recognitionDialog.actions.clickRecognizeButtonAndWaitForShareDialog();
+        await recognitionDialog.clickRecognizeButtonAndWaitForShareDialog();
 
-        await recognitionDialog.actions.clickSkipButton();
+        await recognitionDialog.clickSkipButton();
 
         await recognitionHub.page.reload();
 
-        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.verifyRecognitionPostVisible(recognitionMessage);
       }
     );
 
     test(
-      'verify User is able to Share RECOGNITION from HUB',
+      'verify User is able to Share RECOGNITION from HUB CONT-28587',
       {
         tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28587'],
       },
@@ -82,28 +82,28 @@ test.describe(
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
 
-        await feedPage.actions.clickOnGiveRecognition();
+        await feedPage.clickOnGiveRecognition();
 
         const recognitionDialog = new RecognitionDialogComponent(appManagerFixture.page);
 
-        await recognitionDialog.assertions.verifyRecognitionDialogIsLoaded();
+        await recognitionDialog.verifyRecognitionDialogIsLoaded();
 
-        await recognitionDialog.actions.selectPeerRecognitionAward(0);
+        await recognitionDialog.selectPeerRecognitionAward(0);
 
-        await recognitionDialog.actions.selectUserForRecognition(0);
+        await recognitionDialog.selectUserForRecognition(0);
 
         const recognitionMessage = FEED_TEST_DATA.POST_TEXT.RECOGNITION_MESSAGE;
-        await recognitionDialog.actions.enterRecognitionMessage(recognitionMessage);
+        await recognitionDialog.enterRecognitionMessage(recognitionMessage);
 
-        await recognitionDialog.actions.clickRecognizeButtonAndWaitForShareDialog();
+        await recognitionDialog.clickRecognizeButtonAndWaitForShareDialog();
 
-        await recognitionDialog.actions.clickSkipButton();
+        await recognitionDialog.clickSkipButton();
 
         await recognitionHub.page.reload();
-        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.verifyRecognitionPostVisible(recognitionMessage);
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
-        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.verifyRecognitionPostVisible(recognitionMessage);
 
         await recognitionHub.clickShareButtonOnFirstRecognition();
 
@@ -111,13 +111,13 @@ test.describe(
           assertionMessage: 'Share dialog form should be visible',
         });
 
-        await recognitionDialog.actions.selectPostInHomeFeedInShareDialogForm();
+        await recognitionDialog.selectPostInHomeFeedInShareDialogForm();
 
-        await recognitionDialog.actions.enterMessageInShareDialog(shareMessage);
+        await recognitionDialog.enterMessageInShareDialog(shareMessage);
 
         await recognitionDialog.shareDialogShareButton.click();
 
-        await recognitionDialog.actions.waitForShareDialogToClose();
+        await recognitionDialog.waitForShareDialogToClose();
 
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -127,10 +127,10 @@ test.describe(
 
         await feedPage.reloadPage();
 
-        await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
+        await feedPage.feedList.waitForPostToBeVisible(recognitionMessage);
 
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
-        await feedPage.assertions.verifyRecognitionPostVisible(recognitionMessage);
+        await feedPage.verifyRecognitionPostVisible(recognitionMessage);
 
         await recognitionHub.clickShareButtonOnFirstRecognition();
 
@@ -138,13 +138,13 @@ test.describe(
           assertionMessage: 'Share dialog form should be visible',
         });
 
-        await recognitionDialog.actions.selectPostInSiteFeedInShareDialogForm(publicSiteName);
+        await recognitionDialog.selectPostInSiteFeedInShareDialogForm(publicSiteName);
 
-        await recognitionDialog.actions.enterMessageInShareDialog(shareMessage);
+        await recognitionDialog.enterMessageInShareDialog(shareMessage);
 
-        await recognitionDialog.actions.clickShareDialogShareButton();
+        await recognitionDialog.clickShareDialogShareButton();
 
-        await recognitionDialog.actions.waitForShareDialogToClose();
+        await recognitionDialog.waitForShareDialogToClose();
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });

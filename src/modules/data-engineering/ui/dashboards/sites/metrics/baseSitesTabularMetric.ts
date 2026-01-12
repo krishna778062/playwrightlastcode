@@ -9,7 +9,7 @@ import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetric
  * Used by Most Popular and Least Popular sites metrics
  */
 export abstract class BaseSitesTabularMetric extends TabluarMetricsComponent {
-  protected readonly POPULARITY_SCORE_COLUMN = 'Popularity Score';
+  protected readonly POPULARITY_SCORE_COLUMN = 'Popularity score';
 
   constructor(page: Page, thoughtSpotIframe: FrameLocator, metricTitle: string) {
     super(page, thoughtSpotIframe, metricTitle);

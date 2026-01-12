@@ -105,10 +105,14 @@ export class SearchUsageVolumeClickThroughRate extends LineChartComponent {
    * Handles all CSV validation logic internally including data transformation
    * @param snowflakeDataArray - Raw database data from Snowflake
    * @param selectedPeriod - Selected period filter for validation
+   * @param customStartDate - Optional custom start date (required for CUSTOM period)
+   * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
     snowflakeDataArray: SearchUsageVolumeClickThroughRateData[],
-    selectedPeriod: string
+    selectedPeriod: string,
+    customStartDate?: string,
+    customEndDate?: string
   ): Promise<void> {
     await this.verifyDataIsLoaded();
     const { filePath } = await this.downloadDataAsCSV();
@@ -118,8 +122,8 @@ export class SearchUsageVolumeClickThroughRate extends LineChartComponent {
       // Get date range for the period filter
       const dateReplacements = DateHelper.getDateReplacements(
         selectedPeriod as PeriodFilterOption,
-        undefined,
-        undefined
+        customStartDate,
+        customEndDate
       );
 
       // Parse start and end dates
@@ -189,6 +193,8 @@ export class SearchUsageVolumeClickThroughRate extends LineChartComponent {
         expectedDBData: transformedData as any,
         metricName: 'Search usage volume and click through rate',
         selectedPeriod: selectedPeriod,
+        customStartDate: customStartDate,
+        customEndDate: customEndDate,
         expectedHeaders: ['Search performed datetime', 'Total search', 'Total clickthrough'],
         transformations: {
           headerMapping: {

@@ -148,6 +148,17 @@ export class FeatureOwnerModalComponent extends BaseComponent {
   }
 
   /**
+   * Verifies given user is not displayed as feature owner.
+   * @param userName - Username of user who need to be checked for feature owner.
+   */
+  async verifyUserIsDisplayedAsFeatureOwner(userName: string): Promise<void> {
+    await test.step(`Verifying ${userName} is displayed in the feature owners list`, async () => {
+      await this.searchForUser(userName);
+      expect(await this.verifyTheCheckBoxIsCheckedForUsername(userName)).toBe(true);
+    });
+  }
+
+  /**
    * Verifies whether the given feature onwers are displayed with app manager tag.
    * @param userName - Username of user who need to be checked for app manager tag.
    */
@@ -167,6 +178,63 @@ export class FeatureOwnerModalComponent extends BaseComponent {
     await test.step(`Verifying no user found screen when searched for ${userName}`, async () => {
       await this.searchForUser(userName);
       await expect(this.noUserFoundScreen).toBeVisible();
+    });
+  }
+
+  /**
+   * Gets first user with App Manager tag in the Users tab.
+   * @returns Username of the user with App Manager tag.
+   */
+  async getUserWithAppManagerTag(): Promise<string> {
+    return await test.step('Getting user with App Manager tag', async () => {
+      // Wait for the user list to be visible
+      await this.userPickerRecordsForUsersTab.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      // Get all user records that have the App Manager tag
+      const allAppManagerTags = this.page.locator("[class*='AppManagerLabel-module-itemContainer'] p");
+
+      // For each app manager tag, find the parent user record and get the username
+      const userRecord = this.userPickerRecordsForUsersTab.filter({ has: allAppManagerTags }).first();
+
+      // Get the username from the user record - typically in a p or span element
+      const userNameElement = userRecord.locator('[class*="Spacing-module__row"] p a').first();
+      const userName = await userNameElement.textContent();
+      return userName as string;
+    });
+  }
+
+  /**
+   * Gets first user without App Manager tag in the Users tab.
+   * @returns Username of the user without App Manager tag.
+   */
+  async getUserWithoutAppManagerTag(): Promise<string> {
+    return await test.step('Getting user without App Manager tag', async () => {
+      // Wait for the user list to be visible
+      await this.userPickerRecordsForUsersTab.first().waitFor({ state: 'visible', timeout: 10000 });
+
+      // Get all user records that have the App Manager tag
+      const allAppManagerTags = this.page.locator("[class*='AppManagerLabel-module-itemContainer'] p");
+
+      // For each app manager tag, find the parent user record and get the username
+      const userRecord = this.userPickerRecordsForUsersTab.filter({ hasNot: allAppManagerTags }).first();
+
+      // Get the username from the user record - typically in a p or span element
+      const userNameElement = userRecord.locator('[class*="Spacing-module__row"] p a').first();
+      const userName = await userNameElement.textContent();
+      return userName as string;
+    });
+  }
+
+  /**
+   * Waits for the Users tab content to be fully loaded.
+   */
+  async waitForUsersTabToLoad(): Promise<void> {
+    await test.step('Waiting for Users tab to load', async () => {
+      // Wait for either user records or no user found screen to be visible
+      await Promise.race([
+        this.userPickerRecordsForUsersTab.first().waitFor({ state: 'visible', timeout: 15000 }),
+        this.noUserFoundScreen.waitFor({ state: 'visible', timeout: 15000 }),
+      ]);
     });
   }
 }
