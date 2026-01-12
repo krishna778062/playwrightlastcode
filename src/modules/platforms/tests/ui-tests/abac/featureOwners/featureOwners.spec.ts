@@ -123,7 +123,7 @@ test.describe(
       test(
         `Verify the functionality of edit feature owner modal for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ appManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
@@ -170,7 +170,7 @@ test.describe(
       test(
         `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
         },
         async ({ userManagerFixture }) => {
           tagTest(test.info(), {
@@ -333,7 +333,7 @@ test.describe(
       test(
         `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, '@healthcheck', '@this-one'],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, '@healthcheck'],
         },
         async ({ appManagerFixture, browser }) => {
           tagTest(test.info(), {

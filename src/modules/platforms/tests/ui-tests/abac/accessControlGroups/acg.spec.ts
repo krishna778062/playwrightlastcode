@@ -312,7 +312,7 @@ test.describe(
     test(
       'verify that user manager should have access for ACG creation',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ userManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
