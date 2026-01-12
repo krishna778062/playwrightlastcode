@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { GiveRecognitionDialogBox } from '@recognition-components/give-recognition-dialog-box';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -7,7 +8,6 @@ import { getFormattedDate } from '@core/utils/dateUtil';
 
 import MESSAGES from '../../../constants/messages';
 import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
-import { GiveRecognitionDialogBox } from '../../components/recognition/give-recognition-dialog-box';
 
 import { ManageRecognitionPage } from './manageRecognitionPage';
 
@@ -1788,5 +1788,9 @@ export class SpotAwardPage extends BasePage {
         'expecting recognize button to be disabled after removing mandatory field'
       ).toBeDisabled();
     });
+  }
+
+  async genarateLongText(length: number): Promise<string> {
+    return 'a'.repeat(length);
   }
 }

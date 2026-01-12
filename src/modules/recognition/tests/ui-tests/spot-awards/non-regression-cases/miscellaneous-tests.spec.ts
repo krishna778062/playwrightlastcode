@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker';
 import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
-import { GiveRecognitionDialogBox } from '@recognition/ui/components/recognition/give-recognition-dialog-box';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { SpotAwardPage } from '@recognition/ui/pages/manage/spotAwardPage';
+import { GiveRecognitionDialogBox } from '@recognition-components/give-recognition-dialog-box';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';

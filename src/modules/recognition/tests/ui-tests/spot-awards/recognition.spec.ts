@@ -3,6 +3,7 @@ import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/consta
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { SpotAwardPage } from '@recognition/ui/pages/manage/spotAwardPage';
+import { GiveRecognitionDialogBox } from '@recognition-components/give-recognition-dialog-box';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -10,7 +11,6 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { MESSAGES } from '@/src/modules/recognition/constants/messages';
-import { GiveRecognitionDialogBox } from '@/src/modules/recognition/ui/components/recognition/give-recognition-dialog-box';
 
 test.describe('Recognition Page Flow', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
