@@ -8,7 +8,8 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ShareComponent } from '@/src/modules/content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
@@ -20,6 +21,21 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
+    const createdPostIds: string[] = [];
+
+    test.afterEach(async ({ appManagerApiFixture }) => {
+      // Cleanup: Delete all shared posts
+      for (const sharedPostId of createdPostIds) {
+        if (sharedPostId) {
+          try {
+            await appManagerApiFixture.feedManagementHelper.deleteFeed(sharedPostId);
+          } catch (error) {
+            console.warn(`Failed to delete shared post ${sharedPostId}:`, error);
+          }
+        }
+      }
+    });
+
     test(
       'verify clicking View Post button closes Share modal from Home Dashboard, Site Dashboard, and Content Detail Page CONT-27696',
       {
@@ -603,6 +619,138 @@ test.describe(
             }
           }
         }
+      }
+    );
+
+    test(
+      'verify shared post remains visible with deleted message when original post is deleted',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26726'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify that when original feed post is deleted, shared post remains visible with "This Post has been deleted" message',
+          zephyrTestId: 'CONT-26726',
+          storyId: 'CONT-26726',
+        });
+
+        let originalPostText: string = '';
+        let sharedPostId: string = '';
+        const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
+
+        // ==================== PART 1: ADMIN CREATES FEED POST ====================
+        await test.step('Part 1: Admin creates feed post with mentions, topics, and message', async () => {
+          const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+
+          const endUserFullName = endUserInfo.fullName;
+          const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
+
+          const simpplrTopic = await appManagerFixture.contentManagementHelper.getTopicListWithName(
+            FEED_TEST_DATA.DEFAULT_TOPIC_NAME
+          );
+
+          // Navigate to Home Feed as Admin
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+
+          // Create feed post with mentions, topics, and message
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
+
+          await adminFeedPage.clickShareThoughtsButton();
+
+          const postResult = await adminFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
+            text: postText,
+            userName: endUserFullName,
+            topicName: simpplrTopic.name,
+            siteName: [publicSiteName],
+            embedUrl: embedUrl,
+          });
+
+          originalPostText = postResult.postText;
+          createdPostIds.push(postResult.postId || '');
+
+          // Wait for post to be visible
+          await adminFeedPage.feedList.waitForPostToBeVisible(originalPostText);
+        });
+
+        // ==================== PART 2: ENDUSER SHARES TO HOME FEED ====================
+        await test.step('Part 2: EndUser shares post to Home Feed and verifies View Post link', async () => {
+          // Navigate to Home Feed as EndUser
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+          await endUserFeedPage.feedList.waitForPostToBeVisible(originalPostText);
+
+          // Click Share button on Admin's feed post
+          await endUserFeedPage.feedList.clickShareOnPost(originalPostText);
+
+          // Verify Share modal is open
+          await endUserFeedPage.feedList.verifyShareModalIsVisible();
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          await shareComponent.verifyViewPostLinkInShareDialog();
+
+          await endUserFeedPage.share.enterShareDescription(shareMessage);
+
+          sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
+          createdPostIds.push(sharedPostId);
+
+          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+          );
+
+          await endUserFeedPage.reloadPage();
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
+        });
+
+        // ==================== PART 3: ADMIN DELETES ORIGINAL POST ====================
+        await test.step('Part 3: Admin deletes original post', async () => {
+          // Navigate to Home Feed as Admin
+          await appManagerFixture.homePage.loadPage();
+          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.verifyThePageIsLoaded();
+          await adminFeedPage.feedList.waitForPostToBeVisible(originalPostText);
+
+          await adminFeedPage.deletePost(originalPostText);
+
+          await adminFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.DELETED_POST_SUCCESSFULLY
+          );
+
+          await adminFeedPage.reloadPage();
+
+          // Verify original post is no longer visible
+          await adminFeedPage.feedList.verifyPostIsNotVisible(originalPostText);
+        });
+
+        // ==================== PART 4: ENDUSER VERIFIES DELETED MESSAGE ====================
+        await test.step('Part 4: EndUser verifies shared post shows deleted message', async () => {
+          // Navigate to Home Feed as EndUser
+          await standardUserFixture.homePage.loadPage();
+          await standardUserFixture.homePage.verifyThePageIsLoaded();
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const endUserFeedPage = new FeedPage(standardUserFixture.page);
+          await endUserFeedPage.verifyThePageIsLoaded();
+
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
+
+          await endUserFeedPage.feedList.verifyDeletedPostMessage(shareMessage);
+        });
       }
     );
   }

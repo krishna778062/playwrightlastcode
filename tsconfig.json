@@ -58,6 +58,7 @@
       "@recognition-pages/*": ["./src/modules/recognition/ui/pages/*"],
       "@recognition-components/*": ["./src/modules/recognition/ui/components/*"],
       "@recognition-constants/*": ["./src/modules/recognition/constants/*"],
+      "@recognition-api/*": ["./src/modules/recognition/api/*"],
       "@form-designer/*": ["./src/modules/form-designer/*"],
       "@form-designer-pages/*": ["./src/modules/form-designer/ui/pages/*"],
       "@form-designer-components/*": ["./src/modules/form-designer/ui/components/*"],

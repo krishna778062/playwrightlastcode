@@ -1,3 +1,5 @@
+export * from './distributionOfDownloadsByFileCategory';
+export * from './distributionOfViewsByFileCategory';
 export * from './downloads';
 export * from './favourites';
 export * from './reactions';
