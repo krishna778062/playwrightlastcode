@@ -458,6 +458,7 @@ export class AppsLinksComponents extends BaseComponent {
 
   async enterLinkUrl(url: string): Promise<void> {
     await test.step(`Entering link url`, async () => {
+      await this.linkPlaceholderInputField('Link URL').click();
       await this.linkPlaceholderInputField('Link URL').fill(url);
     });
   }
@@ -491,7 +492,6 @@ export class AppsLinksComponents extends BaseComponent {
     await test.step(`Adding apps from custom JSON`, async () => {
       await this.appsIntegrationDropdown.selectOption({ label: customJsonOption });
       await this.customJsonInputField.clear();
-      await this.customJsonInputField.click();
       await this.customJsonInputField.fill(JSON.stringify(this.jsonData, null, 2));
     });
   }
@@ -511,6 +511,7 @@ export class AppsLinksComponents extends BaseComponent {
   async addDuplicateCustomApps(): Promise<void> {
     await test.step(`Adding duplicate custom apps`, async () => {
       await this.customJsonInputField.clear();
+      await this.customJsonInputField.click();
       await this.customJsonInputField.click();
       await this.customJsonInputField.fill(JSON.stringify(this.apps_json, null, 2));
       await this.saveButton.click();
