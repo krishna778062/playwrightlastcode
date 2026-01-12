@@ -211,11 +211,11 @@ test.describe(
       await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
-        ['Profile & expertise', 'Feed', 'Sites', 'Content', 'Events', 'Site management']
+        ['Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
       );
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnUseRecommendedButton();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
-        ['Org communications', 'Profile & expertise', 'Feed', 'Sites', 'Content', 'Events', 'Site management']
+        ['Org communications', 'Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
       );
     });
 
@@ -228,11 +228,11 @@ test.describe(
       await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
-        ['Org communications', 'Profile & expertise', 'Feed', 'Sites', 'Content', 'Events', 'Site management']
+        ['Org communications', 'Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
       );
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnUseRecommendedButton();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
-        ['Org communications', 'Feed', 'Sites', 'Content', 'Events', 'Site management']
+        ['Org communications', 'Feed', 'Content', 'Events', 'Site management']
       );
     });
 
@@ -245,11 +245,11 @@ test.describe(
       await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
-        ['Org communications', 'Profile & expertise', 'Feed', 'Sites', 'Content', 'Events', 'Site management']
+        ['Org communications', 'Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
       );
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnUseRecommendedButton();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
-        ['Org communications', 'Feed', 'Sites', 'Content', 'Events', 'Site management']
+        ['Org communications', 'Feed', 'Content', 'Events', 'Site management']
       );
     });
 
@@ -394,7 +394,7 @@ test.describe(
 
       await applicationNotificationSettingsPage.commonActionsComponent.navigateToProfileNotificationSettingsPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
-        ['All', 'Org communications', 'Profile & expertise', 'Sites', 'Content', 'Events', 'Site management']
+        ['All', 'Org communications', 'Profile & expertise', 'Content', 'Events', 'Site management']
       );
     });
   }
