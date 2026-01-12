@@ -25,8 +25,10 @@ export class NativeTileComponent extends BaseComponent {
   readonly addToHomeButton: Locator;
   readonly eventsContentTypeRadio: Locator;
   readonly googleCalendarFromRadio: Locator;
+  readonly outlookCalendarFromRadio: Locator;
   readonly calendarValueDisplay: Locator;
   readonly editModalHeading: Locator;
+  readonly dialog: Locator;
   readonly tileContainerBase: Locator;
   readonly getTileContainer: (tileTitle: string) => Locator;
   readonly getCalendarEmailOption: (calendarEmail: string) => Locator;
@@ -39,6 +41,7 @@ export class NativeTileComponent extends BaseComponent {
   readonly getCalendarDayDate: (calendarDay: Locator) => Locator;
   readonly getCalendarLabel: (item: Locator) => Locator;
   readonly getShowMoreButton: (tile: Locator) => Locator;
+  readonly getReactSelectMenuById: (menuId: string) => Locator;
 
   constructor(page: Page) {
     super(page);
@@ -60,12 +63,14 @@ export class NativeTileComponent extends BaseComponent {
     // Base locators for React Select options and panel items (used with selector strings when scoping)
     this.reactSelectOption = page.locator('.ReactSelectInput-option');
     this.panelItem = page.locator('.Panel-item');
-    this.tileTitleInput = page.getByRole('dialog').locator('input[id="title"], input[name="title"]').first();
+    this.tileTitleInput = page.getByRole('dialog').locator('input[name="title"], input[id="title"]').first();
     this.addToHomeButton = page.getByRole('button', { name: 'Add to home' });
     this.eventsContentTypeRadio = page.locator('#options_type_event');
     this.googleCalendarFromRadio = page.locator('#options_siteFilter_googleCalendar');
+    this.outlookCalendarFromRadio = page.locator('#options_siteFilter_outlookCalendar');
     this.calendarValueDisplay = page.locator('.css-15bnrdl-singleValue').first();
     this.editModalHeading = page.getByRole('heading', { name: 'Edit Latest & popular tile' });
+    this.dialog = page.getByRole('dialog');
     this.tileContainerBase = page.locator('aside').filter({ has: page.locator('[class*="Tile"]') });
     this.getTileContainer = (tileTitle: string) =>
       this.tileContainerBase.filter({ has: page.getByRole('heading', { name: tileTitle, exact: true }) });
@@ -79,54 +84,37 @@ export class NativeTileComponent extends BaseComponent {
     this.getCalendarDayDate = (calendarDay: Locator) => calendarDay.locator('[class*="CalendarDay-date"]');
     this.getCalendarLabel = (item: Locator) => item.locator('[class*="ListingItem-typeName"]');
     this.getShowMoreButton = (tile: Locator) => tile.getByRole('button', { name: 'Show more' });
+    this.getReactSelectMenuById = (menuId: string) => page.locator(`#${menuId}`);
   }
 
-  /**
-   * Click on "Add pages, events & albums" button
-   */
   async clickAddContentTileButton(): Promise<void> {
     await test.step('Click Add pages, events & albums button', async () => {
       await this.clickOnElement(this.addContentTileButton, { timeout: 30_000 });
     });
   }
 
-  /**
-   * Select Events content type
-   */
   async selectEventsContentType(): Promise<void> {
     await test.step('Select Events content type', async () => {
       await this.clickOnElement(this.eventsContentTypeButton, { timeout: 30_000 });
     });
   }
 
-  /**
-   * Select Google Calendar radio option
-   */
   async selectGoogleCalendar(): Promise<void> {
     await test.step('Select Google Calendar', async () => {
       await this.clickOnElement(this.googleCalendarRadioInModal, { timeout: 30_000 });
     });
   }
 
-  /**
-   * Select Outlook Calendar radio option
-   */
   async selectOutlookCalendar(): Promise<void> {
     await test.step('Select Outlook Calendar', async () => {
       await this.clickOnElement(this.outlookCalendarRadio, { timeout: 30_000 });
     });
   }
 
-  /**
-   * Select calendar from dropdown by email/name
-   * For Google Calendar: selects the calendar directly
-   * For Outlook Calendar: this should not be used - use selectOutlookCalendarGroupAndCalendar instead
-   */
   async selectCalendarFromDropdown(calendarEmail: string): Promise<void> {
     await test.step(`Select calendar: ${calendarEmail}`, async () => {
       await this.clickOnElement(this.reactSelectInput, { timeout: 30_000 });
-      const calendarEmailOption = this.getCalendarEmailOption(calendarEmail);
-      await this.clickOnElement(calendarEmailOption, { timeout: 30_000 });
+      await this.clickOnElement(this.getCalendarEmailOption(calendarEmail), { timeout: 30_000 });
     });
   }
 
@@ -144,95 +132,56 @@ export class NativeTileComponent extends BaseComponent {
       await firstMenu.waitFor({ state: 'visible', timeout: 10000 });
 
       const groupOption = firstMenu
-        .locator('.ReactSelectInput-option')
+        .locator(this.reactSelectOption)
         .filter({ has: this.panelItem.filter({ hasText: calendarGroup }) })
         .first();
       await this.clickOnElement(groupOption, { timeout: 30_000 });
       await firstMenu.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
 
-      // Select specific calendar (second dropdown)
+      await this.page.waitForTimeout(4000);
+
       await expect(this.outlookCalendarDropdown).toBeEnabled({ timeout: 15000 });
 
-      // Get the menu count before clicking to identify the new menu
-      const menuCountBeforeClick = await this.reactSelectListboxMenus.count();
-
+      await this.clickOnElement(this.outlookCalendarDropdown, { timeout: 30_000 });
+      await this.page.waitForTimeout(2000);
       await this.clickOnElement(this.outlookCalendarDropdown, { timeout: 30_000 });
 
-      // Wait for the second menu to appear - use a more reliable approach
-      // First, wait for a new menu to be added to the DOM (menu count should increase)
+      let finalMenuId: string | null = null;
       await expect
         .poll(
           async () => {
-            const currentCount = await this.reactSelectListboxMenus.count();
-            return currentCount > menuCountBeforeClick;
+            const ariaOwns = await this.outlookCalendarDropdown.getAttribute('aria-owns');
+            if (ariaOwns) {
+              finalMenuId = ariaOwns;
+              return true;
+            }
+            const inputId = await this.outlookCalendarDropdown.getAttribute('id');
+            const match = inputId?.match(/react-select-(\d+)-input/);
+            if (match) {
+              finalMenuId = `react-select-${match[1]}-listbox`;
+              return true;
+            }
+            return false;
           },
-          { timeout: 5000, intervals: [100, 200, 500] }
+          { timeout: 10000, intervals: [200, 500, 1000] }
         )
-        .toBeTruthy()
-        .catch(() => {
-          // If menu count doesn't increase, continue anyway - menu might reuse existing element
-        });
+        .toBeTruthy();
 
-      // Poll for a visible menu that contains options and is different from the first menu
-      const findVisibleMenu = async (): Promise<Locator | null> => {
-        const currentCount = await this.reactSelectListboxMenus.count();
+      await this.page.waitForSelector(`#${finalMenuId!}`, { state: 'visible', timeout: 15000 });
+      const secondMenu = this.getReactSelectMenuById(finalMenuId!);
+      await expect(secondMenu.locator(this.reactSelectOption).first()).toBeVisible({ timeout: 10000 });
 
-        // Check all menus, but prioritize newer ones (those after the initial count)
-        for (let i = Math.max(0, menuCountBeforeClick - 1); i < currentCount; i++) {
-          const menu = this.reactSelectListboxMenus.nth(i);
-          try {
-            const isVisible = await menu.isVisible({ timeout: 500 });
-            if (isVisible) {
-              const hasOptions = await menu.locator('.ReactSelectInput-option').count();
-              if (hasOptions > 0) return menu;
-            }
-          } catch {
-            // Menu not visible, continue to next
-            continue;
-          }
-        }
-
-        // Fallback: check all menus if we didn't find one in the new ones
-        for (let i = 0; i < currentCount; i++) {
-          const menu = this.reactSelectListboxMenus.nth(i);
-          try {
-            const isVisible = await menu.isVisible({ timeout: 500 });
-            if (isVisible) {
-              const hasOptions = await menu.locator('.ReactSelectInput-option').count();
-              if (hasOptions > 0) return menu;
-            }
-          } catch {
-            continue;
-          }
-        }
-        return null;
-      };
-
-      await expect.poll(findVisibleMenu, { timeout: 15000, intervals: [200, 500, 1000] }).not.toBeNull();
-
-      const secondMenu = await findVisibleMenu();
-      if (!secondMenu) {
-        const finalCount = await this.reactSelectListboxMenus.count();
-        throw new Error(
-          `Second calendar dropdown menu did not appear after clicking. Menu count: ${finalCount}, Before click: ${menuCountBeforeClick}`
-        );
-      }
-
-      // Select calendar option
       const calendarOption = calendarName
         ? secondMenu
-            .locator('.ReactSelectInput-option')
+            .locator(this.reactSelectOption)
             .filter({ has: this.panelItem.filter({ hasText: calendarName }) })
             .first()
-        : secondMenu.locator('.ReactSelectInput-option').first();
+        : secondMenu.locator(this.reactSelectOption).first();
 
       await this.clickOnElement(calendarOption, { timeout: 30_000 });
     });
   }
 
-  /**
-   * Select first available calendar from dropdown
-   */
   async selectFirstAvailableCalendar(): Promise<void> {
     await test.step('Select first available calendar', async () => {
       await this.calendarDropdownInput.waitFor({ state: 'visible', timeout: 10000 });
@@ -242,10 +191,6 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Select calendar type (Google Calendar or Outlook Calendar)
-   * @param calendarType - The calendar type string from test
-   */
   async selectCalendarType(calendarType: string): Promise<void> {
     await test.step(`Select calendar type: ${calendarType}`, async () => {
       if (calendarType === 'Google Calendar') {
@@ -258,9 +203,6 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Set tile title
-   */
   async setTileTitle(tileTitle: string): Promise<void> {
     await test.step(`Set tile title: ${tileTitle}`, async () => {
       await this.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
@@ -269,18 +211,12 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Click Add to home button
-   */
   async clickAddToHome(): Promise<void> {
     await test.step('Click Add to home button', async () => {
       await this.clickOnElement(this.addToHomeButton, { timeout: 30_000 });
     });
   }
 
-  /**
-   * Verify tile title in edit modal
-   */
   async verifyTileTitle(expectedTitle: string): Promise<void> {
     await test.step(`Verify tile title is: ${expectedTitle}`, async () => {
       await this.tileTitleInput.waitFor({ state: 'visible', timeout: 10000 });
@@ -289,37 +225,24 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verify Events content type is selected
-   */
   async verifyEventsContentTypeSelected(): Promise<void> {
     await test.step('Verify Events content type is selected', async () => {
       await expect(this.eventsContentTypeRadio, 'Expected Events content type to be checked').toBeChecked();
     });
   }
 
-  /**
-   * Verify Google Calendar is selected in From section
-   */
   async verifyGoogleCalendarSelected(): Promise<void> {
     await test.step('Verify Google Calendar is selected', async () => {
       await expect(this.googleCalendarFromRadio, 'Expected Google Calendar to be checked').toBeChecked();
     });
   }
 
-  /**
-   * Verify Outlook Calendar is selected in From section
-   */
   async verifyOutlookCalendarSelected(): Promise<void> {
     await test.step('Verify Outlook Calendar is selected', async () => {
-      const outlookCalendarFromRadio = this.page.locator('#options_siteFilter_outlookCalendar');
-      await expect(outlookCalendarFromRadio, 'Expected Outlook Calendar to be checked').toBeChecked();
+      await expect(this.outlookCalendarFromRadio, 'Expected Outlook Calendar to be checked').toBeChecked();
     });
   }
 
-  /**
-   * Verify calendar email in dropdown
-   */
   async verifyCalendarEmail(expectedEmail: string): Promise<void> {
     await test.step(`Verify calendar email is: ${expectedEmail}`, async () => {
       await this.calendarValueDisplay.waitFor({ state: 'visible', timeout: 10000 });
@@ -328,18 +251,12 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verify edit modal is opened with correct heading
-   */
   async verifyEditModalOpened(): Promise<void> {
     await test.step('Verify edit modal is opened', async () => {
       await expect(this.editModalHeading, 'Expected edit modal heading to be visible').toBeVisible({ timeout: 10000 });
     });
   }
 
-  /**
-   * Verify calendar dropdown is visible
-   */
   async verifyCalendarDropdownVisible(): Promise<void> {
     await test.step('Verify calendar dropdown is visible', async () => {
       await this.calendarDropdownInput.waitFor({ state: 'visible', timeout: 10000 });
@@ -349,16 +266,6 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verify Calendar upcoming events tile data for native tiles
-   * Native tiles use different HTML structure: Tile-contentList > ListingItem
-   * This method consolidates verification of event data, calendar day elements, calendar label, and event count
-   * @param tileTitle - The title of the tile to verify
-   * @param eventTitle - Optional regex pattern for event title (defaults to any text)
-   * @param calDate - Optional regex pattern for calendar date (defaults to standard date format)
-   * @param minExpectedCount - Optional minimum expected number of events (defaults to 1)
-   * @param calendarType - Optional calendar type ('Google Calendar' or 'Outlook Calendar', defaults to 'Google Calendar')
-   */
   async verifyCalendarUpcomingEventsTileData(
     tileTitle: string,
     eventTitle: RegExp = /^[\p{L}\p{N}\p{P}\p{S} ]{1,100}$/u,
@@ -368,8 +275,7 @@ export class NativeTileComponent extends BaseComponent {
   ): Promise<void> {
     await test.step(`Verify Calendar upcoming events tile data for native tile '${tileTitle}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
+      const listingItems = this.getListingItems(this.getContentList(tile));
 
       const eventCount = await listingItems.count();
       expect(
@@ -377,31 +283,25 @@ export class NativeTileComponent extends BaseComponent {
         `Expected at least ${minExpectedCount} event(s), but found ${eventCount}`
       ).toBeGreaterThanOrEqual(minExpectedCount);
 
-      await expect(listingItems.first(), 'Expected at least one calendar event to be visible').toBeVisible({
+      const firstEventItem = listingItems.first();
+      await expect(firstEventItem, 'Expected at least one calendar event to be visible').toBeVisible({
         timeout: 10000,
       });
 
-      const firstEventItem = listingItems.first();
       const eventTitleLink = this.getEventTitleLink(firstEventItem);
       const eventDate = this.getEventDate(firstEventItem);
-
       await expect(eventTitleLink, 'Expected event title link to be visible').toBeVisible({ timeout: 10000 });
       await expect(eventDate, 'Expected event date to be visible').toBeVisible({ timeout: 10000 });
 
       const titleText = await eventTitleLink.textContent();
       const dateText = await eventDate.textContent();
-
       expect(titleText, `Event title "${titleText}" should match pattern`).toMatch(eventTitle);
       expect(dateText, `Event date "${dateText}" should match pattern`).toMatch(calDate);
 
       const calendarDay = this.getCalendarDay(firstEventItem);
       await expect(calendarDay, 'Calendar day element should be visible').toBeVisible({ timeout: 10000 });
-
-      const month = this.getCalendarDayMonth(calendarDay);
-      const date = this.getCalendarDayDate(calendarDay);
-      await expect(month, 'Calendar day month should be visible').toBeVisible();
-      await expect(date, 'Calendar day date should be visible').toBeVisible();
-
+      await expect(this.getCalendarDayMonth(calendarDay), 'Calendar day month should be visible').toBeVisible();
+      await expect(this.getCalendarDayDate(calendarDay), 'Calendar day date should be visible').toBeVisible();
       await expect(calendarDay, 'Calendar day should be clickable').toHaveAttribute('href');
 
       const expectedCalendarLabel = calendarType === 'Outlook Calendar' ? 'Outlook Calendar' : 'Google Calendar';
@@ -410,16 +310,10 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verify "Show more" behavior for native tiles
-   * Verifies that initially at least 4 events are displayed, then clicking "Show more" displays additional events
-   * @param tileTitle - The title of the tile to verify
-   */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
     await test.step(`Verify 'Show more' behavior for native tile '${tileTitle}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
+      const listingItems = this.getListingItems(this.getContentList(tile));
       const showMoreButton = this.getShowMoreButton(tile);
 
       await expect(showMoreButton, 'Show More button should be visible').toBeVisible({ timeout: 10000 });
@@ -432,30 +326,15 @@ export class NativeTileComponent extends BaseComponent {
 
       await this.clickOnElement(showMoreButton, { timeout: 30_000 });
 
-      await expect
-        .poll(
-          async () => {
-            return await listingItems.count();
-          },
-          { timeout: 10000 }
-        )
-        .toBeGreaterThan(initialVisible);
+      await expect.poll(async () => await listingItems.count(), { timeout: 10000 }).toBeGreaterThan(initialVisible);
     });
   }
 
-  /**
-   * Verify tile redirects to expected URL for native tiles
-   * Native tiles use h3 > a.type--title structure (link is inside h3, not h3 inside link)
-   * @param tileTitle - The title of the tile
-   * @param expectedUrl - The expected URL to redirect to
-   */
   async verifyTileRedirects(tileTitle: string, expectedUrl: string): Promise<void> {
     await test.step(`Verify native tile '${tileTitle}' redirects to '${expectedUrl}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
-      const firstEventItem = listingItems.first();
-      const link = this.getEventTitleLink(firstEventItem).first();
+      const listingItems = this.getListingItems(this.getContentList(tile));
+      const link = this.getEventTitleLink(listingItems.first()).first();
       await this.clickOnElement(link, { timeout: 30_000 });
 
       const urlRegex = new RegExp(`^${expectedUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}.*`);
@@ -470,33 +349,23 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verify events are sorted in chronological order (earliest to latest)
-   * @param tileTitle - The title of the tile to verify
-   */
   async verifyEventsChronologicalOrder(tileTitle: string): Promise<void> {
     await test.step(`Verify events in tile '${tileTitle}' are in chronological order`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
-
+      const listingItems = this.getListingItems(this.getContentList(tile));
       const eventDates: Date[] = [];
       const count = await listingItems.count();
 
       for (let i = 0; i < count; i++) {
-        const item = listingItems.nth(i);
-        const dateText = await this.getEventDate(item).textContent();
-        if (dateText) {
-          const dateMatch = dateText.match(/(\w{3},?\s)?(\w{3})\s(\d{1,2})(?:,\s(\d{4}))?/);
-          if (dateMatch) {
-            const month = dateMatch[2];
-            const day = dateMatch[3];
-            const year = dateMatch[4] || new Date().getFullYear().toString();
-            const dateStr = `${month} ${day}, ${year}`;
-            const parsedDate = new Date(dateStr);
-            if (!isNaN(parsedDate.getTime())) {
-              eventDates.push(parsedDate);
-            }
+        const dateText = await this.getEventDate(listingItems.nth(i)).textContent();
+        const dateMatch = dateText?.match(/(\w{3},?\s)?(\w{3})\s(\d{1,2})(?:,\s(\d{4}))?/);
+        if (dateMatch) {
+          const month = dateMatch[2];
+          const day = dateMatch[3];
+          const year = dateMatch[4] || new Date().getFullYear().toString();
+          const parsedDate = new Date(`${month} ${day}, ${year}`);
+          if (!isNaN(parsedDate.getTime())) {
+            eventDates.push(parsedDate);
           }
         }
       }
@@ -510,56 +379,32 @@ export class NativeTileComponent extends BaseComponent {
     });
   }
 
-  /**
-   * Verify calendar day elements are displayed and clickable
-   * @param tileTitle - The title of the tile to verify
-   */
   async verifyCalendarDayElements(tileTitle: string): Promise<void> {
     await test.step(`Verify calendar day elements in tile '${tileTitle}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
+      const listingItems = this.getListingItems(this.getContentList(tile));
+      const calendarDay = this.getCalendarDay(listingItems.first());
 
-      const firstItem = listingItems.first();
-      const calendarDay = this.getCalendarDay(firstItem);
       await expect(calendarDay, 'Calendar day element should be visible').toBeVisible({ timeout: 10000 });
-
-      const month = this.getCalendarDayMonth(calendarDay);
-      const date = this.getCalendarDayDate(calendarDay);
-      await expect(month, 'Calendar day month should be visible').toBeVisible();
-      await expect(date, 'Calendar day date should be visible').toBeVisible();
-
+      await expect(this.getCalendarDayMonth(calendarDay), 'Calendar day month should be visible').toBeVisible();
+      await expect(this.getCalendarDayDate(calendarDay), 'Calendar day date should be visible').toBeVisible();
       await expect(calendarDay, 'Calendar day should be clickable').toHaveAttribute('href');
     });
   }
 
-  /**
-   * Verify Google Calendar label is present on all events
-   * @param tileTitle - The title of the tile to verify
-   */
   async verifyGoogleCalendarLabel(tileTitle: string): Promise<void> {
     await test.step(`Verify Google Calendar label in tile '${tileTitle}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
-
-      const firstItem = listingItems.first();
-      const calendarLabel = this.getCalendarLabel(firstItem).filter({ hasText: 'Google Calendar' });
+      const listingItems = this.getListingItems(this.getContentList(tile));
+      const calendarLabel = this.getCalendarLabel(listingItems.first()).filter({ hasText: 'Google Calendar' });
       await expect(calendarLabel, 'Google Calendar label should be visible').toBeVisible({ timeout: 10000 });
     });
   }
 
-  /**
-   * Verify event count matches expected minimum
-   * @param tileTitle - The title of the tile to verify
-   * @param minExpectedCount - Minimum expected number of events
-   */
   async verifyEventCount(tileTitle: string, minExpectedCount: number = 1): Promise<void> {
     await test.step(`Verify event count in tile '${tileTitle}'`, async () => {
       const tile = this.getTileContainer(tileTitle).first();
-      const contentList = this.getContentList(tile);
-      const listingItems = this.getListingItems(contentList);
-
+      const listingItems = this.getListingItems(this.getContentList(tile));
       const eventCount = await listingItems.count();
       expect(
         eventCount,
