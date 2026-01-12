@@ -97,7 +97,7 @@ export class GiveRecognitionDialogBox extends DialogBox {
     await this.suggesterContainer.waitFor({ state: 'visible' });
     await this.getOption(recipient).click();
     await this.selectAwardInput.click();
-    await this.suggesterContainer.waitFor();
+    await this.suggesterContainer.waitFor({ state: 'visible' });
     await this.getOption(award).click();
     await this.descriptionTextArea.fill(message);
     await this.recognizeButton.click();
@@ -117,7 +117,12 @@ export class GiveRecognitionDialogBox extends DialogBox {
       await this.suggesterContainer.waitFor({ state: 'visible' });
       await this.getOption(userName).click();
     } else {
-      if (await this.page.getByText('Please fill out this field').isVisible()) {
+      const requiredFieldWarning = this.page.getByText('Please fill out this field');
+      const warningVisible = await requiredFieldWarning
+        .waitFor({ state: 'visible', timeout: 500 })
+        .then(() => true)
+        .catch(() => false);
+      if (warningVisible) {
         await this.recognitionRecipientsInput.click();
       }
       await this.suggesterContainer.waitFor({ state: 'visible' });

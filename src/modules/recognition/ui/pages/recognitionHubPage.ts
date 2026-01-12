@@ -108,9 +108,15 @@ export class RecognitionHubPage extends BasePage {
     const recognitionPostMessage = options.message ?? `Automated Test Message ${Math.floor(Math.random() * 1000000)}`;
     await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
     await test.step('Click Recognize button in modal', async () => {
-      await expect(giveRecognitionModal.recognizeButton).toBeEnabled();
+      await expect(
+        giveRecognitionModal.recognizeButton,
+        'Recognize button should be enabled before submitting'
+      ).toBeEnabled();
       await giveRecognitionModal.recognizeButton.click();
-      await expect(giveRecognitionModal.recognizeButton).not.toBeVisible();
+      await expect(
+        giveRecognitionModal.recognizeButton,
+        'Recognize button should disappear after submit'
+      ).not.toBeVisible();
     });
 
     return recognitionPostMessage;
@@ -276,12 +282,11 @@ export class RecognitionHubPage extends BasePage {
   async countTheComments(): Promise<number> {
     return await test.step('Count comments on recognition post', async () => {
       if (await this.commentCountIndicator.isVisible()) {
-        const text = (await this.commentCountIndicator.innerText()) ?? '';
+        const text = await this.commentCountIndicator.innerText();
         const count = Number(text.match(/\d+/)?.[0] ?? 0);
         return Number.isFinite(count) ? count : 0;
       } else {
         return 0;
-        throw new Error('Comment count indicator is not visible');
       }
     });
   }

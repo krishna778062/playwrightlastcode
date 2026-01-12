@@ -36,7 +36,11 @@ export class ManageAppRecognitionSettingPage extends BasePage {
    */
   async navigateManageAppRecognitionSettingPageViaEndpoint(): Promise<void> {
     await test.step(`Navigating to ${this.pageUrl} via endpoint`, async () => {
-      await this.page.goto(this.pageUrl);
+      const response = await this.page.goto(this.pageUrl, { waitUntil: 'domcontentloaded' });
+      expect(
+        response?.ok(),
+        `Failed to load manage recognition settings page. Status: ${response?.status()}`
+      ).toBeTruthy();
       await this.verifyThePageIsLoaded();
     });
   }
@@ -60,16 +64,22 @@ export class ManageAppRecognitionSettingPage extends BasePage {
    */
   async verifyRecognitionCommentsSettingsUIElements(): Promise<void> {
     await test.step('Verifying comments settings UI elements', async () => {
-      await expect(this.commentsRecognitionPostsHeader).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      await expect(this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_HELPER_MESSAGE)).toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await expect(this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_ENABLED_MESSAGE)).toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await expect(this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_DISABLED_MESSAGE)).toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
+      await expect(
+        this.commentsRecognitionPostsHeader,
+        'Comments & recognition posts header should be visible'
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(
+        this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_HELPER_MESSAGE),
+        'Comments helper message should be visible'
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(
+        this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_ENABLED_MESSAGE),
+        'Comments enabled message should be visible'
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(
+        this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_DISABLED_MESSAGE),
+        'Comments disabled message should be visible'
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 
@@ -90,7 +100,7 @@ export class ManageAppRecognitionSettingPage extends BasePage {
         await radio.click({ force: true });
         await this.saveTheChanges();
       }
-      await expect(radio).toBeChecked();
+      await expect(radio, 'Comments setting radio should be checked after toggle').toBeChecked();
     });
   }
 
@@ -100,7 +110,7 @@ export class ManageAppRecognitionSettingPage extends BasePage {
   async saveTheChanges(): Promise<void> {
     await test.step('Saving manage recognition app settings', async () => {
       await this.saveButton.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
-      await expect(this.saveButton).toBeEnabled();
+      await expect(this.saveButton, 'Save button should be enabled before saving').toBeEnabled();
       await this.saveButton.click();
     });
   }
@@ -110,15 +120,25 @@ export class ManageAppRecognitionSettingPage extends BasePage {
    */
   async verifyDisableCommentsModalElements(): Promise<void> {
     await test.step('Verifying disable comments confirmation modal', async () => {
-      await expect(this.disableCommentsModal).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      await expect(this.disableCommentsModalHeading).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.disableCommentsModal, 'Disable comments modal should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.disableCommentsModalHeading, 'Disable comments modal heading should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
       await expect(
         this.disableCommentsModal.getByText(MANAGE_APP_SETTING_MESSAGES.DISABLE_COMMENTS_CONFIRMATION)
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
       await expect(
         this.disableCommentsModal.getByText(MANAGE_APP_SETTING_MESSAGES.DISABLE_COMMENTS_WARNING)
-      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      await expect(this.disableCommentsCancelButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.disableCommentsCancelButton, 'Cancel button should be visible on disable modal').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -127,10 +147,18 @@ export class ManageAppRecognitionSettingPage extends BasePage {
    */
   async clickDisableCommentsButton(): Promise<void> {
     await test.step('Confirming disable comments action', async () => {
-      await expect(this.disableCommentsConfirmButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      await expect(this.disableCommentsConfirmButton).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+      await expect(
+        this.disableCommentsConfirmButton,
+        'Disable comments confirmation button should be visible'
+      ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await expect(
+        this.disableCommentsConfirmButton,
+        'Disable comments confirmation button should be enabled'
+      ).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
       await this.disableCommentsConfirmButton.click();
-      await expect(this.disableCommentsModal).toBeHidden({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.disableCommentsModal, 'Disable comments modal should close after confirmation').toBeHidden({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 }

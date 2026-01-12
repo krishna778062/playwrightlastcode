@@ -77,8 +77,6 @@
     "test:form-designer": "cross-env MODULE_NAME=form-designer npx playwright test --config=src/modules/form-designer/playwright.form-designer.config.ts",
     "test:recognition": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:recognition:uatAU": "cross-env TEST_ENV=uatAU MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
-    "test:recognition:uatCA": "cross-env TEST_ENV=uatCA MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:recognition:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:only-peer-to-peer": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts",
     "test:only-peer-to-peer:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts"
