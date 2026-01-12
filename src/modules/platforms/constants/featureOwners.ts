@@ -8,3 +8,7 @@ export enum FEATURE_OWNERS_TABS_OPTIONS {
   USERS = 'Users',
   ASSIGNED = 'Assigned',
 }
+
+export enum FEATURE_OWNERS_TOAST_MESSAGES {
+  FEATURE_OWNERS_UPDATED = 'Feature owners updated successfully',
+}

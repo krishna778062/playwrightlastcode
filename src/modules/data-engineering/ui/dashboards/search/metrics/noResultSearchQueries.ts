@@ -49,10 +49,14 @@ export class NoResultSearchQueries extends TabluarMetricsComponent {
    * Handles all CSV validation logic internally including data transformation
    * @param snowflakeDataArray - Raw database data from Snowflake (query helper handles transformation with forCSVValidation=true)
    * @param selectedPeriod - Selected period filter for validation
+   * @param customStartDate - Optional custom start date (required for CUSTOM period)
+   * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
     snowflakeDataArray: NoResultSearchQueriesData[],
-    selectedPeriod: string
+    selectedPeriod: string,
+    customStartDate?: string,
+    customEndDate?: string
   ): Promise<void> {
     await this.verifyDataIsLoaded();
     const { filePath } = await this.downloadDataAsCSV();
@@ -65,6 +69,8 @@ export class NoResultSearchQueries extends TabluarMetricsComponent {
         expectedDBData: snowflakeDataArray as any,
         metricName: 'No result search queries',
         selectedPeriod: selectedPeriod,
+        customStartDate: customStartDate,
+        customEndDate: customEndDate,
         expectedHeaders: ['Search query', 'No result count', 'Total search volume', 'Percentage of total searches'],
         transformations: {
           headerMapping: {
