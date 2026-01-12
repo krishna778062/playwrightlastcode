@@ -22,6 +22,7 @@ export const PAGE_ENDPOINTS = {
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',
+  MANAGE_RECOGNITION_RENAMING: '/manage/recognition/naming',
   MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
@@ -124,6 +125,8 @@ export const PAGE_ENDPOINTS = {
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
   CONTENT_DASHBOARD: '/analytics/content',
+  ON_SITE_PAGE: (siteId: string) => `/manage/sites/${siteId}/analytics`,
+  FILES_DASHBOARD: '/analytics/file',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
@@ -137,4 +140,7 @@ export const PAGE_ENDPOINTS = {
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
   COMMS_PLANNER_PLANNER: '/comms-planner/planner',
   COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
+
+  //Newsletter pages
+  MANAGE_NEWSLETTER_PAGE: '/employee-newsletter',
 };

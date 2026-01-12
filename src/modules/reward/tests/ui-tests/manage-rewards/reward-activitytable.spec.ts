@@ -12,6 +12,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TIMEOUTS } from '@/src/core';
 import { FileUtil } from '@/src/core/utils';
 
 test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
@@ -160,6 +161,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         zephyrTestId: 'RC-3264',
         storyId: 'RC-3264',
       });
+      tagTest(test.info(), {
+        description: 'Verify No Last synced data Note and Info icon on Rewards Activity table',
+        zephyrTestId: 'RC-3420',
+        storyId: 'RC-3065',
+      });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       let items: any;
 
@@ -178,6 +184,10 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
       );
 
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsNotVisible(
+        manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon
+      );
+
       const apiResponse = await apiPromise;
       const json = await apiResponse.json();
       items = json?.total ?? 0;
@@ -191,6 +201,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           break;
         }
         await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelTableShowMoreButton, {
+          timeout: TIMEOUTS.VERY_VERY_SHORT,
           stepInfo: 'Clicking on Show More button',
         });
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
@@ -205,7 +216,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'RC-3421 Validate Pending Recognition activity in Rewards Activity table',
+    '[RC-3421] Validate Pending Recognition activity in Rewards Activity table',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0],
     },
@@ -228,7 +239,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const dialogBox = new DialogBox(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
-      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectTheUserForRecognition(0);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
