@@ -221,13 +221,13 @@ export class FeatureOwnersPage extends BasePage {
    */
   async verifyFeatureOwnerList(featureName: string, numberOfFeaturesDisplayed: number): Promise<void> {
     await test.step(`Verify that ${featureName} feature and only ${numberOfFeaturesDisplayed} count of asset is displayed in the feature owner list`, async () => {
-      let expectedNumberOfFeatureOwnerRecords = await this.featureOwnerRecords.count();
+      const expectedNumberOfFeatureOwnerRecords = await this.featureOwnerRecords.count();
       expect(
         expectedNumberOfFeatureOwnerRecords,
         `Expected number of feature owner records is ${numberOfFeaturesDisplayed} but found be ${expectedNumberOfFeatureOwnerRecords}`
       ).toBe(numberOfFeaturesDisplayed);
 
-      let feature = this.featureOwnerRecords.filter({
+      const feature = this.featureOwnerRecords.filter({
         has: this.page.locator(`[class*='FeatureColumn-module-featureName'] p`).filter({ hasText: featureName }),
       });
       await this.verifier.verifyTheElementIsVisible(feature, {

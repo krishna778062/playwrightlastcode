@@ -243,7 +243,7 @@ export class FeatureOwnerModalComponent extends BaseComponent {
    */
   async verifyUserRecordsWithAppManagerTagCannotBeSelected(): Promise<void> {
     await test.step('Verifying that user records with App Manager tag cannot be selected', async () => {
-      let getUserRecordsWithAppManagerTag = this.userPickerRecordsForUsersTab
+      const getUserRecordsWithAppManagerTag = this.userPickerRecordsForUsersTab
         .filter({
           has: this.page.locator("[class*='AppManagerLabel-module-itemContainer']"),
         })

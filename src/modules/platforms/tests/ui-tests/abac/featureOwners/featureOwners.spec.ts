@@ -17,8 +17,8 @@ import {
   FEATURE_OWNERS_TOAST_MESSAGES,
 } from '@/src/modules/platforms/constants/featureOwners';
 import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
-import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 import { AccessControlGroupsPage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/accessControlGroupsPage';
+import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 test.describe(
   'feature owners testcases',

@@ -975,9 +975,9 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async verifyACGsHasFeature(featureName: string): Promise<void> {
     await test.step(`Verify that all the displayed ACGs has ${featureName} feature`, async () => {
-      let totalACGs: Locator[] = await this.acgRecords.all();
+      const totalACGs: Locator[] = await this.acgRecords.all();
       for (const acg of totalACGs) {
-        let feature = acg.locator('td').nth(1).filter({ hasText: featureName });
+        const feature = acg.locator('td').nth(1).filter({ hasText: featureName });
         await this.verifier.verifyTheElementIsVisible(feature, {
           assertionMessage: `Feature ${featureName} should be visible in the ACG`,
         });
