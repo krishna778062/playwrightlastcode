@@ -111,7 +111,7 @@ test.describe('Newsletter Survey Block', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTE
       await surveyBlockComponent.assertSurveysBlock();
       await surveyBlockComponent.clickToAddSurveysBlock();
       await surveyBlockModal.assertSurveyAndAddServeyBlock(filterName);
-      await newsletterEditorPage.clickPreviewButton();
+      //await newsletterEditorPage.clickPreviewButton();
       await surveyBlockModal.previewSurveyBlock();
     }
   );

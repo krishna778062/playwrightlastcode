@@ -1,4 +1,4 @@
-import { expect, Locator, Page, test } from '@playwright/test';
+import { expect, FrameLocator, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
@@ -17,6 +17,7 @@ export class SurveyBlockModal extends BaseActionUtil {
   // Filter
   readonly filterDropdown: Locator;
   readonly typeSelect: Locator;
+  readonly filterOptionLocator: (filterName: string) => Locator;
 
   // Survey items
   readonly surveyItems: Locator;
@@ -36,6 +37,8 @@ export class SurveyBlockModal extends BaseActionUtil {
 
   // Preview iframe
   readonly previewIframe: Locator;
+  readonly presentationElements: (frame: FrameLocator) => Locator;
+  readonly startSurveyLink: (frame: FrameLocator) => Locator;
 
   // SortableList container (for survey data assertions)
   readonly sortableList: Locator;
@@ -62,6 +65,9 @@ export class SurveyBlockModal extends BaseActionUtil {
     // Type select - using the Cypress selector pattern
     this.typeSelect = this.page.locator('#surveyMenuPortal #type');
 
+    // Filter option locator - function that returns locator for a given filter name
+    this.filterOptionLocator = (filterName: string) => this.page.getByText(filterName, { exact: true }).first();
+
     // Survey items - scoped to dialog
     this.surveyItems = this.modalDialog.locator('listitem');
 
@@ -86,6 +92,12 @@ export class SurveyBlockModal extends BaseActionUtil {
 
     // Preview iframe
     this.previewIframe = this.page.locator('.Preview_frame--akMgz, [class*="Preview_frame"]');
+
+    // Presentation elements - function that returns locator from frame
+    this.presentationElements = (frame: FrameLocator) => frame.locator('[role="presentation"]');
+
+    // Start survey link - function that returns locator from frame
+    this.startSurveyLink = (frame: FrameLocator) => frame.getByRole('link', { name: /start survey/i }).first();
 
     // SortableList container (for survey data assertions)
     this.sortableList = this.page.locator('[class*="SortableList"]').first();
@@ -146,8 +158,7 @@ export class SurveyBlockModal extends BaseActionUtil {
         await this.clickOnElement(this.typeSelect, {
           stepInfo: 'Click type select dropdown',
         });
-        const option = this.page.getByText(filterName, { exact: true }).first();
-        await this.clickOnElement(option, {
+        await this.clickOnElement(this.filterOptionLocator(filterName), {
           stepInfo: `Select filter option: ${filterName}`,
         });
       }
@@ -242,7 +253,7 @@ export class SurveyBlockModal extends BaseActionUtil {
       const frame = this.page.frameLocator('iframe').first();
 
       // Find all elements with role="presentation" in the iframe
-      const presentationElements = frame.locator('[role="presentation"]');
+      const presentationElements = this.presentationElements(frame);
 
       // Wait a bit for iframe content to load
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
@@ -266,15 +277,13 @@ export class SurveyBlockModal extends BaseActionUtil {
         }
         // If no buttons found in presentation elements, verify Start survey link instead
         if (!foundButtons) {
-          const startSurveyLink = frame.getByRole('link', { name: /start survey/i }).first();
-          await this.verifier.verifyTheElementIsVisible(startSurveyLink, {
+          await this.verifier.verifyTheElementIsVisible(this.startSurveyLink(frame), {
             assertionMessage: 'Start survey link should be visible in preview iframe',
           });
         }
       } else {
         // If no presentation elements, verify the survey content directly (Start survey link)
-        const startSurveyLink = frame.getByRole('link', { name: /start survey/i }).first();
-        await this.verifier.verifyTheElementIsVisible(startSurveyLink, {
+        await this.verifier.verifyTheElementIsVisible(this.startSurveyLink(frame), {
           assertionMessage: 'Start survey link should be visible in preview iframe',
         });
       }
