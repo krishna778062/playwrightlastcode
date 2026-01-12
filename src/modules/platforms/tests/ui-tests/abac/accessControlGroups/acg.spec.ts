@@ -312,11 +312,11 @@ test.describe(
     test(
       'verify that user manager should have access for ACG creation',
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
       },
       async ({ userManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-33248', 'PS-33250'],
+          zephyrTestId: ['PS-33248', 'PS-33250', 'PS-33249'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(userManagerFixture.page);
         // Test Scenario
@@ -325,9 +325,32 @@ test.describe(
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(targetAudienceToCreate[0]));
         await appManagerApiFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
         );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.ADMIN);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchAndSelectUserWithEnter(adminsAudienceUser[0].username);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS,
+        });
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );

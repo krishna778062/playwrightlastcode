@@ -966,4 +966,22 @@ export class AccessControlGroupsPage extends BasePage {
       ).toBe(expectedCount);
     });
   }
+
+  /**
+   * Compares ACG assets count with the expected count.
+   * @param acgName - Name of the ACG for which assets count needs to be compared.
+   * @param assetName - Name of the asset for which count needs to be compared.
+   * @param expectedCount - Expected count of the assets.
+   */
+  async verifyACGsHasFeature(featureName: string): Promise<void> {
+    await test.step(`Verify that all the displayed ACGs has ${featureName} feature`, async () => {
+      let totalACGs: Locator[] = await this.acgRecords.all();
+      for (const acg of totalACGs) {
+        let feature = acg.locator('td').nth(1).filter({ hasText: featureName });
+        await this.verifier.verifyTheElementIsVisible(feature, {
+          assertionMessage: `Feature ${featureName} should be visible in the ACG`,
+        });
+      }
+    });
+  }
 }

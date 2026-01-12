@@ -18,6 +18,7 @@ import {
 } from '@/src/modules/platforms/constants/featureOwners';
 import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
 import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
+import { AccessControlGroupsPage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/accessControlGroupsPage';
 
 test.describe(
   'feature owners testcases',
@@ -71,6 +72,11 @@ test.describe(
       loginIdentifier4 = user4.emp;
       await appManagerApiFixture.userManagementService.addUserIfNotAddedAlready(user1, Roles.END_USER);
       await appManagerApiFixture.userManagementService.waitForUserToBeAddedInIdentity(loginIdentifier1);
+      await appManagerApiFixture.userManagementService.registerUser(loginIdentifier1, {
+        verificationQuestionField: 'department',
+        verificationQuestionValue: 'Product',
+        password: 'Simp@1234',
+      });
       await appManagerApiFixture.userManagementService.addUserIfNotAddedAlready(user2, Roles.APPLICATION_MANAGER);
       await appManagerApiFixture.userManagementService.waitForUserToBeAddedInIdentity(loginIdentifier2);
       await appManagerApiFixture.userManagementService.addUserIfNotAddedAlready(user3, Roles.APPLICATION_MANAGER);
@@ -117,18 +123,20 @@ test.describe(
       test(
         `Verify the functionality of edit feature owner modal for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
         },
-        async ({ userManagerFixture, appManagerApiFixture }) => {
+        async ({ appManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: 'PS-33485',
+            zephyrTestId: ['PS-33485', 'PS-32962', 'PS-32974'],
           });
-          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
+          const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
 
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+
+          await featureOwnersPage.featureOwnerModal.verifyUserRecordsWithAppManagerTagCannotBeSelected();
 
           // Wait for the Users tab content to load
           await featureOwnersPage.featureOwnerModal.waitForUsersTabToLoad();
@@ -162,11 +170,11 @@ test.describe(
       test(
         `Verify that user manager should have access for editing ${feature} feature under feature owners tab`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
         },
         async ({ userManagerFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33252', 'PS-33251', 'PS-33493'],
+            zephyrTestId: ['PS-33252', 'PS-33251', 'PS-33493', 'PS-33254'],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
 
@@ -175,6 +183,7 @@ test.describe(
           await featureOwnersPage.searchForFeature(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          await featureOwnersPage.featureOwnerModal.verifyUserRecordsWithAppManagerTagCannotBeSelected();
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([user1.username]);
           await featureOwnersPage.verifyToastMessageIsVisibleWithText(
             FEATURE_OWNERS_TOAST_MESSAGES.FEATURE_OWNERS_UPDATED
@@ -324,11 +333,11 @@ test.describe(
       test(
         `Verify that App manager should be able to add a user without app manager or user manager role as Feature owner for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, '@healthcheck'],
+          tag: [TestPriority.P1, `@ABAC`, `@featureOwners`, '@healthcheck', '@this-one'],
         },
-        async ({ appManagerFixture }) => {
+        async ({ appManagerFixture, browser }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-32975'],
+            zephyrTestId: ['PS-32975', 'PS-32976'],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
           await featureOwnersPage.loadPage();
@@ -337,13 +346,37 @@ test.describe(
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([user1.username]);
-          await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
-          await featureOwnersPage.dismissTheToastMessage({ toastText: 'Feature owners updated successfully' });
+          await featureOwnersPage.verifyToastMessageIsVisibleWithText(
+            FEATURE_OWNERS_TOAST_MESSAGES.FEATURE_OWNERS_UPDATED
+          );
+          await featureOwnersPage.dismissTheToastMessage({
+            toastText: FEATURE_OWNERS_TOAST_MESSAGES.FEATURE_OWNERS_UPDATED,
+          });
+
+          // await featureOwnersPage.page.waitForTimeout(10000);
+          const newUserContext = await browser.newContext();
+          const newPage = await newUserContext.newPage();
+          await LoginHelper.loginWithPassword(newPage, {
+            email: loginIdentifier1,
+            password: 'Simp@1234',
+          });
+
+          const newUserAccessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(newPage);
+          await newUserAccessControlGroupsPage.loadPage();
+          await newUserAccessControlGroupsPage.verifyACGsHasFeature(feature);
+
+          await newPage.goto(PAGE_ENDPOINTS.FEATURE_OWNERS);
+          await newUserAccessControlGroupsPage.verifyAccessDeniedPageVisibility();
+
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
           await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([user1.username]);
-          await featureOwnersPage.verifyToastMessageIsVisibleWithText('Feature owners updated successfully');
-          await featureOwnersPage.dismissTheToastMessage({ toastText: 'Feature owners updated successfully' });
+          await featureOwnersPage.verifyToastMessageIsVisibleWithText(
+            FEATURE_OWNERS_TOAST_MESSAGES.FEATURE_OWNERS_UPDATED
+          );
+          await featureOwnersPage.dismissTheToastMessage({
+            toastText: FEATURE_OWNERS_TOAST_MESSAGES.FEATURE_OWNERS_UPDATED,
+          });
         }
       );
 

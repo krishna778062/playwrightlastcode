@@ -237,4 +237,23 @@ export class FeatureOwnerModalComponent extends BaseComponent {
       ]);
     });
   }
+
+  /**
+   * Verifies that user records with App Manager tag cannot be selected.
+   */
+  async verifyUserRecordsWithAppManagerTagCannotBeSelected(): Promise<void> {
+    await test.step('Verifying that user records with App Manager tag cannot be selected', async () => {
+      let getUserRecordsWithAppManagerTag = this.userPickerRecordsForUsersTab
+        .filter({
+          has: this.page.locator("[class*='AppManagerLabel-module-itemContainer']"),
+        })
+        .first();
+      await this.verifier.verifyTheElementIsDisabled(
+        getUserRecordsWithAppManagerTag.locator('[class*="CheckboxInput-module__input"]'),
+        {
+          assertionMessage: 'User records with App Manager tag cannot not be selected',
+        }
+      );
+    });
+  }
 }
