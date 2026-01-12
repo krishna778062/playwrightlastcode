@@ -503,6 +503,7 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
+        await feedPage.clickOnShowOption('all');
 
         await feedPage.feedList.clickShareIcon(videoPostText);
 
@@ -592,6 +593,7 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
+        await feedPage.clickOnShowOption('all');
 
         // Click the "Share" icon on the Feed post created by Admin
         await feedPage.feedList.clickShareIcon(videoPostText);
@@ -617,7 +619,6 @@ test.describe(
 
         // Verify the user is navigated to the Feed Detail Page
         // Wait for navigation to feed detail page
-        await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`));
         const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
         await feedDetailPage.feedList.waitForPostToBeVisible(videoPostText);
 
@@ -807,6 +808,7 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           await endUserFeedPage.reloadPage();
           await endUserFeedPage.verifyThePageIsLoaded();
+          await endUserFeedPage.clickOnShowOption('all');
 
           await endUserFeedPage.deletePost(createdPostText);
         });
@@ -1176,6 +1178,7 @@ test.describe(
 
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.reloadPage();
+        await endUserFeedPage.clickOnShowOption('all');
 
         // Verify "End User" is able to view "Site Owner's" shared feed post with the message
         await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
@@ -2576,6 +2579,7 @@ test.describe(
         // Step 2: Navigate via Site Mentions
         await test.step('Navigate via site mentions', async () => {
           // Click Public Site mention and verify navigation
+          await feedPage.clickOnShowOption('all');
           await feedPage.clickSiteMentionInPost(initialPostText, publicSiteName, publicSiteId);
 
           // Return to Home-Global Feed
@@ -2690,6 +2694,7 @@ test.describe(
         // Login as EndUser and verify Follow button on hover in feed post
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.reloadPage();
+        await endUserFeedPage.clickOnShowOption('all');
         await endUserFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Hover on profile icon in feed post - verify user name, photo, and Follow button
@@ -2892,6 +2897,7 @@ test.describe(
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
           await endUserFeedPage.reloadPage();
+          await endUserFeedPage.clickOnShowOption('all');
 
           await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 

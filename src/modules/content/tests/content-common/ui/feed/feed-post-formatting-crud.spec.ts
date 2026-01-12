@@ -328,6 +328,8 @@ test.describe(
             const homeFeedPostText = homeFeedData.text;
 
             // Wait for post to be visible and verify timestamp format
+            await feedPage.reloadPage();
+            await feedPage.clickOnShowOption('all');
             await feedPage.feedList.waitForPostToBeVisible(homeFeedPostText);
             await feedPage.feedList.verifyTimestampFormat(homeFeedPostText);
             console.log('✓ Home Dashboard timestamp format verified');

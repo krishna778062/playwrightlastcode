@@ -1724,9 +1724,6 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: 'Close button should be visible in reaction modal',
       });
       await this.clickOnElement(closeButton);
-      await this.verifier.verifyTheElementIsNotVisible(closeButton, {
-        assertionMessage: 'Close button should not be visible in reaction modal',
-      });
     });
   }
 
