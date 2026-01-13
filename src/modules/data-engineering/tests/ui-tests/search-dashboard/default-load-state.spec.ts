@@ -270,7 +270,7 @@ test.describe(
 
     // 7. Top search queries metric
     test(
-      'verify Top search queries metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Top search queries in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -282,7 +282,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Top search queries in Search dashboard with default filter',
+          description: 'TS To verify the answer of Top search queries in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-25995',
           storyId: 'DE-25926',
         });
@@ -304,7 +304,7 @@ test.describe(
 
     // 8. Top search queries CSV
     test(
-      'verify Top search queries CSV download and data validation with default period filter (Last 30 days)',
+      'TS To verify the CSV of answer top search queries in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -317,7 +317,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Top search queries in Search dashboard with default filter',
+            'TS To verify the CSV of answer top search queries in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-25525',
           storyId: 'DE-25933',
         });
@@ -337,7 +337,7 @@ test.describe(
 
     // 9. Most searches performed by Department metric
     test(
-      'verify Most searches performed by Department metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Most searches performed by User Parameter in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -350,7 +350,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Most searches performed by Department in Search dashboard with default filter',
+            'TS To verify the answer of Most searches performed by User Parameter in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-25994',
           storyId: 'DE-25925',
         });
@@ -375,7 +375,7 @@ test.describe(
 
     // 10. Most searches performed by Department CSV
     test(
-      'verify Most searches performed by Department CSV download and data validation with default period filter (Last 30 days)',
+      'TS To verify the CSV of answer most searches performed by department in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -388,7 +388,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Most searches performed by Department in Search dashboard with default filter',
+            'TS To verify the CSV of answer most searches performed by department in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-26546',
           storyId: 'DE-25933',
         });
@@ -413,7 +413,7 @@ test.describe(
 
     // 11. No result search queries metric
     test(
-      'verify No result search queries metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of No result search queries in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -425,7 +425,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of No result search queries in Search dashboard with default filter',
+          description:
+            'TS To verify the answer of No result search queries in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-25999',
           storyId: 'DE-25927',
         });
@@ -447,7 +448,7 @@ test.describe(
 
     // 12. No result search queries CSV
     test(
-      'verify No result search queries CSV download and data validation with default period filter (Last 30 days)',
+      'TS To verify the CSV of answer No result search queries in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -460,7 +461,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for No result search queries in Search dashboard with default filter',
+            'TS To verify the CSV of answer No result search queries in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-26078',
           storyId: 'DE-25933',
         });
@@ -482,7 +483,7 @@ test.describe(
 
     // 13. Top search queries with no clickthrough metric
     test(
-      'verify Top search queries with no clickthrough metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Top search queries with no clickthrough in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -495,7 +496,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Top search queries with no clickthrough in Search dashboard with default filter',
+            'TS To verify the answer of Top search queries with no clickthrough in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-26002',
           storyId: 'DE-25928',
         });
@@ -520,7 +521,7 @@ test.describe(
 
     // 14. Top search queries with no clickthrough CSV
     test(
-      'verify Top search queries with no clickthrough CSV download and data validation with default period filter (Last 30 days)',
+      'TS To verify the CSV of answer top search queries with no clickthrough in Search Dashboard Default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -533,7 +534,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Top search queries with no clickthrough in Search dashboard with default filter',
+            'TS To verify the CSV of answer top search queries with no clickthrough in Search Dashboard Default load last 30 days',
           zephyrTestId: 'DE-26547',
           storyId: 'DE-25933',
         });
@@ -559,7 +560,7 @@ test.describe(
 
     // 15. Top clickthrough types metric
     test(
-      'verify Top clickthrough types metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Top clickthrough types in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -571,7 +572,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Top clickthrough types in Search dashboard with default filter',
+          description:
+            'TS To verify the answer of Top clickthrough types in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-26006',
           storyId: 'DE-25929',
         });
@@ -593,7 +595,7 @@ test.describe(
 
     // 16. Top clickthrough types CSV
     test(
-      'verify Top clickthrough types CSV download and data validation with default period filter (Last 30 days)',
+      'TS To verify the CSV of answer top clickthrough types in Search Dashboard default load last 30 days',
       {
         tag: [
           TestPriority.P0,
@@ -606,7 +608,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Top clickthrough types in Search dashboard with default filter',
+            'TS To verify the CSV of answer top clickthrough types in Search Dashboard default load last 30 days',
           zephyrTestId: 'DE-26548',
           storyId: 'DE-25933',
         });
