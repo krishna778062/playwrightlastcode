@@ -303,10 +303,23 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test', 'uatAU', 'uatCA'].includes(testEnv)) {
+  const allowedEnvs: EnvironmentKey[] = [
+    'qa',
+    'test',
+    'uatAU',
+    'uatCA',
+    'uatUS',
+    'uatEU',
+    'prodAU',
+    'prodCA',
+    'prodUS',
+    'prodEU',
+  ];
+
+  if (!allowedEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod, uatAU\n` +
+        `Valid values are: ${allowedEnvs.join(', ')}\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
         `Example: TEST_ENV=prod npm run test\n` +

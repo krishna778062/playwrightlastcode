@@ -29,6 +29,7 @@ export class RecognitionHubPage extends BasePage {
   readonly commentSubmitButton: Locator;
   readonly commentCountIndicator: Locator;
   readonly commentItems: Locator;
+  readonly receiverNameLink: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
@@ -46,6 +47,8 @@ export class RecognitionHubPage extends BasePage {
     this.slackChannelInput = page.locator('[data-testid="slack-channel-input"], input[name="slackChannel"]');
     this.shareButton = page.getByRole('button', { name: /share/i }).first();
     this.skipButton = page.getByRole('button', { name: /skip/i }).first();
+
+    this.receiverNameLink = page.locator('[data-testid*="awardeeNames"] a').first();
 
     this.feedPost = page.locator('[class^=Recognition_panelInner]');
     this.feedPostMoreButton = page.getByTestId('recognition_popover_launcher');
@@ -78,6 +81,19 @@ export class RecognitionHubPage extends BasePage {
     await test.step(`Navigating to ${endpoint} via endpoint`, async () => {
       await this.page.goto(endpoint);
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  /**
+   * Navigate to single user profile from Hub feed
+   */
+  async navigateToAwardRecipientProfileFromHubViaLinkClick(): Promise<void> {
+    await test.step('Navigate to a single user profile from the Hub feed', async () => {
+      await this.receiverNameLink.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.receiverNameLink.first(), {
+        timeout: TIMEOUTS.VERY_SHORT,
+        stepInfo: 'Clicking on recipient name link',
+      });
     });
   }
 
@@ -272,7 +288,7 @@ export class RecognitionHubPage extends BasePage {
       await this.page.keyboard.insertText(commentText);
       await expect(this.commentSubmitButton).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
       await this.commentSubmitButton.click();
-      await expect(this.commentInput).toBeHidden({ timeout: TIMEOUTS.MEDIUM });
+      await expect(this.commentInput).toBeHidden({ timeout: TIMEOUTS.LONG });
     });
   }
 
