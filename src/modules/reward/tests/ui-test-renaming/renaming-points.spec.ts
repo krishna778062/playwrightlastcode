@@ -95,7 +95,7 @@ test.describe('renaming page', () => {
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
       const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
-      await renamingPage.enableTheOtherLanguageAndEnterCustomValue('Points');
+      await renamingPage.enableTheOtherLanguageAndEnterCustomValue('points');
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.clickEditButtonByCardType('points');
       await renamingPage.clickOnResetButton();
