@@ -6,4 +6,8 @@ export const BACKEND_URLS = {
   'app.simpplr.xyz': 'https://api-be.app.simpplr.xyz',
   'qa.simpplr.xyz': 'https://api-be.qa.simpplr.xyz',
   'perf.simpplr.xyz': 'https://api-be.perf.simpplr.xyz',
+  // .simpplr.com domains (production-like)
+  'uat-eu.simpplr.com': 'https://api-be.uat-eu.simpplr.com',
+  'uat.simpplr.com': 'https://api-be.uat.simpplr.com',
+  'app.simpplr.com': 'https://api-be.app.simpplr.com',
 } as const;
