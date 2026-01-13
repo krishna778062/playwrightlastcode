@@ -10,7 +10,7 @@ import { SocialCampaignApiHelper } from '@/src/modules/content/apis/apiValidatio
 test.describe(
   '@Social Campaign API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.SOCIAL_CAMPAIGN],
   },
   () => {
     let socialCampaignApiHelper: SocialCampaignApiHelper;
@@ -35,13 +35,7 @@ test.describe(
     test(
       'validate App manager is able to create social campaign using API',
       {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          ContentTestSuite.SOCIAL_CAMPAIGN,
-          '@CONT-42059',
-          ContentTestSuite.API,
-        ],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42059', ContentTestSuite.API],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
