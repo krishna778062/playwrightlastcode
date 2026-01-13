@@ -38,6 +38,9 @@ export class RewardsDialogBox extends BasePage {
   readonly rewardAmountsAvailablePoints: Locator;
   readonly redemptionZeroPointErrorDialogBox: Locator;
   readonly zeroBalanceError: Locator;
+  readonly rewardValueOptions: Locator;
+  readonly confirmOrderModalRedeemValue: Locator;
+  readonly rewardAmountCalculatedValue: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -50,6 +53,7 @@ export class RewardsDialogBox extends BasePage {
     this.pointsAvailable = this.container.getByText('points available');
     this.selectRewardValueLabel = this.container.getByText('Select your reward value');
     this.selectRewardValueDropdown = this.container.getByTestId('SelectInput');
+    this.rewardValueOptions = this.selectRewardValueDropdown.locator('option');
     this.checkoutButton = this.container.getByRole('button', { name: 'Checkout' });
     this.termsText = this.container.getByText('terms');
     this.termsAndConditionCheckbox = this.container.locator('[id="confirmation_termsAndConditions"]');
@@ -60,6 +64,7 @@ export class RewardsDialogBox extends BasePage {
     this.confirmOrderCloseButton = this.container.locator('[aria-label="Close"]');
     this.confirmOrderBackButton = this.container.locator('[aria-label="Back"]');
     this.confirmOrderCancelButton = this.container.getByRole('button', { name: 'Cancel' });
+    this.confirmOrderModalRedeemValue = this.container.locator('[class*="imageContainer"]+div > h3+div > div');
     this.successOrderLogo = this.container.locator('div[class^="RedemptionDialog_successIllustration"]');
     this.successOrderHeading = this.container.getByRole('heading', { level: 4 });
     this.successOrderDescription = this.container.locator('p[class*="Typography-module__paragraph"]');
@@ -85,6 +90,8 @@ export class RewardsDialogBox extends BasePage {
     // 0 point error dialog box
     this.redemptionZeroPointErrorDialogBox = page.locator('div[class*="RedemptionDialog_errorPanel"]');
     this.zeroBalanceError = this.redemptionZeroPointErrorDialogBox.locator('p').last();
+
+    this.rewardAmountCalculatedValue = this.container.locator('input[name="reward.convertedCurrencyAmount"]');
   }
 
   /**
