@@ -1080,19 +1080,30 @@ jobs:
       # ────────────────────────────────────────────────────────────────────
       # STEP 17: SEND SLACK NOTIFICATION
       # Purpose: Notify team of test results
-      # Format: Includes emojis, counts, and links to reports
+      # Format: Rich multi-line format with filters, branch, and stats
       # ────────────────────────────────────────────────────────────────────
       - name: Send Slack Notification
         if: always()
         run: |
           # Only send notification if tests actually ran
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Build message with or without known failures info
+            # Build rich multi-line Slack message
+            PRIORITY="${{ inputs.priority_filter }}"
+            TEST_TYPE="${{ inputs.test_type }}"
+            FEATURE_TAGS="${{ inputs.feature_tags }}"
+            BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+            MODULE="${{ matrix.module }}"
+            ENV="${{ inputs.environment }}"
+            TRIGGERED_BY="${{ github.actor }}"
+            
+            # Build known failures suffix if any
+            KNOWN_SUFFIX=""
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` (\`${{ needs.determine-config.outputs.checkout_ref }}\`) completed: ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
-            else
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` (\`${{ needs.determine-config.outputs.checkout_ref }}\`) completed: ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
             fi
+            
+            # Rich multi-line message format (using \n for newlines)
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
             
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
@@ -1106,19 +1117,26 @@ jobs:
       - name: Send Failure Notification
         if: always()
         run: |
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
+          BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+          MODULE="${{ matrix.module }}"
+          ENV="${{ inputs.environment }}"
+
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
             
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found matching criteria
-              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` found no tests. Check filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n💡 No tests matched the filter criteria. Please check your filters.\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$MESSAGE\"}" \
                 $SLACK_WEBHOOK_URL
             fi
           else
             # Pipeline failed before tests could run
-            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` could not execute. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n❌ Pipeline could not execute. Check job logs for errors.\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1138,7 +1156,7 @@ jobs:
     steps:
       - name: Notify Slack about skip
         run: |
-          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped* - ${{ needs.determine-config.outputs.skip_reason }} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n💡 ${{ needs.determine-config.outputs.skip_reason }}\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL
