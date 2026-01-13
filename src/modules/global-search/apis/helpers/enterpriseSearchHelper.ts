@@ -71,4 +71,69 @@ export class EnterpriseSearchHelper {
 
     return foundItem;
   }
+
+  /**
+   * Waits for a result to disappear from the API response for a given search term.
+   * This is useful for verifying that deactivated/deleted items are no longer searchable.
+   * @param params - Search parameters with descriptive names.
+   * @param params.apiClient - The API client to use.
+   * @param params.searchTerm - The search term to use.
+   * @param params.objectType - The object type to search for (e.g., 'content', 'feed', 'file', 'site').
+   * @param params.valueToFind - The value to find in the specified field (defaults to searchTerm if not provided).
+   * @param params.fieldToCheck - The field in the result item to check for the value (defaults to 'title').
+   */
+  static async waitForResultToDisappearInApiResponse(params: {
+    apiClient: HttpClient;
+    searchTerm: string;
+    objectType: string;
+    valueToFind?: string;
+    fieldToCheck?: string;
+  }) {
+    const {
+      apiClient,
+      searchTerm,
+      objectType,
+      valueToFind,
+      fieldToCheck = objectType === 'feed' ? 'excerpt' : 'title',
+    } = params;
+
+    await test.step(`Waiting for search results to disappear for search term ${searchTerm}`, async () => {
+      await expect(
+        async () => {
+          const response = await apiClient.post(API_ENDPOINTS.search.enterprise, {
+            data: { page_size: 10, exact_match: true, search_term: searchTerm },
+          });
+          const responseBody = await response.json();
+          if (!responseBody?.data?.list_items || responseBody.data.list_items.length === 0) {
+            console.log('list_items is empty or missing - item has disappeared from search results');
+            return;
+          }
+
+          const result = (responseBody.data.list_items || []).filter(
+            (eachItem: any) => eachItem?.item?.object_type === objectType
+          );
+
+          const valueToSearch = valueToFind || searchTerm;
+
+          let resultItem;
+          if (objectType === 'feed') {
+            resultItem = result.find(
+              (eachItem: any) =>
+                eachItem.item.excerpt?.includes(valueToSearch) ||
+                eachItem.item.text?.includes(valueToSearch) ||
+                eachItem.item.title?.includes(valueToSearch) ||
+                eachItem.item.textHtml?.includes(valueToSearch) ||
+                eachItem.item.textJson?.includes(valueToSearch)
+            );
+          } else {
+            resultItem = result.find((eachItem: any) => eachItem.item[fieldToCheck] === valueToSearch);
+          }
+          expect(resultItem).toBeUndefined();
+        },
+        {
+          message: `${objectType} result for search term ${searchTerm} to disappear from api response`,
+        }
+      ).toPass({ intervals: [20000], timeout: 140_000 });
+    });
+  }
 }

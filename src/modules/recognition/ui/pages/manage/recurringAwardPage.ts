@@ -794,6 +794,13 @@ export class RecurringAwardPage extends BasePage {
     });
   }
 
+  async saveChangesAndCreateRecurringAward(): Promise<void> {
+    await test.step('Saving changes and creating recurring award', async () => {
+      await expect(this.awardCreationForm.saveChangesButton).toBeEnabled();
+      await this.awardCreationForm.saveChangesButton.click();
+    });
+  }
+
   /**
    * Select a single award delegate
    * @param delegateName - The name of the delegate to select
@@ -1074,6 +1081,26 @@ export class RecurringAwardPage extends BasePage {
     }
     await input.press('Backspace').catch(() => undefined);
     await this.page.keyboard.type(value, { delay: 75 });
+  }
+
+  /**
+   * Set participation window to Custom with the given days (usable in create/edit flows).
+   */
+  async setParticipationWindowCustomDays(days: number): Promise<void> {
+    await this.setCustomRangeForCustomRecurringAward({
+      fieldTestId: 'Participation window',
+      expectedValue: days,
+    });
+  }
+
+  /**
+   * Edit the current award's participation window to a custom day count (e.g., 14).
+   * Caller must already be on the edit form for the target award.
+   */
+  async editParticipationWindowCustomDays(days: number): Promise<void> {
+    await test.step(`Editing participation window to custom ${days} day(s)`, async () => {
+      await this.setParticipationWindowCustomDays(days);
+    });
   }
 
   /**
