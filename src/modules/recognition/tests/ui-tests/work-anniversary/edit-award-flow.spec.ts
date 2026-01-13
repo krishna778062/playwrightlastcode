@@ -1,6 +1,6 @@
 import { expect } from '@playwright/test';
 import { automatedAwardMsgs } from '@recognition/constants/automated-award-constants';
-import { WorkAnniversaryFeatureTags, WorkAnniversarySuitTags } from '@recognition/constants/testTags';
+import { WorkAnniversaryFeatureTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import {
   AutomatedAwardPage,
@@ -13,7 +13,7 @@ import { tagTest } from '@core/utils';
 
 import { DialogContainerForm } from '../../../ui/components/workAnniversary-dialog-container-form';
 
-test.describe('Edit work anniversary award', { tag: [WorkAnniversarySuitTags.MANAGE_WORK_ANNIVERSARY] }, () => {
+test.describe('Edit work anniversary award', { tag: [WorkAnniversaryFeatureTags.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageAutomatedAwardPage = new ManageAutomatedAwardPage(appManagerPage);

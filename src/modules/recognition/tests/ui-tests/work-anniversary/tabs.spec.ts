@@ -1,5 +1,5 @@
 import { automatedAwardMsgs } from '@recognition/constants/automated-award-constants';
-import { WorkAnniversaryFeatureTags, WorkAnniversarySuitTags } from '@recognition/constants/testTags';
+import { WorkAnniversaryFeatureTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { AutomatedAwardPage, ManageAutomatedAwardPage } from '@recognition/ui/pages/manage/work-anniversary';
 
@@ -7,7 +7,7 @@ import { TestGroupType, TestPriority } from '@core/constants';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { tagTest } from '@core/utils';
 
-test.describe('Work Anniversary tab', { tag: [WorkAnniversarySuitTags.MANAGE_WORK_ANNIVERSARY] }, () => {
+test.describe('Work Anniversary tab', { tag: [WorkAnniversaryFeatureTags.MANAGE_WORK_ANNIVERSARY] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageAutomatedAwardPage = new ManageAutomatedAwardPage(appManagerPage);

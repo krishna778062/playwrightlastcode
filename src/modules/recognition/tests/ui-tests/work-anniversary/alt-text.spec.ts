@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { WorkAnniversaryFeatureTags, WorkAnniversarySuitTags } from '@recognition/constants/testTags';
+import { WorkAnniversaryFeatureTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import {
   AutomatedAwardPage,
@@ -18,7 +18,7 @@ const imagePath = path.resolve(__dirname, '../../../../content/test-data/static-
 
 test.describe(
   'Work anniversary - Alt text addition',
-  { tag: [WorkAnniversarySuitTags.MANAGE_WORK_ANNIVERSARY] },
+  { tag: [WorkAnniversaryFeatureTags.MANAGE_WORK_ANNIVERSARY] },
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {
       const { page: appManagerPage } = appManagerFixture;

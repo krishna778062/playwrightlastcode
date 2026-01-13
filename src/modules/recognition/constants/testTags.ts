@@ -27,9 +27,6 @@ export enum RecurringAwardsFeatureTags {
 
 export enum WorkAnniversaryFeatureTags {
   WORK_ANNIVERSARY = '@work-anniversary',
-}
-
-export enum WorkAnniversarySuitTags {
   MANAGE_WORK_ANNIVERSARY = '@manage-work-anniversary',
 }
 
@@ -38,7 +35,6 @@ export const RecognitionTestTags = [
   ...Object.values(RecognitionFeatureTags),
   ...Object.values(RecurringAwardsFeatureTags),
   ...Object.values(WorkAnniversaryFeatureTags),
-  ...Object.values(WorkAnniversarySuitTags),
 ] as const;
 
 export default RecognitionTestTags;
