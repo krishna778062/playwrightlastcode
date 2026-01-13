@@ -3,7 +3,8 @@
 # ============================================================================
 #
 # PURPOSE:
-#   Run regression tests manually on any environment.
+#   Run regression tests manually on any environment with optional filtering.
+#   Supports priority, test type, and feature tag filters.
 #
 # CALLS:
 #   regression-unified-template.yml with trigger_type=manual
@@ -52,13 +53,42 @@ on:
           - 'reward'
           - 'reward-settings'
           - 'reward-workAnniversary'
+          - 'reward-renaming'
           - 'recognition'
           - 'privateRecognition'
           - 'frontline'
+          - 'newsletter'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
           - 'comms-planner'
+
+      priority_filter:
+        description: 'Filter by priority'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - '@P0'
+          - '@P1'
+          - '@P2'
+
+      test_type:
+        description: 'Filter by test type'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - '@smoke'
+          - '@regression'
+
+      feature_tags:
+        description: 'Feature tags (comma-separated, e.g., @chat-attachment)'
+        required: false
+        default: 'all'
+        type: string
 
       workers:
         description: 'Parallel workers'
@@ -96,4 +126,7 @@ jobs:
       modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
       is_browserstack: ${{ inputs.is_browserstack }}
       workers: ${{ inputs.workers }}
+      priority_filter: ${{ inputs.priority_filter }}
+      test_type: ${{ inputs.test_type }}
+      feature_tags: ${{ inputs.feature_tags }}
     secrets: inherit

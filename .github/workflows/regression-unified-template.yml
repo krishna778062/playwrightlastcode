@@ -143,6 +143,37 @@ on:
         type: string
         default: ''
 
+      # ========================================================================
+      # FILTERING INPUTS (for manual/targeted runs)
+      # ========================================================================
+
+      priority_filter:
+        description: |
+          Filter tests by priority tag.
+          Values: @P0, @P1, @P2, all (no filter)
+          Example: '@P0' runs only P0 priority tests
+        required: false
+        type: string
+        default: 'all'
+
+      test_type:
+        description: |
+          Filter tests by test type tag.
+          Values: @smoke, @regression, all (no filter)
+          Example: '@smoke' runs only smoke tests
+        required: false
+        type: string
+        default: 'all'
+
+      feature_tags:
+        description: |
+          Comma-separated list of feature tags to filter tests.
+          Example: '@chat-attachment,@chat-mentions'
+          Use 'all' for no filter.
+        required: false
+        type: string
+        default: 'all'
+
 # ============================================================================
 # PERMISSIONS
 # ============================================================================
@@ -640,26 +671,62 @@ jobs:
           # ================================================================
           # TEST EXECUTION SCRIPT
           # ================================================================
-          # - Full regression: Runs ALL tests for the module
+          # - Full regression: Runs ALL tests for the module (no filters)
           # - Prod healthcheck: Runs only @healthcheck tagged tests
-          # - For other filtered runs, use manual-regression-v2.yml
+          # - Filtered runs: Use priority_filter, test_type, feature_tags
           # ================================================================
 
           MODULE="${{ matrix.module }}"
           WORKERS="${{ inputs.workers }}"
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
           TRIGGER_TYPE="${{ inputs.trigger_type }}"
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
 
           # Set TLS config for test environments (some use self-signed certs)
           export NODE_TLS_REJECT_UNAUTHORIZED=0
 
           # ────────────────────────────────────────────────────────────
-          # Determine grep filter based on trigger type
+          # Build grep filter from inputs
           # ────────────────────────────────────────────────────────────
-          GREP_FILTER=""
+          ALL_TAGS=()
+
+          # Production healthcheck: always filter by @healthcheck
           if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
-            GREP_FILTER='--grep="@healthcheck"'
-            echo "🏥 Production Healthcheck: Filtering by @healthcheck tag"
+            ALL_TAGS+=("@healthcheck")
+            echo "🏥 Production Healthcheck: Adding @healthcheck filter"
+          fi
+
+          # Add priority filter (skip if "all" or empty)
+          if [ "$PRIORITY" != "all" ] && [ -n "$PRIORITY" ]; then
+            ALL_TAGS+=("$PRIORITY")
+            echo "🎯 Priority filter: $PRIORITY"
+          fi
+
+          # Add test type filter (skip if "all" or empty)
+          if [ "$TEST_TYPE" != "all" ] && [ -n "$TEST_TYPE" ]; then
+            ALL_TAGS+=("$TEST_TYPE")
+            echo "🧪 Test type filter: $TEST_TYPE"
+          fi
+
+          # Add feature tags (skip if "all" or empty)
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              tag=$(echo "$tag" | xargs)  # Trim whitespace
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+            echo "🏷️ Feature tags: $FEATURE_TAGS"
+          fi
+
+          # Build grep filter string
+          GREP_FILTER=""
+          if [ ${#ALL_TAGS[@]} -gt 0 ]; then
+            # Join tags with | for OR matching
+            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+            GREP_FILTER="--grep=\"$GREP_REGEX\""
+            echo "🔍 Combined grep filter: $GREP_REGEX"
           fi
 
           echo "=========================================="
@@ -669,6 +736,9 @@ jobs:
           echo "Workers: $WORKERS"
           echo "BrowserStack: $IS_BROWSERSTACK"
           echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Priority: ${PRIORITY:-'all'}"
+          echo "Test Type: ${TEST_TYPE:-'all'}"
+          echo "Feature Tags: ${FEATURE_TAGS:-'all'}"
           echo "Grep Filter: ${GREP_FILTER:-'(none - full regression)'}"
           echo ""
 
