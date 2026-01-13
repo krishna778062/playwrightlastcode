@@ -12,6 +12,7 @@ export class TopicDetailsPage extends BasePage {
   private baseActionUtil: BaseActionUtil;
   private shareSocialCampaignComponent: ShareComponent;
   readonly clickingOnFeedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
+  readonly contentTab: Locator = this.page.getByRole('tab', { name: 'Content' });
   readonly ellipsesButton: Locator = this.page.getByRole('button', { name: 'Show more' });
   readonly editOption: Locator = this.page.getByText('Edit');
   readonly deleteOption: Locator = this.page.getByText('Delete');
@@ -132,5 +133,13 @@ export class TopicDetailsPage extends BasePage {
 
   async verifyingSharePostToastMessage(message: string): Promise<void> {
     await this.baseActionUtil.verifyToastMessageIsVisibleWithText(message);
+  }
+
+  async verifyContentTabIsSelected(): Promise<void> {
+    await test.step('Verify Content tab is selected by default', async () => {
+      await this.verifier.verifyElementHasAttribute(this.contentTab, 'aria-selected', 'true', {
+        assertionMessage: 'Content tab should be selected by default',
+      });
+    });
   }
 }
