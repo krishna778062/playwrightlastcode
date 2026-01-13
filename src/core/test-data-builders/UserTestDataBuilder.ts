@@ -18,6 +18,22 @@ try {
 
 import { UserManagementService } from '@/src/modules/platforms/apis/services/UserManagementService';
 
+/**
+ * Custom error class that includes partial results when user creation fails midway
+ * This allows callers to cleanup partially created users
+ */
+export class PartialUserCreationError extends Error {
+  public partiallyCreatedUsers: TestUser[];
+  public originalError: Error;
+
+  constructor(message: string, partiallyCreatedUsers: TestUser[], originalError: Error) {
+    super(message);
+    this.name = 'PartialUserCreationError';
+    this.partiallyCreatedUsers = partiallyCreatedUsers;
+    this.originalError = originalError;
+  }
+}
+
 export class UserTestDataBuilder {
   readonly userManagementService: UserManagementService;
 
@@ -42,6 +58,8 @@ export class UserTestDataBuilder {
    * @param role - The role to assign to the users
    * @param password - The password to set for all users (default: 'Password123')
    * @returns Array of added users (with userId) and their roles
+   * @throws PartialUserCreationError if some users were created but the process failed midway
+   *         (contains partiallyCreatedUsers array for cleanup)
    *
    * @example
    * // Add 3 regular users with the default password
@@ -57,13 +75,32 @@ export class UserTestDataBuilder {
       for (let i = 0; i < count; i++) {
         const user = TestDataGenerator.generateUser();
 
-        const { userId } = await this.addAndActivateUser(user, role, password);
-        createdUsers.push({
-          ...user,
-          userId,
-          fullName: `${user.first_name} ${user.last_name}`,
-          role,
-        });
+        try {
+          const createdUser = await this.addAndActivateUser(user, role, password);
+          createdUsers.push(createdUser);
+        } catch (error) {
+          // Check if addAndActivateUser threw PartialUserCreationError
+          // (user was created but activation failed)
+          if (error instanceof PartialUserCreationError) {
+            // Add the partially created users from this error
+            createdUsers.push(...error.partiallyCreatedUsers);
+            console.log(`⚠️ User was created but activation failed. Total created: ${createdUsers.length}`);
+          }
+
+          // If we have any partially created users (from previous iterations or current), throw with all of them
+          if (createdUsers.length > 0) {
+            console.log(`⚠️ Partial user creation: ${createdUsers.length} users created before/during failure`);
+            console.log(`Created users: ${createdUsers.map(u => u.email).join(', ')}`);
+            throw new PartialUserCreationError(
+              `Failed at user ${i + 1}/${count}. ${createdUsers.length} users were created and need cleanup.`,
+              createdUsers,
+              error instanceof PartialUserCreationError ? error.originalError : (error as Error)
+            );
+          }
+
+          // No partial users at all, just rethrow original error
+          throw error;
+        }
       }
     });
     return createdUsers;
@@ -164,18 +201,40 @@ export class UserTestDataBuilder {
    * @param role - The role to assign to the user
    * @param password - The password to set for the user
    * @returns The added and activated user with their userId
+   * @throws PartialUserCreationError if user was created but activation failed
    */
   async addAndActivateUser(user: User, role: Roles, password: string): Promise<TestUser> {
     return await test.step(`Adding and activating user ${user.first_name} ${user.last_name}`, async () => {
+      // Step 1: Add user to system
       const addUserResponse = await this.userManagementService.addUser(user, role);
-      await this.userManagementService.waitForUserToBeAdded(user.first_name, user.last_name);
-      await this.userManagementService.activateUser(user.first_name, user.last_name, password);
-      return {
+      const userId = addUserResponse.user_id;
+
+      // At this point, user is CREATED in the system
+      const createdUser: TestUser = {
         ...user,
-        userId: addUserResponse.user_id,
+        userId,
         fullName: `${user.first_name} ${user.last_name}`,
         role,
       };
+
+      try {
+        // Step 2: Wait for user to be added
+        await this.userManagementService.waitForUserToBeAdded(user.first_name, user.last_name);
+
+        // Step 3: Activate user
+        await this.userManagementService.activateUser(user.first_name, user.last_name, password);
+
+        return createdUser;
+      } catch (error) {
+        // User was created but activation/wait failed
+        // Throw special error so caller can cleanup
+        console.log(`⚠️ User ${user.email} was created (userId: ${userId}) but activation failed!`);
+        throw new PartialUserCreationError(
+          `User ${user.email} was created but activation failed: ${(error as Error).message}`,
+          [createdUser], // Include the created user for cleanup
+          error as Error
+        );
+      }
     });
   }
 

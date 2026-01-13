@@ -11,6 +11,7 @@ import { ChatTestUser } from '../types/chat-test.type';
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { USER_STATUS } from '@/src/core/constants/status';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { PartialUserCreationError } from '@/src/core/test-data-builders/UserTestDataBuilder';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
 // Global registry to track users that need cleanup (backup mechanism)
@@ -119,12 +120,31 @@ export const dmTestFixture = test.extend<
         console.log('❌ Setup failed, will attempt cleanup for any created users');
         console.log(`Error: ${setupError.message}`);
 
-        // Try to find any users that were partially created by checking pendingCleanupUsers
-        if (usersWithChatIds.length === 0 && pendingCleanupUsers.length > 0) {
-          console.log(`Found ${pendingCleanupUsers.length} users in pending cleanup registry`);
+        // Check if this is a partial creation error with users that need cleanup
+        if (error instanceof PartialUserCreationError) {
+          console.log(`⚠️ PartialUserCreationError detected!`);
+          console.log(`Partially created users: ${error.partiallyCreatedUsers.length}`);
+
+          // Add partially created users to cleanup list
+          for (const user of error.partiallyCreatedUsers) {
+            if (user.userId) {
+              // Add to usersWithChatIds for cleanup (without chatUserId since we didn't get there)
+              usersWithChatIds.push({
+                ...user,
+                chatUserId: '', // Not available since we failed before this
+              } as ChatTestUser);
+
+              // Also add to pending cleanup registry
+              pendingCleanupUsers.push({
+                userId: user.userId,
+                email: user.email,
+                apiBaseUrl: getEnvConfig().apiBaseUrl,
+              });
+            }
+          }
         }
 
-        throw setupError; // Re-throw after cleanup
+        throw setupError; // Re-throw after cleanup runs in finally
       } finally {
         // Cleanup: Deactivate users after worker is done
         // This runs even if setup fails partially!
