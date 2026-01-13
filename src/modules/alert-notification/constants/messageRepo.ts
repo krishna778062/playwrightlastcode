@@ -12,4 +12,5 @@ export const ALERT_NOTIFICATION_MESSAGES = {
   MOBILE_PROMOTION_SENT_SUCCESSFULLY: 'App download link sent to ',
   CHAR_LIMIT_VALIDATION_ERROR: 'Custom subject cannot be longer than 120 characters',
   NOTIFICATION_PREFERENCE_SAVED: 'Notification preference saved',
+  DND_SAVED_SUCCESSFULLY: 'Saved changes successfully',
 } as const;
