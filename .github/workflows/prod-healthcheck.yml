@@ -118,4 +118,6 @@ jobs:
       modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
       is_browserstack: ${{ inputs.is_browserstack || false }}
       timeout_minutes: 120
+      # IMPORTANT: Only run healthcheck tests on production
+      feature_tags: '@healthcheck'
     secrets: inherit
