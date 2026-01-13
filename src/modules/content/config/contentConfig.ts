@@ -159,7 +159,7 @@ export const config = {
     uatEU: {
       tenantName: 'Content Primary',
       frontendBaseUrl: 'https://dummy-tenant.uat-eu.simpplr.com/',
-      apiBaseUrl: 'https://dummy-tenant-api.uat-eu.simpplr.com/',
+      apiBaseUrl: 'https://dummy-tenant-api.uat-eu.simpplr.com',
       b2bBaseUrl: 'https://api-be.uat-eu.simpplr.com',
       appManagerEmail: 'aditya@radiansys.com',
       appManagerPassword: 'simpplr001',
