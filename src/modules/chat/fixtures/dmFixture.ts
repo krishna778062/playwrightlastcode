@@ -13,6 +13,36 @@ import { USER_STATUS } from '@/src/core/constants/status';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { BrowserFactory } from '@/src/core/utils/browserFactory';
 
+// Global registry to track users that need cleanup (backup mechanism)
+const pendingCleanupUsers: Array<{
+  userId: string;
+  email: string;
+  apiBaseUrl: string;
+}> = [];
+
+// Helper function to deactivate a single user with timeout
+async function deactivateUserWithTimeout(
+  httpClient: UserManagementService['httpClient'],
+  userId: string,
+  email: string,
+  timeoutMs: number = 15000
+): Promise<boolean> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    await httpClient.put(PLATFORM_API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(userId), {
+      data: { status: USER_STATUS.INACTIVE },
+    });
+
+    clearTimeout(timeoutId);
+    return true;
+  } catch (error) {
+    console.log(`✗ Failed to deactivate user ${email}: ${error}`);
+    return false;
+  }
+}
+
 /**
  * This fixture should be used for tests that are related to direct messages
  * between 2 users
@@ -67,32 +97,70 @@ export const dmTestFixture = test.extend<
         }))
       );
 
+      // Register users for cleanup tracking (backup mechanism)
+      for (const user of usersWithChatIds) {
+        if (user.userId) {
+          pendingCleanupUsers.push({
+            userId: user.userId,
+            email: user.email,
+            apiBaseUrl: getEnvConfig().apiBaseUrl,
+          });
+        }
+      }
+
       try {
         await use(usersWithChatIds);
       } finally {
         // Cleanup: Deactivate users after worker is done
-        // Note: We call API directly without test.step() since we're in fixture teardown
         // Using finally ensures this ALWAYS runs, even if tests fail
-        console.log('=== Starting user cleanup in endUsersForChat fixture (DM) ===');
-        for (const user of usersWithChatIds) {
-          if (user.userId) {
-            try {
-              console.log(`Deactivating user ${user.email} with userId: ${user.userId}`);
-              await userManagementService.httpClient.put(
-                PLATFORM_API_ENDPOINTS.appManagement.users.v1IdentityAccountsUsersUserIdStatus(user.userId),
-                {
-                  data: {
-                    status: USER_STATUS.INACTIVE,
-                  },
-                }
+        console.log('╔══════════════════════════════════════════════════════════╗');
+        console.log('║  CLEANUP STARTED (DM) - Deactivating users               ║');
+        console.log(`║  Timestamp: ${new Date().toISOString()}            ║`);
+        console.log('╚══════════════════════════════════════════════════════════╝');
+
+        const cleanupResults: Array<{ email: string; success: boolean }> = [];
+
+        // Process all users in parallel with individual timeouts
+        await Promise.allSettled(
+          usersWithChatIds.map(async user => {
+            if (user.userId) {
+              console.log(`🔄 Deactivating user ${user.email} (userId: ${user.userId})`);
+              const success = await deactivateUserWithTimeout(
+                userManagementService.httpClient,
+                user.userId,
+                user.email,
+                15000 // 15 second timeout per user
               );
-              console.log(`✓ Successfully deactivated user ${user.email}`);
-            } catch (error) {
-              console.log(`✗ Failed to deactivate user ${user.email}: ${error}`);
+
+              if (success) {
+                console.log(`✅ Successfully deactivated: ${user.email}`);
+                // Remove from pending cleanup since it succeeded
+                const idx = pendingCleanupUsers.findIndex(u => u.userId === user.userId);
+                if (idx !== -1) pendingCleanupUsers.splice(idx, 1);
+              }
+
+              cleanupResults.push({ email: user.email, success });
             }
-          }
+          })
+        );
+
+        // Summary
+        const successful = cleanupResults.filter(r => r.success).length;
+        const failed = cleanupResults.filter(r => !r.success).length;
+
+        console.log('╔══════════════════════════════════════════════════════════╗');
+        console.log('║  CLEANUP COMPLETED (DM)                                  ║');
+        console.log(`║  ✅ Success: ${successful} | ❌ Failed: ${failed}                            ║`);
+        console.log(`║  Timestamp: ${new Date().toISOString()}            ║`);
+        console.log('╚══════════════════════════════════════════════════════════╝');
+
+        if (failed > 0) {
+          console.log('⚠️  Some users failed to deactivate. They may need manual cleanup.');
+          console.log(
+            'Failed users:',
+            cleanupResults.filter(r => !r.success).map(r => r.email)
+          );
         }
-        console.log('=== User cleanup completed (DM) ===');
       }
     },
     { scope: 'worker' },
