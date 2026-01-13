@@ -17,7 +17,7 @@ import { SiteDashboardPage, SiteFeedPage } from '@/src/modules/content/ui/pages/
 test.describe(
   'feed Comments/Replies Visibility - Verify User can view 10 comments or replies on Feed detail page',
   {
-    tag: [ContentTestSuite.FEED_COMMENTS_REPLIES_VISIBILITY],
+    tag: [ContentTestSuite.FEED_COMMENTS_REPLIES_VISIBILITY, ContentTestSuite.FEED],
   },
   () => {
     let homeFeedPage: FeedPage;
