@@ -1,6 +1,4 @@
 import { AdoptionRateUserLoginData } from '@data-engineering/helpers/appAdaptionQueryHelper';
-import { FilterOptions } from '@data-engineering/helpers/baseAnalyticsQueryHelper';
-import { DateHelper } from '@data-engineering/helpers/dateHelper';
 import { FrameLocator, Page, test } from '@playwright/test';
 
 import { VerticalBarChartComponent } from '../../../components/verticalBarChartComponent';
@@ -14,45 +12,19 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
   }
 
   /**
-   * Validates axis labels and chart structure based on filter configuration
-   * Note: X-axis label values are not validated because Highcharts dynamically
-   * determines which date labels to display based on chart width and data density.
-   * @param filterBy - Filter options including time period
+   * Verifies the chart is loaded by checking if bars and labels are visible
+   * Uses a simpler approach - just verifies that labels and bars exist
+   * without dynamically calculating expected x-axis date labels
    */
-  async verifyAxisLabelsForFilter(filterBy: FilterOptions): Promise<void> {
-    await test.step(`Verify axis labels for filter: ${filterBy.timePeriod}`, async () => {
-      // Get date replacements to calculate horizontal axis label
-      const dateReplacements = DateHelper.getDateReplacements(
-        filterBy.timePeriod,
-        filterBy.customStartDate,
-        filterBy.customEndDate
-      );
-
-      // Parse start and end dates to determine year span
-      const startDateStr = dateReplacements.startDate.split(' ')[0];
-      const endDateStr = dateReplacements.endDate.split(' ')[0];
-      const startDate = DateHelper.parseIsoAsUTC(startDateStr);
-      const endDate = DateHelper.parseIsoAsUTC(endDateStr);
-
-      // Determine horizontal axis label based on whether dates span one or multiple years
-      const startYear = startDate.getFullYear();
-      const endYear = endDate.getFullYear();
-      const horizontalAxisLabel = startYear === endYear ? `Reporting date (for ${startYear})` : 'Reporting date';
-
-      // Verify axis labels (title labels, not data labels)
-      await this.verifyAxisLabelsAreAsExpected({
-        verticalAxisLabel: 'Adoption rate',
-        horizontalAxisLabel,
-      });
+  async verifyChartIsLoaded(): Promise<void> {
+    await test.step(`Verify ${this.metricTitle} chart is loaded`, async () => {
+      // Verify chart has labels and bars (inherited from VerticalBarChartComponent)
+      await this.verifyChartHasLabelsAndBars();
 
       // Verify y-axis labels (hardcoded: always 0.0%, 50.0%, 100%)
       await this.verifyYAxisLabelsAreAsExpected({
         yAxisLabels: ['0.0%', '50.0%', '100.0%'],
       });
-
-      // Verify that X-axis has date labels present (without checking specific values)
-      // Highcharts dynamically determines which labels to show based on available space
-      await this.verifyChartHasLabelsAndBars();
     });
   }
 

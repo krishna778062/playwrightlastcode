@@ -5,40 +5,13 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { SiteCreationFormComponent } from '@/src/modules/content/ui/components/createSite/siteCreationFormComponent';
 
-export interface ISiteCreationPageAssertions {
-  verifySiteCreationFormStructure: () => Promise<void>;
-  verifySiteCreatedSuccessfully: (siteName: string, options?: { stepInfo?: string }) => Promise<void>;
-  verifySiteDeactivated: () => Promise<void>;
-}
-
-export interface ISiteCreationPageActions {
-  createPublicSite: (options: { name: string; category: string }) => Promise<void>;
-  createPrivateSite: (options: { name: string; category: string }) => Promise<void>;
-  createSite: (options: {
-    name: string;
-    category: string;
-    type: SITE_TYPES;
-    stepInfo?: string;
-    apiPayload?: Partial<SiteCreationPayload>;
-  }) => Promise<string>;
-  deactivateSiteViaUI: (options?: { stepInfo?: string }) => Promise<void>;
-}
-
-export class SiteCreationPageAbac extends BasePage implements ISiteCreationPageAssertions, ISiteCreationPageActions {
+export class SiteCreationPageAbac extends BasePage {
   readonly form: SiteCreationFormComponent;
   private lastCreatedSiteId?: string;
 
   constructor(page: Page) {
     super(page);
     this.form = new SiteCreationFormComponent(page);
-  }
-
-  get assertions(): ISiteCreationPageAssertions {
-    return this;
-  }
-
-  get actions(): ISiteCreationPageActions {
-    return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

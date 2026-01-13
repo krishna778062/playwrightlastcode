@@ -2,22 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
-export interface IInappropriateContentWarningPopupActions {
-  clickCancel: () => Promise<void>;
-  clickContinue: () => Promise<void>;
-  clickClose: () => Promise<void>;
-}
-
-export interface IInappropriateContentWarningPopupAssertions {
-  verifyWarningPopupVisible: () => Promise<void>;
-  verifyWarningMessage: (expectedMessage?: string) => Promise<void>;
-  verifyWarningPopupClosed: () => Promise<void>;
-}
-
-export class InappropriateContentWarningPopupComponent
-  extends BaseComponent
-  implements IInappropriateContentWarningPopupActions, IInappropriateContentWarningPopupAssertions
-{
+export class InappropriateContentWarningPopupComponent extends BaseComponent {
   // Locators
   readonly popupContainer: Locator;
   readonly popupTitle: Locator;
@@ -44,17 +29,7 @@ export class InappropriateContentWarningPopupComponent
     this.cancelButton = this.popupContainer.getByRole('button', { name: 'Cancel' });
 
     this.continueButton = this.popupContainer.getByRole('button', { name: 'Post anyway' });
-  }
-
-  get actions(): IInappropriateContentWarningPopupActions {
-    return this;
-  }
-
-  get assertions(): IInappropriateContentWarningPopupAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Verifies that the warning popup is visible
    */
   async verifyWarningPopupVisible(): Promise<void> {

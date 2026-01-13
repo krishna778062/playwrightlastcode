@@ -907,4 +907,81 @@ export class AccessControlGroupsPage extends BasePage {
       }
     });
   }
+
+  /**
+   * Gets Admins count from the ACG.
+   * @param acgName - Name of the ACG for which Admins count needs to be fetched.
+   */
+  async getAdminsCount(acgName: string): Promise<number> {
+    return await test.step(`Getting Admins count for ${acgName}`, async () => {
+      const adminsCount = await this.acgAdminsCountButton(acgName).locator('p').textContent();
+      console.log(`Admins count is ${adminsCount} for ${acgName}`);
+      return parseInt(adminsCount || '786', 10); // Default value is 786 as per the design. If the admins count is not found, return 786.
+    });
+  }
+
+  /**
+   * Gets Target audience count from the ACG.
+   * @param acgName - Name of the ACG for which Target audience count needs to be fetched.
+   */
+  async getTargetAudienceCount(acgName: string): Promise<number> {
+    return await test.step(`Getting Target audience count for ${acgName}`, async () => {
+      const targetAudienceCount = await this.acgTargetAudienceCountButton(acgName).locator('p').textContent();
+      console.log(`Target audience count is ${targetAudienceCount} for ${acgName}`);
+      return parseInt(targetAudienceCount || '786', 10); // Default value is 786 as per the design. If the target audience count is not found, return 786.
+    });
+  }
+
+  /**
+   * Gets Managers count from the ACG.
+   * @param acgName - Name of the ACG for which Managers count needs to be fetched.
+   */
+  async getManagersCount(acgName: string): Promise<number> {
+    return await test.step(`Getting Managers count for ${acgName}`, async () => {
+      const managersCount = await this.acgManagersCountButton(acgName).locator('p').textContent();
+      console.log(`Managers count is ${managersCount} for ${acgName}`);
+      return parseInt(managersCount || '786', 10); // Default value is 786 as per the design. If the managers count is not found, return 786.
+    });
+  }
+
+  /**
+   * Compares ACG assets count with the expected count.
+   * @param acgName - Name of the ACG for which assets count needs to be compared.
+   * @param assetName - Name of the asset for which count needs to be compared.
+   * @param expectedCount - Expected count of the assets.
+   */
+  async compareACGAssetsCount(acgName: string, assetName: string, expectedCount: number): Promise<void> {
+    return await test.step(`Comparing ${assetName} count for ${acgName} with the expected count`, async () => {
+      let actualCount: number = 0;
+      if (assetName === ACG_COLUMNS.ADMINS) {
+        actualCount = await this.getAdminsCount(acgName);
+      } else if (assetName === ACG_COLUMNS.TARGET_AUDIENCE) {
+        actualCount = await this.getTargetAudienceCount(acgName);
+      } else if (assetName === ACG_COLUMNS.MANAGERS) {
+        actualCount = await this.getManagersCount(acgName);
+      }
+      expect(
+        actualCount,
+        `Expected ${assetName} count for ${acgName} to be ${expectedCount}, but found ${actualCount}`
+      ).toBe(expectedCount);
+    });
+  }
+
+  /**
+   * Compares ACG assets count with the expected count.
+   * @param acgName - Name of the ACG for which assets count needs to be compared.
+   * @param assetName - Name of the asset for which count needs to be compared.
+   * @param expectedCount - Expected count of the assets.
+   */
+  /**
+   * Verifies that at least one ACG has the specified feature.
+   * @param featureName - The feature name to look for in the ACG list.
+   */
+  async verifyAtleastOneACGHasFeature(featureName: string): Promise<void> {
+    await test.step(`Verify that at least one ACG has ${featureName} feature`, async () => {
+      await this.searchForACG(featureName);
+      const featureCell = this.acgRecords.locator('td').nth(1).filter({ hasText: featureName });
+      await expect(featureCell.first(), `Expected at least one ACG to have feature "${featureName}"`).toBeVisible();
+    });
+  }
 }

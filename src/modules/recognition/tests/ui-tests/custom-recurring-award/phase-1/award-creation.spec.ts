@@ -49,7 +49,7 @@ test.describe('custom recurring award creation', () => {
       await recurringAwardPage.confirmAndCreateRecurringAward();
       await recurringAwardPage.submitRecurringAward();
       await manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.NEW_AWARD_CREATED);
-      await manageRecognitionPage.cleanupCreatedAward();
+      await manageRecognitionPage.cleanupCreatedAwardInRecurringAwards();
     }
   );
 
@@ -108,7 +108,7 @@ test.describe('custom recurring award creation', () => {
       await recurringAwardPage.confirmAndCreateRecurringAward();
       await recurringAwardPage.submitRecurringAward();
       await manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.NEW_AWARD_CREATED);
-      await manageRecognitionPage.cleanupCreatedAward();
+      await manageRecognitionPage.cleanupCreatedAwardInRecurringAwards();
     }
   );
 
@@ -158,7 +158,7 @@ test.describe('custom recurring award creation', () => {
       await recurringAwardPage.confirmAndCreateRecurringAward();
       await recurringAwardPage.submitRecurringAward();
       await manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.NEW_AWARD_CREATED);
-      await manageRecognitionPage.cleanupCreatedAward();
+      await manageRecognitionPage.cleanupCreatedAwardInRecurringAwards();
     }
   );
 });
@@ -361,7 +361,7 @@ test.describe('recurring award custom range validation', () => {
       await recurringAwardPage.confirmAndCreateRecurringAward();
       await recurringAwardPage.submitRecurringAward();
       await manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.NEW_AWARD_CREATED);
-      await manageRecognitionPage.cleanupCreatedAward();
+      await manageRecognitionPage.cleanupCreatedAwardInRecurringAwards();
     }
   );
 });

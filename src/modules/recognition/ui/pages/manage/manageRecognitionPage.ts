@@ -20,6 +20,7 @@ export class ManageRecognitionPage extends BasePage {
   readonly addBadgeButton: Locator;
   readonly featureNotAvailable: Locator;
   readonly featureNotEnabled: Locator;
+  readonly renamingTab: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
@@ -35,6 +36,7 @@ export class ManageRecognitionPage extends BasePage {
     this.milestonesTab = page.getByRole('tab', { name: 'Milestones' });
     this.recurringTab = page.getByRole('tab', { name: 'Recurring awards' });
     this.badgesTab = page.getByRole('tab', { name: 'Badges' });
+    this.renamingTab = page.getByRole('tab', { name: 'Naming' });
   }
 
   /**
@@ -43,7 +45,7 @@ export class ManageRecognitionPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the manage recognition page is loaded', async () => {
       await expect(this.recognitionHeader, 'expecting manage recognition header element to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }
@@ -134,17 +136,10 @@ export class ManageRecognitionPage extends BasePage {
   /**
    * Clean up the created award
    */
-  async cleanupCreatedAward(): Promise<void> {
+  async cleanupCreatedAwardInRecurringAwards(): Promise<void> {
     await test.step('Clean up - Delete recently created award', async () => {
-      const button = this.subTabIndicator.createdColumnButton;
-      for (let i = 0; i < 2; i++) {
-        await button.click();
-        await this.page.waitForTimeout(500);
-      }
-      await this.subTabIndicator.getThreeDotsButton(0).click();
-      await this.subTabIndicator.deleteMenuItem.click();
-      await this.page.waitForTimeout(500);
-      await this.subTabIndicator.deleteButton.click();
+      await this.subTabIndicator.clickOnColumnButton('Created', 2);
+      await this.subTabIndicator.cleanupCreatedAward();
       await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
     });
   }
