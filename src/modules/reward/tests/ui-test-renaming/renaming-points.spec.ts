@@ -103,4 +103,30 @@ test.describe('renaming page', () => {
       await renamingPage.clickOnSaveButton();
     }
   );
+
+  test(
+    '[RC-7107] Validate when user deselect “Use this name for all languages” option for points',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Validate when user deselect “Use this name for all languages” option for points',
+        zephyrTestId: 'RC-7107',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
+      const customOtherLanguageValue = await renamingPage.getTheDefaultTranslationValues();
+      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!, defaultCustomizedValue!];
+      expect(customOtherLanguageValue).toEqual(customOtherLanguage);
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
+      expect(defaultOtherLanguageTranslationValue).not.toEqual(customOtherLanguage);
+    }
+  );
 });
