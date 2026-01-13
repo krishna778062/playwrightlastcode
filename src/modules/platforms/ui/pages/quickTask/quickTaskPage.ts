@@ -40,6 +40,16 @@ export class QuickTaskPage extends BasePage {
   readonly prioritySelectTrigger: Locator;
   readonly tagsComboboxInput: Locator;
   readonly dueDateField: Locator;
+  readonly taskDetailTags: Locator;
+  readonly taskDetailTag: (tagName: string) => Locator;
+  readonly taskDetailDueDate: Locator;
+  readonly taskDetailDescription: Locator;
+  readonly taskDetailTitle: Locator;
+  readonly editTitleInput: Locator;
+  readonly updateTaskButton: Locator;
+  readonly taskUpdatedMessage: Locator;
+  readonly markAsCompletedSubmitButton: Locator;
+  readonly completedStatusBadge: Locator;
 
   readonly quickTaskModal: QuickTaskModalComponent;
 
@@ -100,7 +110,8 @@ export class QuickTaskPage extends BasePage {
         .first();
     };
     this.editOptionInDropdown = page
-      .locator('[role="menuitem"]:has-text("Edit"), button:has-text("Edit"), a:has-text("Edit")')
+      .locator('[role="menu"] span:has-text("Edit")')
+      .filter({ hasText: /^Edit$/ })
       .first();
     this.descriptionTextarea = page.locator('textarea[data-slot="textarea"][name="description"]');
     this.prioritySelectTrigger = page.locator('button[aria-haspopup="listbox"][aria-label="Open popup"]').first();
@@ -108,6 +119,36 @@ export class QuickTaskPage extends BasePage {
     this.dueDateField = page
       .locator('div.flex.h-9.w-full.items-center.justify-start.rounded-xl.border.border-border-default')
       .first();
+    // Task detail view tags - tags are displayed as badges with data-slot="badge"
+    this.taskDetailTags = page.locator('span[data-slot="badge"]');
+    this.taskDetailTag = (tagName: string) =>
+      page.locator('span[data-slot="badge"]').filter({ hasText: new RegExp(`^${tagName}$`, 'i') });
+    // Task detail view due date - displayed as text with class "text-sm text-foreground"
+    // Matches date format like "Jan 16, 2026, 11:59 PM"
+    this.taskDetailDueDate = page.locator('p.text-sm.text-foreground').filter({ hasText: /\w{3}\s+\d{1,2},\s+\d{4}/ }); // Matches "Jan 16, 2026" pattern
+    // Task detail view description - displayed as paragraph with classes "text-foreground text-sm whitespace-pre-wrap"
+    this.taskDetailDescription = page.locator('p.text-foreground.text-sm.whitespace-pre-wrap');
+    // Task detail view title - displayed as h1 with data-slot="page-header-title"
+    this.taskDetailTitle = page.locator('h1[data-slot="page-header-title"]');
+    // Edit task modal - title input
+    this.editTitleInput = page.locator('input[data-slot="input"][name="title"][placeholder="Add title"]');
+    // Update task button in edit modal
+    this.updateTaskButton = page
+      .locator('button[type="submit"][form="add-task-form"]')
+      .filter({ hasText: 'Update task' });
+    // Task updated success message
+    this.taskUpdatedMessage = page
+      .locator('div[data-title=""].text-foreground-main.text-base.font-bold')
+      .filter({ hasText: 'Task updated' });
+    // Mark as completed submit button in modal
+    this.markAsCompletedSubmitButton = page.locator('button[type="submit"][form="update-task-status-form"]').or(
+      page
+        .locator('[role="dialog"]')
+        .getByRole('button', { name: 'Mark as completed' })
+        .filter({ has: page.locator('[type="submit"]') })
+    );
+    // Completed status badge
+    this.completedStatusBadge = page.locator('span[data-slot="badge"]').filter({ hasText: /^Completed$/i });
 
     this.quickTaskModal = new QuickTaskModalComponent(page);
   }
@@ -628,18 +669,48 @@ export class QuickTaskPage extends BasePage {
   }
 
   /**
+   * Generic method to verify button visibility or not-visible
+   * @param buttonText - The text of the button to verify
+   * @param shouldBeVisible - Whether the button should be visible (default: true)
+   */
+  async verifyTaskActionButton(buttonText: string, shouldBeVisible: boolean = true): Promise<void> {
+    await test.step(`Verify "${buttonText}" button is ${shouldBeVisible ? 'visible' : 'not visible'}`, async () => {
+      const button = this.page.getByRole('button', { name: buttonText });
+      if (shouldBeVisible) {
+        await expect(button, `"${buttonText}" button should be visible`).toBeVisible({ timeout: 10000 });
+      } else {
+        await expect(button, `"${buttonText}" button should not be visible`).not.toBeVisible({ timeout: 5000 });
+      }
+    });
+  }
+
+  /**
+   * Generic method to click a task action button by text
+   * @param buttonText - The text of the button to click
+   * @param waitForPageUpdate - Whether to wait for page update after clicking (default: true)
+   */
+  async clickTaskActionButton(buttonText: string, waitForPageUpdate: boolean = true): Promise<void> {
+    await test.step(`Click "${buttonText}" button`, async () => {
+      const button = this.page.getByRole('button', { name: buttonText });
+      await button.waitFor({ state: 'visible', timeout: 10000 });
+      await button.click();
+      if (waitForPageUpdate) {
+        // Wait for the page to update after clicking
+        await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+        await this.page
+          .locator('progressbar')
+          .filter({ hasText: 'Loading…' })
+          .waitFor({ state: 'hidden', timeout: 15000 })
+          .catch(() => {});
+      }
+    });
+  }
+
+  /**
    * Clicks the "Start task" button from the task menu
    */
   async clickStartTaskButton(): Promise<void> {
-    await this.startTaskButton.waitFor({ state: 'visible', timeout: 15000 });
-    await this.startTaskButton.click();
-    // Wait for the page to update after starting the task
-    await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
-    await this.page
-      .locator('progressbar')
-      .filter({ hasText: 'Loading…' })
-      .waitFor({ state: 'hidden', timeout: 15000 })
-      .catch(() => {});
+    await this.clickTaskActionButton('Start task');
   }
 
   /**
@@ -758,6 +829,41 @@ export class QuickTaskPage extends BasePage {
         .or(this.page.getByText('Completed', { exact: true }));
       await expect(completedStatus.first()).toBeVisible({ timeout: 5000 });
     }).toPass({ timeout: 20000 });
+  }
+
+  /**
+   * Clicks the "Mark as completed" button (appears after starting a task)
+   */
+  async clickMarkAsCompletedButton(): Promise<void> {
+    await this.clickTaskActionButton('Mark as completed', false); // Don't wait for page update, modal will open
+  }
+
+  /**
+   * Clicks the submit button in the "Mark as completed" modal
+   */
+  async clickMarkAsCompletedSubmitButton(): Promise<void> {
+    await test.step('Click Mark as completed submit button in modal', async () => {
+      await this.markAsCompletedSubmitButton.waitFor({ state: 'visible', timeout: 10000 });
+      await this.markAsCompletedSubmitButton.click();
+      // Wait for modal to close and page to update
+      await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+      await this.page
+        .locator('progressbar')
+        .filter({ hasText: 'Loading…' })
+        .waitFor({ state: 'hidden', timeout: 15000 })
+        .catch(() => {});
+    });
+  }
+
+  /**
+   * Verifies that the task status badge shows "Completed"
+   */
+  async verifyCompletedStatusBadgeIsVisible(): Promise<void> {
+    await test.step('Verify Completed status badge is visible', async () => {
+      await expect(this.completedStatusBadge, 'Completed status badge should be visible').toBeVisible({
+        timeout: 10000,
+      });
+    });
   }
 
   /**
@@ -1231,6 +1337,68 @@ export class QuickTaskPage extends BasePage {
   }
 
   /**
+   * Verifies that tags are displayed in the task detail view
+   * @param expectedTags - Array of expected tag names to verify (optional, if not provided will verify tags are visible)
+   */
+  async verifyTagsInTaskDetail(expectedTags?: string[]): Promise<void> {
+    await test.step('Verify tags are displayed in task detail view', async () => {
+      // Wait for tags to be visible
+      await expect(this.taskDetailTags.first()).toBeVisible({ timeout: 10000 });
+
+      // If specific tags are expected, verify each one
+      if (expectedTags && expectedTags.length > 0) {
+        for (const tagName of expectedTags) {
+          const tagLocator = this.taskDetailTag(tagName);
+          await expect(tagLocator, `Tag "${tagName}" should be visible in task detail view`).toBeVisible({
+            timeout: 5000,
+          });
+        }
+      } else {
+        // Just verify that at least one tag is visible
+        const tagCount = await this.taskDetailTags.count();
+        expect(tagCount, 'At least one tag should be displayed in task detail view').toBeGreaterThan(0);
+      }
+    });
+  }
+
+  /**
+   * Verifies that the due date is displayed in the task detail view
+   * @param expectedDueDate - Optional expected due date in format "YYYY-MM-DD HH:mm" (e.g., "2026-01-16 00:00")
+   */
+  async verifyDueDateInTaskDetail(expectedDueDate?: string): Promise<void> {
+    await test.step('Verify due date is displayed in task detail view', async () => {
+      await expect(this.taskDetailDueDate.first(), 'Due date should be visible in task detail view').toBeVisible({
+        timeout: 10000,
+      });
+
+      if (expectedDueDate) {
+        const [datePart] = expectedDueDate.split(' ');
+        const [year, day] = datePart.split('-');
+        const dueDateText = await this.taskDetailDueDate.first().textContent();
+        expect(dueDateText, 'Due date text should contain expected date').toContain(year);
+        expect(dueDateText, 'Due date text should contain expected day').toContain(day);
+      }
+    });
+  }
+
+  /**
+   * Verifies that the description is displayed in the task detail view
+   * @param expectedDescription - Expected description text
+   */
+  async verifyDescriptionInTaskDetail(expectedDescription: string): Promise<void> {
+    await test.step('Verify description is displayed in task detail view', async () => {
+      await expect(this.taskDetailDescription.first(), 'Description should be visible in task detail view').toBeVisible(
+        {
+          timeout: 10000,
+        }
+      );
+
+      const descriptionText = await this.taskDetailDescription.first().textContent();
+      expect(descriptionText, 'Description text should contain expected content').toContain(expectedDescription);
+    });
+  }
+
+  /**
    * Verifies that the task is assigned to multiple users
    * @param expectedUserNames - Array of expected user names (optional, if empty will verify count from page)
    * @param expectedCount - Expected number of users (default: 3)
@@ -1488,6 +1656,16 @@ export class QuickTaskPage extends BasePage {
    * @param taskTitle - The task title to verify
    */
   async verifyTaskIsDisplayed(taskTitle: string): Promise<void> {
+    // Wait for loading to complete and at least one task to be visible
+    await this.page
+      .locator('progressbar')
+      .filter({ hasText: 'Loading…' })
+      .waitFor({ state: 'hidden', timeout: 15000 })
+      .catch(() => {});
+
+    // Wait for tasks to load (at least one task should be visible)
+    await expect(this.firstTaskResult, 'Tasks should be loaded').toBeVisible({ timeout: 15000 });
+
     const taskLink = this.taskResultLink(taskTitle);
     await expect(taskLink, `Task "${taskTitle}" should be displayed`).toBeVisible({ timeout: 10000 });
   }
@@ -1579,5 +1757,90 @@ export class QuickTaskPage extends BasePage {
     await this.editButton.click();
     // Verify edit modal is opened
     await this.quickTaskModal.verifyEditTaskModalIsVisible();
+  }
+
+  /**
+   * Generic method to click an option from the dropdown menu for a specific task
+   * @param taskTitle - The task title to find the dropdown for
+   * @param optionText - The text of the option to click (e.g., "Edit", "View")
+   */
+  async clickDropdownOptionForTask(taskTitle: string, optionText: string): Promise<void> {
+    await test.step(`Click "${optionText}" option from dropdown for task: ${taskTitle}`, async () => {
+      // Click on the dropdown menu trigger
+      await this.clickDropdownMenuTriggerForTask(taskTitle);
+
+      // Wait for dropdown menu to be visible
+      const dropdownMenu = this.page.locator('[role="menu"]');
+      await expect(dropdownMenu, 'Dropdown menu should be visible').toBeVisible({ timeout: 5000 });
+
+      // Locate the option specifically within the dropdown menu
+      const option = dropdownMenu
+        .locator(`span:has-text("${optionText}")`)
+        .filter({ hasText: new RegExp(`^${optionText}$`, 'i') })
+        .first();
+
+      await expect(option, `${optionText} option should be visible in dropdown`).toBeVisible({
+        timeout: 10000,
+      });
+      await option.click();
+    });
+  }
+
+  /**
+   * Click on the Edit option from the dropdown menu
+   * @param taskTitle - The task title to find the dropdown for
+   */
+  async clickEditOptionFromDropdown(taskTitle: string): Promise<void> {
+    await test.step(`Click Edit option from dropdown for task: ${taskTitle}`, async () => {
+      await this.clickDropdownOptionForTask(taskTitle, 'Edit');
+
+      // Verify edit modal is opened
+      await this.quickTaskModal.verifyEditTaskModalIsVisible(taskTitle);
+    });
+  }
+
+  /**
+   * Fills the task title in the edit modal (without submitting)
+   * @param newTitle - The new title to set
+   */
+  async fillTaskTitleInEditModal(newTitle: string): Promise<void> {
+    await test.step(`Fill task title with: ${newTitle}`, async () => {
+      // Wait for title input to be visible
+      await expect(this.editTitleInput, 'Title input should be visible in edit modal').toBeVisible({
+        timeout: 10000,
+      });
+
+      // Clear existing title and enter new title
+      await this.editTitleInput.clear();
+      await this.editTitleInput.fill(newTitle);
+    });
+  }
+
+  /**
+   * Updates the task title in the edit modal
+   * @param newTitle - The new title to set
+   */
+  async updateTaskTitle(newTitle: string): Promise<void> {
+    await test.step(`Update task title to: ${newTitle}`, async () => {
+      // Fill the title
+      await this.fillTaskTitleInEditModal(newTitle);
+
+      // Click on Update task button
+      await expect(this.updateTaskButton, 'Update task button should be visible').toBeVisible({
+        timeout: 10000,
+      });
+      await this.updateTaskButton.click();
+    });
+  }
+
+  /**
+   * Verifies that the "Task updated" success message is displayed
+   */
+  async verifyTaskUpdatedMessage(): Promise<void> {
+    await test.step('Verify Task updated message is displayed', async () => {
+      await expect(this.taskUpdatedMessage, 'Task updated message should be visible').toBeVisible({
+        timeout: 10000,
+      });
+    });
   }
 }

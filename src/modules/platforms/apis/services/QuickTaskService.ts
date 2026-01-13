@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
 
-import { DEFAULT_FUTURE_DAYS_OFFSET } from '@platforms/constants/quickTask';
+import { DEFAULT_FUTURE_DAYS_OFFSET, DEFAULT_TASK_TAGS } from '@platforms/constants/quickTask';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
 import {
@@ -43,8 +43,8 @@ export class QuickTaskService {
 
   /**
    * Gets the current authenticated user's ID from the API
-   * Uses cached value if available, otherwise tries multiple endpoints
-   * @returns Promise with the user ID
+   * Uses cached value if available, otherwise calls /v2/account/basic-app-config endpoint
+   * @returns Promise with the user ID (uid from the response)
    */
   private async getCurrentUserId(): Promise<string> {
     // Return cached user ID if available
@@ -52,32 +52,25 @@ export class QuickTaskService {
       return this.cachedUserId;
     }
 
-    // Try different possible endpoints to get current user info
-    const possibleEndpoints = [
-      '/v1/w-task/user/me',
-      '/v1/w-task/users/me',
-      '/v1/user/me',
-      '/v1/users/me',
-      '/v1/identity/user/me',
-    ];
-
-    for (const endpoint of possibleEndpoints) {
-      try {
-        const response = await this.httpClient.get(endpoint);
-        const userData = await this.httpClient.parseResponse<{ result: { id: string } }>(response, {
-          expectedStatusCodes: [200],
-        });
-        if (userData.result?.id) {
-          this.cachedUserId = userData.result.id;
-          return this.cachedUserId;
-        }
-      } catch (error) {
-        // Try next endpoint
-        continue;
+    // Use v2/account/basic-app-config endpoint to get current user ID (returns uid)
+    const endpoint = '/v2/account/basic-app-config';
+    try {
+      const response = await this.httpClient.get(endpoint);
+      const userData = await this.httpClient.parseResponse<{ result: { uid: string } }>(response, {
+        expectedStatusCodes: [200],
+      });
+      const userId = userData.result?.uid;
+      if (userId) {
+        this.cachedUserId = userId;
+        return this.cachedUserId;
       }
+      throw new Error('User ID (uid) not found in response from /v2/account/basic-app-config');
+    } catch (error) {
+      // If endpoint fails, will fall back to extracting from task creation response
+      throw new Error(
+        `Failed to get user ID from ${endpoint}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
-
-    throw new Error('Could not determine current user ID. Please ensure the API context is properly authenticated.');
   }
 
   /**
@@ -259,14 +252,75 @@ export class QuickTaskService {
    * This can be used as a prerequisite in any test case
    * @param title - Task title
    * @param priority - Task priority (e.g., 'urgent', 'high', 'medium', 'low')
+   * @param tags - Optional array of tags to assign to the task
+   * @param assignToSelf - Optional flag to assign task to current logged-in user (default: false)
+   * @param description - Optional task description
    * @returns Promise with task details including taskId, title, and priority
    */
-  async createTaskAsPrerequisite(title: string, priority: string): Promise<TaskDetails> {
+  async createTaskAsPrerequisite(
+    title: string,
+    priority: string,
+    tags?: string[],
+    assignToSelf: boolean = false,
+    description?: string
+  ): Promise<TaskDetails> {
     return await test.step(`Prerequisite (QT-001): Create task with title "${title}" and priority "${priority}"`, async () => {
-      const createTaskResponse = await this.createTaskWithMandatoryFields({
+      // Use provided tags or default tags
+      const taskTags = tags && tags.length > 0 ? tags : DEFAULT_TASK_TAGS;
+
+      // Get the payload that will be used to create the task
+      const mandatoryFields = await this.getMandatoryTaskFields();
+      const taskOptions: Partial<CreateTaskPayload> = {
         title,
         priority,
-      });
+        tags: taskTags,
+      };
+
+      // Add description if provided
+      if (description) {
+        taskOptions.description = description;
+      }
+
+      // Get a user ID for assignedTo field if needed
+      let userId: string | undefined;
+      const assignedToField = mandatoryFields.find(field => field.name === 'assignedTo');
+      if (assignedToField) {
+        if (assignToSelf) {
+          // Get current logged-in user ID
+          if (this.cachedUserId) {
+            userId = this.cachedUserId;
+          } else {
+            // Try to get user ID from API endpoints first
+            try {
+              userId = await this.getCurrentUserId();
+            } catch (error) {
+              // If API endpoints fail, create task without assignedTo (empty array)
+              // The API will automatically assign it to the current logged-in user
+              // Then extract assignedBy.id from the response for future use
+              taskOptions.assignedTo = {
+                users: [],
+              };
+            }
+          }
+
+          // If we have userId, set it in taskOptions
+          if (userId) {
+            taskOptions.assignedTo = {
+              users: [{ id: userId }],
+            };
+          }
+        } else {
+          // Get first available person ID (default behavior)
+          userId = await this.getFirstAvailablePersonId();
+          if (userId) {
+            taskOptions.assignedTo = {
+              users: [{ id: userId }],
+            };
+          }
+        }
+      }
+
+      const createTaskResponse = await this.createTaskWithMandatoryFields(taskOptions);
 
       // Extract task ID from response
       const taskId = createTaskResponse.result?._id || createTaskResponse.result?.taskId || '';
@@ -275,23 +329,28 @@ export class QuickTaskService {
         throw new Error('Task ID not found in create task response');
       }
 
-      // Get the payload that was used to create the task
-      const mandatoryFields = await this.getMandatoryTaskFields();
+      // If assignToSelf and we didn't have userId, extract it from response and cache it
+      if (assignToSelf && !this.cachedUserId) {
+        const assignedById = (createTaskResponse.result as any)?.assignedBy?.id;
+        if (assignedById) {
+          this.cachedUserId = assignedById;
+        }
+      }
+
+      // Build the payload that was used to create the task
       const payload: CreateTaskPayload = {
         title,
         priority,
+        tags: taskTags,
       };
 
-      // Get a user ID for assignedTo field if needed
-      let userId: string | undefined;
-      const assignedToField = mandatoryFields.find(field => field.name === 'assignedTo');
-      if (assignedToField) {
-        userId = await this.getFirstAvailablePersonId();
-        if (userId) {
-          payload.assignedTo = {
-            users: [{ id: userId }],
-          };
-        }
+      // Add assignedTo to payload (either with userId or empty array for self-assignment)
+      if (taskOptions.assignedTo) {
+        payload.assignedTo = taskOptions.assignedTo;
+      } else if (userId) {
+        payload.assignedTo = {
+          users: [{ id: userId }],
+        };
       }
 
       // Set dueDate if it's mandatory
