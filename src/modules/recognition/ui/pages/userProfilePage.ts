@@ -18,8 +18,6 @@ export class UserProfilePage extends BasePage {
     this.recognitionAwardsHeader = page.getByRole('heading', { name: 'Recognition & awards' });
     this.awardTitleCards = page.locator('[class*="Utils_contentWrapper"] a h4');
     this.viewRecognitionLink = page.getByRole('link', { name: /View recognition/i }).first();
-
-    // this.viewProfileLink = page.locator('[arialabel="View profile"]').first();
   }
 
   /**

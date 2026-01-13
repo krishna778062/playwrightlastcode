@@ -113,7 +113,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     await this.recognitionRecipientsInput.click();
     await this.page.waitForTimeout(500);
     await this.recognitionRecipientsInput.waitFor({ state: 'visible' });
-    // await this.recognitionRecipientsInput.scrollIntoViewIfNeeded();
     if (typeof userName === 'string') {
       await this.recognitionRecipientsInput.fill(userName);
       await this.suggesterContainer.waitFor({ state: 'visible' });
