@@ -18,19 +18,15 @@ export class HomeDashboardPage extends BasePage {
   baseActionUtil: BaseActionUtil;
   pageTileSectionComponent: PageTileSectionComponent;
 
-  readonly editDashboardButton: Locator = this.page.getByRole('button', { name: 'Manage dashboard' });
-  readonly addTileButton: Locator = this.page.getByRole('button', { name: 'Add tile' });
-  readonly doneButton: Locator = this.page.getByRole('button', { name: 'Done' });
-  readonly addContentTileDialog: Locator = this.page.getByRole('dialog', { name: 'Add content tile' });
-  readonly tileDialog: (tileTitle: string) => Locator = (tileTitle: string) =>
-    this.page.getByRole('dialog', { name: `${tileTitle}` });
-  readonly addToHomeButton: Locator = this.page.getByRole('button', { name: 'Add to home' });
-  readonly getTileLocator: (tileTitle: string) => Locator = (tileTitle: string) =>
-    this.page.getByRole('heading', { name: tileTitle });
-  readonly closeDialogButton: Locator = this.addContentTileDialog.getByRole('button', { name: 'Close' });
-  readonly tileAlreadyAddedMessage: Locator = this.addContentTileDialog.getByText(
-    'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
-  );
+  readonly editDashboardButton: Locator;
+  readonly addTileButton: Locator;
+  readonly doneButton: Locator;
+  readonly addContentTileDialog: Locator;
+  readonly tileDialog: (tileTitle: string) => Locator;
+  readonly addToHomeButton: Locator;
+  readonly getTileLocator: (tileTitle: string) => Locator;
+  readonly closeDialogButton: Locator;
+  readonly tileAlreadyAddedMessage: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.HOME_PAGE);
@@ -39,6 +35,19 @@ export class HomeDashboardPage extends BasePage {
     this.onboardingComponent = new OnboardingComponent(page);
     this.baseActionUtil = new BaseActionUtil(page);
     this.pageTileSectionComponent = new PageTileSectionComponent(page);
+
+    // Page-level locators
+    this.editDashboardButton = this.page.getByRole('button', { name: 'Manage dashboard' });
+    this.addTileButton = this.page.getByRole('button', { name: 'Add tile' });
+    this.doneButton = this.page.getByRole('button', { name: 'Done' });
+    this.addContentTileDialog = this.page.getByRole('dialog', { name: 'Add content tile' });
+    this.tileDialog = (tileTitle: string) => this.page.getByRole('dialog', { name: `${tileTitle}` });
+    this.addToHomeButton = this.page.getByRole('button', { name: 'Add to home' });
+    this.getTileLocator = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
+    this.closeDialogButton = this.addContentTileDialog.getByRole('button', { name: 'Close' });
+    this.tileAlreadyAddedMessage = this.addContentTileDialog.getByText(
+      'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
+    );
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {

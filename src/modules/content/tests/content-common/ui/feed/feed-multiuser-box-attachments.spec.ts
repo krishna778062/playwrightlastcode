@@ -20,7 +20,7 @@ import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 test.describe(
   '@FeedPost - Site Roles Box File Attachments',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, '@box-attachments'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, '@box-attachments', ContentTestSuite.FEED],
   },
   () => {
     let siteId: string;
@@ -221,7 +221,7 @@ test.describe(
 test.describe(
   '@FeedPost - Content Feed Box File Attachments',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, '@box-attachments', '@content-feed'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, '@box-attachments', '@content-feed', ContentTestSuite.FEED],
   },
   () => {
     test(

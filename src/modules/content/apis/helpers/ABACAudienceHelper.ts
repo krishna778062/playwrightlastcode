@@ -2,7 +2,7 @@ import { APIRequestContext } from '@playwright/test';
 
 import { IdentityService } from '@/src/modules/platforms/apis/services';
 
-export class SiteAudienceHelper {
+export class ABACAudienceHelper {
   readonly identity: IdentityService;
   constructor(
     readonly apiRequestContext: APIRequestContext,
@@ -14,7 +14,7 @@ export class SiteAudienceHelper {
   /**
    * Find first available audience from any category (excluding 'Site' category)
    */
-  async findFirstAvailableAudience(): Promise<string | null> {
+  async findFirstAvailableAudience(): Promise<{ audienceName: string; categoryName: string; audienceId: string }> {
     try {
       const categories = await this.identity.getCategories();
 
@@ -28,36 +28,26 @@ export class SiteAudienceHelper {
 
           const audiences = await this.identity.getAudiencesInCategory(categoryId);
           if (audiences.length > 0) {
-            return audiences[0].data.name;
+            return {
+              audienceName: audiences[0].data.name,
+              categoryName: categoryName,
+              audienceId: audiences[0].data.id,
+            };
           }
         }
       }
-
-      return null;
     } catch (error) {
       console.error('Error finding first available audience:', error);
-      return null;
+      throw new Error('No audience found');
     }
-  }
-
-  /**
-   * Get an existing audience name for site creation.
-   * Returns the first available audience or null if none exist.
-   */
-  async getAudienceName(): Promise<string | null> {
-    try {
-      return await this.findFirstAvailableAudience();
-    } catch (error) {
-      console.error('Error getting audience name:', error);
-      throw new Error(`Failed to get audience: ${error}`);
-    }
+    return await this.createAudienceName();
   }
 
   /**
    * Create a new audience for site creation.
    * Creates a new category and audience with default attributes.
    */
-  async createAudienceName(): Promise<string> {
+  async createAudienceName(): Promise<{ audienceName: string; categoryName: string; audienceId: string }> {
     try {
       const categoryName = `Category_${Date.now()}`;
       const audienceName = `Audience_${Date.now()}`;
@@ -71,7 +61,7 @@ export class SiteAudienceHelper {
         value: 'e',
       });
 
-      return audienceName;
+      return { audienceName: audienceName, categoryName: categoryName, audienceId: categoryId };
     } catch (error) {
       console.error('Error creating audience name:', error);
       throw new Error(`Failed to create audience: ${error}`);
