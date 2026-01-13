@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -8,18 +8,26 @@ import { TargetAudienceComponent } from '@/src/modules/content/ui/components/tar
 
 export class SiteDetailsPage extends BasePage {
   private siteDetailsComponent: SiteDetailsComponent;
-  readonly categoryName = this.page.locator('id="category":has-text("Uncategorized")');
-  readonly contentTab = this.page.getByRole('tab', { name: 'Content' });
-  readonly searchBar = this.page.locator("[aria-label='Search…']");
-  readonly searchIcon = this.page.locator('.SearchField-submit');
-  readonly clickingOnCheckbox = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
-  readonly contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
+  readonly categoryName: Locator;
+  readonly contentTab: Locator;
+  readonly searchBar: Locator;
+  readonly searchIcon: Locator;
+  readonly clickingOnCheckbox: Locator;
+  readonly contentLink: (pageName: string) => Locator;
   private targetAudienceComponent: TargetAudienceComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.SITE_DETAILS_PAGE(siteId));
     this.targetAudienceComponent = new TargetAudienceComponent(page);
     this.siteDetailsComponent = new SiteDetailsComponent(page);
+
+    // Initialize locators
+    this.categoryName = this.page.locator('id="category":has-text("Uncategorized")');
+    this.contentTab = this.page.getByRole('tab', { name: 'Content' });
+    this.searchBar = this.page.locator("[aria-label='Search…']");
+    this.searchIcon = this.page.locator('.SearchField-submit');
+    this.clickingOnCheckbox = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
   }
   async verifyThePageIsLoaded(): Promise<void> {}
 
