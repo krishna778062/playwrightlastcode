@@ -30,10 +30,10 @@ export class ManageContentPage extends BasePage {
   readonly onboarding: OnboardingComponent;
 
   // Page-level locators (not delegated to components)
-  readonly clickingOnCheckbox: Locator = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
-  readonly clickOnBulkOptions: Locator = this.page.locator('input[type="text"]#action');
-  readonly validateOption: Locator = this.page.getByText('Validate');
-  readonly contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
+  readonly clickingOnCheckbox: Locator;
+  readonly clickOnBulkOptions: Locator;
+  readonly validateOption: Locator;
+  readonly contentLink: (pageName: string) => Locator;
 
   // Convenience accessors for commonly used component locators
   readonly editButton: Locator;
@@ -48,6 +48,12 @@ export class ManageContentPage extends BasePage {
     super(page, PAGE_ENDPOINTS.MANAGE_CONTENT);
     this.manageContent = new ManageContentComponent(page);
     this.onboarding = new OnboardingComponent(page);
+
+    // Page-level locators (not delegated to components)
+    this.clickingOnCheckbox = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.clickOnBulkOptions = this.page.locator('input[type="text"]#action');
+    this.validateOption = this.page.getByText('Validate');
+    this.contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
 
     // Expose commonly used locators from component for backwards compatibility
     this.editButton = this.manageContent.editButton;
