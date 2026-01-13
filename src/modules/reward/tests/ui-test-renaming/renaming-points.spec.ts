@@ -85,26 +85,21 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-7010',
         storyId: 'RC-6370',
       });
-      // Enable the language if already not enabled.
       const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.enableTheLanguageInTenantIfNotEnabled(['English (UK)', 'French', 'German']);
       await renamingPage.loadPage();
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
-      const newCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
       await renamingPage.clickEditButtonByCardType('points');
-
-      // Uncheck the Use the <card custom Name> for all language, if checked
-      await renamingPage.unCheckTheCustomLanguageForAll(newCustomizedValue!);
-
-      // Enable the all available language using switch, and enter the custom value
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
       await renamingPage.enableTheOtherLanguageAndEnterCustomValue('Points');
       await renamingPage.verifyThePageIsLoaded();
-
-      // Verify the Reset all translation to automatic button visible
       await renamingPage.clickEditButtonByCardType('points');
       await renamingPage.clickOnResetButton();
-      await renamingPage.validateTheLanguageDataRested();
+      await renamingPage.validateTheLanguageDataRested(defaultOtherLanguageTranslationValue);
       await renamingPage.clickOnSaveButton();
     }
   );
