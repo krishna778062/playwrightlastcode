@@ -12,7 +12,7 @@ import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 test.describe(
   '@FeedPost - Home Feed Maximum File Upload Limit',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
