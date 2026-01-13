@@ -266,15 +266,15 @@ test.describe(
 
     // 7. Top search queries metric
     test(
-      'verify Top search queries metric data validation with all filters applied',
+      'TS To verify the answer of Top search queries in Search Dashboard all filters applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-search-queries'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Top search queries in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the answer of Top search queries in Search Dashboard all filters applied',
+          zephyrTestId: 'DE-27882',
+          storyId: 'DE-25926',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -295,16 +295,15 @@ test.describe(
 
     // 8. Top search queries CSV
     test(
-      'verify Top search queries CSV download and data validation with all filters applied',
+      'TS To verify the CSV of answer top search queries in Search Dashboard all filters applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@top-search-queries-csv'],
       },
       async () => {
         tagTest(test.info(), {
-          description:
-            'To verify CSV download and data validation for Top search queries in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the CSV of answer top search queries in Search Dashboard all filters applied',
+          zephyrTestId: 'DE-27885',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -325,7 +324,7 @@ test.describe(
 
     // 9. Most searches performed by Department metric
     test(
-      'verify Most searches performed by Department metric data validation with all filters applied',
+      'TS To verify the answer of Most searches performed by User Parameter in Search Dashboard with all filters applied',
       {
         tag: [
           TestPriority.P0,
@@ -337,9 +336,9 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Most searches performed by Department in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Most searches performed by User Parameter in Search Dashboard with all filters applied',
+          zephyrTestId: 'DE-27889',
+          storyId: 'DE-25925',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -361,7 +360,7 @@ test.describe(
 
     // 10. Most searches performed by Department CSV
     test(
-      'verify Most searches performed by Department CSV download and data validation with all filters applied',
+      'TS To verify the CSV of answer most searches performed by department in Search Dashboard All filters applied',
       {
         tag: [
           TestPriority.P0,
@@ -373,9 +372,9 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Most searches performed by Department in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the CSV of answer most searches performed by department in Search Dashboard All filters applied',
+          zephyrTestId: 'DE-27892',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -398,15 +397,16 @@ test.describe(
 
     // 11. No result search queries metric
     test(
-      'verify No result search queries metric data validation with all filters applied',
+      'TS To verify the answer of No result search queries in Search Dashboard with all filters applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of No result search queries in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+          description:
+            'TS To verify the answer of No result search queries in Search Dashboard with all filters applied',
+          zephyrTestId: 'DE-27895',
+          storyId: 'DE-25927',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -427,16 +427,16 @@ test.describe(
 
     // 12. No result search queries CSV
     test(
-      'verify No result search queries CSV download and data validation with all filters applied',
+      'TS To verify the CSV of answer No result search queries in Search Dashboard with all filters applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@no-result-search-queries-csv'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for No result search queries in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the CSV of answer No result search queries in Search Dashboard with all filters applied',
+          zephyrTestId: 'DE-27898',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -460,7 +460,7 @@ test.describe(
 
     // 13. Top search queries with no clickthrough metric
     test(
-      'verify Top search queries with no clickthrough metric data validation with all filters applied',
+      'TS To verify the answer of Top search queries with no clickthrough in Search Dashboard All Filters Applied',
       {
         tag: [
           TestPriority.P0,
@@ -472,9 +472,9 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Top search queries with no clickthrough in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Top search queries with no clickthrough in Search Dashboard All Filters Applied',
+          zephyrTestId: 'DE-27904',
+          storyId: 'DE-25928',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -496,7 +496,7 @@ test.describe(
 
     // 14. Top search queries with no clickthrough CSV
     test(
-      'verify Top search queries with no clickthrough CSV download and data validation with all filters applied',
+      'TS To verify the CSV of answer top search queries with no clickthrough in Search Dashboard All Filters Applied',
       {
         tag: [
           TestPriority.P0,
@@ -508,9 +508,9 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify CSV download and data validation for Top search queries with no clickthrough in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the CSV of answer top search queries with no clickthrough in Search Dashboard All Filters Applied',
+          zephyrTestId: 'DE-27913',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -535,15 +535,15 @@ test.describe(
 
     // 15. Top clickthrough types metric
     test(
-      'verify Top clickthrough types metric data validation with all filters applied',
+      'TS To verify the answer of Top clickthrough types in Search Dashboard All Filters Applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-clickthrough-types'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Top clickthrough types in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the answer of Top clickthrough types in Search Dashboard All Filters Applied',
+          zephyrTestId: 'DE-27949',
+          storyId: 'DE-25929',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -564,16 +564,15 @@ test.describe(
 
     // 16. Top clickthrough types CSV
     test(
-      'verify Top clickthrough types CSV download and data validation with all filters applied',
+      'TS To verify the CSV of answer top clickthrough types in Search Dashboard All filters Applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@top-clickthrough-types-csv'],
       },
       async () => {
         tagTest(test.info(), {
-          description:
-            'To verify CSV download and data validation for Top clickthrough types in Search dashboard with all filters applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the CSV of answer top clickthrough types in Search Dashboard All filters Applied',
+          zephyrTestId: 'DE-27952',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with all filters applied
