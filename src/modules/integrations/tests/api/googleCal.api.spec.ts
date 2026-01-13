@@ -16,7 +16,7 @@ import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/ap
 test.describe(
   'Google Calendar Native Tiles API Integration',
   {
-    tag: [IntegrationsSuiteTags.GOOGLE_CALENDAR_APPTILES, IntegrationsSuiteTags.ABSOLUTE],
+    tag: [IntegrationsSuiteTags.GOOGLE_CALENDAR_NATIVE_TILES, IntegrationsSuiteTags.ABSOLUTE],
   },
   () => {
     let contentTilesApiHelper: ContentTilesApiHelper;
