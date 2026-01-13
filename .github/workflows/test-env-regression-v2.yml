@@ -1,21 +1,21 @@
 # ============================================================================
-# DAILY REGRESSION TESTS (Test Environment)
+# TEST ENVIRONMENT REGRESSION TESTS
 # ============================================================================
 #
 # PURPOSE:
-#   Runs daily regression tests on the TEST environment.
+#   Runs regression tests on the TEST environment.
 #   Always uses the 'develop' branch for latest code.
 #
 # SCHEDULE:
-#   - Runs daily at 6:00 AM UTC (11:30 AM IST)
+#   - Can be scheduled daily at 6:00 AM UTC (11:30 AM IST)
 #   - Can also be triggered manually
 #
 # CALLS:
-#   regression-unified-template.yml with trigger_type=daily_cron
+#   regression-unified-template.yml with trigger_type=test_env_regression
 #
 # ============================================================================
 
-name: Daily Regression (v2)
+name: Test Env Regression (v2)
 
 on:
   # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
@@ -81,8 +81,8 @@ jobs:
     uses: ./.github/workflows/regression-unified-template.yml
     with:
       environment: ${{ inputs.environment || 'test' }}
-      trigger_type: daily_cron
-      slack_prefix: Daily Regression
+      trigger_type: test_env_regression
+      slack_prefix: Test Env Regression
       git_ref: ${{ github.event_name == 'schedule' && '' || github.ref_name }}
       # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
       modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}

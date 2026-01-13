@@ -1,0 +1,121 @@
+# ============================================================================
+# PRODUCTION HEALTHCHECK (All Regions)
+# ============================================================================
+#
+# PURPOSE:
+#   Runs health check tests on ALL production environments using matrix.
+#   Always uses 'main' branch (production code).
+#
+# SCHEDULE:
+#   - prodUS: 10:30 PM UTC (4:00 AM IST)
+#   - prodEU: 11:30 PM UTC (5:00 AM IST)
+#   - prodCA: 12:30 AM UTC (6:00 AM IST)
+#   - prodAU: 1:30 AM UTC (7:00 AM IST)
+#
+# CALLS:
+#   regression-unified-template.yml with trigger_type=prod_healthcheck
+#
+# ============================================================================
+
+name: Production Healthcheck
+
+on:
+  schedule:
+    # Staggered schedule for each region
+    - cron: '30 22 * * *' # prodUS: 10:30 PM UTC
+    - cron: '30 23 * * *' # prodEU: 11:30 PM UTC
+    - cron: '30 0 * * *' # prodCA: 12:30 AM UTC
+    - cron: '30 1 * * *' # prodAU: 1:30 AM UTC
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (all = run all 4 prod regions)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'reward'
+          - 'reward-settings'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'form-designer'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  # Determine which environments to run based on schedule or input
+  setup:
+    runs-on: [kubernetes]
+    outputs:
+      environments: ${{ steps.set-matrix.outputs.environments }}
+    steps:
+      - name: Set environment matrix
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            # Determine which region based on cron schedule time
+            HOUR=$(date -u +%H)
+            MINUTE=$(date -u +%M)
+            
+            if [ "$HOUR" == "22" ]; then
+              echo 'environments=["prodUS"]' >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "23" ]; then
+              echo 'environments=["prodEU"]' >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "00" ]; then
+              echo 'environments=["prodCA"]' >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "01" ]; then
+              echo 'environments=["prodAU"]' >> $GITHUB_OUTPUT
+            else
+              echo 'environments=["prodUS"]' >> $GITHUB_OUTPUT
+            fi
+          elif [ "${{ inputs.environment }}" == "all" ]; then
+            echo 'environments=["prodUS","prodEU","prodCA","prodAU"]' >> $GITHUB_OUTPUT
+          else
+            echo 'environments=["${{ inputs.environment }}"]' >> $GITHUB_OUTPUT
+          fi
+
+  healthcheck:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      environment: ${{ matrix.environment }}
+      trigger_type: prod_healthcheck
+      slack_prefix: Prod Healthcheck
+      git_ref: main
+      modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
+      is_browserstack: ${{ inputs.is_browserstack || false }}
+      timeout_minutes: 120
+    secrets: inherit

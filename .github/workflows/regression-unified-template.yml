@@ -18,7 +18,7 @@
 #   ┌─────────────────────────────────────────────────────────────────────┐
 #   │  Trigger Type       │ Environment │ CURRENT_STAGE │ Git Ref        │
 #   ├─────────────────────┼─────────────┼───────────────┼────────────────┤
-#   │  daily_cron         │ test        │ any           │ develop        │
+#   │  test_env_regression         │ test        │ any           │ develop        │
 #   │  qa_release         │ qa          │ production    │ main           │
 #   │  qa_release         │ qa          │ qa            │ release        │
 #   │  qa_release         │ qa          │ uat           │ SKIP           │
@@ -73,7 +73,7 @@ on:
           Type of trigger that initiated this workflow.
           Used to determine branch selection and module list.
           Values:
-            - daily_cron: Daily regression on test environment
+            - test_env_regression: Daily regression on test environment
             - qa_release: QA release regression
             - uat_release: UAT release regression  
             - prod_healthcheck: Production health check
@@ -261,7 +261,7 @@ jobs:
               # ────────────────────────────────────────────────────────────
               # DAILY CRON: Test environment always uses develop branch
               # ────────────────────────────────────────────────────────────
-              "daily_cron")
+              "test_env_regression")
                 if [ "$ENVIRONMENT" = "test" ]; then
                   CHECKOUT_REF="develop"
                   echo "✅ Daily cron on test → develop branch"
@@ -378,7 +378,7 @@ jobs:
               # DAILY CRON: Full UI regression suite
               # Runs daily on test environment
               # ──────────────────────────────────────────────────────────
-              "daily_cron")
+              "test_env_regression")
                 MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
                 echo "✅ Daily cron: Full UI regression (all modules including content)"
                 ;;
@@ -616,7 +616,7 @@ jobs:
 
           # Generate build name based on trigger type
           case "$TRIGGER" in
-            "daily_cron")
+            "test_env_regression")
               # Daily regression: Daily-{branch}-{Module}-{env}
               BUILD_NAME="Daily-${BRANCH}-${MODULE_CAP}-${ENV}"
               ;;
@@ -1102,8 +1102,8 @@ jobs:
               KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
             fi
             
-            # Rich multi-line message format (using \n for newlines)
-            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
+            # Rich multi-line message format (using \n for newlines, indented for hierarchy)
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
             
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
@@ -1129,14 +1129,14 @@ jobs:
             
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found matching criteria
-              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n💡 No tests matched the filter criteria. Please check your filters.\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      💡 No tests matched the filter criteria. Please check your filters.\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$MESSAGE\"}" \
                 $SLACK_WEBHOOK_URL
             fi
           else
             # Pipeline failed before tests could run
-            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n❌ Pipeline could not execute. Check job logs for errors.\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      ❌ Pipeline could not execute. Check job logs for errors.\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1156,7 +1156,7 @@ jobs:
     steps:
       - name: Notify Slack about skip
         run: |
-          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n💡 ${{ needs.determine-config.outputs.skip_reason }}\n🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n      📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }}\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL
