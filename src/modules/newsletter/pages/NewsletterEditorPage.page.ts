@@ -35,6 +35,7 @@ export class NewsletterEditorPage extends BasePage {
 
   // Additional locators for methods
   readonly backArrowLink: Locator;
+  readonly previewButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_NEWSLETTER_PAGE);
@@ -54,6 +55,9 @@ export class NewsletterEditorPage extends BasePage {
 
     // Additional locators for methods
     this.backArrowLink = this.page.getByTestId('i-arrowLeft');
+
+    // Preview button
+    this.previewButton = this.page.getByRole('button', { name: /preview/i });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -183,6 +187,17 @@ export class NewsletterEditorPage extends BasePage {
       });
       // Wait for navigation to complete
       await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
+    });
+  }
+
+  /**
+   * Clicks the Preview button to open the newsletter preview
+   */
+  async clickPreviewButton(): Promise<void> {
+    await test.step('Click Preview button', async () => {
+      await this.clickOnElement(this.previewButton, {
+        stepInfo: 'Click Preview button',
+      });
     });
   }
 }
