@@ -16,7 +16,7 @@ export class BrandingPage extends BasePage {
     super(page);
 
     // Locators for branding navigation
-    this.brandingLink = page.locator('p', { hasText: 'Branding' });
+    this.brandingLink = page.locator('#page-content').getByRole('button', { name: 'Branding' });
     this.manageBrandingHeading = page.locator('h3', { hasText: 'Manage branding' });
 
     // Locators for color palette section

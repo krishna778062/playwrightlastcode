@@ -24,4 +24,12 @@ export const FILES_METRICS = {
     title: 'Unique views',
     subtitle: 'Distinct users viewing files',
   },
+  DISTRIBUTION_OF_VIEWS_BY_FILE_CATEGORY: {
+    title: 'Distribution of views by file category',
+    subtitle: 'Break down of views by each file category',
+  },
+  DISTRIBUTION_OF_DOWNLOADS_BY_FILE_CATEGORY: {
+    title: 'Distrubution of downloads by file category',
+    subtitle: 'Break down of downloads by each file category',
+  },
 } as const;

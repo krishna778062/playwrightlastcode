@@ -1,4 +1,5 @@
 import { BrowserContext, Page, test } from '@playwright/test';
+import { RecognitionHubApiService } from '@recognition/api/services/RecognitionHubApiService';
 import { RecurringAwardsApiService } from '@recognition/api/services/RecurringAwardsApiService';
 import { getRecognitionTenantConfigFromCache } from '@recognition/config/recognitionConfig';
 
@@ -62,6 +63,7 @@ export const recognitionTestFixture = test.extend<{
   standardUserFixture: RecognitionUiFixture;
   // API helpers
   recurringAwardsApi: RecurringAwardsApiService;
+  recognitionHubApi: RecognitionHubApiService;
 }>({
   // UI-only fixtures - browser and page components
   appManagerFixture: [
@@ -94,6 +96,13 @@ export const recognitionTestFixture = test.extend<{
   recurringAwardsApi: [
     async ({}, use) => {
       await use(new RecurringAwardsApiService());
+    },
+    { scope: 'test' },
+  ],
+
+  recognitionHubApi: [
+    async ({}, use) => {
+      await use(new RecognitionHubApiService());
     },
     { scope: 'test' },
   ],
