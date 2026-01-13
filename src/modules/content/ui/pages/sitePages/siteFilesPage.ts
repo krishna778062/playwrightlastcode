@@ -32,27 +32,18 @@ export interface ISiteFilesPageAssertions {
 export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions, ISiteFilesPageAssertions {
   readonly filesPreviewModalComponent: FilesPreviewModalComponent;
 
-  readonly inputFilesSelector: string = `input[type="file"]`;
-  readonly siteVideosTab: Locator = this.page.getByRole('link', { name: 'Site videos' });
-  readonly boxFolderLocator = (folderName: string) => this.page.getByRole('link', { name: folderName });
-  readonly linkNewFolder = (folderName: string) =>
-    this.page.getByRole('button', { name: new RegExp(`^${folderName}$`, 'i') });
-  readonly linkFolderDialog = (folderName: string) =>
-    this.page.getByRole('dialog', { name: new RegExp(`^${folderName}$`, 'i') });
-  readonly linkFolderDialogInput: Locator = this.page
-    .locator('div')
-    .filter({ hasText: /^Please select a document library…$/ });
-  readonly linkNewFolderButton = (folderName: string) => this.linkFolderDialog(folderName).getByLabel(folderName);
-  readonly shareOption: Locator = this.page.getByRole('button', { name: 'Share' });
+  readonly inputFilesSelector: string;
+  readonly siteVideosTab: Locator;
+  readonly boxFolderLocator: (folderName: string) => Locator;
+  readonly linkNewFolder: (folderName: string) => Locator;
+  readonly linkFolderDialog: (folderName: string) => Locator;
+  readonly linkFolderDialogInput: Locator;
+  readonly linkNewFolderButton: (folderName: string) => Locator;
+  readonly shareOption: Locator;
 
-  readonly getFileRowLocator = (fileName: string): Locator =>
-    this.page
-      .locator('tr')
-      .filter({ has: this.page.locator(`a.directory-ownerName`, { hasText: fileName }) })
-      .first();
+  readonly getFileRowLocator: (fileName: string) => Locator;
 
-  readonly getFileOptionsDropdownLocator = (fileName: string): Locator =>
-    this.getFileRowLocator(fileName).locator('button.OptionsMenu-iconContainer');
+  readonly getFileOptionsDropdownLocator: (fileName: string) => Locator;
 
   get selectFromComputer(): Locator {
     return this.page.getByText('Drop media and files here or').locator('input[type="file"]');
@@ -73,6 +64,27 @@ export class SiteFilesPage extends BaseSitePage implements ISiteFilesPageActions
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.filesPreviewModalComponent = new FilesPreviewModalComponent(page);
+
+    // Initialize locators
+    this.inputFilesSelector = `input[type="file"]`;
+    this.siteVideosTab = this.page.getByRole('link', { name: 'Site videos' });
+    this.boxFolderLocator = (folderName: string) => this.page.getByRole('link', { name: folderName });
+    this.linkNewFolder = (folderName: string) =>
+      this.page.getByRole('button', { name: new RegExp(`^${folderName}$`, 'i') });
+    this.linkFolderDialog = (folderName: string) =>
+      this.page.getByRole('dialog', { name: new RegExp(`^${folderName}$`, 'i') });
+    this.linkFolderDialogInput = this.page.locator('div').filter({ hasText: /^Please select a document library…$/ });
+    this.linkNewFolderButton = (folderName: string) => this.linkFolderDialog(folderName).getByLabel(folderName);
+    this.shareOption = this.page.getByRole('button', { name: 'Share' });
+
+    this.getFileRowLocator = (fileName: string): Locator =>
+      this.page
+        .locator('tr')
+        .filter({ has: this.page.locator(`a.directory-ownerName`, { hasText: fileName }) })
+        .first();
+
+    this.getFileOptionsDropdownLocator = (fileName: string): Locator =>
+      this.getFileRowLocator(fileName).locator('button.OptionsMenu-iconContainer');
   }
 
   get actions(): ISiteFilesPageActions {

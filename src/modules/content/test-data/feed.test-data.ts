@@ -37,9 +37,9 @@ export const FEED_TEST_DATA = {
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
     //add random timestamp string to the post text
-    INAPPROPRIATE_POST_TEXT: `${Date.now()} - This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
-    INAPPROPRIATE_COMMENT_TEXT: `${Date.now()} - This is a test comment with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
-    EDITED_POST_TEXT: `${Date.now()} - This is a test post with appropriate content`,
+    INAPPROPRIATE_POST_TEXT: `This is a stupid test ${Date.now()} post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
+    INAPPROPRIATE_COMMENT_TEXT: `This is a stupid test ${Date.now()} comment with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
+    EDITED_POST_TEXT: `${Date.now()} - This is a test post with appropriate content ${faker.company.name()} - ${faker.commerce.productName()}`,
     INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPORT_REASON: 'This content violates community guidelines',
     REPLY_WITH_IMAGE: `Automated Test Reply with Image ${faker.company.name()} - ${faker.commerce.productName()}`,
