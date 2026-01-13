@@ -77,6 +77,7 @@ export class FeedPage extends BasePage {
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
   readonly feedPostContainer: Locator;
+  readonly mustReadSection: Locator;
   readonly topicLinkLocator: (topicName: string, postContainer: Locator) => Locator;
 
   constructor(page: Page, feedId?: string) {
@@ -113,6 +114,7 @@ export class FeedPage extends BasePage {
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
     this.getUserCardFromCelebrationBlock = (userName: string) =>
       this.page.locator("[class*='UserCard--withCelebrations']").filter({ hasText: `Birthday${userName}` });
+    this.mustReadSection = this.page.getByRole('link', { name: 'Must reads' }).first();
     this.topicLinkLocator = (topicName: string, postContainer: Locator) =>
       postContainer.getByRole('link', { name: `#${topicName}` });
     this.feedPostContainer = this.page.locator("[class*='PostInner']");
@@ -362,6 +364,14 @@ export class FeedPage extends BasePage {
     await test.step('Verify Celebration smart block is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.celebrationBlock, {
         assertionMessage: 'Celebration smart block should be visible',
+      });
+    });
+  }
+
+  async verifyMustReadSectionIsVisible(): Promise<void> {
+    await test.step('Verify Must Read section is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.mustReadSection, {
+        assertionMessage: 'Must Read section should be visible',
       });
     });
   }

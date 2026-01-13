@@ -622,7 +622,22 @@ export class AudiencePage extends BasePage {
         }
       }
 
+      // Wait for Create button to be enabled before clicking
+      await expect(this.createAudienceBtn).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+
       await this.createAudienceBtn.click();
+
+      // Wait for the dialog to close (audience created successfully)
+      // Use retry mechanism to handle slow API responses
+      await expect(async () => {
+        const isDialogVisible = await this.createAudienceDialog.isVisible({ timeout: 2000 }).catch(() => false);
+        if (isDialogVisible) {
+          throw new Error('Dialog still visible, audience creation may not be complete');
+        }
+      }).toPass({ timeout: TIMEOUTS.MEDIUM, intervals: [500, 1000, 2000] });
+
+      // Additional wait to ensure page state is stable before next operation
+      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -697,8 +712,15 @@ export class AudiencePage extends BasePage {
         return false;
       }
 
-      // Select operator by value (IS, IS_NOT, ALL)
+      // Wait for operator field to be enabled
+      await expect(this.operatorSelectInput).toBeEnabled({ timeout: TIMEOUTS.SHORT });
+
+      // Select operator by value (IS, IS_NOT, ALL, ON_OR_BEFORE, etc.)
       await this.operatorSelectInput.selectOption(operator);
+
+      // Wait for UI to update after operator selection (important for date fields to appear)
+      await this.page.waitForTimeout(500);
+
       console.log(`✅ Successfully selected operator: ${operator}`);
       return true;
     });
@@ -752,12 +774,47 @@ export class AudiencePage extends BasePage {
   }
 
   /**
-   * Fill date operator value - values are auto-populated, no action needed
+   * Fill date operator value - values are auto-populated, wait and verify they are populated
    */
   async fillDateOperatorValue(): Promise<void> {
     await test.step('Fill Date Operator Value', async () => {
-      // Date operator values are auto-populated, no manual filling required
-      console.log('✅ Date operator values are auto-populated, skipping manual value selection');
+      // Get the current operator to determine which date fields to wait for
+      const currentOperator = await this.operatorSelectInput.inputValue();
+
+      // Wait for UI to update after operator selection
+      await this.page.waitForTimeout(1000);
+
+      if (currentOperator === 'BETWEEN') {
+        // BETWEEN operator requires both start and end date fields
+        await expect(this.startDateButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+        await expect(this.endDateButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+        // Wait for date fields to be populated (button text should not be placeholder)
+        // Retry mechanism to handle slow auto-population
+        await expect(async () => {
+          const startDateText = await this.startDateButton.textContent();
+          const endDateText = await this.endDateButton.textContent();
+          const hasStartDate = startDateText && !startDateText.match(/Date\*|Select|Start date\*/i);
+          const hasEndDate = endDateText && !endDateText.match(/Date\*|Select|End date\*/i);
+          if (!hasStartDate || !hasEndDate) {
+            throw new Error('Date fields not yet populated');
+          }
+        }).toPass({ timeout: TIMEOUTS.MEDIUM, intervals: [500, 1000, 2000] });
+      } else {
+        // Other operators (ON_OR_BEFORE, ON_OR_AFTER, BEFORE, AFTER, ON) use single date field
+        await expect(this.dateButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+        // Wait for date field to be populated with retry mechanism
+        await expect(async () => {
+          const dateText = await this.dateButton.textContent();
+          const hasDate = dateText && !dateText.match(/Date\*|Select/i);
+          if (!hasDate) {
+            throw new Error('Date field not yet populated');
+          }
+        }).toPass({ timeout: TIMEOUTS.MEDIUM, intervals: [500, 1000, 2000] });
+      }
+
+      console.log('✅ Date operator values are auto-populated and verified');
     });
   }
 
