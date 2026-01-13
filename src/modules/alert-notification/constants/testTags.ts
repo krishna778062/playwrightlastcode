@@ -5,6 +5,7 @@ export enum AlertNotificationSuiteTags {
   DEFAULTS_NOTIFICATION_SETTINGS = '@defaults-notification-settings',
   GENERAL_APPLICATION_SETTINGS = '@general-application-settings',
   PROFILE_NOTIFICATION_SETTINGS = '@profile-notification-settings',
+  DND_MANAGE_PREFERENCE = '@dnd-manage-preference',
 }
 
 export const TEST_TAGS = {
@@ -14,4 +15,5 @@ export const TEST_TAGS = {
   DEFAULTS_NOTIFICATION_SETTINGS: AlertNotificationSuiteTags.DEFAULTS_NOTIFICATION_SETTINGS,
   GENERAL_APPLICATION_SETTINGS: AlertNotificationSuiteTags.GENERAL_APPLICATION_SETTINGS,
   PROFILE_NOTIFICATION_SETTINGS: AlertNotificationSuiteTags.PROFILE_NOTIFICATION_SETTINGS,
+  DND_MANAGE_PREFERENCE: AlertNotificationSuiteTags.DND_MANAGE_PREFERENCE,
 } as const;
