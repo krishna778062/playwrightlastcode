@@ -27,6 +27,10 @@ export const SEARCH_METRICS = {
     title: 'Most searches performed by Department',
     subtitle: 'Shows the top searches (up to 5) performed based on the Department',
   },
+  MOST_SEARCHES_PERFORMED_BY_LOCATION: {
+    title: 'Most searches performed by Location',
+    subtitle: 'Shows the top searches (up to 5) performed based on the Location',
+  },
   NO_RESULT_SEARCH_QUERIES: {
     title: 'No result search queries',
     subtitle: 'The most searched queries (up to 5) with no results being returned.',

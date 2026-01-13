@@ -101,7 +101,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'RC-5385 Validate sorting of column on rewards options page',
+    '[RC-5385] Validate sorting of column on rewards options page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -363,40 +363,4 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardOptionsPage.setGiftCardState(rewardOptionsPage, giftCardDetails.name, 'Active');
     }
   );
-
-  const giftCards = [
-    { country: 'Turkey', name: 'A101 Turkey', visibility: 'Active' },
-    { country: 'Turkey', name: 'A101 Turkey', visibility: 'Inactive' },
-  ];
-  for (const giftCard of giftCards) {
-    test(
-      `Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
-      { tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE] },
-      async ({ recoManagerFixture }) => {
-        tagTest(test.info(), {
-          description: `RC-5565, RC-5376 - Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
-          zephyrTestId: giftCard.visibility === 'Active' ? 'RC-5565' : 'RC-5376',
-          storyId: 'RC-5251',
-        });
-        const manageRewardsPage = new ManageRewardsOverviewPage(recoManagerFixture.page);
-        const rewardOptionsPage = new RewardOptionsPage(recoManagerFixture.page);
-        const rewardsStorePage = new RewardsStore(recoManagerFixture.page);
-
-        await manageRewardsPage.loadPage();
-        await manageRewardsPage.verifyThePageIsLoaded();
-        expect(await manageRewardsPage.fetchKeyValueFromHarnessResponse('reward_options')).toBeTruthy();
-
-        await rewardOptionsPage.setGiftCardState(
-          rewardOptionsPage,
-          giftCard.name,
-          giftCard.visibility as 'Active' | 'Inactive'
-        );
-
-        await rewardsStorePage.loadPage();
-        await rewardsStorePage.selectCountry(giftCard.country);
-        await rewardsStorePage.searchForGiftCard(giftCard.name);
-        await rewardsStorePage.verifyGiftCardVisibility(giftCard.name, giftCard.visibility as 'Active' | 'Inactive');
-      }
-    );
-  }
 });

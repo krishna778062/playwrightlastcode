@@ -131,6 +131,7 @@ from SIMPPLR_COMMON_TENANT.udl.vw_interaction as i
 inner join SIMPPLR_COMMON_TENANT.udl.vw_user_as_is as u
 on u.code=i.interacted_by_user_code
 where i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+and u.status_code = 'US001'
 and i.is_system_feed='False' 
 and  i.TENANT_CODE = '{tenantCode}'
 {locationFilter}
@@ -179,6 +180,7 @@ right join SIMPPLR_COMMON_TENANT.udl.vw_user_as_is as u
 on u.code=i.interacted_by_user_code
 where 
 u.TENANT_CODE = '{tenantCode}'
+and u.status_code = 'US001'
 {locationFilter}
 {departmentFilter}
 {segmentFilter}

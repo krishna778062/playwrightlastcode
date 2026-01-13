@@ -1,5 +1,5 @@
 export type DatabaseType = 'reward' | 'recognition';
-export type EnvironmentKey = 'qa' | 'test';
+export type EnvironmentKey = 'dev' | 'test' | 'qa' | 'uat';
 
 /**
  * Get caller function information for debugging
@@ -24,11 +24,11 @@ function getCallerInfo(): string {
   return 'unknown';
 }
 
-// Singleton config cache - loaded once per test run
+// Config cache - loaded once per test run (supports caching both DBs)
 let dbConfigCache: {
   environment: EnvironmentKey;
-  currentDatabase: DatabaseType;
-  dbConfig: DatabaseConfig;
+  configs: Partial<Record<DatabaseType, DatabaseConfig>>;
+  lastAccessedDatabase?: DatabaseType;
 } | null = null;
 
 // Database configuration structure
@@ -112,13 +112,24 @@ function getCurrentEnvironment(): EnvironmentKey {
 export function initializeDbConfig(databaseType: DatabaseType): void {
   const caller = getCallerInfo();
 
-  if (dbConfigCache && dbConfigCache.currentDatabase === databaseType) {
-    return; // Already initialized for the same database
+  const environment = getCurrentEnvironment();
+
+  // Reset cache if environment changed (prevents mixing qa/test configs)
+  if (!dbConfigCache || dbConfigCache.environment !== environment) {
+    dbConfigCache = {
+      environment,
+      configs: {},
+      lastAccessedDatabase: undefined,
+    };
+  }
+
+  // Already initialized for this DB type in this environment
+  if (dbConfigCache.configs[databaseType]) {
+    dbConfigCache.lastAccessedDatabase = databaseType;
+    return;
   }
 
   console.log(`🔧 Initializing database config for database: ${databaseType} (called from: ${caller})`);
-
-  const environment = getCurrentEnvironment();
   const databaseConfig = dbConfig[databaseType];
 
   if (!databaseConfig) {
@@ -130,11 +141,8 @@ export function initializeDbConfig(databaseType: DatabaseType): void {
     throw new Error(`❌ Environment '${environment}' not found for database type '${databaseType}'`);
   }
 
-  dbConfigCache = {
-    environment,
-    currentDatabase: databaseType,
-    dbConfig: envConfig,
-  };
+  dbConfigCache.configs[databaseType] = envConfig;
+  dbConfigCache.lastAccessedDatabase = databaseType;
 
   console.log(
     `🔧 Database config initialized and cache set for environment: ${environment}, database: ${databaseType} with host: ${envConfig.host}`
@@ -143,55 +151,30 @@ export function initializeDbConfig(databaseType: DatabaseType): void {
 
 /**
  * Get database configuration for current environment (from cache)
- * No need to pass database type - uses the initialized database
+ * Prefer using getDbConfigFromCache('reward' | 'recognition') to avoid ambiguity.
  * @returns Database configuration object
  */
-export function getDbConfigFromCache(): DatabaseConfig {
-  if (!dbConfigCache) {
-    throw new Error(`❌ Database config not initialized! Call initializeDbConfig(databaseType) first`);
+export function getRewardDbConfigFromCache(dbName?: DatabaseType): DatabaseConfig {
+  return getDbConfigFromCache(dbName ?? 'recognition');
+}
+
+/**
+ * Get database configuration from cache (lazy-initializes if needed)
+ * @param databaseType - Type of database ('reward' or 'recognition'). Defaults to 'reward' if omitted.
+ */
+export function getDbConfigFromCache(databaseType: DatabaseType = 'reward'): DatabaseConfig {
+  if (!dbConfigCache || dbConfigCache.environment !== getCurrentEnvironment() || !dbConfigCache.configs[databaseType]) {
+    initializeDbConfig(databaseType);
   }
 
-  return dbConfigCache.dbConfig;
-}
+  const cfg = dbConfigCache?.configs[databaseType];
+  if (!cfg) {
+    throw new Error(
+      `❌ Database config not initialized for '${databaseType}'. Call initializeDbConfig('${databaseType}') first`
+    );
+  }
 
-/**
- * Get database host from cache
- * @returns Database host string
- */
-export function getDbHost(): string {
-  return getDbConfigFromCache().host;
-}
-
-/**
- * Get database port from cache
- * @returns Database port number
- */
-export function getDbPort(): number {
-  return getDbConfigFromCache().port;
-}
-
-/**
- * Get database user from cache
- * @returns Database user string
- */
-export function getDbUser(): string {
-  return getDbConfigFromCache().user;
-}
-
-/**
- * Get database password from cache
- * @returns Database password string
- */
-export function getDbPassword(): string {
-  return getDbConfigFromCache().password;
-}
-
-/**
- * Get database name from cache
- * @returns Database name string
- */
-export function getDbName(): string {
-  return getDbConfigFromCache().database;
+  return cfg;
 }
 
 /**
@@ -199,9 +182,9 @@ export function getDbName(): string {
  * @returns Current database type ('reward' or 'recognition')
  */
 export function getCurrentDatabaseType(): DatabaseType {
-  if (!dbConfigCache) {
+  if (!dbConfigCache?.lastAccessedDatabase) {
     throw new Error(`❌ Database config not initialized! Call initializeDbConfig(databaseType) first`);
   }
 
-  return dbConfigCache.currentDatabase;
+  return dbConfigCache.lastAccessedDatabase;
 }

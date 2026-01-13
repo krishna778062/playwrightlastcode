@@ -6,15 +6,6 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseActionUtil } from '@/src/core/utils/baseActionUtil';
 import { HomeFeedComponent } from '@/src/modules/content/ui/components/homeFeedComponent';
 
-export interface IManageApplicationPageActions {
-  selectingPostsIFollow: () => Promise<void>;
-  recentActivity: () => Promise<void>;
-  clickOnSaveButton: () => Promise<void>;
-}
-
-export interface IManageApplicationPageAssertions {
-  // verifyPostsIFollow: () => Promise<void>;
-}
 export class HomeFeedPage extends BasePage {
   private homeFeedComponent: HomeFeedComponent;
   readonly homeFeedHeading = this.page.getByRole('heading', { name: 'Home feed' });
@@ -24,15 +15,6 @@ export class HomeFeedPage extends BasePage {
     super(page, PAGE_ENDPOINTS.DEFAULT_SCREEN);
     this.homeFeedComponent = new HomeFeedComponent(page);
   }
-
-  get actions(): IManageApplicationPageActions {
-    return this;
-  }
-
-  get assertions(): IManageApplicationPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify email notifications page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.homeFeedHeading, {

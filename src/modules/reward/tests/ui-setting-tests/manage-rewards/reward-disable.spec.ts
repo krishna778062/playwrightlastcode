@@ -26,6 +26,16 @@ test.describe('disable Rewards flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }
         zephyrTestId: 'RC-3233',
         storyId: 'RC-3233',
       });
+      tagTest(test.info(), {
+        description: 'Validate Disable rewards Tab on rewards overview page',
+        zephyrTestId: 'RC - 3246',
+        storyId: 'RC-3233',
+      });
+      tagTest(test.info(), {
+        description: 'Validate Disable rewards flow ,if users have unredeemed points in their wallets',
+        zephyrTestId: 'RC - 3248',
+        storyId: 'RC-3233',
+      });
 
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       await manageRewardsPage.loadPageWithHarness();

@@ -54,6 +54,11 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
         zephyrTestId: 'RC-2718',
         storyId: 'RC-2718',
       });
+      tagTest(test.info(), {
+        description: '[Test] Validate Integrate Market Currency Conversions',
+        zephyrTestId: 'RC-3278',
+        storyId: 'RC-2462',
+      });
 
       const currencyConversionPage = new RewardsCurrencyConversionPage(appManagerFixture.page);
       const currency = 'XPF';
