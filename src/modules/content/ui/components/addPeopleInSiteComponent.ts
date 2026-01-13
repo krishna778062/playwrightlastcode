@@ -24,7 +24,9 @@ export class AddPeopleInSiteComponent extends BaseComponent {
   }
 
   getListOfPeople(userName: string): Locator {
-    return this.page.locator('a').filter({ hasText: userName });
+    // Scope to the listbox and select first exact match to avoid matching "Name (Role)" variants
+    // Use getByText with exact option for precise matching
+    return this.memberList.getByText(userName, { exact: true }).first();
   }
 
   async fillAddPeopleInput(userName: string): Promise<void> {
