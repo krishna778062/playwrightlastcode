@@ -137,6 +137,29 @@ jobs:
         env:
           TEST_ENV: ${{ inputs.environment || 'qa' }}
         run: |
+          # ============================================================
+          # START RESOURCE MONITOR (tracks RAM, Disk, Chrome processes)
+          # ============================================================
+          echo "📊 Starting resource monitor..."
+          mkdir -p test-results
+          MONITOR_PID=""
+
+          if [ -f "scripts/resource-monitor.js" ]; then
+            node scripts/resource-monitor.js \
+              --output test-results/resource-metrics \
+              --interval 5 \
+              --format both \
+              --quiet &
+            MONITOR_PID=$!
+            echo "✅ Resource monitor started (PID: $MONITOR_PID)"
+            sleep 1
+          else
+            echo "⚠️ Resource monitor script not found, skipping"
+          fi
+
+          # ============================================================
+          # PREPARE TEST EXECUTION
+          # ============================================================
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
           FEATURE_TAGS="${{ inputs.feature_tags || '' }}"
@@ -246,9 +269,14 @@ jobs:
             RUN_CMD="npx playwright test"
           fi
 
+          # ============================================================
+          # RUN TESTS
+          # ============================================================
+          TEST_EXIT_CODE=0
+
           if [ ${#ALL_TAGS[@]} -eq 0 ]; then
             echo "Running all tests without filters"
-            $RUN_CMD --config="$CONFIG_FILE" --workers="$WORKERS"
+            $RUN_CMD --config="$CONFIG_FILE" --workers="$WORKERS" || TEST_EXIT_CODE=$?
           else
             # For multiple tags, use AND logic by joining with .* (matches any characters between tags)
             # This ensures tests match ALL specified tags, not just one
@@ -261,8 +289,40 @@ jobs:
               GREP_REGEX="${ALL_TAGS[0]}"
             fi
             echo "Running Content tests with grep filter: $GREP_REGEX"
-            $RUN_CMD --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS"
+            $RUN_CMD --config="$CONFIG_FILE" --grep="$GREP_REGEX" --workers="$WORKERS" || TEST_EXIT_CODE=$?
           fi
+
+          # ============================================================
+          # STOP RESOURCE MONITOR & SHOW SUMMARY
+          # ============================================================
+          echo ""
+          echo "📊 Stopping resource monitor..."
+
+          if [ -n "$MONITOR_PID" ] && kill -0 $MONITOR_PID 2>/dev/null; then
+            kill -TERM $MONITOR_PID 2>/dev/null || true
+            sleep 3
+            echo "✅ Resource monitor stopped"
+          fi
+
+          # Show summary
+          if [ -f test-results/resource-metrics.json ]; then
+            echo ""
+            echo "📊 RESOURCE METRICS SUMMARY"
+            echo "=============================="
+            node -e "
+              const data = JSON.parse(require('fs').readFileSync('test-results/resource-metrics.json'));
+              const s = data.summary;
+              console.log('Duration:', s.duration?.totalSeconds, 'seconds');
+              console.log('Memory: Start=' + s.memory?.startMB + 'MB, End=' + s.memory?.endMB + 'MB, Peak=' + s.memory?.peakMB + 'MB');
+              console.log('Disk: Start=' + s.disk?.startAvailableGB + 'GB free, End=' + s.disk?.endAvailableGB + 'GB free, Delta=' + s.disk?.deltaGB + 'GB');
+              console.log('Work Dir: Start=' + s.disk?.workDirStartMB + 'MB, End=' + s.disk?.workDirEndMB + 'MB');
+              console.log('Chrome Peak:', s.chrome?.peakProcesses, 'processes,', s.chrome?.peakMemoryMB, 'MB');
+              if (s.warnings?.length) { console.log(''); s.warnings.forEach(w => console.log(w)); }
+            " || echo "Could not parse metrics"
+            echo "=============================="
+          fi
+
+          exit $TEST_EXIT_CODE
 
       - name: Upload test report to github artifact backup
         if: always()
@@ -270,6 +330,17 @@ jobs:
         with:
           name: content-test-report
           path: playwright-report
+
+      - name: Upload Resource Metrics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resource-metrics-${{ matrix.test_category }}
+          path: |
+            test-results/resource-metrics.json
+            test-results/resource-metrics.csv
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4.1.0
