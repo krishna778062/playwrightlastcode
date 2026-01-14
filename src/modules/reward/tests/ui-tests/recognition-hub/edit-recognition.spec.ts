@@ -37,6 +37,16 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         zephyrTestId: 'RC-5348',
         storyId: 'RC-5348',
       });
+      tagTest(test.info(), {
+        description: 'Verify point deduction when adding new recipients to existing recognition',
+        zephyrTestId: 'RC-4060',
+        storyId: 'RC-4936',
+      });
+      tagTest(test.info(), {
+        description: 'Verify wallet balance got updated after recognition points is edited',
+        zephyrTestId: 'RC-4065',
+        storyId: 'RC-4936',
+      });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       let availablePoints: string;
       let recognitionPostId: string;
@@ -50,7 +60,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await recognitionHub.clickOnGiveRecognition();
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
-      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectTheUserForRecognition(0);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
@@ -217,6 +227,11 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         zephyrTestId: 'RC-5350',
         storyId: 'RC-5350',
       });
+      tagTest(test.info(), {
+        description: 'Validate if new users are getting same points as old users while editing recognition',
+        zephyrTestId: 'RC-4059',
+        storyId: 'RC-4936',
+      });
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
@@ -229,7 +244,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       }
       await recognitionHub.clickOnGiveRecognition();
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
-      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectTheUserForRecognition(0);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(rewardPointIndex);
       await giveRecognitionModal.enterTheRecognitionMessage('Test Message' + Math.floor(Math.random() * 1000));
       await giveRecognitionModal.giftThePoints(rewardPointIndex);
@@ -289,7 +304,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5351 Verify recognition manager can edit points within the 24hr pending period',
+    '[RC-5351] Verify recognition manager can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -330,6 +345,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
+      await recognitionHub.verifyToastMessageIsVisibleWithText('Recognition published');
+      await recognitionHub.dismissTheToastMessage();
 
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
@@ -364,17 +381,20 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await giveRecognitionModal.doneButton.click({ force: true });
       const manageRecognition = new ManageRewardsOverviewPage(giveRecognitionModal.page);
       await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
+      await manageRecognition.dismissTheToastMessage();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
       await recognitionHub.deleteTheFirstRecognitionPost();
+      await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition deleted');
+      await manageRecognition.dismissTheToastMessage();
     }
   );
 
   test(
-    'RC-5354 Verify user can edit points within the 24hr pending period',
+    '[RC-5354] Verify user can edit points within the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -419,7 +439,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         await dialogBox.skipButton.click();
         await expect(dialogBox.container).not.toBeVisible();
       }
-
+      await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition published');
+      await manageRecognition.dismissTheToastMessage();
       const body = await response.json();
       if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
       const recognitionPostId = String(body.id);
@@ -446,12 +467,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await expect(giveRecognitionModal.doneButton).toBeEnabled();
       await giveRecognitionModal.doneButton.click({ force: true });
       await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
+      await manageRecognition.dismissTheToastMessage();
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,
         'Only visible to recipients, their managers and app administrators'
       );
       await recognitionHub.deleteTheFirstRecognitionPost();
+      await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition deleted');
+      await manageRecognition.dismissTheToastMessage();
     }
   );
 
@@ -572,7 +596,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5355 Verify user can not edit points after the 24hr pending period',
+    '[RC-5355] Verify user can not edit points after the 24hr pending period',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -589,11 +613,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       });
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
-      await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
-        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
-      });
       const recognitionGiverName = getRewardTenantConfigFromCache().endUserName;
       await manageRecognitionPage.loadPage();
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
@@ -620,7 +639,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
   );
 
   test(
-    'RC-5629 Validate status of transaction history when edit recognition with points within 24hr',
+    '[RC-5629] Validate status of transaction history when edit recognition with points within 24hr',
     {
       tag: [
         REWARD_FEATURE_TAGS.RECOGNITION_EDIT_POINTS,
@@ -639,13 +658,13 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const rewardOptionIndex = 3;
       const manageRecognitionPage = new ManageRewardsOverviewPage(appManagerFixture.page);
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       const existingOptions = await recognitionHub.visitRecognitionHub();
       await recognitionHub.verifyThePageIsLoaded();
       if (existingOptions.length <= 1) {
         await recognitionHub.setupTheMultipleGiftingOptions();
       }
       await recognitionHub.clickOnGiveRecognition();
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
@@ -672,12 +691,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
         String(rewardOptionIndex),
         'Only visible to recipients, their managers and app administrators'
       );
-
-      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
-      await LoginHelper.loginWithPassword(appManagerFixture.page, {
-        email: getRewardTenantConfigFromCache().recognitionManagerEmail!,
-        password: getRewardTenantConfigFromCache().recognitionManagerPassword!,
-      });
       await manageRecognitionPage.loadPage();
       await manageRecognitionPage.verifyThePageIsLoaded();
       // ✅ Trigger and capture download
@@ -696,7 +709,7 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       let validationResult = await CSVUtils.validateRowValue('last', 14, 'PENDING', csvFilePath);
       expect(validationResult.isMatch, `Expected "PENDING" but got "${validationResult.actualValue}"`).toBeTruthy();
       fs.unlinkSync(csvFilePath);
-      await recognitionHub.visitRecognitionHub();
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       await giveRecognitionModal.giftingOptionsContainerPill.last().waitFor({ state: 'visible' });
       const rewardPoints = 4;
@@ -712,7 +725,6 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await manageRecognition.verifyToastMessageIsVisibleWithText('Recognition updated');
       await recognitionHub.page.reload();
       await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible' });
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         rewardPointsText,

@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import {
   CreateQuestionComponent,
@@ -17,138 +17,60 @@ import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedC
 import { MustReadModalComponent } from '@/src/modules/content/ui/components/mustReadModalComponent';
 import { OptionMenuComponent } from '@/src/modules/content/ui/components/optionMenuComponent';
 
-export interface IContentPreviewPageActions {
-  clickShareContentButton(): Promise<void>;
-  handlePromotionPageStep: () => Promise<void>;
-  clickOnApproveOrRejectButton: (action: string) => Promise<void>;
-  enterRejectReason: (reason: string) => Promise<void>;
-  verifyCommentOptionIsNotVisible: () => Promise<void>;
-  unpublishingTheContent: () => Promise<void>;
-  publishingTheContent: () => Promise<void>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  clickShareThoughtsButton: () => Promise<void>;
-  clickQuestionButton: () => Promise<void>;
-  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
-  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
-  clickOnOptionMenuButton: () => Promise<void>;
-  clickOnMustReadButton: () => Promise<void>;
-  clickOnRemoveFromHomeCarouselButton: (carouselItemId: string) => Promise<void>;
-  clickOnRemoveFromSiteCarouselButton: (siteId: string, carouselItemId: string) => Promise<void>;
-  clickOnMustReadModalCancelButton: () => Promise<void>;
-  openReplyEditorForPost: (postText: string) => Promise<void>;
-  verifyCancelButtonVisible: (postText: string) => Promise<void>;
-  clickCancelButton: (postText: string) => Promise<void>;
-  verifyReplyEditorVisible: (postText: string) => Promise<void>;
-  verifyReplyEditorClosed: (postText: string) => Promise<void>;
-  clickAllCommentsLink: () => Promise<void>;
-  clickShowMoreCommentsButton: () => Promise<void>;
-  getVisibleCommentCount: () => Promise<number>;
-  addReplyToComment: (replyText: string, postId: string, mentionUserName?: string) => Promise<string>;
-  addReplyToCommentWithFile: (
-    replyText: string,
-    postId: string,
-    filePath: string,
-    mentionUserName?: string
-  ) => Promise<string>;
-  makeContentForEveryoneInOrganization: () => Promise<void>;
-  clickOnMakeMustReadButton: () => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  clickOnFavouriteContentButton(): Promise<void>;
-  deleteTheContent: () => Promise<void>;
-  skipPromotionDialogIfVisible(contentType: string): Promise<void>;
-}
-
-export interface IContentPreviewPageAssertions {
-  verifyCommentTimestampFormat(contentCommentText: string): unknown;
-  verifyContentPublishedSuccessfully: (title: string, successMessage: string) => Promise<void>;
-  verifyContentStatus: (status: string) => Promise<void>;
-  verifyContentIsInPublishedStatus: () => Promise<void>;
-  verifyContentHasSubmitForApprovalButton: () => Promise<void>;
-  verifyValidateOptionOnContentPreviewPage: () => Promise<void>;
-  verifyingAlbumHeadingOnContentPreviewPage: () => Promise<void>;
-  verifyUnpublishedContentToastMessage: (toastMessage: string) => Promise<void>;
-  verifyPublishedContentToasteMessage: (toastMessage: string) => Promise<void>;
-  verifyCommentOptionIsNotVisible: () => Promise<void>;
-  verifyCommentOptionIsVisible: () => Promise<void>;
-  waitForPostToBeVisible: (expectedText: string) => Promise<void>;
-  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
-  verifyMustReadModalIsNotVisible: () => Promise<void>;
-  verifyCommentCount: (expectedCount: number) => Promise<void>;
-  verifyMustReadModalIsVisible: () => Promise<void>;
-  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
-  verifyPostIsNotVisible(text: string): Promise<void>;
-  verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyShareIconIsVisible: (postText: string) => Promise<void>;
-  verifyContentShareButtonIsVisible: () => Promise<void>;
-  verifyReactionButtonIsVisible: () => Promise<void>;
-  verifyReactionButtonIsVisibleForReply: () => Promise<void>;
-  verifyReplyIsVisible: (replyText: string) => Promise<void>;
-  verifyThePageIsLoadedWithTimelineModeOnContentPage(): Promise<void>;
-  verifyContentIsMustRead: () => Promise<void>;
-  verifyContentIsNotAMustRead: () => Promise<void>;
-  verifyMustReadButtonIsNotVisible: () => Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-  verifyUserCanMarkAsFavoriteContent: () => Promise<void>;
-}
-
-export class ContentPreviewPage extends BasePage implements IContentPreviewPageActions, IContentPreviewPageAssertions {
+export class ContentPreviewPage extends BasePage {
   // Additional locators for promotion and verification
-  readonly contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
-  readonly successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
-  readonly publishButton = this.page.getByRole('button', { name: 'Publish' });
+  readonly contentTitleHeading: (title: string) => Locator;
+  readonly successMessage: (message: string) => Locator;
+  readonly publishButton: Locator;
   // Action locators
-  readonly sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
-  readonly closeModalButton = this.page.getByTestId('close-modal-button');
-  readonly versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
-  readonly optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
-  readonly unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
-  readonly deleteButton = this.page.getByRole('button', { name: 'Delete' });
-  readonly confirmDeleteButton = this.page.getByRole('button', { name: 'Delete' }).last();
-  readonly contentStatus = (status: string) =>
-    this.page.locator('div.ContentAdminBar-status').filter({ hasText: status });
-  readonly approveOrRejectButton = (action: string) => this.page.getByRole('button', { name: action });
-  readonly siteContentTab = this.page
-    .getByTestId('content-tab')
-    .or(
-      this.page.getByRole('button', { name: 'Content' }).or(this.page.getByRole('link').filter({ hasText: 'content' }))
-    );
-  readonly publishStatus = this.page.getByText('Published today');
-  readonly rejectButton = this.page.locator('span:has-text("Reject")');
-  readonly rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
-  readonly submitForApprovalButton = this.page.getByRole('button', { name: 'Submit for approval' });
-  readonly sendHistoryPopup = this.page.getByTestId('send-history-popup');
-  readonly versionHistoryPopup = this.page.getByTestId('version-history-popup');
-  readonly ellipsisButton = this.page.locator('button[aria-label="Category option"]').first();
-  readonly checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
-  readonly albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
-  readonly shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
-  readonly mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
-  readonly mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
-  readonly mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
-  favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
-  readonly sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
-  readonly contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
-  readonly shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
-  readonly promotionEventDialog = (contentType: string) =>
-    this.page.getByRole('dialog', { name: `Promote ${contentType}` });
-  readonly skipPromotionEventDialogButton = (contentType: string) =>
-    this.promotionEventDialog(contentType).getByRole('button', { name: 'Skip this step' });
+  readonly sendFeedbackTab: Locator;
+  readonly closeModalButton: Locator;
+  readonly versionHistoryButton: Locator;
+  readonly optionMenuDropdown: Locator;
+  readonly unpublishButton: Locator;
+  readonly deleteButton: Locator;
+  readonly confirmDeleteButton: Locator;
+  readonly contentStatus: (status: string) => Locator;
+  readonly approveOrRejectButton: (action: string) => Locator;
+  readonly siteContentTab: Locator;
+  readonly publishStatus: Locator;
+  readonly rejectButton: Locator;
+  readonly rejectReasonTextarea: Locator;
+  readonly submitForApprovalButton: Locator;
+  readonly sendHistoryPopup: Locator;
+  readonly versionHistoryPopup: Locator;
+  readonly ellipsisButton: Locator;
+  readonly checkValidateOption: Locator;
+  readonly albumHeading: Locator;
+  readonly shareThoughtsButton: Locator;
+  readonly mustReadButton: Locator;
+  readonly mustReadModal: Locator;
+  readonly mustReadModalCancelButton: Locator;
+  readonly favouriteContentButton: Locator;
+  readonly sharePostButton: Locator;
+  readonly contentSharePostButton: Locator;
+  readonly shareContentButton: Locator;
+  readonly replyEditorForPost: (postText: string) => Locator;
+  readonly replyEditor: Locator;
+  readonly submitReplyButton: Locator;
+  readonly promotionEventDialog: (contentType: string) => Locator;
+  readonly skipPromotionEventDialogButton: (contentType: string) => Locator;
 
   // Page components
   readonly promotePageModal: PromotePageModal;
   readonly mustReadModalComponent: MustReadModalComponent;
   readonly optionMenuComponent: OptionMenuComponent;
+  readonly createFeedPostComponent: CreateFeedPostComponent;
+  readonly listFeedComponent: ListFeedComponent;
+  readonly createQuestionComponent: CreateQuestionComponent;
   private contentDetailsComponent: ContentDetailsComponent;
-  private createFeedPostComponent: CreateFeedPostComponent;
-  private listFeedComponent: ListFeedComponent;
-  private createQuestionComponent: CreateQuestionComponent;
 
   constructor(page: Page, siteId?: string, contentId?: string, contentType?: string) {
     super(
       page,
-      siteId && contentId && contentType ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType) : ''
+      siteId && contentId && contentType
+        ? PAGE_ENDPOINTS.getContentPreviewPage(siteId, contentId, contentType.toLowerCase())
+        : ''
     );
     this.promotePageModal = new PromotePageModal(page);
     this.mustReadModalComponent = new MustReadModalComponent(page);
@@ -157,21 +79,57 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.listFeedComponent = new ListFeedComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
+
+    // Additional locators for promotion and verification
+    this.contentTitleHeading = (title: string) => this.page.locator('h1', { hasText: title });
+    this.successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
+    this.publishButton = this.page.getByRole('button', { name: 'Publish' });
+    // Action locators
+    this.sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
+    this.closeModalButton = this.page.getByTestId('close-modal-button');
+    this.versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
+    this.optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
+    this.unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
+    this.deleteButton = this.page.getByRole('button', { name: 'Delete' });
+    this.confirmDeleteButton = this.page.getByRole('button', { name: 'Delete' }).last();
+    this.contentStatus = (status: string) =>
+      this.page.locator('div.ContentAdminBar-status').filter({ hasText: status });
+    this.approveOrRejectButton = (action: string) => this.page.getByRole('button', { name: action });
+    this.siteContentTab = this.page
+      .getByTestId('content-tab')
+      .or(
+        this.page
+          .getByRole('button', { name: 'Content' })
+          .or(this.page.getByRole('link').filter({ hasText: 'content' }))
+      );
+    this.publishStatus = this.page.getByText('Published today');
+    this.rejectButton = this.page.locator('span:has-text("Reject")');
+    this.rejectReasonTextarea = this.page.locator('div.Modal-content div textarea');
+    this.submitForApprovalButton = this.page.getByRole('button', { name: 'Submit for approval' });
+    this.sendHistoryPopup = this.page.getByTestId('send-history-popup');
+    this.versionHistoryPopup = this.page.getByTestId('version-history-popup');
+    this.ellipsisButton = this.page.locator('button[aria-label="Category option"]').first();
+    this.checkValidateOption = this.page.getByRole('button', { name: 'Validate' });
+    this.albumHeading = this.page.getByRole('heading', { name: 'Album', exact: true });
+    this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
+    this.mustReadButton = this.page.getByRole('button', { name: "Make 'must read'" });
+    this.mustReadModal = this.page.getByRole('dialog', { name: "Make 'Must Read'" }).getByRole('banner');
+    this.mustReadModalCancelButton = this.page.getByRole('button', { name: 'Cancel' });
+    this.favouriteContentButton = this.page.getByRole('button', { name: 'Add content to favorites' });
+    this.sharePostButton = this.page.getByRole('button', { name: 'Share this post' });
+    this.contentSharePostButton = this.page.getByRole('button', { name: 'Share this content' });
+    this.shareContentButton = this.page.getByRole('button', { name: 'Share this content' });
+    this.replyEditorForPost = (postText: string): Locator => {
+      return this.page.locator('._post_eonic_1').first().getByRole('button', { name: 'Leave a reply…' }).first();
+    };
+    this.replyEditor = this.page.locator('div[class*="ProseMirror"] p[data-placeholder*="Leave a reply"]').first();
+    this.submitReplyButton = this.page.getByRole('button', { name: 'Reply', exact: true }).first();
+    this.promotionEventDialog = (contentType: string) =>
+      this.page.getByRole('dialog', { name: `Promote ${contentType}` });
+    this.skipPromotionEventDialogButton = (contentType: string) =>
+      this.promotionEventDialog(contentType).getByRole('button', { name: 'Skip this step' });
   }
 
-  // Actions
-  get actions(): IContentPreviewPageActions {
-    return this;
-  }
-
-  // Assertions
-  get assertions(): IContentPreviewPageAssertions {
-    return this;
-  }
-
-  /**
-   * Verifies the preview page is loaded
-   */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify preview page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
@@ -224,6 +182,27 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
         assertionMessage: `Content should be in pending status`,
       });
     });
+  }
+
+  async clickReplyEditorForPost(commentText: string): Promise<void> {
+    await test.step('Click on reply editor for post', async () => {
+      const replyEditor = this.replyEditorForPost(commentText);
+      await this.verifier.verifyTheElementIsVisible(replyEditor, {
+        assertionMessage: 'Reply editor should be visible for the post',
+      });
+      await this.clickOnElement(replyEditor);
+    });
+  }
+
+  async addReplyToContentComment(replyText: string): Promise<void> {
+    await test.step('Add reply to content comment', async () => {
+      await this.fillInElement(this.replyEditor, replyText);
+      await this.clickOnElement(this.submitReplyButton);
+    });
+  }
+
+  async clickLoadMoreRepliesButton(): Promise<void> {
+    await this.listFeedComponent.clickLoadMoreRepliesButton();
   }
 
   /**
@@ -308,7 +287,7 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
 
   async deleteTheContent(): Promise<void> {
     await test.step('Delete the content', async () => {
-      await this.actions.clickOnOptionMenuButton();
+      await this.clickOnOptionMenuButton();
       await this.hoverOverElementInJavaScript(this.ellipsisButton);
       await this.clickOnElement(this.deleteButton);
       await this.clickOnElement(this.confirmDeleteButton);
@@ -596,6 +575,14 @@ export class ContentPreviewPage extends BasePage implements IContentPreviewPageA
    */
   async verifyReactionButtonIsVisibleForReply(): Promise<void> {
     await this.listFeedComponent.verifyReactionButtonIsVisibleForReply();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
   }
 
   /**

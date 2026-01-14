@@ -5,97 +5,46 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { ContactIconType } from '@/src/modules/content/constants';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
-export interface IFavoritePageActions {
-  clickOnPeopleTab: () => Promise<void>;
-  clickOnContentTab: () => Promise<void>;
-  clickOnFeedTab: () => Promise<void>;
-  searchingFavoriteUser: (fullName: string) => Promise<void>;
-  searchContent: (searchText: string) => Promise<void>;
-  hoverOnUserProfile: (fullName: string) => Promise<void>;
-  getFirstDisplayedUserName: () => Promise<string>;
-  commentOnFeedPost: (postContainer: Locator, commentText: string) => Promise<void>;
-  unfavoriteFeedPost: (postContainer: Locator) => Promise<void>;
-  clickUnfavoriteButtonForFileInFilesTab: (fileName: string) => Promise<void>;
-  likeFeedPost: (postContainer: Locator) => Promise<void>;
-  searchPeople: (searchText: string) => Promise<void>;
-}
-
-export interface IFavoritePageAssertions {
-  verifyTheUserIsVisible: (fullName: string) => Promise<void>;
-  verifyUserDetailsRemainVisible: (fullName: string) => Promise<void>;
-  verifyContactIconsAreVisible: (fullName: string) => Promise<void>;
-  verifyContactIconsRemainVisibleAfterHover: (fullName: string) => Promise<void>;
-  verifyNothingToShowMessage: () => Promise<void>;
-  verifyPeopleSearchBarIsVisible: () => Promise<void>;
-  verifyContentSearchBarIsVisible: () => Promise<void>;
-  verifyFirstContentLinkIsVisible: () => Promise<void>;
-  verifyContentIsVisibleInSearchResults: (contentName: string) => Promise<void>;
-  verifyAllFavoriteFeedPostsAreListed: () => Promise<void>;
-  verifyShareButtonIsVisible: (postContainer: Locator) => Promise<void>;
-  verifyUserNameAndFeedCreatedDate: (postContainer: Locator, firstFeedPostText?: string) => Promise<void>;
-  verifyVideoIsVisibleInFilesTab: (videoName: string) => Promise<void>;
-  verifyVideoIsNotVisibleInFilesTab: (videoName: string) => Promise<void>;
-}
-export class FavoritePage extends BasePage implements IFavoritePageActions, IFavoritePageAssertions {
-  readonly favoriteHeading: Locator = this.page.getByRole('heading', { name: 'Favorites' });
-  readonly peopleTab: Locator = this.page.getByRole('tab', { name: 'People' });
-  readonly contentTab: Locator = this.page.getByRole('tab', { name: 'Content' });
-  readonly feedTab: Locator = this.page.getByRole('tab', { name: 'Feed' });
-  readonly filesTab: Locator = this.page.getByRole('tab', { name: 'Files' });
-  readonly searchBar: Locator = this.page.getByRole('textbox', { name: 'Search favorite people…' });
-  readonly searchIcon: Locator = this.page.locator('button[aria-label="Search"][type="submit"]');
-  readonly nothingToShowMessage: Locator = this.page.locator('text=Nothing to show here').first();
+export class FavoritePage extends BasePage {
+  readonly favoriteHeading: Locator;
+  readonly peopleTab: Locator;
+  readonly contentTab: Locator;
+  readonly feedTab: Locator;
+  readonly filesTab: Locator;
+  readonly searchBar: Locator;
+  readonly searchIcon: Locator;
+  readonly nothingToShowMessage: Locator;
 
   // Content tab locators
-  readonly getContentTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Content' });
+  readonly getContentTabPanel: () => Locator;
   // Feed tab locators
-  readonly getFeedTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Feed' });
+  readonly getFeedTabPanel: () => Locator;
   // Files tab locators
-  readonly getFilesTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Files' });
-  readonly getFeedPosts = (): Locator => this.getFeedTabPanel().locator('p').filter({ hasText: /./ });
-  readonly getFirstFeedPostContent = (): Locator => this.getFeedTabPanel().locator('div[class*="postContent"]').first();
-  readonly getPostContainer = (postContentLocator: Locator): Locator => {
-    // Find the parent container that contains both postContent and action buttons
-    // Navigate up the DOM tree to find the common parent
-    return postContentLocator.locator('..').locator('..').locator('..').locator('..').first();
-  };
-  readonly getPostTextParagraph = (postContentLocator: Locator): Locator =>
-    postContentLocator
-      .locator('p')
-      .filter({ hasNotText: /Nothing to show here|This post has been deleted|shared a post/i })
-      .first();
+  readonly getFilesTabPanel: () => Locator;
+  readonly feedPostsLocator: Locator;
+  readonly getFirstFeedPostContent: () => Locator;
+  readonly getPostContainer: (postContentLocator: Locator) => Locator;
+  readonly getPostTextParagraph: (postContentLocator: Locator) => Locator;
 
   // Reusable locators for feed post actions
-  readonly getLikeButton = (postContainer: Locator): Locator =>
-    postContainer.getByRole('button', { name: 'React to this post' }).first();
-  readonly getCommentButton = (postContainer: Locator): Locator =>
-    postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
-  readonly getCommentTextbox = (postContainer: Locator): Locator =>
-    postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
-  readonly getReplyButton = (postContainer: Locator): Locator =>
-    postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
-  readonly getUnfavoriteButton = (postContainer: Locator): Locator =>
-    postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
-  readonly getShareButton = (postContainer: Locator): Locator =>
-    postContainer.getByRole('button', { name: 'Share this post' }).first();
+  readonly getLikeButton: (postContainer: Locator) => Locator;
+  readonly getCommentButton: (postContainer: Locator) => Locator;
+  readonly getCommentTextbox: (postContainer: Locator) => Locator;
+  readonly getReplyButton: (postContainer: Locator) => Locator;
+  readonly getUnfavoriteButton: (postContainer: Locator) => Locator;
+  readonly getShareButton: (postContainer: Locator) => Locator;
 
-  readonly getContentSearchBar = (): Locator => this.getContentTabPanel().getByRole('textbox').first();
-  readonly getContentSearchIcon = (): Locator =>
-    this.getContentTabPanel().locator('button[aria-label="Search"][type="submit"]').first();
-  readonly getFirstContentLink = (): Locator => this.getContentTabPanel().getByRole('link').first();
-  readonly getContentLinkByName = (contentName: string): Locator =>
-    this.getContentTabPanel().getByRole('link', { name: contentName }).first();
-  readonly getVideoLinkByName = (videoName: string): Locator =>
-    this.getContentTabPanel().getByRole('link', { name: videoName }).first();
+  readonly getContentSearchBar: () => Locator;
+  readonly getContentSearchIcon: () => Locator;
+  readonly getFirstContentLink: () => Locator;
+  readonly getContentLinkByName: (contentName: string) => Locator;
+  readonly getVideoLinkByName: (videoName: string) => Locator;
 
-  readonly getVideoLinkInFilesTabByName = (videoName: string): Locator =>
-    this.getFilesTabPanel().getByRole('link', { name: videoName }).first();
+  readonly getVideoLinkInFilesTabByName: (videoName: string) => Locator;
 
-  readonly getFileRowInFilesTab = (fileName: string): Locator =>
-    this.getFilesTabPanel().getByRole('table').getByRole('row').filter({ hasText: fileName }).first();
+  readonly getFileRowInFilesTab: (fileName: string) => Locator;
 
-  readonly getUnfavoriteButtonForFileInFilesTab = (fileName: string): Locator =>
-    this.getFileRowInFilesTab(fileName).getByRole('button', { name: 'Unfavorite this file' }).first();
+  readonly getUnfavoriteButtonForFileInFilesTab: (fileName: string) => Locator;
 
   async clickUnfavoriteButtonForFileInFilesTab(fileName: string): Promise<void> {
     await test.step(`Click unfavorite star icon for file "${fileName}" in favorites Files tab`, async () => {
@@ -110,61 +59,132 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   }
 
   // User profile locators
-  readonly getUserProfileLink = (fullName: string): Locator => this.page.getByRole('link', { name: fullName });
-  readonly getUserProfileCard = (fullName: string): Locator =>
-    this.page.locator(`[data-testid*="user-card"], [class*="user-card"]`).filter({ hasText: fullName }).first();
-  readonly firstUserCard: Locator = this.page
-    .getByRole('tabpanel', { name: 'People' })
-    .getByRole('list')
-    .getByRole('listitem')
-    .first();
+  readonly getUserProfileLink: (fullName: string) => Locator;
+  readonly getUserProfileCard: (fullName: string) => Locator;
+  readonly firstUserCard: Locator;
 
   // User details locators
-  readonly getDivisionLocator = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('text=/division/i')
-      .or(this.getUserProfileCard(fullName).getByText(/division/i));
-  readonly getLocationLocator = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('text=/location/i')
-      .or(this.getUserProfileCard(fullName).getByText(/location/i));
-  readonly getJobTitleLocator = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('text=/job title|title/i')
-      .or(this.getUserProfileCard(fullName).getByText(/job title|title/i));
-  readonly getDepartmentLocator = (fullName: string): Locator =>
-    this.getUserProfileCard(fullName)
-      .locator('text=/department/i')
-      .or(this.getUserProfileCard(fullName).getByText(/department/i));
+  readonly getDivisionLocator: (fullName: string) => Locator;
+  readonly getLocationLocator: (fullName: string) => Locator;
+  readonly getJobTitleLocator: (fullName: string) => Locator;
+  readonly getDepartmentLocator: (fullName: string) => Locator;
 
   // Contact icons locators
-  readonly getContactIcon = (fullName: string, iconType: ContactIconType): Locator => {
-    const userCard = this.getUserProfileCard(fullName);
-    const iconName = iconType.toLowerCase();
-
-    // Special case for email - includes mailto link selector
-    if (iconType === ContactIconType.EMAIL) {
-      return userCard
-        .locator(
-          `[aria-label*="${iconName}" i], [title*="${iconName}" i], svg[class*="${iconName}"], a[href^="mailto:"]`
-        )
-        .first();
-    }
-
-    // Generic case for all other icons
-    return userCard
-      .locator(`[aria-label*="${iconName}" i], [title*="${iconName}" i], svg[class*="${iconName}"]`)
-      .first();
-  };
+  readonly getContactIcon: (fullName: string, iconType: ContactIconType) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FAVORITE_PAGE);
-  }
-  get actions(): IFavoritePageActions {
-    return this;
-  }
-  get assertions(): IFavoritePageAssertions {
-    return this;
+
+    // Initialize locators
+    this.favoriteHeading = this.page.getByRole('heading', { name: 'Favorites' });
+    this.peopleTab = this.page.getByRole('tab', { name: 'People' });
+    this.contentTab = this.page.getByRole('tab', { name: 'Content' });
+    this.feedTab = this.page.getByRole('tab', { name: 'Feed' });
+    this.filesTab = this.page.getByRole('tab', { name: 'Files' });
+    this.searchBar = this.page.getByRole('textbox', { name: 'Search favorite people…' });
+    this.searchIcon = this.page.locator('button[aria-label="Search"][type="submit"]');
+    this.nothingToShowMessage = this.page.locator('text=Nothing to show here').first();
+
+    // Content tab locators
+    this.getContentTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Content' });
+    // Feed tab locators
+    this.getFeedTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Feed' });
+    // Files tab locators
+    this.getFilesTabPanel = (): Locator => this.page.getByRole('tabpanel', { name: 'Files' });
+    this.getFirstFeedPostContent = (): Locator => this.getFeedTabPanel().locator('div[class*="postContent"]').first();
+    this.getPostContainer = (postContentLocator: Locator): Locator => {
+      // Find the parent container that contains both postContent and action buttons
+      // Navigate up the DOM tree to find the common parent
+      return postContentLocator.locator('..').locator('..').locator('..').locator('..').first();
+    };
+    this.getPostTextParagraph = (postContentLocator: Locator): Locator =>
+      postContentLocator
+        .locator('p')
+        .filter({ hasNotText: /Nothing to show here|This post has been deleted|shared a post/i })
+        .first();
+
+    // Reusable locators for feed post actions
+    this.getLikeButton = (postContainer: Locator): Locator =>
+      postContainer.getByRole('button', { name: 'React to this post' }).first();
+    this.getCommentButton = (postContainer: Locator): Locator =>
+      postContainer.getByRole('button', { name: 'Leave a reply…' }).first();
+    this.getCommentTextbox = (postContainer: Locator): Locator =>
+      postContainer.getByRole('textbox', { name: /You are in the content editor/i }).first();
+    this.getReplyButton = (postContainer: Locator): Locator =>
+      postContainer.getByRole('button', { name: 'Reply', exact: true }).first();
+    this.getUnfavoriteButton = (postContainer: Locator): Locator =>
+      postContainer.getByRole('button', { name: 'Unfavorite this post' }).first();
+    this.getShareButton = (postContainer: Locator): Locator =>
+      postContainer.getByRole('button', { name: 'Share this post' }).first();
+
+    this.getContentSearchBar = (): Locator => this.getContentTabPanel().getByRole('textbox').first();
+    this.getContentSearchIcon = (): Locator =>
+      this.getContentTabPanel().locator('button[aria-label="Search"][type="submit"]').first();
+    this.getFirstContentLink = (): Locator => this.getContentTabPanel().getByRole('link').first();
+    this.getContentLinkByName = (contentName: string): Locator =>
+      this.getContentTabPanel().getByRole('link', { name: contentName }).first();
+    this.getVideoLinkByName = (videoName: string): Locator =>
+      this.getContentTabPanel().getByRole('link', { name: videoName }).first();
+
+    this.getVideoLinkInFilesTabByName = (videoName: string): Locator =>
+      this.getFilesTabPanel().getByRole('link', { name: videoName }).first();
+
+    this.getFileRowInFilesTab = (fileName: string): Locator =>
+      this.getFilesTabPanel().getByRole('table').getByRole('row').filter({ hasText: fileName }).first();
+
+    this.getUnfavoriteButtonForFileInFilesTab = (fileName: string): Locator =>
+      this.getFileRowInFilesTab(fileName).getByRole('button', { name: 'Unfavorite this file' }).first();
+
+    this.feedPostsLocator = this.getFeedTabPanel().locator('p').filter({ hasText: /./ });
+
+    // User profile locators
+    this.getUserProfileLink = (fullName: string): Locator =>
+      this.page.locator('#panel-people').getByRole('link', { name: fullName, exact: true });
+    this.getUserProfileCard = (fullName: string): Locator =>
+      this.page.locator(`[data-testid*="user-card"], [class*="user-card"]`).filter({ hasText: fullName }).first();
+    this.firstUserCard = this.page
+      .getByRole('tabpanel', { name: 'People' })
+      .getByRole('list')
+      .getByRole('listitem')
+      .first();
+
+    // User details locators
+    this.getDivisionLocator = (fullName: string): Locator =>
+      this.getUserProfileCard(fullName)
+        .locator('text=/division/i')
+        .or(this.getUserProfileCard(fullName).getByText(/division/i));
+    this.getLocationLocator = (fullName: string): Locator =>
+      this.getUserProfileCard(fullName)
+        .locator('text=/location/i')
+        .or(this.getUserProfileCard(fullName).getByText(/location/i));
+    this.getJobTitleLocator = (fullName: string): Locator =>
+      this.getUserProfileCard(fullName)
+        .locator('text=/job title|title/i')
+        .or(this.getUserProfileCard(fullName).getByText(/job title|title/i));
+    this.getDepartmentLocator = (fullName: string): Locator =>
+      this.getUserProfileCard(fullName)
+        .locator('text=/department/i')
+        .or(this.getUserProfileCard(fullName).getByText(/department/i));
+
+    // Contact icons locators
+    this.getContactIcon = (fullName: string, iconType: ContactIconType): Locator => {
+      const userCard = this.getUserProfileCard(fullName);
+      const iconName = iconType.toLowerCase();
+
+      // Special case for email - includes mailto link selector
+      if (iconType === ContactIconType.EMAIL) {
+        return userCard
+          .locator(
+            `[aria-label*="${iconName}" i], [title*="${iconName}" i], svg[class*="${iconName}"], a[href^="mailto:"]`
+          )
+          .first();
+      }
+
+      // Generic case for all other icons
+      return userCard
+        .locator(`[aria-label*="${iconName}" i], [title*="${iconName}" i], svg[class*="${iconName}"]`)
+        .first();
+    };
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify profile screen page is visible', async () => {
@@ -462,19 +482,10 @@ export class FavoritePage extends BasePage implements IFavoritePageActions, IFav
   }
 
   async verifyAllFavoriteFeedPostsAreListed(): Promise<void> {
-    await test.step('Verify all favorite feed posts are listed', async () => {
-      const feedPosts = this.getFeedPosts();
-      const postCount = await feedPosts.count();
-
-      if (postCount === 0) {
-        throw new Error('No favorite feed posts found. Expected at least one post to be visible.');
-      }
-
-      for (let i = 0; i < postCount; i++) {
-        await this.verifier.verifyTheElementIsVisible(feedPosts.nth(i), {
-          assertionMessage: `Favorite feed post at index ${i} should be visible. Total posts found: ${postCount}`,
-        });
-      }
+    await test.step('Verify at least one favorite feed post is listed', async () => {
+      await this.verifier.verifyCountOfElementsIsGreaterThanOrEqualTo(this.feedPostsLocator, 1, {
+        assertionMessage: 'At least one favorite feed post should be listed',
+      });
     });
   }
 

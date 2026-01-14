@@ -55,10 +55,14 @@ export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
    * Handles all CSV validation logic internally including data transformation
    * @param snowflakeDataArray - Raw database data from Snowflake (query helper handles transformation)
    * @param selectedPeriod - Selected period filter for validation
+   * @param customStartDate - Optional custom start date (required for CUSTOM period)
+   * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
     snowflakeDataArray: MostSearchesPerformedByDepartmentData[],
-    selectedPeriod: string
+    selectedPeriod: string,
+    customStartDate?: string,
+    customEndDate?: string
   ): Promise<void> {
     await this.verifyDataIsLoaded();
     const { filePath } = await this.downloadDataAsCSV();
@@ -71,6 +75,8 @@ export class MostSearchesPerformedByDepartment extends TabluarMetricsComponent {
         expectedDBData: snowflakeDataArray as any,
         metricName: 'Most searches performed by Department',
         selectedPeriod: selectedPeriod,
+        customStartDate: customStartDate,
+        customEndDate: customEndDate,
         expectedHeaders: [
           'Department',
           'Total search query volume',

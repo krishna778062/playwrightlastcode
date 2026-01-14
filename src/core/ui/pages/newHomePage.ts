@@ -25,6 +25,8 @@ export interface INewHomePageActions {
   clickOnChangeLayout: () => Promise<void>;
   clickExcludeFeed: () => Promise<void>;
   clickIncludeFeed: () => Promise<void>;
+  selectTileLayout: (layoutSign: string) => Promise<void>;
+  checkIncludeFeed(): Promise<void>;
   enterSearchCarouselInput: (text: string) => Promise<void>;
   selectCarouselItem: (text: string) => Promise<void>;
   clickDoneButton: () => Promise<void>;
@@ -43,6 +45,7 @@ export interface INewHomePageAssertions {
 }
 
 export class NewHomePage extends BasePage {
+  readonly profileSettingsButton: Locator;
   readonly changeLayoutComponent: ChangeLayoutComponent;
   readonly homeLayoutComponent: HomeLayoutComponent;
   readonly footerComponent: FooterComponent;
@@ -55,7 +58,7 @@ export class NewHomePage extends BasePage {
   readonly peopleButton: Locator;
   readonly carouselItemText: (text: string) => Locator;
   private carouselComponent: CarouselComponent;
-  readonly CarouseText: (text: string) => Locator;
+  readonly carouselText: (text: string) => Locator;
 
   readonly recentlyVisitedSite: (siteName: string) => Locator;
   constructor(page: Page) {
@@ -72,9 +75,11 @@ export class NewHomePage extends BasePage {
     this.carouselItemText = (text: string) => page.locator('div').filter({ hasText: text });
     this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.homeLayoutComponent = new HomeLayoutComponent(page);
-    this.peopleButton = page.getByRole('menuitem', { name: 'People People' });
-    this.CarouseText = (text: string) => page.getByRole('link', { name: text, exact: true });
-    this.recentlyVisitedSite = (siteName: string) => page.getByRole('menuitem', { name: siteName });
+    this.peopleButton = page.getByRole('menuitem', { name: 'People' });
+    // Scope to main content area to exclude sidebar navigation links
+    this.carouselText = (text: string) => page.locator('#page-content').getByRole('link', { name: text, exact: true });
+    this.recentlyVisitedSite = (siteName: string) => page.getByRole('link', { name: siteName }).first();
+    this.profileSettingsButton = page.getByRole('button', { name: 'Profile settings' });
   }
 
   get actions(): INewHomePageActions {
@@ -87,8 +92,9 @@ export class NewHomePage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the home page is loaded', async () => {
-      await expect(this.page.locator('h1'), "Expected to find 'Home' in the page title").toContainText('Home', {
-        timeout: 35_000,
+      await expect(this.page, 'expecting page to have URL /home/').toHaveURL(/home/);
+      await this.verifier.verifyTheElementIsVisible(this.profileSettingsButton, {
+        assertionMessage: 'Profile settings button should be visible',
       });
     });
   }
@@ -168,7 +174,7 @@ export class NewHomePage extends BasePage {
   }
   async verifyContentIsNotVisibleInCarousel(contentName: string): Promise<void> {
     await test.step('Verifying content is not visible in home carousel', async () => {
-      await this.verifier.verifyTheElementIsNotVisible(this.CarouseText(contentName), {
+      await this.verifier.verifyTheElementIsNotVisible(this.carouselText(contentName), {
         assertionMessage: `Content '${contentName}' should be not visible in home carousel`,
       });
     });
@@ -188,6 +194,14 @@ export class NewHomePage extends BasePage {
 
   async clickExcludeFeed(): Promise<void> {
     return this.changeLayoutComponent.clickExcludeFeed();
+  }
+
+  async selectTileLayout(layoutSign: string): Promise<void> {
+    return this.changeLayoutComponent.selectTileLayout(layoutSign);
+  }
+
+  async checkIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.checkIncludeFeed();
   }
 
   async clickIncludeFeed(): Promise<void> {

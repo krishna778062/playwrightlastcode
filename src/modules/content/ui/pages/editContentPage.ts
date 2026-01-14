@@ -4,13 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IEditContentPageActions {
-  changePublishDateToPastDate: () => Promise<void>;
-}
-
-export interface IEditContentPageAssertions {}
-
-export class EditContentPage extends BasePage implements IEditContentPageActions, IEditContentPageAssertions {
+export class EditContentPage extends BasePage {
   //COMPONENTS
 
   //LOCATORS
@@ -24,15 +18,6 @@ export class EditContentPage extends BasePage implements IEditContentPageActions
       // TODO: Implement page load verification
     });
   }
-
-  get actions(): IEditContentPageActions {
-    return this;
-  }
-
-  get assertions(): IEditContentPageAssertions {
-    return this;
-  }
-
   async changePublishDateToPastDate(): Promise<void> {
     await test.step('Change publish date to past date', async () => {});
   }

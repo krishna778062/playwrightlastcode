@@ -5,15 +5,14 @@ import { TestGroupType } from '@core/constants/testType';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEED_TEST_DATA } from '../../../test-data/feed.test-data';
-
 import { QAndAApiHelper } from '@/src/modules/content/apis/apiValidation/qAndAApiHelper';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 
 test.describe(
   '@Q&A API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.Q_AND_A],
   },
   () => {
     let createdQuestionIds: string[] = [];
@@ -44,7 +43,7 @@ test.describe(
     test(
       'create Question with Mandatory Field',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33548', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33548'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -75,7 +74,7 @@ test.describe(
     test(
       'create question with all fields without files',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33594', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33594'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -121,7 +120,7 @@ test.describe(
     test(
       'edit home feed question',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33593', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33593'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -175,7 +174,7 @@ test.describe(
     test(
       'upvote and Remove upvote from a question',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33628', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33628'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -215,7 +214,7 @@ test.describe(
     test(
       'delete a Question',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33598', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33598'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -249,7 +248,7 @@ test.describe(
     test(
       'update App settings - Enable and Disable Q&A',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33130', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33130'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -341,7 +340,7 @@ test.describe(
     test(
       'create question with all fields with unique file types',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33596', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33596'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -386,7 +385,7 @@ test.describe(
     test(
       'create Question with Mandatory Field on site feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33642', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33642'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -424,7 +423,7 @@ test.describe(
     test(
       'create question with all fields without files on site feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33643', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33643'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -473,7 +472,7 @@ test.describe(
     test(
       'edit feed question on site feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33644', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33644'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -530,7 +529,7 @@ test.describe(
     test(
       'delete a Question on site feed',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33645', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33645'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -567,7 +566,7 @@ test.describe(
     test(
       'create Answer on a question',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33884', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33884'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -601,7 +600,7 @@ test.describe(
     test(
       'answer on a question edit and delete Answer',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33891', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33891'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -682,7 +681,7 @@ test.describe(
     test(
       'upvote and Remove upvote from an answer',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33892', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33892'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -729,7 +728,7 @@ test.describe(
     test(
       'delete an Answer and delete an already Deleted Answer',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33849', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33849'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -783,7 +782,7 @@ test.describe(
     test(
       'create Answer with all fields and files',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33889', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33889'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -838,7 +837,7 @@ test.describe(
     test(
       'fetch Answer - Question detail page',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33893', ContentTestSuite.Q_AND_A],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33893'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {

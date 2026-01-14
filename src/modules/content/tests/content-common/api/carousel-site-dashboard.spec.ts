@@ -12,7 +12,7 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
   '@Site Carousel API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.SITE_DASHBOARD, ContentTestSuite.CAROUSEL],
   },
   () => {
     let carouselApiHelper: CarouselApiHelper;
@@ -24,7 +24,7 @@ test.describe(
     test(
       'app manager can enable and disable site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42894'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42894'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -34,7 +34,8 @@ test.describe(
         });
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Enable site carousel
         const enableResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
@@ -63,7 +64,7 @@ test.describe(
     test(
       'app manager can add and remove page content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42895'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42895'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -83,7 +84,8 @@ test.describe(
         );
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Get existing content for carousel
         const contentInfo = await appManagerApiFixture.contentManagementHelper.getContentId({
@@ -121,7 +123,7 @@ test.describe(
     test(
       'app manager can add and remove event content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42896'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42896'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -141,7 +143,8 @@ test.describe(
         );
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create event content
         const eventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
@@ -184,7 +187,7 @@ test.describe(
     test(
       'app manager can add and remove album content from site carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.TILES, '@CONT-42897'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.SITE_DASHBOARD, '@CONT-42897'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -204,7 +207,8 @@ test.describe(
         );
 
         // Get existing site
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create album content
         const albumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({

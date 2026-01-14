@@ -12,6 +12,7 @@ import { ShareComponent } from '@content/ui/components/shareComponent';
 import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages';
+import { SiteFilesPage } from '@content/ui/pages/sitePages/siteFilesPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { SitePermission } from '@core/types/siteManagement.types';
@@ -25,13 +26,14 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
@@ -92,11 +94,11 @@ test.describe(
 
         // Step 1: Create a new post with multiple attachments via UI
         // Note: Post can also be created via API using:
-        // const { postResult: apiPostResult, postId } = await feedManagerService.createPost({ text: initialPostText });
-        await feedPage.actions.clickShareThoughtsButton();
+        // const { postResult: apiPostResult, postId } = await feedManagerService.postEditor.createPost({ text: initialPostText });
+        await feedPage.clickShareThoughtsButton();
         const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
         const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
-        const postResult = await feedPage.actions.createAndPost({
+        const postResult = await feedPage.postEditor.createAndPost({
           text: initialPostText,
           attachments: {
             files: [imagePath, documentPath],
@@ -108,18 +110,18 @@ test.describe(
         createdPostId = postResult.postId || '';
 
         // Wait for post to be visible and get timestamp
-        await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
-        await feedPage.getPostTimestamp(postResult.postText);
+        await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+        await feedPage.feedList.getPostTimestamp(postResult.postText);
 
         // Step 2: Verify post details and attachments
-        await feedPage.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+        await feedPage.verifyAllDataPointsForFeedPost(postResult.postText, postResult.attachmentCount);
 
         // Step 3: Edit the post
-        await feedPage.actions.editPost(postResult.postText, updatedPostText);
-        await feedPage.assertions.waitForPostToBeVisible(updatedPostText);
+        await feedPage.postEditor.editPost(postResult.postText, updatedPostText);
+        await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
 
         // Step 4: Delete the post
-        await feedPage.actions.deletePost(updatedPostText);
+        await feedPage.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
         createdPostText = ''; // Clear post text as post is already deleted
       }
@@ -138,7 +140,7 @@ test.describe(
         });
 
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Navigate to Site Dashboard as
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, allEmployeesSiteId);
@@ -146,22 +148,22 @@ test.describe(
         await siteDashboardPage.verifyThePageIsLoaded();
 
         // Click on Feed link
-        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.clickOnFeedLink();
 
         // Create Feed Post with Attachment
         const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
 
         // Click "Share your thoughts or questions" button
-        await siteDashboardPage.actions.clickShareThoughtsButton();
+        await siteDashboardPage.clickShareThoughtsButton();
 
         // Get the createFeedPostComponent from siteDashboardPage
-        const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+        const createFeedPostComponent = siteDashboardPage.createFeedPostComponent;
 
         // Upload file "image1.jpg"
         const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
         // Post the feed with attachment (createAndPost handles text and file upload internally)
-        const postResult = await createFeedPostComponent.actions.createAndPost({
+        const postResult = await createFeedPostComponent.createAndPost({
           text: initialPostText,
           attachments: {
             files: [imagePath],
@@ -173,52 +175,52 @@ test.describe(
         createdPostId = postResult.postId || '';
 
         // Verify post successfully created
-        await siteDashboardPage.assertions.validatePostText(postResult.postText);
+        await siteDashboardPage.listFeedComponent.validatePostText(postResult.postText);
 
         // Verify timestamp displayed
         const feedPageForSite = new FeedPage(standardUserFixture.page);
-        await feedPageForSite.getPostTimestamp(postResult.postText);
+        await feedPageForSite.feedList.getPostTimestamp(postResult.postText);
 
         // Verify inline image preview visible
-        await feedPageForSite.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+        await feedPageForSite.verifyAllDataPointsForFeedPost(postResult.postText, postResult.attachmentCount);
 
         // Edit Feed Post
         const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
 
         // Open option menu (three dots)
-        await siteDashboardPage.actions.clickOnOptionsMenu(createdPostText);
+        await siteDashboardPage.clickOnOptionsMenu(createdPostText);
 
         // Click Edit
         await createFeedPostComponent.clickEditOption();
 
         // Verify editor opens
-        await createFeedPostComponent.assertions.verifyEditorVisible();
+        await createFeedPostComponent.verifyEditorVisible();
 
         // Verify file restrictions: User must NOT be able to remove files
         // Verify attached file count is still 1 (cannot remove files)
-        await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+        await createFeedPostComponent.verifyAttachedFileCount(1);
 
         // Update text
-        await createFeedPostComponent.actions.updatePostText(updatedPostText);
+        await createFeedPostComponent.updatePostText(updatedPostText);
 
         // Click Update
-        await createFeedPostComponent.actions.clickUpdateButton();
+        await createFeedPostComponent.clickUpdateButton();
 
         // Verify updated content appears
-        await siteDashboardPage.assertions.validatePostText(updatedPostText);
+        await siteDashboardPage.listFeedComponent.validatePostText(updatedPostText);
 
         // Delete Feed Post
         // Open option menu
-        await siteDashboardPage.actions.clickOnOptionsMenu(updatedPostText);
+        await siteDashboardPage.clickOnOptionsMenu(updatedPostText);
 
         // Click Delete
-        await siteDashboardPage.listFeedComponent.actions.clickDeleteOption();
+        await siteDashboardPage.listFeedComponent.clickDeleteOption();
 
         // Confirm Delete
-        await siteDashboardPage.listFeedComponent.actions.confirmDelete();
+        await siteDashboardPage.listFeedComponent.confirmDelete();
 
         // Verify feed post is removed
-        await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
+        await siteDashboardPage.validatePostNotVisible(updatedPostText);
         createdPostId = '';
         createdPostText = '';
       }
@@ -238,7 +240,7 @@ test.describe(
 
         // Get DEFAULT_PUBLIC_SITE_NAME site ID
         const allEmployeesSiteId =
-          await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create a page in DEFAULT_PUBLIC_SITE_NAME site for testing
         const pageInfo = await appManagerFixture.contentManagementHelper.createPage({
@@ -265,22 +267,22 @@ test.describe(
         await contentPreviewPage.verifyThePageIsLoaded();
 
         // Verify comment option is visible
-        await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await contentPreviewPage.verifyCommentOptionIsVisible();
 
         // Create Feed Post (Comment) with Attachment
         const initialPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
 
         // Click "Share your thoughts or question" button
-        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.clickShareThoughtsButton();
 
         // Get the createFeedPostComponent from contentPreviewPage
-        const createFeedPostComponent = contentPreviewPage['createFeedPostComponent'];
+        const createFeedPostComponent = contentPreviewPage.createFeedPostComponent;
 
         // Upload file "favicon.png"
         const faviconPath = FILE_TEST_DATA.IMAGES.FAVICON.getPath(__dirname);
 
         // Post the feed with attachment (createAndPost handles text and file upload internally)
-        const postResult = await createFeedPostComponent.actions.createAndPost({
+        const postResult = await createFeedPostComponent.createAndPost({
           text: initialPostText,
           attachments: {
             files: [faviconPath],
@@ -292,51 +294,51 @@ test.describe(
         createdPostId = postResult.postId || '';
 
         // Verify comment successfully created
-        await contentPreviewPage.assertions.waitForPostToBeVisible(postResult.postText);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(postResult.postText);
 
         // Verify timestamp displayed
-        const listFeedComponent = contentPreviewPage['listFeedComponent'];
-        await listFeedComponent.assertions.getPostTimestamp(postResult.postText);
+        const listFeedComponent = contentPreviewPage.listFeedComponent;
+        await listFeedComponent.getPostTimestamp(postResult.postText);
 
         // Verify inline image preview visible
         const feedPageForContent = new FeedPage(standardUserFixture.page);
-        await feedPageForContent.assertions.verifyPostDetails(postResult.postText, postResult.attachmentCount);
+        await feedPageForContent.verifyAllDataPointsForFeedPost(postResult.postText, postResult.attachmentCount);
 
         // Edit Feed Post
         const updatedPostText = FEED_TEST_DATA.POST_TEXT.UPDATED;
 
         // Open option menu (three dots)
-        await listFeedComponent.actions.openPostOptionsMenu(createdPostText);
+        await listFeedComponent.openPostOptionsMenu(createdPostText);
 
         // Click Edit
         await createFeedPostComponent.clickEditOption();
 
         // Verify editor opens
-        await createFeedPostComponent.assertions.verifyEditorVisible();
+        await createFeedPostComponent.verifyEditorVisible();
 
-        await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+        await createFeedPostComponent.verifyAttachedFileCount(1);
 
         // Update text
-        await createFeedPostComponent.actions.updatePostText(updatedPostText);
+        await createFeedPostComponent.updatePostText(updatedPostText);
 
         // Click Update
-        await createFeedPostComponent.actions.clickUpdateButton();
+        await createFeedPostComponent.clickUpdateButton();
 
         // Verify updated content appears
-        await contentPreviewPage.assertions.waitForPostToBeVisible(updatedPostText);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(updatedPostText);
 
         // Delete Feed Post
         // Open option menu
-        await listFeedComponent.actions.openPostOptionsMenu(updatedPostText);
+        await listFeedComponent.openPostOptionsMenu(updatedPostText);
 
         // Click Delete
-        await listFeedComponent.actions.clickDeleteOption();
+        await listFeedComponent.clickDeleteOption();
 
         // Confirm Delete
-        await listFeedComponent.actions.confirmDelete();
+        await listFeedComponent.confirmDelete();
 
         // Verify feed post is removed
-        await contentPreviewPage.assertions.verifyPostIsNotVisible(updatedPostText);
+        await contentPreviewPage.listFeedComponent.verifyPostIsNotVisible(updatedPostText);
         createdPostId = '';
         createdPostText = '';
       }
@@ -355,10 +357,9 @@ test.describe(
           storyId: 'CONT-24150',
         });
 
-        // Step 1: Get or reuse a private site that standard user is NOT a member of
-        // This will reuse an existing private site if available, or create a new one if needed
+        const userId = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
         const privateSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-          [users.endUser.email],
+          [userId.userId],
           SITE_TYPES.PRIVATE
         );
         const privateSiteName = privateSiteResult.siteName;
@@ -366,7 +367,7 @@ test.describe(
 
         // Step 2: Get or reuse an unlisted site that standard user is NOT a member of
         const unlistedSiteResult = await appManagerFixture.siteManagementHelper.getSiteInUserIsNotMemberOrOwner(
-          [users.endUser.email],
+          [userId.userId],
           SITE_TYPES.UNLISTED
         );
         const unlistedSiteName = unlistedSiteResult.siteName;
@@ -375,27 +376,27 @@ test.describe(
         // Step 3: Standard User is already on Feed page (from beforeEach setup)
 
         // Step 4: Click on "Share your thoughts" button
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         // Step 5: Create a post and send it to the editor
         const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
-        await feedPage.actions.enterFeedPostText(initialPostText);
+        await feedPage.postEditor.createPost(initialPostText);
 
         // Step 6: User select share option as "site feed"
-        await feedPage.actions.selectShareOptionAsSiteFeed();
+        await feedPage.share.selectShareOptionAsSiteFeed();
 
         // Step 7: Enter private site name which User is not member of
-        await feedPage.actions.searchForSiteName(privateSiteName);
+        await feedPage.postEditor.searchForSiteName(privateSiteName);
 
         // Step 8: Verify "No results" is getting displayed for private site
-        await feedPage.assertions.verifyNoResultMessage();
+        await feedPage.postEditor.verifyNoResultMessage();
 
         // Step 9: Close the dropdown and search again for unlisted site
         await standardUserFixture.page.keyboard.press('Escape'); // Close the dropdown
-        await feedPage.actions.searchForSiteName(unlistedSiteName);
+        await feedPage.postEditor.searchForSiteName(unlistedSiteName);
 
         // Step 10: Verify "No results" is getting displayed for unlisted site
-        await feedPage.assertions.verifyNoResultMessage();
+        await feedPage.postEditor.verifyNoResultMessage();
       }
     );
 
@@ -415,32 +416,32 @@ test.describe(
         // Step 2: Feed page is already loaded via beforeEach
 
         // Step 3: Click on "Share your thoughts" button (Create Post)
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         // Step 4: Enter post text
         const videoPostText = TestDataGenerator.generateRandomText('Video Post', 3, true);
-        await feedPage.actions.enterFeedPostText(videoPostText);
+        await feedPage.postEditor.createPost(videoPostText);
 
         // Step 5: Click on "Browse files" button
-        await feedPage.actions.clickBrowseFilesButton();
+        await feedPage.postEditor.clickBrowseFilesButton();
 
         // Step 6: Enter '.mp4' in 'Search files' field
-        await feedPage.actions.searchForFileInLibrary('.mp4');
+        await feedPage.postEditor.searchForFileInLibrary('.mp4');
 
         // Step 7: Select first result ".mp4" video
-        await feedPage.actions.selectFileFromLibrary('.mp4');
+        await feedPage.postEditor.selectFileFromLibrary('.mp4');
 
         // Step 8: Click "Attach" button
-        await feedPage.actions.clickAttachButton();
+        await feedPage.postEditor.clickAttachButton();
 
         // Step 9: Verify the selected video appears as an attachment
-        await feedPage.assertions.verifyFileIsAttached('.mp4');
+        await feedPage.postEditor.verifyFileIsAttached('.mp4');
 
         // Step 10: Click on "Post" button to publish
-        await feedPage.actions.clickPostButton();
+        await feedPage.postEditor.clickPostButton();
 
         // Step 11: Verify the feed post is published successfully with the post text
-        await feedPage.assertions.waitForPostToBeVisible(videoPostText);
+        await feedPage.feedList.waitForPostToBeVisible(videoPostText);
 
         // Step 12: Verify video attachment is visible in the published feed post
         // Note: Videos are displayed as a video container div, not as HTML <video> elements
@@ -475,73 +476,75 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
-        await adminFeedPage.actions.verifyThePageIsLoaded();
+        await adminFeedPage.verifyThePageIsLoaded();
 
-        await adminFeedPage.actions.clickShareThoughtsButton();
+        await adminFeedPage.clickShareThoughtsButton();
         const videoPostText = FEED_TEST_DATA.POST_TEXT.VIDEO;
-        await adminFeedPage.actions.enterFeedPostText(videoPostText);
+        await adminFeedPage.postEditor.createPost(videoPostText);
 
         // Add video attachment
-        await adminFeedPage.actions.clickBrowseFilesButton();
-        await adminFeedPage.actions.searchForFileInLibrary('.mp4');
-        await adminFeedPage.actions.selectFileFromLibrary('.mp4');
-        await adminFeedPage.actions.clickAttachButton();
-        await adminFeedPage.assertions.verifyFileIsAttached('.mp4');
+        await adminFeedPage.postEditor.clickBrowseFilesButton();
+        await adminFeedPage.postEditor.searchForFileInLibrary('.mp4');
+        await adminFeedPage.postEditor.selectFileFromLibrary('.mp4');
+        await adminFeedPage.postEditor.clickAttachButton();
+        await adminFeedPage.postEditor.verifyFileIsAttached('.mp4');
 
         // Post the feed
-        const postResult = await adminFeedPage.actions.createAndPost({
+        const postResult = await adminFeedPage.postEditor.createAndPost({
           text: videoPostText,
         });
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
 
         // Wait for post to be visible
-        await adminFeedPage.assertions.waitForPostToBeVisible(videoPostText);
+        await adminFeedPage.feedList.waitForPostToBeVisible(videoPostText);
 
         await standardUserFixture.page.reload();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.actions.verifyThePageIsLoaded();
+        await feedPage.verifyThePageIsLoaded();
 
-        await feedPage.actions.clickShareIconOnPost(videoPostText);
+        await feedPage.feedList.clickShareIcon(videoPostText);
 
         // Add a message while sharing
         const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
-        await feedPage.actions.enterShareDescription(shareMessage);
+        await feedPage.share.enterShareDescription(shareMessage);
 
         // Select Post in "Site Feed" option
-        await feedPage.actions.selectShareOptionAsSiteFeed();
+        await feedPage.share.selectShareOptionAsSiteFeed();
 
         // Search for and select a site
         const siteResult = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public', {
           waitForSearchIndex: false,
         });
         const siteName = siteResult.name;
-        await feedPage.actions.enterSiteNameForShare(siteName);
+        await feedPage.share.enterSiteName(siteName);
 
         // Click the "Share" button
         const shareComponent = new ShareComponent(standardUserFixture.page);
-        await shareComponent.actions.clickShareButton();
+        await shareComponent.clickShareButton();
 
         // Wait for share to complete
-        await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        await feedPage.feedList.verifyToastMessageIsVisibleWithText(
+          FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+        );
 
         siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteResult.siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-        await siteDashboardPage.assertions.validatePostText(shareMessage);
+        await siteDashboardPage.listFeedComponent.validatePostText(shareMessage);
 
         // Click "View Post" - need to use feedPage on site dashboard
         const siteFeedPage = new FeedPage(standardUserFixture.page);
-        await siteFeedPage.actions.clickViewPostLink();
+        await siteFeedPage.feedList.clickViewPostLink();
 
         // Verify the user is navigated to the Feed Detail Page
         // Wait for navigation to feed detail page
         await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`), { timeout: 10000 });
         const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
-        await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
+        await feedDetailPage.feedList.waitForPostToBeVisible(videoPostText);
 
         // Verify video controls and functionalities
-        await feedDetailPage.assertions.verifyVideoControls(videoPostText);
+        await feedDetailPage.feedList.verifyVideoControls(videoPostText);
       }
     );
 
@@ -561,63 +564,65 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         const adminFeedPage = new FeedPage(appManagerFixture.page);
-        await adminFeedPage.actions.verifyThePageIsLoaded();
+        await adminFeedPage.verifyThePageIsLoaded();
 
         // Create a Feed post with a native video attachment and a message
-        await adminFeedPage.actions.clickShareThoughtsButton();
+        await adminFeedPage.clickShareThoughtsButton();
         const videoPostText = FEED_TEST_DATA.POST_TEXT.VIDEO;
-        await adminFeedPage.actions.enterFeedPostText(videoPostText);
+        await adminFeedPage.postEditor.createPost(videoPostText);
 
         // Add video attachment
-        await adminFeedPage.actions.clickBrowseFilesButton();
-        await adminFeedPage.actions.searchForFileInLibrary('.mp4');
-        await adminFeedPage.actions.selectFileFromLibrary('.mp4');
-        await adminFeedPage.actions.clickAttachButton();
-        await adminFeedPage.assertions.verifyFileIsAttached('.mp4');
+        await adminFeedPage.postEditor.clickBrowseFilesButton();
+        await adminFeedPage.postEditor.searchForFileInLibrary('.mp4');
+        await adminFeedPage.postEditor.selectFileFromLibrary('.mp4');
+        await adminFeedPage.postEditor.clickAttachButton();
+        await adminFeedPage.postEditor.verifyFileIsAttached('.mp4');
 
         // Post the feed
-        const postResult = await adminFeedPage.actions.createAndPost({
+        const postResult = await adminFeedPage.postEditor.createAndPost({
           text: videoPostText,
         });
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
 
         // Wait for post to be visible
-        await adminFeedPage.assertions.waitForPostToBeVisible(videoPostText);
+        await adminFeedPage.feedList.waitForPostToBeVisible(videoPostText);
 
         await standardUserFixture.page.reload();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.actions.verifyThePageIsLoaded();
+        await feedPage.verifyThePageIsLoaded();
 
         // Click the "Share" icon on the Feed post created by Admin
-        await feedPage.actions.clickShareIconOnPost(videoPostText);
+        await feedPage.feedList.clickShareIcon(videoPostText);
 
         // Add a message while sharing
         const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
-        await feedPage.actions.enterShareDescription(shareMessage);
+        await feedPage.share.enterShareDescription(shareMessage);
 
         const shareComponent = new ShareComponent(standardUserFixture.page);
-        await shareComponent.actions.clickShareButton();
+        await shareComponent.clickShareButton();
 
         // Wait for share to complete
-        await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        await feedPage.feedList.verifyToastMessageIsVisibleWithText(
+          FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+        );
 
         await feedPage.reloadPage();
 
-        await feedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await feedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         // Click "View Post"
-        await feedPage.actions.clickViewPostLink();
+        await feedPage.feedList.clickViewPostLink();
 
         // Verify the user is navigated to the Feed Detail Page
         // Wait for navigation to feed detail page
         await standardUserFixture.page.waitForURL(new RegExp(`/feed/${createdPostId}`));
         const feedDetailPage = new FeedPage(standardUserFixture.page, createdPostId);
-        await feedDetailPage.assertions.waitForPostToBeVisible(videoPostText);
+        await feedDetailPage.feedList.waitForPostToBeVisible(videoPostText);
 
         // Verify video controls and functionalities
-        await feedDetailPage.assertions.verifyVideoControls(videoPostText);
+        await feedDetailPage.feedList.verifyVideoControls(videoPostText);
       }
     );
 
@@ -648,13 +653,13 @@ test.describe(
 
         // Create Post with image1.jpg
         await test.step('Create post with image attachment', async () => {
-          await endUserFeedPage.actions.clickShareThoughtsButton();
+          await endUserFeedPage.clickShareThoughtsButton();
 
           const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
           const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
 
           // Create post with image attachment
-          const postResult = await endUserFeedPage.actions.createAndPost({
+          const postResult = await endUserFeedPage.postEditor.createAndPost({
             text: postText,
             attachments: {
               files: [imagePath],
@@ -665,8 +670,8 @@ test.describe(
           createdPostId = postResult.postId || '';
 
           // Verify global post is created
-          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
-          await endUserFeedPage.assertions.verifyPostDetails(postText, 1); // 1 attachment
+          await endUserFeedPage.feedList.waitForPostToBeVisible(postText);
+          await endUserFeedPage.verifyAllDataPointsForFeedPost(postText, 1); // 1 attachment
         });
 
         // Share Post with mention and "Post in Home Feed" option
@@ -674,7 +679,7 @@ test.describe(
           const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
 
           // Share the post with mention and "Post in Home Feed" option
-          await endUserFeedPage.actions.shareFeedPost({
+          await endUserFeedPage.shareFeedPost({
             postText: createdPostText,
             mentionUserName: standardUserFullName,
             shareMessage: shareMessage,
@@ -682,7 +687,9 @@ test.describe(
           });
 
           // Verify success message
-          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+          );
         });
 
         // Verify shared post is visible on Home Feed
@@ -692,16 +699,16 @@ test.describe(
 
           // Verify shared post is visible
           const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
-          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
           // Verify share message is displayed
-          await endUserFeedPage.assertions.validatePostText(shareMessage);
+          await endUserFeedPage.feedList.validatePostText(shareMessage);
 
-          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+          await endUserFeedPage.feedList.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
 
-          await endUserFeedPage.actions.clickInlineImagePreview(shareMessage);
-          await endUserFeedPage.assertions.verifyInlineImagePreviewVisible();
-          await endUserFeedPage.actions.closeImagePreview();
+          await endUserFeedPage.feedList.clickInlineImagePreview(shareMessage);
+          await endUserFeedPage.feedList.verifyInlineImagePreviewVisible();
+          await endUserFeedPage.feedList.closeImagePreview();
         });
       }
     );
@@ -734,16 +741,16 @@ test.describe(
 
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
-        await endUserFeedPage.actions.verifyThePageIsLoaded();
+        await endUserFeedPage.verifyThePageIsLoaded();
 
         const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
         const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
         const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
 
         await test.step('Create post with image attachment on Global Feed', async () => {
-          await endUserFeedPage.actions.clickShareThoughtsButton();
+          await endUserFeedPage.clickShareThoughtsButton();
 
-          const postResult = await endUserFeedPage.actions.createAndPost({
+          const postResult = await endUserFeedPage.postEditor.createAndPost({
             text: postText,
             attachments: {
               files: [imagePath],
@@ -754,71 +761,73 @@ test.describe(
           createdPostId = postResult.postId || '';
 
           // Verify global post is created successfully
-          await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
-          await endUserFeedPage.assertions.verifyPostDetails(postText, 1);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(postText);
+          await endUserFeedPage.verifyAllDataPointsForFeedPost(postText, 1);
         });
 
         await test.step('Share post to Site Feed with mention', async () => {
-          await endUserFeedPage.actions.shareFeedPost({
+          await endUserFeedPage.shareFeedPost({
             postText: createdPostText,
             mentionUserName: standardUserFullName,
             shareMessage: shareMessage,
             postIn: 'Site Feed',
           });
 
-          await endUserFeedPage.actions.enterSiteNameForShare(publicSiteName);
+          await endUserFeedPage.share.enterSiteName(publicSiteName);
 
           const shareComponent = new ShareComponent(standardUserFixture.page);
-          await shareComponent.actions.clickShareButton();
+          await shareComponent.clickShareButton();
 
-          await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+            FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+          );
         });
 
         await test.step('Verify shared post with mention is visible on Global Feed', async () => {
           await endUserFeedPage.reloadPage();
 
-          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
-          await endUserFeedPage.assertions.validatePostText(shareMessage);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.feedList.validatePostText(shareMessage);
 
-          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+          await endUserFeedPage.feedList.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
         });
 
         await test.step('Verify shared post is visible on Site Feed', async () => {
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.clickOnFeedLink();
           await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
-          await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
-          await endUserFeedPage.assertions.validatePostText(shareMessage);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
+          await endUserFeedPage.feedList.validatePostText(shareMessage);
 
-          await endUserFeedPage.assertions.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
+          await endUserFeedPage.feedList.verifyUserNameMentionIsVisible(shareMessage, standardUserFullName);
         });
 
         await test.step('Delete the post from Global Feed', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           await endUserFeedPage.reloadPage();
-          await endUserFeedPage.actions.verifyThePageIsLoaded();
+          await endUserFeedPage.verifyThePageIsLoaded();
 
-          await endUserFeedPage.actions.deletePost(createdPostText);
+          await endUserFeedPage.deletePost(createdPostText);
         });
 
         await test.step('Verify deleted post is not visible on Site Feed', async () => {
           await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard to verify deletion' });
           await siteDashboardPage.reloadPage();
-          await siteDashboardPage.actions.clickOnFeedLink();
+          await siteDashboardPage.clickOnFeedLink();
           await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
-          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
+          await endUserFeedPage.feedList.verifyPostIsNotVisible(shareMessage);
         });
 
         await test.step('Verify deleted post is not visible on Home Feed', async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           await endUserFeedPage.reloadPage();
-          await endUserFeedPage.actions.verifyThePageIsLoaded();
+          await endUserFeedPage.verifyThePageIsLoaded();
 
-          await endUserFeedPage.assertions.verifyPostIsNotVisible(shareMessage);
+          await endUserFeedPage.feedList.verifyPostIsNotVisible(shareMessage);
 
-          await endUserFeedPage.assertions.verifyPostIsNotVisible(createdPostText);
+          await endUserFeedPage.feedList.verifyPostIsNotVisible(createdPostText);
         });
       }
     );
@@ -828,15 +837,17 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-26611'],
       },
-      async ({ appManagerFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Test feed post creation, editing and deletion with file attachments',
           zephyrTestId: 'CONT-26611',
           storyId: 'CONT-26611',
         });
 
+        const endUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(
-          users.endUser.email,
+          endUserInfo.userId,
           SITE_TYPES.PRIVATE
         );
 
@@ -853,19 +864,19 @@ test.describe(
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
 
-        await siteDashboardPage.actions.clickOnFeedLink();
-        await siteDashboardPage.actions.clickOnOptionsMenu(createdPostText);
-        await siteDashboardPage.assertions.verifyEditAndDeleteOptionsVisible(createdPostText);
+        await siteDashboardPage.clickOnFeedLink();
+        await siteDashboardPage.clickOnOptionsMenu(createdPostText);
+        await siteDashboardPage.verifyEditAndDeleteOptionsVisible(createdPostText);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post', 3, true);
         // Step 3: Edit the post
-        await siteDashboardPage.actions.editPost(createdPostText, updatedPostText);
-        await siteDashboardPage.assertions.validatePostText(updatedPostText);
+        await siteDashboardPage.createFeedPostComponent.editPost(createdPostText, updatedPostText);
+        await siteDashboardPage.listFeedComponent.validatePostText(updatedPostText);
 
         // Delete the post
-        await siteDashboardPage.actions.deletePost(updatedPostText);
+        await siteDashboardPage.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
-        await siteDashboardPage.assertions.validatePostNotVisible(updatedPostText);
+        await siteDashboardPage.validatePostNotVisible(updatedPostText);
       }
     );
 
@@ -912,7 +923,7 @@ test.describe(
           });
 
           // Verify page not found page is visible
-          await feedPage.assertions.verifyPageNotFoundVisibility({
+          await feedPage.verifyPageNotFoundVisibility({
             stepInfo: 'Verify access denied page is shown for private site feed',
           });
 
@@ -951,7 +962,7 @@ test.describe(
           });
 
           // Verify page not found page is visible
-          await feedPage.assertions.verifyPageNotFoundVisibility({
+          await feedPage.verifyPageNotFoundVisibility({
             stepInfo: 'Verify access denied page is shown for unlisted site feed',
           });
 
@@ -1019,10 +1030,10 @@ test.describe(
           const embedUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
 
           // Click "Share your thoughts" button
-          await adminFeedPage.actions.clickShareThoughtsButton();
+          await adminFeedPage.clickShareThoughtsButton();
 
           // Create post with text, topic, user mention, site mentions, and embedded URL
-          const postResult = await adminFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+          const postResult = await adminFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: postText,
             userName: standardUserFullName,
             topicName: simpplrTopic.name,
@@ -1034,29 +1045,31 @@ test.describe(
           createdPostId = postResult.postId || '';
 
           // Wait for post to be visible
-          await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Navigate end user to the feed post
         await test.step('Navigate EndUser to the feed post', async () => {
           endUserFeedPage = new FeedPage(standardUserFixture.page, createdPostId);
           await standardUserFixture.page.goto(endUserFeedPage.url);
-          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Click Share button on the post
-        await endUserFeedPage.actions.clickShareButtonOnPost(createdPostText);
-        await endUserFeedPage.assertions.verifyShareModalIsOpen();
+        await endUserFeedPage.feedList.clickShareIcon(createdPostText);
+        await endUserFeedPage.verifyShareModalIsOpen();
         // Attempt to paste an image (simulates user pasting image from clipboard)
-        await endUserFeedPage.actions.attemptImagePasteInShareModal();
+        await endUserFeedPage.share.attemptImagePaste();
 
-        await endUserFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.IMAGE_ADDED_TO_ATTACHMENTS);
+        await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+          FEED_TEST_DATA.TOAST_MESSAGES.IMAGE_ADDED_TO_ATTACHMENTS
+        );
 
         // Verify no attachments are visible
-        await endUserFeedPage.assertions.verifyNoAttachmentsInShareModal();
+        await endUserFeedPage.share.verifyNoAttachmentsInShareModal();
 
         // Verify share modal remains functional
-        await endUserFeedPage.assertions.verifyShareModalIsFunctional();
+        await endUserFeedPage.share.verifyShareModalIsFunctional();
       }
     );
 
@@ -1116,60 +1129,62 @@ test.describe(
         console.log(`Using private site: ${privateSiteName}`);
 
         // Create a Feed post on "Private Site" from Home Dashboard
-        await adminFeedPage.actions.clickShareThoughtsButton();
+        await adminFeedPage.clickShareThoughtsButton();
         const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-        await adminFeedPage.actions.enterFeedPostText(postText);
+        await adminFeedPage.postEditor.createPost(postText);
 
         // Select "Post in Site Feed" option
-        await adminFeedPage.actions.selectShareOptionAsSiteFeed();
+        await adminFeedPage.share.selectShareOptionAsSiteFeed();
 
         // Enter private site name
-        await adminFeedPage.actions.enterSiteNameForShare(privateSiteName || '');
+        await adminFeedPage.share.enterSiteName(privateSiteName || '');
 
         // Post the feed
-        const postResult = await adminFeedPage.actions.createAndPost({
+        const postResult = await adminFeedPage.postEditor.createAndPost({
           text: postText,
         });
         createdPostText = postResult.postText;
         createdPostId = postResult.postId || '';
 
         // Wait for post to be visible
-        await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+        await adminFeedPage.feedList.waitForPostToBeVisible(postText);
 
         const siteOwnerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, privateSiteId || '');
         await siteOwnerDashboardPage.loadPage({ stepInfo: 'Load private site dashboard page' });
-        await siteOwnerDashboardPage.actions.clickOnFeedLink();
+        await siteOwnerDashboardPage.clickOnFeedLink();
         await siteOwnerDashboardPage.navigateToTab(SitePageTab.FeedTab);
         const siteOwnerFeedPage = new FeedPage(siteManagerFixture.page);
 
         // Wait for the post to be visible on the Private Site's feed
-        await siteOwnerFeedPage.assertions.waitForPostToBeVisible(postText);
+        await siteOwnerFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Click Share icon on the feed post created on Private Site
-        await siteOwnerFeedPage.actions.clickShareIconOnPost(postText);
+        await siteOwnerFeedPage.feedList.clickShareIcon(postText);
 
         //  Add a Message
         const shareMessage = FEED_TEST_DATA.POST_TEXT.SHARE_MESSAGE;
-        await siteOwnerFeedPage.actions.enterShareDescription(shareMessage);
+        await siteOwnerFeedPage.share.enterShareDescription(shareMessage);
 
         // Click "Share" button
         const shareComponent = new ShareComponent(siteManagerFixture.page);
-        await shareComponent.actions.clickShareButton();
+        await shareComponent.clickShareButton();
 
         // Verify success message "Shared Feed post successfully."
-        await siteOwnerFeedPage.assertions.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY);
+        await siteOwnerFeedPage.feedList.verifyToastMessageIsVisibleWithText(
+          FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
+        );
 
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.reloadPage();
 
         // Verify "End User" is able to view "Site Owner's" shared feed post with the message
-        await endUserFeedPage.assertions.waitForPostToBeVisible(shareMessage);
+        await endUserFeedPage.feedList.waitForPostToBeVisible(shareMessage);
 
         // Verify "End User" is unable to view the original post and is displayed with message "This post has been deleted"
-        await endUserFeedPage.assertions.verifyDeletedPostMessage(shareMessage);
+        await endUserFeedPage.feedList.verifyDeletedPostMessage(shareMessage);
 
         // Verify user cannot interact with the deleted post
-        await endUserFeedPage.assertions.verifyPostCannotBeInteracted(postText);
+        await endUserFeedPage.feedList.verifyPostCannotBeInteracted(postText);
       }
     );
 
@@ -1194,10 +1209,10 @@ test.describe(
         await feedPage.verifyThePageIsLoaded();
 
         // Click Share your thoughts or questions
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         // Click Recognition tab in the composer
-        const createFeedPostComponent = feedPage['createFeedPostComponent'];
+        const createFeedPostComponent = feedPage.postEditor;
         await createFeedPostComponent.clickRecognitionTab();
 
         const recognitionForm = new RecognitionFormComponent(appManagerFixture.page);
@@ -1231,7 +1246,7 @@ test.describe(
         await feedPage.reloadPage();
 
         // Verify the Recognition feed post is created on Home feed
-        await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
+        await feedPage.feedList.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
@@ -1247,7 +1262,7 @@ test.describe(
     test.describe(
       'inappropriate content warning tests CONT-28090',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, ContentTestSuite.FEED],
       },
       () => {
         // Shared setup variables
@@ -1281,7 +1296,7 @@ test.describe(
           // Set feed posting permission
           const manageSitePage = new ManageSitePage(appManagerFixture.page);
           await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
-          await manageSitePage.actions.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+          await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
         });
 
         // Helper function to test Home Dashboard inappropriate content warning
@@ -1293,21 +1308,21 @@ test.describe(
           await homeFeedPage.verifyThePageIsLoaded();
 
           // Click Share your thoughts button
-          await homeFeedPage.actions.clickShareThoughtsButton();
+          await homeFeedPage.clickShareThoughtsButton();
 
           // Enter inappropriate text
-          await homeFeedPage.actions.createPost(inappropriateText);
+          await homeFeedPage.postEditor.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
+          await homeFeedPage.postEditor.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Close the popup
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
         };
 
         // Helper function to test Site Dashboard inappropriate content warning
@@ -1318,22 +1333,22 @@ test.describe(
           await siteDashboard.verifyThePageIsLoaded();
 
           // Click Share your thoughts button
-          await siteDashboard.actions.clickShareThoughtsButton();
+          await siteDashboard.clickShareThoughtsButton();
 
           // Enter inappropriate text
-          const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
-          await createFeedPostComponent.actions.createPost(inappropriateText);
+          const createFeedPostComponent = siteDashboard.createFeedPostComponent;
+          await createFeedPostComponent.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
+          await createFeedPostComponent.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Close the popup
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
         };
 
         // Helper function to test Content Page inappropriate content warning
@@ -1348,25 +1363,25 @@ test.describe(
           await contentPreviewPage.verifyThePageIsLoaded();
 
           // Verify comment option is visible
-          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+          await contentPreviewPage.verifyCommentOptionIsVisible();
 
           // Click Share your thoughts button
-          await contentPreviewPage.actions.clickShareThoughtsButton();
+          await contentPreviewPage.clickShareThoughtsButton();
 
           // Enter inappropriate text
           const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
-          await createFeedPostComponent.actions.createPost(inappropriateText);
+          await createFeedPostComponent.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
+          await createFeedPostComponent.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Close the popup
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
         };
 
         test(
@@ -1522,20 +1537,18 @@ test.describe(
         });
 
         // Get or create a site for testing
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-
-        const siteName = siteDetails.name;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Load Site Dashboard page
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
 
         // Click Share your thoughts or questions on Site Dashboard
-        await siteDashboardPage.actions.clickShareThoughtsButton();
+        await siteDashboardPage.clickShareThoughtsButton();
 
         // Click Recognition tab in the composer
-        const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+        const createFeedPostComponent = siteDashboardPage.createFeedPostComponent;
         await createFeedPostComponent.clickRecognitionTab();
 
         const recognitionForm = new RecognitionFormComponent(appManagerFixture.page);
@@ -1560,7 +1573,7 @@ test.describe(
         await recognitionForm.selectPostInSiteFeedInShareDialog();
 
         // Select the site from dropdown
-        await recognitionForm.selectSiteInShareDialog(siteName);
+        await recognitionForm.selectSiteInShareDialog(DEFAULT_PUBLIC_SITE_NAME);
 
         // Click Share post button to share the recognition
         await recognitionForm.clickSharePostButton();
@@ -1572,7 +1585,7 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.assertions.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
@@ -1638,31 +1651,31 @@ test.describe(
           await homeFeedPage.verifyThePageIsLoaded();
 
           // Click Share your thoughts button
-          await homeFeedPage.actions.clickShareThoughtsButton();
+          await homeFeedPage.clickShareThoughtsButton();
 
           // Enter inappropriate text
-          await homeFeedPage.actions.createPost(inappropriateText);
+          await homeFeedPage.postEditor.createPost(inappropriateText);
 
           // Click Post button
-          await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
+          await homeFeedPage.postEditor.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Cancel button
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify editor is still visible and editable
-          const createFeedPostComponent = homeFeedPage['createFeedPostComponent'];
-          await createFeedPostComponent.assertions.verifyEditorVisible();
+          const createFeedPostComponent = homeFeedPage.postEditor;
+          await createFeedPostComponent.verifyEditorVisible();
 
           // Edit the content - clear and enter appropriate text
-          await createFeedPostComponent.actions.updatePostText(editedText);
+          await createFeedPostComponent.updatePostText(editedText);
 
           // Verify the edited text is in the editor
           const editorContent = await createFeedPostComponent.feedEditor.textContent();
@@ -1684,31 +1697,31 @@ test.describe(
           await siteDashboard.verifyThePageIsLoaded();
 
           // Click Share your thoughts button
-          await siteDashboard.actions.clickShareThoughtsButton();
+          await siteDashboard.clickShareThoughtsButton();
 
           // Enter inappropriate text
-          const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
-          await createFeedPostComponent.actions.createPost(inappropriateText);
+          const createFeedPostComponent = siteDashboard.createFeedPostComponent;
+          await createFeedPostComponent.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
+          await createFeedPostComponent.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Cancel button
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify editor is still visible and editable
-          await createFeedPostComponent.assertions.verifyEditorVisible();
+          await createFeedPostComponent.verifyEditorVisible();
 
           // Edit the content - clear and enter appropriate text
-          await createFeedPostComponent.actions.updatePostText(editedText);
+          await createFeedPostComponent.updatePostText(editedText);
 
           // Verify the edited text is in the editor
           const editorContent = await createFeedPostComponent.feedEditor.textContent();
@@ -1730,34 +1743,34 @@ test.describe(
           await contentPreviewPage.verifyThePageIsLoaded();
 
           // Verify comment option is visible
-          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+          await contentPreviewPage.verifyCommentOptionIsVisible();
 
           // Click Share your thoughts button
-          await contentPreviewPage.actions.clickShareThoughtsButton();
+          await contentPreviewPage.clickShareThoughtsButton();
 
           // Enter inappropriate text
           const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
-          await createFeedPostComponent.actions.createPost(inappropriateText);
+          await createFeedPostComponent.createPost(inappropriateText);
 
           // Click Post button
-          await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
+          await createFeedPostComponent.clickPostWithoutWaitingForResponse();
 
           // Verify warning popup appears
           const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Cancel button
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify editor is still visible and editable
-          await createFeedPostComponent.assertions.verifyEditorVisible();
+          await createFeedPostComponent.verifyEditorVisible();
 
           // Edit the content - clear and enter appropriate text
-          await createFeedPostComponent.actions.updatePostText(editedText);
+          await createFeedPostComponent.updatePostText(editedText);
 
           // Verify the edited text is in the editor
           const editorContent = await createFeedPostComponent.feedEditor.textContent();
@@ -1873,8 +1886,7 @@ test.describe(
         });
 
         // Get or create a site for testing
-        const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
-        const siteName = siteDetails.name;
+        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
         // Navigate to Home tab
         await appManagerFixture.homePage.loadPage();
@@ -1885,10 +1897,10 @@ test.describe(
         await feedPage.verifyThePageIsLoaded();
 
         // Click Share your thoughts or questions
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         // Click Recognition tab in the composer
-        const createFeedPostComponent = feedPage['createFeedPostComponent'];
+        const createFeedPostComponent = feedPage.postEditor;
         await createFeedPostComponent.clickRecognitionTab();
 
         const recognitionForm = new RecognitionFormComponent(appManagerFixture.page);
@@ -1913,7 +1925,7 @@ test.describe(
         await recognitionForm.selectPostInSiteFeedInShareDialog();
 
         // Select the site from dropdown
-        await recognitionForm.selectSiteInShareDialog(siteName);
+        await recognitionForm.selectSiteInShareDialog(DEFAULT_PUBLIC_SITE_NAME);
 
         // Click Share post button to share the recognition
         await recognitionForm.clickSharePostButton();
@@ -1922,7 +1934,7 @@ test.describe(
         await recognitionForm.waitForShareDialogToClose();
 
         // Navigate to Site Dashboard to verify the post
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
 
@@ -1930,7 +1942,7 @@ test.describe(
         await siteDashboardPage.reloadPage();
 
         // Verify the Recognition feed post is created on Site feed
-        await siteDashboardPage.listFeedComponent.assertions.waitForPostToBeVisible(recognitionMessage);
+        await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
@@ -1981,27 +1993,27 @@ test.describe(
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await adminHomeFeedPage.verifyThePageIsLoaded();
-        await adminHomeFeedPage.actions.clickShareThoughtsButton();
+        await adminHomeFeedPage.clickShareThoughtsButton();
         const homePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-        const homePostResult = await adminHomeFeedPage.actions.createAndPost({
+        const homePostResult = await adminHomeFeedPage.postEditor.createAndPost({
           text: homePostText,
         });
         if (homePostResult.postId) createdFeedIds.push(homePostResult.postId);
-        await adminHomeFeedPage.assertions.waitForPostToBeVisible(homePostText);
+        await adminHomeFeedPage.feedList.waitForPostToBeVisible(homePostText);
 
         // Admin creates a post on Site Dashboard
         const adminSiteDashboard = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
         await adminSiteDashboard.loadPage({ stepInfo: 'Load site dashboard page' });
         await adminSiteDashboard.navigateToTab(SitePageTab.DashboardTab);
         await adminSiteDashboard.verifyThePageIsLoaded();
-        await adminSiteDashboard.actions.clickShareThoughtsButton();
+        await adminSiteDashboard.clickShareThoughtsButton();
         const sitePostText = `Site Dashboard Post ${homePostText}`;
-        const sitePostResult = await adminSiteDashboard['createFeedPostComponent'].actions.createAndPost({
+        const sitePostResult = await adminSiteDashboard.createFeedPostComponent.createAndPost({
           text: sitePostText,
         });
         if (sitePostResult.postId) createdFeedIds.push(sitePostResult.postId);
         const adminSiteFeedPage = new FeedPage(appManagerFixture.page);
-        await adminSiteFeedPage.assertions.waitForPostToBeVisible(sitePostText);
+        await adminSiteFeedPage.feedList.waitForPostToBeVisible(sitePostText);
 
         // Admin creates a comment on Content page
         const adminContentPreviewPage = new ContentPreviewPage(
@@ -2012,13 +2024,13 @@ test.describe(
         );
         await adminContentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
         await adminContentPreviewPage.verifyThePageIsLoaded();
-        await adminContentPreviewPage.actions.clickShareThoughtsButton();
+        await adminContentPreviewPage.clickShareThoughtsButton();
         const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
-        const commentPostResult = await adminContentPreviewPage['createFeedPostComponent'].actions.createAndPost({
+        const commentPostResult = await adminContentPreviewPage.createFeedPostComponent.createAndPost({
           text: commentText,
         });
         if (commentPostResult.postId) createdFeedIds.push(commentPostResult.postId);
-        await adminContentPreviewPage.assertions.waitForPostToBeVisible(commentText);
+        await adminContentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
 
         // Phase 2: Helper Functions for Share Flows
 
@@ -2035,30 +2047,30 @@ test.describe(
 
           // Step 1: Cancel Flow
           await clickShareIcon();
-          await shareComponent.assertions.verifyShareModalIsFunctional();
-          await shareComponent.actions.enterShareDescription(inappropriateText);
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriateText);
 
           // Select post location if provided (for Site Feed)
           if (selectPostLocation) {
             await selectPostLocation();
           }
 
-          await shareComponent.actions.clickShareButton();
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-          await warningPopup.actions.clickCancel();
-          await warningPopup.assertions.verifyWarningPopupClosed();
-          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+          await shareComponent.verifyShareModalIsFunctional();
 
           // Edit content (still inappropriate to test Submit Anyway)
-          await shareComponent.actions.enterShareDescription(inappropriateText);
+          await shareComponent.enterShareDescription(inappropriateText);
 
           // Step 2: Submit Anyway Flow
-          await shareComponent.actions.clickShareButton();
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
-          await warningPopup.actions.clickContinue();
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
         };
 
         // Helper function to test Home Dashboard share flow
@@ -2077,13 +2089,13 @@ test.describe(
 
           await testShareWithInappropriateContent(
             userFixture,
-            () => homeFeedPage.actions.clickShareIconOnPost(postText),
+            () => homeFeedPage.feedList.clickShareIcon(postText),
             inappropriateText,
             editedText,
             async () => {
               const shareComponent = new ShareComponent(userFixture.page);
               await shareComponent.selectShareOptionAsSiteFeed();
-              await shareComponent.actions.enterSiteName(siteName);
+              await shareComponent.enterSiteName(siteName);
             }
           );
         };
@@ -2104,7 +2116,7 @@ test.describe(
           const siteFeedPage = new FeedPage(userFixture.page);
           await testShareWithInappropriateContent(
             userFixture,
-            () => siteFeedPage.actions.clickShareIconOnPost(postText),
+            () => siteFeedPage.feedList.clickShareIcon(postText),
             inappropriateText,
             editedText
           );
@@ -2126,7 +2138,7 @@ test.describe(
           const feedPage = new FeedPage(userFixture.page);
           await testShareWithInappropriateContent(
             userFixture,
-            () => feedPage.actions.clickShareIconOnPost(commentText),
+            () => feedPage.feedList.clickShareIcon(commentText),
             inappropriateText,
             editedText
           );
@@ -2189,10 +2201,10 @@ test.describe(
         await siteDashboardPage.verifyThePageIsLoaded();
 
         // Click Share your thoughts or questions on Site Dashboard
-        await siteDashboardPage.actions.clickShareThoughtsButton();
+        await siteDashboardPage.clickShareThoughtsButton();
 
         // Click Recognition tab in the composer
-        const createFeedPostComponent = siteDashboardPage['createFeedPostComponent'];
+        const createFeedPostComponent = siteDashboardPage.createFeedPostComponent;
         await createFeedPostComponent.clickRecognitionTab();
 
         const recognitionForm = new RecognitionFormComponent(appManagerFixture.page);
@@ -2234,7 +2246,7 @@ test.describe(
         await feedPage.reloadPage();
 
         // Verify the Recognition feed post is created on Home feed
-        await feedPage.assertions.waitForPostToBeVisible(recognitionMessage);
+        await feedPage.feedList.waitForPostToBeVisible(recognitionMessage);
 
         // Click on Avatar profile menu and navigate to Recognition
         await appManagerFixture.navigationHelper.sideNavBarComponent.clickRecognitionLinkUnderHomeNavMenu();
@@ -2300,55 +2312,55 @@ test.describe(
           await contentPreviewPage.verifyThePageIsLoaded();
 
           // Click Share icon on the Content
-          await contentPreviewPage.actions.clickShareContentButton();
+          await contentPreviewPage.clickShareContentButton();
 
           // Wait for share modal to appear
-          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.verifyShareModalIsFunctional();
 
           // Step 1: Cancel Flow
           // Enter inappropriate text
-          await shareComponent.actions.enterShareDescription(inappropriateText);
+          await shareComponent.enterShareDescription(inappropriateText);
 
           // Select post location
           if (postIn === 'Site Feed') {
             await shareComponent.selectShareOptionAsSiteFeed();
             if (siteName) {
-              await shareComponent.actions.enterSiteName(siteName);
+              await shareComponent.enterSiteName(siteName);
             }
           }
 
           // Click Share button
-          await shareComponent.actions.clickShareButton();
+          await shareComponent.clickShareButton();
 
           // Verify warning popup appears
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Cancel button
-          await warningPopup.actions.clickCancel();
+          await warningPopup.clickCancel();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
 
           // Verify share modal is still functional and user can edit content
-          await shareComponent.assertions.verifyShareModalIsFunctional();
+          await shareComponent.verifyShareModalIsFunctional();
 
           // Step 2: Submit Anyway Flow
           // Enter inappropriate text again
-          await shareComponent.actions.enterShareDescription(inappropriateText);
+          await shareComponent.enterShareDescription(inappropriateText);
 
           // Click Share button
-          await shareComponent.actions.clickShareButton();
+          await shareComponent.clickShareButton();
 
           // Verify warning popup appears
-          await warningPopup.assertions.verifyWarningPopupVisible();
-          await warningPopup.assertions.verifyWarningMessage();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
 
           // Click Submit Anyway button (Continue button)
-          await warningPopup.actions.clickContinue();
+          await warningPopup.clickContinue();
 
           // Verify popup is closed
-          await warningPopup.assertions.verifyWarningPopupClosed();
+          await warningPopup.verifyWarningPopupClosed();
         };
 
         // Phase 2: Test Execution (as End User)
@@ -2379,7 +2391,120 @@ test.describe(
     );
 
     test(
-      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed CONT-24122',
+      'in Zeus verify user submits inappropriate content while sharing a file to home dashboard and site dashboard',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28478'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'In Zeus Verify User submits inappropriate content while Sharing a File to Home Dashboard and Site Dashboard',
+          zephyrTestId: 'CONT-28478',
+          storyId: 'CONT-28478',
+        });
+
+        const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const siteName = 'All Employees';
+        const fileName = 'V2.png';
+        const folderName = 'AVISTA BOX FILES EDITOR';
+
+        // Get site ID and setup page objects once
+        const publicSiteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName(siteName);
+
+        // Admin page objects for setup
+        const adminManageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        const adminSiteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const adminSiteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+
+        // Standard user page objects (reused across both scenarios)
+        const userSiteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+        const userSiteFilesPage = new SiteFilesPage(standardUserFixture.page, publicSiteId);
+        const shareComponent = new ShareComponent(standardUserFixture.page);
+        const warningPopup = new InappropriateContentWarningPopupComponent(standardUserFixture.page);
+
+        // Setup - Admin configures external files and uploads folder
+        await test.step('Admin: Setup external files provider and upload folder', async () => {
+          await adminManageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await adminManageSitePage.setExternalFilesProvider('Box files');
+          await adminSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+          await adminSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await adminSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await adminSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await adminSiteFilesPage.actions.uploadBoxFileFolder(folderName);
+        });
+
+        // Test Home Feed scenario
+        await test.step('Home Feed: Verify inappropriate content warning - Cancel and Continue flows', async () => {
+          // Navigate to file
+          await userSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await userSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await userSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await userSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await userSiteFilesPage.actions.clickOnFilesFolder(folderName);
+          await userSiteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          // Open share modal and enter inappropriate text
+          await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+
+          // Click share and verify warning popup - then Cancel
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Verify modal still open, re-enter text and Continue
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
+        });
+
+        // Test Site Feed scenario
+        await test.step('Site Feed: Verify inappropriate content warning - Cancel and Continue flows', async () => {
+          // Navigate to file
+          await userSiteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await userSiteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await userSiteFilesPage.assertions.verifyThePageIsLoaded();
+          await userSiteFilesPage.actions.clickOnFilesFolder('Box files');
+          await userSiteFilesPage.actions.clickOnFilesFolder(folderName);
+          await userSiteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+
+          // Open share modal, select Site Feed, enter inappropriate text
+          await userSiteFilesPage.actions.hoverOverFileOptionsDropdown(fileName);
+          await userSiteFilesPage.actions.clickShareOptionFromFileMenu();
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.selectShareOptionAsSiteFeed();
+          await shareComponent.enterSiteName(siteName);
+
+          // Click share and verify warning popup - then Cancel
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Verify modal still open, re-enter text and Continue
+          await shareComponent.verifyShareModalIsFunctional();
+          await shareComponent.enterShareDescription(inappropriatePostText);
+          await shareComponent.clickShareButton();
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+          await warningPopup.clickContinue();
+          await warningPopup.verifyWarningPopupClosed();
+        });
+      }
+    );
+
+    test(
+      'verify user can mention sites, click mentions to navigate, edit site mentions, and delete post from Home Feed',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24122'],
       },
@@ -2428,11 +2553,11 @@ test.describe(
 
         // Step 1: Create Post with Site Mentions
         await test.step('Create post with site mentions', async () => {
-          await feedPage.actions.clickShareThoughtsButton();
+          await feedPage.clickShareThoughtsButton();
 
           // Create post mentioning Public Site, Private Site, and Unlisted Site
           // Note: createfeedWithMentionUserNameAndTopic requires userName and topicName, so we provide them
-          const postResult = await feedPage.actions.createfeedWithMentionUserNameAndTopic({
+          const postResult = await feedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: userName,
             topicName: topicName,
@@ -2444,65 +2569,65 @@ test.describe(
           createdPostId = postResult.postId || '';
 
           // Verify post creation - use base text for verification as mentions may render differently
-          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
-          await feedPage.assertions.validatePostText(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.validatePostText(initialPostText);
         });
 
         // Step 2: Navigate via Site Mentions
         await test.step('Navigate via site mentions', async () => {
           // Click Public Site mention and verify navigation
-          await feedPage.actions.clickSiteMentionInPost(initialPostText, publicSiteName, publicSiteId);
+          await feedPage.clickSiteMentionInPost(initialPostText, publicSiteName, publicSiteId);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
 
           // Click Private Site mention and verify navigation
-          await feedPage.actions.clickSiteMentionInPost(initialPostText, privateSiteName, privateSiteId);
+          await feedPage.clickSiteMentionInPost(initialPostText, privateSiteName, privateSiteId);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
         });
 
         // Step 3: Edit Site Mentions
         await test.step('Edit site mentions', async () => {
           // Open ellipses menu
-          await feedPage.actions.openPostOptionsMenu(initialPostText);
+          await feedPage.feedList.openPostOptionsMenu(initialPostText);
 
           // Click Edit
-          await feedPage.actions.clickEditOption();
+          await feedPage.postEditor.clickEditOption();
 
           // Verify Update button is disabled initially
-          await feedPage.assertions.verifyUpdateButtonDisabled();
+          await feedPage.postEditor.verifyUpdateButtonDisabled();
 
           // Remove "Public Site" mention
-          await feedPage.actions.removeSiteMention(publicSiteName);
+          await feedPage.postEditor.removeSiteMention(publicSiteName);
 
           // Add "Public Site2" mention
-          await feedPage.actions.addSiteName(publicSite2Name);
+          await feedPage.postEditor.addSiteName(publicSite2Name);
 
           // Click Update button to save changes
-          await feedPage.actions.clickUpdateButton();
+          await feedPage.postEditor.clickUpdateButton();
 
           // Verify updated post shows new site mention
-          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
         });
 
         // Step 4: Verify Updated Mention Navigation
         await test.step('Verify updated mention navigation', async () => {
           // Click new site mention
-          await feedPage.actions.clickSiteMentionInPost(initialPostText, publicSite2Name, publicSite2Id);
+          await feedPage.clickSiteMentionInPost(initialPostText, publicSite2Name, publicSite2Id);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
         });
 
         // Step 5: Delete Post
@@ -2513,16 +2638,16 @@ test.describe(
           await feedPage.verifyThePageIsLoaded();
 
           // Open ellipses menu
-          await feedPage['listFeedComponent'].openPostOptionsMenu(initialPostText);
+          await feedPage.feedList.openPostOptionsMenu(initialPostText);
 
           // Click Delete option
-          await feedPage['listFeedComponent'].clickDeleteOption();
+          await feedPage.feedList.clickDeleteOption();
 
           // Confirm delete in the dialog
-          await feedPage['listFeedComponent'].confirmDelete();
+          await feedPage.feedList.confirmDelete();
 
           // Verify post is removed from feed
-          await feedPage['listFeedComponent'].validatePostNotVisible(initialPostText);
+          await feedPage.feedList.validatePostNotVisible(initialPostText);
           createdPostId = '';
         });
       }
@@ -2552,40 +2677,106 @@ test.describe(
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
 
-        await adminFeedPage.actions.clickShareThoughtsButton();
+        await adminFeedPage.clickShareThoughtsButton();
         const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
-        const postResult = await adminFeedPage.actions.createAndPost({ text: postText });
-        await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+        const postResult = await adminFeedPage.postEditor.createAndPost({ text: postText });
+        await adminFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Add reply to the post
-        await adminFeedPage.actions.openReplyEditorForPost(postText);
         const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
-        await adminFeedPage.actions.addReplyToPost(replyText, postResult.postId || '');
-        await adminFeedPage.assertions.verifyReplyIsVisible(replyText);
+        await adminFeedPage.feedList.addReplyToPost(replyText, postResult.postId || '');
+        await adminFeedPage.feedList.verifyReplyIsVisible(replyText);
 
         // Login as EndUser and verify Follow button on hover in feed post
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
         await endUserFeedPage.reloadPage();
-        await endUserFeedPage.assertions.waitForPostToBeVisible(postText);
+        await endUserFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Hover on profile icon in feed post - verify user name, photo, and Follow button
-        await endUserFeedPage.actions.hoverOnProfileIconInPost(postText, appManagerFullName);
-        await endUserFeedPage.assertions.verifyUserNameVisibleOnHover(appManagerFullName);
-        await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
+        await endUserFeedPage.feedList.hoverOnProfileIconInPost(postText, appManagerFullName);
+        await endUserFeedPage.feedList.verifyUserNameVisible(appManagerFullName);
+        await endUserFeedPage.feedList.verifyFollowButtonVisible(appManagerFullName);
 
         // Click Follow button and verify Following button is visible
-        await endUserFeedPage.actions.clickFollowButtonOnHover(appManagerFullName);
-        await endUserFeedPage.assertions.verifyFollowingButtonVisibleOnHover(appManagerFullName);
+        await endUserFeedPage.feedList.clickFollowButton(appManagerFullName);
+        await endUserFeedPage.feedList.verifyFollowingButtonVisible(appManagerFullName);
 
-        await endUserFeedPage.actions.clickOnSideToRemoveProfilePopover();
+        await endUserFeedPage.feedList.clickOnSideToRemoveProfilePopover();
 
         // Hover on profile icon in reply - verify Following button is visible
-        await endUserFeedPage.actions.hoverOnProfileIconInReply(replyText, appManagerFullName);
-        await endUserFeedPage.assertions.verifyFollowingButtonVisibleOnHover(appManagerFullName);
+        await endUserFeedPage.feedList.hoverOnProfileIconInReply(replyText, appManagerFullName);
+        await endUserFeedPage.feedList.verifyFollowingButtonVisible(appManagerFullName);
 
         // Click Following button in reply and verify Follow button is visible
-        await endUserFeedPage.actions.clickFollowingButtonOnHover(appManagerFullName);
-        await endUserFeedPage.assertions.verifyFollowButtonVisibleOnHover(appManagerFullName);
+        await endUserFeedPage.feedList.clickFollowingButton(appManagerFullName);
+        await endUserFeedPage.feedList.verifyFollowButtonVisible(appManagerFullName);
+      }
+    );
+
+    test(
+      'in Zeus verify share option is not visible for GDrive file when Feed is disabled',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-20080'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify share option is not visible for GDrive file when Feed is disabled',
+          zephyrTestId: 'CONT-20080',
+          storyId: 'CONT-20080',
+        });
+
+        const fileName = 'V2.png';
+        const folderName = 'AVISTA BOX FILES EDITOR';
+
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const publicSiteId = publicSite.siteId;
+
+        // Create page objects once and reuse
+        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+        const siteFilesPage = new SiteFilesPage(appManagerFixture.page, publicSiteId);
+        const governanceScreenPage = new GovernanceScreenPage(appManagerFixture.page);
+
+        // Setup - Configure external files provider and upload folder
+        await test.step('Setup: Configure external files and upload folder', async () => {
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setExternalFilesProvider('Box files');
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page for file setup' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.uploadBoxFileFolder(folderName);
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyFileIsPresentInTheSiteFilesList(fileName);
+        });
+
+        // Change governance to Timeline mode and verify share option is hidden
+        await test.step('Verify share option is NOT visible when Feed is disabled (Timeline mode)', async () => {
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.selectTimelineFeedSettingsAsTimeline();
+
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyShareOptionIsNotVisible(fileName);
+        });
+
+        // Restore governance to default mode and verify share option is visible
+        await test.step('Verify share option is visible when Feed is enabled (Default mode)', async () => {
+          await governanceScreenPage.loadPage();
+          await governanceScreenPage.verifyThePageIsLoaded();
+          await governanceScreenPage.selectTimelineFeedSettingsAsDefaultMode();
+
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page after governance change' });
+          await siteDashboardPage.navigateToTab(SitePageTab.FilesTab);
+          await siteFilesPage.assertions.verifyThePageIsLoaded();
+          await siteFilesPage.actions.clickOnFilesFolder('Box files');
+          await siteFilesPage.actions.clickOnFilesFolder(folderName);
+          await siteFilesPage.assertions.verifyShareOptionIsVisible(fileName);
+        });
       }
     );
 
@@ -2609,39 +2800,39 @@ test.describe(
         feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
 
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
-        await feedPage.actions.enterFeedPostText(postText);
+        await feedPage.postEditor.createPost(postText);
 
         const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
-        await feedPage.actions.uploadFiles([imagePath]);
+        await feedPage.postEditor.uploadFiles([imagePath]);
 
-        await feedPage.actions.selectShareOptionAsSiteFeed();
+        await feedPage.share.selectShareOptionAsSiteFeed();
 
-        await feedPage.actions.enterSiteNameForShare(siteName);
+        await feedPage.share.enterSiteName(siteName);
 
-        await feedPage.actions.clickPostButton();
+        await feedPage.postEditor.clickPostButton();
 
-        await feedPage.assertions.waitForPostToBeVisible(postText);
+        await feedPage.feedList.waitForPostToBeVisible(postText);
 
-        await feedPage.assertions.verifyPostDetails(postText, 1);
+        await feedPage.verifyAllDataPointsForFeedPost(postText, 1);
 
-        await feedPage.actions.clickSiteNameOnPost(postText, siteName);
+        await feedPage.feedList.clickSiteNameOnPost(postText, siteName);
 
         siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
 
-        await siteDashboardPage.actions.clickOnFeedLink();
+        await siteDashboardPage.clickOnFeedLink();
         await siteDashboardPage.navigateToTab(SitePageTab.FeedTab);
 
-        await feedPage.assertions.waitForPostToBeVisible(postText);
+        await feedPage.feedList.waitForPostToBeVisible(postText);
 
-        await feedPage.assertions.verifyPostDetails(postText, 1);
+        await feedPage.verifyAllDataPointsForFeedPost(postText, 1);
 
-        await feedPage.assertions.verifyThePageIsLoaded();
-        await feedPage.assertions.waitForPostToBeVisible(postText);
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.feedList.waitForPostToBeVisible(postText);
 
-        await feedPage.actions.deletePost(postText);
+        await feedPage.deletePost(postText);
       }
     );
 
@@ -2656,6 +2847,8 @@ test.describe(
           zephyrTestId: 'CONT-19568',
           storyId: 'CONT-19568',
         });
+        let createdPostText: string = '';
+        let createdPostId: string = '';
 
         await test.step('Login as Admin and create global post with file attachment', async () => {
           await appManagerFixture.homePage.verifyThePageIsLoaded();
@@ -2664,15 +2857,15 @@ test.describe(
           const adminFeedPage = new FeedPage(appManagerFixture.page);
           await adminFeedPage.verifyThePageIsLoaded();
 
-          await adminFeedPage.actions.clickShareThoughtsButton();
+          await adminFeedPage.clickShareThoughtsButton();
 
           const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
           createdPostText = postText;
 
-          await adminFeedPage.actions.enterFeedPostText(postText);
+          await adminFeedPage.postEditor.createPost(postText);
 
           const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
-          const postResult = await adminFeedPage.actions.createAndPost({
+          const postResult = await adminFeedPage.postEditor.createAndPost({
             text: postText,
             attachments: {
               files: [documentPath],
@@ -2681,20 +2874,18 @@ test.describe(
 
           createdPostId = postResult.postId || '';
 
-          await adminFeedPage.assertions.waitForPostToBeVisible(postText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(postText);
         });
 
         let replyText: string = '';
         await test.step('Admin creates reply ', async () => {
           const adminFeedPage = new FeedPage(appManagerFixture.page);
 
-          await adminFeedPage.actions.openReplyEditorForPost(createdPostText);
-
           replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
 
-          await adminFeedPage.actions.addReplyToPost(replyText, createdPostId);
+          await adminFeedPage.feedList.addReplyToPost(replyText, createdPostId);
 
-          await adminFeedPage.assertions.verifyReplyIsVisible(replyText);
+          await adminFeedPage.feedList.verifyReplyIsVisible(replyText);
         });
 
         await test.step("End user verifies Copy link option on other user's post", async () => {
@@ -2702,21 +2893,21 @@ test.describe(
 
           await endUserFeedPage.reloadPage();
 
-          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
-          await endUserFeedPage.actions.openPostOptionsMenu(createdPostText);
+          await endUserFeedPage.postEditor.openPostOptionsMenu(createdPostText);
 
-          await endUserFeedPage.assertions.verifyOnlyCopyLinkOptionVisible(createdPostText);
+          await endUserFeedPage.feedList.verifyOnlyCopyLinkOptionVisible(createdPostText);
 
-          await endUserFeedPage.actions.clickCopyLinkOption();
+          await endUserFeedPage.feedList.clickCopyLinkOption();
 
-          await endUserFeedPage.assertions.verifyToastMessage(
+          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
             FEED_TEST_DATA.TOAST_MESSAGES.COPY_LINK_TO_POST_SUCCESSFULLY
           );
 
-          await endUserFeedPage.actions.openPostOptionsMenu(replyText);
+          await endUserFeedPage.postEditor.openPostOptionsMenu(replyText);
 
-          await endUserFeedPage.assertions.verifyReplyOptionsMenuNotVisible(replyText);
+          await endUserFeedPage.feedList.verifyReplyOptionsMenuNotVisible(replyText);
         });
       }
     );
@@ -2743,9 +2934,9 @@ test.describe(
 
         // ==================== CREATE FEED POST ====================
         await test.step('Create feed post with multiple file attachments', async () => {
-          await adminFeedPage.actions.clickShareThoughtsButton();
+          await adminFeedPage.clickShareThoughtsButton();
 
-          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+          const createFeedPostComponent = adminFeedPage.postEditor;
 
           const filePaths = [
             FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname), // image1.jpg
@@ -2761,7 +2952,7 @@ test.describe(
 
           await createFeedPostComponent.uploadFiles(filePaths);
 
-          await createFeedPostComponent.assertions.verifyAttachedFileCount(filePaths.length);
+          await createFeedPostComponent.verifyAttachedFileCount(filePaths.length);
 
           const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
           if (deleteIcons.length > 0) {
@@ -2777,24 +2968,24 @@ test.describe(
 
         // ==================== VERIFY POST CREATED ====================
         await test.step('Verify feed post is created with file attachments', async () => {
-          await adminFeedPage.assertions.waitForPostToBeVisible(initialPostText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(initialPostText);
 
-          await adminFeedPage.getPostTimestamp(initialPostText);
+          await adminFeedPage.feedList.getPostTimestamp(initialPostText);
 
-          await adminFeedPage.assertions.verifyPostDetails(initialPostText, 7);
+          await adminFeedPage.verifyAllDataPointsForFeedPost(initialPostText, 7);
         });
 
         // ==================== EDIT FEED POST ====================
         await test.step('Edit feed post and remove one attachment', async () => {
-          await adminFeedPage.actions.openPostOptionsMenu(initialPostText);
+          await adminFeedPage.postEditor.openPostOptionsMenu(initialPostText);
 
-          await adminFeedPage.actions.clickEditOption();
+          await adminFeedPage.postEditor.clickEditOption();
 
-          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+          const createFeedPostComponent = adminFeedPage.postEditor;
 
-          await createFeedPostComponent.assertions.verifyUpdateButtonDisabled();
+          await createFeedPostComponent.verifyUpdateButtonDisabled();
 
-          await createFeedPostComponent.assertions.verifyEditorVisible();
+          await createFeedPostComponent.verifyEditorVisible();
 
           const deleteIcons = await createFeedPostComponent.deleteFileIcon.all();
           if (deleteIcons.length > 0) {
@@ -2805,7 +2996,7 @@ test.describe(
           const initialFileCount = await createFeedPostComponent.attachedFiles.count();
           await createFeedPostComponent.removeAttachedFile(0);
 
-          await createFeedPostComponent.assertions.verifyAttachedFileCount(initialFileCount - 1);
+          await createFeedPostComponent.verifyAttachedFileCount(initialFileCount - 1);
 
           await createFeedPostComponent.updatePostText(updatedPostText);
 
@@ -2814,16 +3005,16 @@ test.describe(
 
         // ==================== VERIFY POST UPDATED ====================
         await test.step('Verify feed post is updated successfully', async () => {
-          await adminFeedPage.assertions.waitForPostToBeVisible(updatedPostText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(updatedPostText);
 
-          await adminFeedPage.assertions.verifyPostDetails(updatedPostText, 6);
+          await adminFeedPage.verifyAllDataPointsForFeedPost(updatedPostText, 6);
         });
 
         // ==================== DELETE FEED POST ====================
         await test.step('Delete feed post', async () => {
-          await adminFeedPage.actions.deletePost(updatedPostText);
+          await adminFeedPage.deletePost(updatedPostText);
 
-          await adminFeedPage.assertions.verifyPostIsNotVisible(updatedPostText);
+          await adminFeedPage.feedList.verifyPostIsNotVisible(updatedPostText);
           createdPostId = '';
           createdPostText = '';
         });

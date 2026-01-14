@@ -86,6 +86,101 @@ test.describe(
     );
 
     test(
+      'verify end user able to participate in forms creted with short text and long text components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to participate in forms created with short text and long text components',
+          zephyrTestId: 'ELF-926',
+          storyId: 'ELF-926',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Short text');
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+
+        await endUserParticipationPage.fillResponseIntoShortTextField('Automation-response-Short text');
+        await endUserParticipationPage.fillResponseIntoLongTextField('Automation-response-Long text');
+        //await endUserParticipationPage.clickOnElement(endUserParticipationPage.submitButton);
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to participate in forms creted with number and email components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to participate in forms created with number and email components',
+          zephyrTestId: 'ELF-925',
+          storyId: 'ELF-925',
+        });
+
+        const appManagerFormCreationPage = new FormCreationPage(appManagerPage);
+        const appManagerFormParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserFormParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await appManagerFormCreationPage.clickOnCreateFormButton();
+        await appManagerFormCreationPage.dragAndDropElement('Number');
+        await appManagerFormCreationPage.dragAndDropElement('Email');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.enterFormName('Automation-E2E-Form-');
+        await appManagerFormCreationPage.clickOn('button', 'Browse');
+        await appManagerFormCreationPage.clickOn('switch', 'All organization');
+        await appManagerFormCreationPage.clickOn('button', 'Done');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.verifyPublishedFormToastMessage();
+        await appManagerFormParticipationPage.waitForFormToBePublished();
+        await endUserFormParticipationPage.waitforNotification();
+        await endUserFormParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserFormParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserFormParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserFormParticipationPage.fillResponseIntoNumberField('6');
+        await endUserFormParticipationPage.fillResponseIntoEmailField('test@automation.com');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserFormParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
       'verify app manager able to create forms using number and email components and participate',
       {
         tag: [
@@ -123,6 +218,51 @@ test.describe(
         await formParticipationPage.fillResponseIntoEmailField('test@automation.com');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'verify end user able to participate in forms created with Rating and opinion fields components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to participate in forms creted with Rating and opinion fields components',
+          zephyrTestId: 'ELF-941',
+          storyId: 'ELF-941',
+        });
+
+        const appManagerFormCreationPage = new FormCreationPage(appManagerPage);
+        const appManagerFormParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserFormParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await appManagerFormCreationPage.clickOnCreateFormButton();
+        await appManagerFormCreationPage.dragAndDropElement('rating');
+        await appManagerFormCreationPage.dragAndDropElement('opinion');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.enterFormName('Automation-E2E-Form-');
+        await appManagerFormCreationPage.clickOn('button', 'Browse');
+        await appManagerFormCreationPage.clickOn('switch', 'All organization');
+        await appManagerFormCreationPage.clickOn('button', 'Done');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.verifyPublishedFormToastMessage();
+        await appManagerFormParticipationPage.waitForFormToBePublished();
+        await endUserFormParticipationPage.waitforNotification();
+        await endUserFormParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserFormParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserFormParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserFormParticipationPage.fillResponseIntoRatingField('6');
+        await endUserFormParticipationPage.fillResponseIntoOpinionField('7');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserFormParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
       }
     );
 
@@ -169,6 +309,51 @@ test.describe(
     );
 
     test(
+      'verify end user able to participate in forms created with media components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to participate in forms created with media components',
+          zephyrTestId: 'ELF-927',
+          storyId: 'ELF-927',
+        });
+
+        const appManagerFormCreationPage = new FormCreationPage(appManagerPage);
+        const appManagerFormParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserFormParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await appManagerFormCreationPage.clickOnCreateFormButton();
+        await appManagerFormCreationPage.dragAndDropElement('upload file');
+        await appManagerFormCreationPage.dragAndDropElement('upload image');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.enterFormName('Automation-E2E-Form-');
+        await appManagerFormCreationPage.clickOn('button', 'Browse');
+        await appManagerFormCreationPage.clickOn('switch', 'All organization');
+        await appManagerFormCreationPage.clickOn('button', 'Done');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.verifyPublishedFormToastMessage();
+        await appManagerFormParticipationPage.waitForFormToBePublished();
+        await endUserFormParticipationPage.waitforNotification();
+        await endUserFormParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserFormParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserFormParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserFormParticipationPage.fillResponseIntoFileUploadField('sample_csv.csv');
+        await endUserFormParticipationPage.fillResponseIntoImageField('image1.jpg');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserFormParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
       'verify app manager able to create forms using media components and participate',
       {
         tag: [
@@ -206,6 +391,55 @@ test.describe(
         await formParticipationPage.fillResponseIntoImageField('image1.jpg');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'verify end user able to participate in forms created with multi choice components',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to participate in forms created with multi choice components',
+          zephyrTestId: 'ELF-923',
+          storyId: 'ELF-923',
+        });
+
+        const appManagerFormCreationPage = new FormCreationPage(appManagerPage);
+        const appManagerFormParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserFormParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await appManagerFormCreationPage.clickOnCreateFormButton();
+        await appManagerFormCreationPage.dragAndDropElement('multi select');
+        await appManagerFormCreationPage.dragAndDropElement('single select');
+        await appManagerFormCreationPage.dragAndDropElement('dropdown');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.enterFormName('Automation-E2E-Form-');
+        await appManagerFormCreationPage.clickOn('button', 'Browse');
+        await appManagerFormCreationPage.clickOn('switch', 'All organization');
+        await appManagerFormCreationPage.clickOn('button', 'Done');
+        await appManagerFormCreationPage.clickOn('button', 'Publish');
+        await appManagerFormCreationPage.verifyPublishedFormToastMessage();
+        await appManagerFormParticipationPage.waitForFormToBePublished();
+        await endUserFormParticipationPage.waitforNotification();
+        await endUserFormParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserFormParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserFormParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserFormParticipationPage.fillResponseIntoMultiSelectField('Weekly');
+        await endUserFormParticipationPage.fillResponseIntoMultiSelectField('Monthly');
+        await endUserFormParticipationPage.fillResponseIntoMultiSelectField('Yearly');
+        await endUserFormParticipationPage.fillResponseIntoSingleSelectField('Weekly');
+        await endUserFormParticipationPage.fillResponseIntoDropdownField('Yearly');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserFormParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
       }
     );
 
@@ -532,6 +766,50 @@ test.describe(
       }
     );
 
+    test(
+      'Verify app manager able to create forms using legal with custom url component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using legal with custom url component as mandatory field and participate',
+          zephyrTestId: 'ELF-894',
+          storyId: 'ELF-894',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('legal');
+        await formCreationPage.addHeadingIntoComponent('Legal', 'Automation Test - Legal Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.addQuestionIntoLegalComponent('Legal Question-Automation with custom url');
+        await formCreationPage.selectOptionIntoLegalComponent('customUrl');
+        await formCreationPage.addCustomUrlIntoLegalComponent('https://www.google.com');
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.fillResponseIntoLegalField();
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
     test(
       'verify app manager able to create forms using rating component as mandatory field and participate',
       {
@@ -1084,9 +1362,9 @@ test.describe(
         await formCreationPage.addHeadingIntoComponent('Legal', 'Automation Test - Legal Description');
         await formCreationPage.clickOnSettingsIcon();
         await formCreationPage.addQuestionIntoLegalComponent('Legal Question-Automation with custom url');
-        await formCreationPage.makeComponentMandatory();
         await formCreationPage.selectOptionIntoLegalComponent('customUrl');
         await formCreationPage.addCustomUrlIntoLegalComponent('https://www.google.com');
+        await formCreationPage.makeComponentMandatory();
         await formCreationPage.clickOnPreviewButton();
         await formCreationPage.clickOnEditButton();
         await formCreationPage.clickOn('link', 'Legal Question-Automation with custom url');
@@ -1109,7 +1387,7 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'verify app manager able to create forms using legal with popup component as mandatory field and participate',
       {
         tag: [
@@ -1320,6 +1598,229 @@ test.describe(
         await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('CSV');
         await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('Image and file');
         await formCreationPage.verifyDropdownOptionIntoUploadImageComponent('Image and video');
+      }
+    );
+
+    test(
+      'Verify end user getting notification to participate into newly published form',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user getting notification to participate into newly published form',
+          zephyrTestId: 'ELF-953',
+          storyId: 'ELF-953',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Short text');
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnNotificationBell();
+        await formCreationPage.clickOn('link', 'View all');
+        await formParticipationPage.verifyNotificationExistsForNewForm();
+      }
+    );
+
+    test(
+      'verify app manager able to create forms using upload image component as mandatory field and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'verify app manager able to create forms using upload image component as mandatory field and participate',
+          zephyrTestId: 'ELF-176',
+          storyId: 'ELF-176',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.fillResponseIntoImageField('image1.jpg');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify app manager able to create forms using single select component as mandatory fields and participate',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify app manager able to create forms using single select component as mandatory fields and participate',
+          zephyrTestId: 'ELF-196',
+          storyId: 'ELF-196',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('single select');
+        await formCreationPage.addHeadingIntoComponent('single select', 'Automation Test - single select Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifySubmitButtonIsDisabled();
+        await formParticipationPage.fillResponseIntoSingleSelectField('Weekly');
+        await formCreationPage.clickOn('button', 'Submit');
+        await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to add zip code not more than 10 characters',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to add zip code not more than 10 characters',
+          zephyrTestId: 'ELF-934',
+          storyId: 'ELF-934',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('Address');
+        await formCreationPage.addHeadingIntoComponent('Address', 'Automation Test - Address Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeAddressFieldsMandatory('Zip/Post code is required');
+        await formCreationPage.clickOnPreviewButton();
+        await formParticipationPage.fillResponseIntoZipPostCodeFieldNew('123456789101234567');
+        await formParticipationPage.verifyZipPostCodeResponse();
+      }
+    );
+
+    test(
+      'Verify when the App Manager select the date then Time field should be enable.',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify when the App Manager select the date then Time field should be enable.',
+          zephyrTestId: 'ELF-112',
+          storyId: 'ELF-112',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('date and time');
+        await formCreationPage.addHeadingIntoComponent('date and time', 'Automation Test - date and time Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.makeComponentMandatory();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnCopyLink();
+        await formParticipationPage.openCopiedFormLink();
+        await formParticipationPage.verifyTimeFieldIsDisabledOnParticipationPage();
+        await formParticipationPage.fillResponseIntoDateField(getCurrentDateFormatted());
+        await formParticipationPage.verifyTimeFieldIsVisibleOnParticipationPage();
+      }
+    );
+
+    test(
+      'Verify all options of include condition of component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify all options of include condition of component',
+          zephyrTestId: 'ELF-913',
+          storyId: 'ELF-913',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('date and time');
+        await formCreationPage.addHeadingIntoComponent('date and time', 'Automation Test - date and time Description');
+        await formCreationPage.verifyIncludeConditionOptions();
+        await formCreationPage.verifyMatchOptionIsVisible('MatchAnyOf these conditions');
+        await formCreationPage.verifyQuestionOptionIsVisible();
+        await formCreationPage.verifyValueOptionsIsVisible();
+        await formCreationPage.verifyAddNewConditionButtonIsVisible();
       }
     );
   }

@@ -10,67 +10,33 @@ import { SitePageTab } from '@/src/modules/content/constants/sitePageEnums';
 import { ManageSitesComponent } from '@/src/modules/content/ui/components/manageSitesComponent';
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
-export interface IManageSiteActions {
-  clickDashboardAndFeedTab: () => Promise<void>;
-  setFeedPostingPermission: (permission: FeedPostingPermission) => Promise<void>;
-  setContentPostsPermission: (state: ContentPostingPermission) => Promise<void>;
-  clickOnOptionsDropdown: (siteName: string) => Promise<void>;
-  clickOnSearchButton: () => Promise<void>;
-  searchSite: (siteName: string) => Promise<void>;
-  selectFilterOption: (optionName: string) => Promise<void>;
-  clickOnFilterOptionsDropdownButton: () => Promise<void>;
-  clickOnSiteTab: (tabName: SitePageTab) => Promise<void>;
-  clickOnFileOption: (fileName: string) => Promise<void>;
-  clickOnEditOption: () => Promise<void>;
-  setExternalFilesProvider: (provider: string) => Promise<void>;
-  clickOnShowMoreButtonAction: () => Promise<void>;
-  clickOnFileFavoriteButton: () => Promise<void>;
-}
-
-export interface IManageSiteAssertions {
-  verifyNoSitesFound: (siteName: string) => Promise<void>;
-  verifySiteIsDeactivated: (siteName: string, siteId: string, siteManagementHelper: any) => Promise<void>;
-  verifySiteIsActivated: (siteName: string, siteId: string, siteManagementHelper: any) => Promise<void>;
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyOptionIsVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
-  verifyOptionIsNotVisibleInOptionsDropdown: (optionName: string) => Promise<void>;
-  verifyFileIsPresentInTheSiteFilesList: (fileName: string) => Promise<void>;
-  verifyFavoriteIsNotClicked: () => Promise<void>;
-}
-
-export class ManageSitePage extends BasePage implements IManageSiteActions, IManageSiteAssertions {
-  readonly searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
-  readonly searchButton = this.page.locator('button[name="submitbutton"]');
-  readonly siteList = this.page.locator('.type--title').first();
-  readonly showMoreButton = this.page.getByRole('button', { name: 'Show more' });
-  readonly setupTab = this.page.getByRole('tab', { name: 'Setup' });
-  readonly fileFavoriteButton = this.page.getByTestId('favorite-button');
-  readonly feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
-    // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
-    const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
-    return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
-  };
-  readonly contentPostsPermissionRadio = (state: ContentPostingPermission) =>
-    this.page.getByRole('radio', { name: state });
-  readonly optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
-  readonly siteReferenceEllipses = (siteName: string) =>
-    this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
-  readonly filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
-  readonly reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
-  readonly siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
-  readonly editOptionLocator = this.page.getByTestId('edit-button');
+export class ManageSitePage extends BasePage {
+  readonly searchSiteBar: Locator;
+  readonly searchButton: Locator;
+  readonly siteList: Locator;
+  readonly showMoreButton: Locator;
+  readonly setupTab: Locator;
+  readonly fileFavoriteButton: Locator;
+  readonly feedPostingPermissionRadio: (permission: FeedPostingPermission) => Locator;
+  readonly contentPostsPermissionRadio: (state: ContentPostingPermission) => Locator;
+  readonly optionsDropdown: (optionName: string) => Locator;
+  readonly siteReferenceEllipses: (siteName: string) => Locator;
+  readonly filterOptionsDropdown: (optionName: string) => Locator;
+  readonly reactSelectInput: Locator;
+  readonly siteTab: (tabName: SitePageTab) => Locator;
+  readonly editOptionLocator: Locator;
 
   private manageSitesComponent: ManageSitesComponent;
   // Locators for setExternalFilesProvider method
-  readonly externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
-  readonly storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
-  readonly saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+  readonly externalFilesSection: Locator;
+  readonly storageProviderInput: Locator;
+  readonly disconnectDialog: Locator;
+
+  readonly saveButton: Locator;
   // Target the option in the dropdown list, not the selected value
-  readonly boxFilesOption = this.page.locator('#storageProvider-list').getByText('Box files', { exact: true });
+  readonly providerOption: (providerName: string) => Locator;
   // Locator for the currently selected value in the combobox
-  readonly selectedProviderValue = this.page
-    .locator('div[class*="css-15bnrdl-singleValue"]')
-    .filter({ hasText: /Box files/i });
+  readonly selectedProviderValue: (provider: string) => Locator;
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
 
@@ -79,20 +45,47 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
     super(page, pageUrl);
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
+
+    // Initialize locators
+    this.searchSiteBar = this.page.getByRole('textbox', { name: 'Search sites…' });
+    this.searchButton = this.page.locator('button[name="submitbutton"]');
+    this.siteList = this.page.locator('.type--title').first();
+    this.showMoreButton = this.page.getByRole('button', { name: 'Show more' });
+    this.setupTab = this.page.getByRole('tab', { name: 'Setup' });
+    this.fileFavoriteButton = this.page.getByTestId('favorite-button');
+    this.feedPostingPermissionRadio = (permission: FeedPostingPermission) => {
+      // Based on HTML: name="isBroadcast", value="no" for everyone, value="yes" for managers only
+      const value = permission === FeedPostingPermission.MANAGERS_ONLY ? 'yes' : 'no';
+      return this.page.locator(`input[type="radio"][name="isBroadcast"][value="${value}"]`);
+    };
+    this.contentPostsPermissionRadio = (state: ContentPostingPermission) =>
+      this.page.getByRole('radio', { name: state });
+    this.optionsDropdown = (optionName: string) => this.page.getByRole('button', { name: optionName });
+    this.siteReferenceEllipses = (siteName: string) =>
+      this.page.locator(`tr:has(h2:has-text("${siteName}"))`).getByRole('button', { name: 'Category option' }).first();
+    this.filterOptionsDropdown = (optionName: string) => this.page.getByText(optionName, { exact: true });
+    this.reactSelectInput = this.page.locator('div[class*="ReactSelectInput"]');
+    this.siteTab = (tabName: SitePageTab) => this.page.getByRole('tab', { name: tabName });
+    this.editOptionLocator = this.page.getByTestId('edit-button');
+
+    // Locators for setExternalFilesProvider method
+    this.externalFilesSection = this.page.locator('h2').filter({ hasText: /External files/i });
+    this.storageProviderInput = this.page.getByRole('combobox', { name: 'Storage provider:' });
+    this.disconnectDialog = this.page.getByRole('dialog', { name: 'Disconnect' });
+
+    this.saveButton = this.page.getByRole('button', { name: /save|update|submit/i }).first();
+    // Target the option in the dropdown list, not the selected value
+    this.providerOption = (providerName: string) =>
+      this.page.locator('#storageProvider-list').getByText(providerName, { exact: true });
+    // Locator for the currently selected value in the combobox
+    this.selectedProviderValue = (provider: string) =>
+      this.page.locator('div[class*="css-15bnrdl-singleValue"]').filter({ hasText: provider });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.searchSiteBar, {
       assertionMessage: 'Search site bar should be visible on manage site page',
     });
-  }
-
-  get actions(): IManageSiteActions {
-    return this;
-  }
-
-  get assertions(): IManageSiteAssertions {
-    return this;
   }
 
   async verifySiteIsDeactivated(siteName: string, siteId: string, siteManagementHelper: any): Promise<void> {
@@ -223,11 +216,15 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
       });
 
       // Check if Box files is already selected
-      const isBoxAlreadySelected = await this.selectedProviderValue.isVisible().catch(() => false);
+      const isBoxAlreadySelected = await this.selectedProviderValue(provider)
+        .isVisible()
+        .catch(() => false);
 
-      if (isBoxAlreadySelected && provider === 'Box files') {
-        return; // Skip the update process
+      if (isBoxAlreadySelected) {
+        console.log(`${provider} is already selected`);
+        return;
       }
+
       // Click on the React Select input or dropdown arrow to open dropdown
       await this.verifier.verifyTheElementIsVisible(this.storageProviderInput, {
         assertionMessage: 'Storage provider input should be visible',
@@ -235,9 +232,9 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
 
       await this.clickOnElement(this.storageProviderInput);
 
-      const providerOption = this.boxFilesOption;
+      const providerOption = this.providerOption(provider);
       await this.verifier.verifyTheElementIsVisible(providerOption, {
-        assertionMessage: 'Box files option should be visible',
+        assertionMessage: `${provider} option should be visible`,
       });
       await this.clickOnElement(providerOption);
 
@@ -245,6 +242,12 @@ export class ManageSitePage extends BasePage implements IManageSiteActions, IMan
         assertionMessage: 'Save button should be visible',
       });
       await this.clickOnElement(this.saveButton);
+
+      const isDisconnectDialogVisible = await this.disconnectDialog.isVisible();
+      if (isDisconnectDialogVisible) {
+        const disconnectButton = this.disconnectDialog.getByRole('button', { name: 'Disconnect' });
+        await this.clickOnElement(disconnectButton);
+      }
     });
   }
   async clickDashboardAndFeedTab(): Promise<void> {
