@@ -31,151 +31,83 @@ export interface FeedPostApiResponse {
   delay: number;
 }
 
-export interface ICreateFeedPostActions {
-  clickPostWithoutWaitingForResponse(): Promise<void>;
-  createAndPost: (options: FeedPostOptions) => Promise<FeedPostResult>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  editPostWithTopicAndUserName: (params: {
-    currentText: string;
-    newText: string;
-    topicName: string;
-    userName: string;
-  }) => Promise<void>;
-  createPost: (text: string) => Promise<void>;
-  uploadFiles: (files: string[]) => Promise<void>;
-  uploadFilesToReply: (files: string[], postText: string) => Promise<void>;
-  removeAttachedFile: (index?: number) => Promise<void>;
-  clickPostButton: () => Promise<void>;
-  openPostOptionsMenu: (postText: string) => Promise<void>;
-  clickEditOption: () => Promise<void>;
-  updatePostText: (text: string) => Promise<void>;
-  clickUpdateButton: () => Promise<void>;
-  clickReplyUpdateButton: (postText: string) => Promise<void>;
-  searchForSiteName: (siteName: string) => Promise<void>;
-  clickBrowseFilesButton: () => Promise<void>;
-  searchForFileInLibrary: (fileName: string) => Promise<void>;
-  selectFileFromLibrary: (fileName: string) => Promise<void>;
-  clickAttachButton: () => Promise<void>;
-  addFileToPost: (filePath: string) => Promise<void>;
-  waitForFileToAppear: () => Promise<void>;
-  verifyIntranetAndBoxTabsVisible: () => Promise<void>;
-  clickBoxFilesTab: () => Promise<void>;
-  clickBoxFolder: (folderName: string) => Promise<void>;
-  selectBoxFile: (fileName: string) => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  clickRecognitionTab: () => Promise<void>;
-}
-
-export interface ICreateFeedPostAssertions {
-  verifyEditorVisible: () => Promise<void>;
-  verifyReplyEditorVisible: (postText: string) => Promise<void>;
-  verifyNoResultMessage: () => Promise<void>;
-  verifyFileIsAttached: (fileName: string) => Promise<void>;
-  verifyAttachedFileCount: (expectedCount: number) => Promise<void>;
-  verifyUpdateButtonDisabled: () => Promise<void>;
-  verifyPostButtonDisabled: () => Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-}
-
-export class CreateFeedPostComponent
-  extends BaseComponent
-  implements ICreateFeedPostActions, ICreateFeedPostAssertions
-{
-  readonly feedEditor = this.page.locator("div[aria-describedby='content-description']");
-  readonly questionButton = this.page.locator("button:has-text('Question')");
-  readonly recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
-  readonly fileUploadInput = this.page.locator("input[type='file']");
-  readonly attachedFiles = this.page.locator("div[class='FileItem-name']");
-  readonly deleteFileIcon = this.page.locator("button[class*='delete']");
-  readonly postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
-  readonly cancelButton = this.page
-    .locator("div[class*='PostFormShareContainer']")
-    .getByRole('button', { name: 'Cancel' });
+export class CreateFeedPostComponent extends BaseComponent {
+  readonly feedEditor: Locator;
+  readonly questionButton: Locator;
+  readonly recognitionTab: Locator;
+  readonly fileUploadInput: Locator;
+  readonly attachedFiles: Locator;
+  readonly deleteFileIcon: Locator;
+  readonly postButton: Locator;
+  readonly cancelButton: Locator;
 
   // Toolbar formatting buttons
-  readonly toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
-  readonly boldButton = this.toolbarContainer.getByLabel('Bold');
-  readonly italicButton = this.toolbarContainer.getByLabel('Italic');
-  readonly underlineButton = this.toolbarContainer.getByLabel('Underline');
-  readonly strikethroughButton = this.toolbarContainer.getByLabel('Strikethrough');
-  readonly bulletListButton = this.toolbarContainer.getByLabel('Bulleted list');
-  readonly orderListButton = this.toolbarContainer.getByLabel('Ordered list');
-  readonly linkButton = this.toolbarContainer.getByLabel('Open Insert link options');
-  readonly emojiButton = this.toolbarContainer.getByLabel('Emoji');
+  readonly toolbarContainer: Locator;
+  readonly boldButton: Locator;
+  readonly italicButton: Locator;
+  readonly underlineButton: Locator;
+  readonly strikethroughButton: Locator;
+  readonly bulletListButton: Locator;
+  readonly orderListButton: Locator;
+  readonly linkButton: Locator;
+  readonly emojiButton: Locator;
 
   // Link dialog fields
-  readonly linkTextBox = this.page.locator('#text');
-  readonly linkUrlBox = this.page.locator('#url');
-  readonly linkTextfield = this.page.getByTestId('field-Text');
-  readonly linkUrlfield = this.page.getByTestId('field-Link');
-  readonly insertButton = this.page.getByRole('button', { name: 'Insert link', exact: true });
+  readonly linkTextBox: Locator;
+  readonly linkUrlBox: Locator;
+  readonly linkTextfield: Locator;
+  readonly linkUrlfield: Locator;
+  readonly insertButton: Locator;
 
   // Emoji picker
-  readonly emojiPickerContainer = this.page.locator('[aria-label="Choose an Emoji"]');
-  readonly emojiSearchInput = this.page.locator('input[placeholder="Search for an emoji…"]');
-  readonly emojiSearchResults = this.page.locator(`//div[contains(@class,'emojiPicker')]//button`);
+  readonly emojiPickerContainer: Locator;
+  readonly emojiSearchInput: Locator;
+  readonly emojiSearchResults: Locator;
 
   // Post editing section
-  readonly editButton = this.page
-    .locator("div[role='menuitem'] > div")
-    .filter({ hasText: /^Edit$/ })
-    .first();
-  readonly deleteButton = this.page
-    .locator("div[role='menuitem'] > div")
-    .filter({ hasText: /^Delete$/ })
-    .first();
-  readonly updateButton = this.page.getByRole('button', { name: 'Update' });
+  readonly editButton: Locator;
+  readonly deleteButton: Locator;
+  readonly updateButton: Locator;
 
   // File upload section
-  readonly fileItemNameSelector = "div[class='FileItem-name']";
-  readonly deleteButtonSelector = "button[class*='delete']";
+  readonly fileItemNameSelector: string;
+  readonly deleteButtonSelector: string;
 
   // Dropdown selection - parameterized
-  readonly getDropdownOption = (name: string) =>
-    this.page.locator("div[class*='ListingItem-module__details'] div p").filter({ hasText: name });
+  readonly getDropdownOption: (name: string) => Locator;
 
   // Topic dropdown selection - parameterized
-  readonly addtopicfromList = (topicName: string) =>
-    this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
+  readonly addtopicfromList: (topicName: string) => Locator;
 
   // Dropdown selection - parameterized
-  readonly addSiteNameFromList = (name: string) =>
-    this.page.locator("div[class*='ListingItem-module__details'] p").filter({ hasText: name });
+  readonly addSiteNameFromList: (name: string) => Locator;
 
   // Share options section - for site feed sharing
-  readonly selectSiteInput = this.page.locator('div:has-text("Select site") + div >> input');
-  readonly noResultsText = this.page.getByText('No results');
+  readonly selectSiteInput: Locator;
+  readonly noResultsText: Locator;
 
   // Browse files section - for selecting files from file library
-  readonly browseFilesButton = this.page.getByRole('button', { name: 'Browse files' });
-  readonly fileManagerModal = this.page.locator('div:has-text("File manager")').first();
-  readonly intranetFilesTab = this.page.getByText('Intranet files');
-  readonly fileSearchInput = this.page.locator('input[class*="SearchForm-input"]');
-  readonly attachButton = this.page.getByRole('button', { name: 'Attach' });
-  readonly uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
-  readonly feedPlaceholderText = (expectedPlaceholder: string) =>
-    this.page.locator('span').filter({ hasText: expectedPlaceholder });
+  readonly browseFilesButton: Locator;
+  readonly fileManagerModal: Locator;
+  readonly intranetFilesTab: Locator;
+  readonly fileSearchInput: Locator;
+  readonly attachButton: Locator;
+  readonly uploadingFileIndicator: Locator;
+  readonly feedPlaceholderText: (expectedPlaceholder: string) => Locator;
   // Box file browsing section
-  readonly boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
-  readonly filePickerDialog = this.page.getByRole('dialog', { name: 'File manager' });
-  readonly filePickerTabs = this.page.locator('[role="tab"]');
-  readonly boxBreadcrumb = this.page.locator('.Breadcrumb--mediaManager, .Breadcrumb');
-  readonly boxFolderLocator = (folderName: string) =>
-    this.page
-      .locator('table tbody tr')
-      .locator('div.type--fauxLink, div[role="button"]')
-      .filter({ hasText: new RegExp(`^${folderName}$`, 'i') });
-  readonly boxTableRows = this.page.locator('table tbody tr');
+  readonly boxFilesTab: Locator;
+  readonly filePickerDialog: Locator;
+  readonly filePickerTabs: Locator;
+  readonly boxBreadcrumb: Locator;
+  readonly boxFolderLocator: (folderName: string) => Locator;
+  readonly boxTableRows: Locator;
 
   /**
    * Gets a locator for a file checkbox in the file library by finding the row containing the file name
    * @param fileName - The name of the file to select
    * @returns Locator for the file checkbox in that row
    */
-  readonly getFileCheckboxLocator = (fileName: string): Locator =>
-    this.page.locator(`tr:has-text("${fileName}")`).locator('input[type="checkbox"]').first();
+  readonly getFileCheckboxLocator: (fileName: string) => Locator;
 
   // Dynamic locator functions
   /**
@@ -183,32 +115,119 @@ export class CreateFeedPostComponent
    * @param text - The text content to find
    * @returns Locator for the post text
    */
-  readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+  readonly getFeedTextLocator: (text: string) => Locator;
 
   /**
    * Gets a locator for the post options menu
    * @param postText - The text of the post to find options menu for
    * @returns Locator for the options menu button
    */
-  readonly getPostOptionsMenuLocator = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator("button[class*='optionlauncher']")
-      .first();
+  readonly getPostOptionsMenuLocator: (postText: string) => Locator;
 
   constructor(page: Page) {
     super(page);
-  }
 
-  get actions(): ICreateFeedPostActions {
-    return this;
-  }
+    // Initialize locators
+    this.feedEditor = this.page.locator("div[aria-describedby='content-description']");
+    this.questionButton = this.page.locator("button:has-text('Question')");
+    this.recognitionTab = this.page.locator('label').filter({ hasText: 'Recognition' });
+    this.fileUploadInput = this.page.locator("input[type='file']");
+    this.attachedFiles = this.page.locator("div[class='FileItem-name']");
+    this.deleteFileIcon = this.page.locator("button[class*='delete']");
+    this.postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+    this.cancelButton = this.page
+      .locator("div[class*='PostFormShareContainer']")
+      .getByRole('button', { name: 'Cancel' });
 
-  get assertions(): ICreateFeedPostAssertions {
-    return this;
+    // Toolbar formatting buttons
+    this.toolbarContainer = this.page.locator("[class*='_toolbarWrapper_']");
+    this.boldButton = this.toolbarContainer.getByLabel('Bold');
+    this.italicButton = this.toolbarContainer.getByLabel('Italic');
+    this.underlineButton = this.toolbarContainer.getByLabel('Underline');
+    this.strikethroughButton = this.toolbarContainer.getByLabel('Strikethrough');
+    this.bulletListButton = this.toolbarContainer.getByLabel('Bulleted list');
+    this.orderListButton = this.toolbarContainer.getByLabel('Ordered list');
+    this.linkButton = this.toolbarContainer.getByLabel('Open Insert link options');
+    this.emojiButton = this.toolbarContainer.getByLabel('Emoji');
+
+    // Link dialog fields
+    this.linkTextBox = this.page.locator('#text');
+    this.linkUrlBox = this.page.locator('#url');
+    this.linkTextfield = this.page.getByTestId('field-Text');
+    this.linkUrlfield = this.page.getByTestId('field-Link');
+    this.insertButton = this.page.getByRole('button', { name: 'Insert link', exact: true });
+
+    // Emoji picker
+    this.emojiPickerContainer = this.page.locator('[aria-label="Choose an Emoji"]');
+    this.emojiSearchInput = this.page.locator('input[placeholder="Search for an emoji…"]');
+    this.emojiSearchResults = this.page.locator(`//div[contains(@class,'emojiPicker')]//button`);
+
+    // Post editing section
+    this.editButton = this.page
+      .locator("div[role='menuitem'] > div")
+      .filter({ hasText: /^Edit$/ })
+      .first();
+    this.deleteButton = this.page
+      .locator("div[role='menuitem'] > div")
+      .filter({ hasText: /^Delete$/ })
+      .first();
+    this.updateButton = this.page.getByRole('button', { name: 'Update' });
+
+    // File upload section
+    this.fileItemNameSelector = "div[class='FileItem-name']";
+    this.deleteButtonSelector = "button[class*='delete']";
+
+    // Dropdown selection - parameterized
+    this.getDropdownOption = (name: string) =>
+      this.page.locator("div[class*='ListingItem-module__details'] div p").filter({ hasText: name });
+
+    // Topic dropdown selection - parameterized
+    this.addtopicfromList = (topicName: string) =>
+      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
+
+    // Dropdown selection - parameterized
+    this.addSiteNameFromList = (name: string) =>
+      this.page.locator("div[class*='ListingItem-module__details'] p").filter({ hasText: name });
+
+    // Share options section - for site feed sharing
+    this.selectSiteInput = this.page.locator('div:has-text("Select site") + div >> input');
+    this.noResultsText = this.page.getByText('No results');
+
+    // Browse files section - for selecting files from file library
+    this.browseFilesButton = this.page.getByRole('button', { name: 'Browse files' });
+    this.fileManagerModal = this.page.locator('div:has-text("File manager")').first();
+    this.intranetFilesTab = this.page.getByText('Intranet files');
+    this.fileSearchInput = this.page.locator('input[class*="SearchForm-input"]');
+    this.attachButton = this.page.getByRole('button', { name: 'Attach' });
+    this.uploadingFileIndicator = this.page.locator('[class*="uploading"], [data-uploading="true"]');
+    this.feedPlaceholderText = (expectedPlaceholder: string) =>
+      this.page.locator('span').filter({ hasText: expectedPlaceholder });
+    // Box file browsing section
+    this.boxFilesTab = this.page.locator('[role="tab"]').filter({ hasText: /box files/i });
+    this.filePickerDialog = this.page.getByRole('dialog', { name: 'File manager' });
+    this.filePickerTabs = this.page.locator('[role="tab"]');
+    this.boxBreadcrumb = this.page.locator('.Breadcrumb--mediaManager, .Breadcrumb');
+    this.boxFolderLocator = (folderName: string) =>
+      this.page
+        .locator('table tbody tr')
+        .locator('div.type--fauxLink, div[role="button"]')
+        .filter({ hasText: new RegExp(`^${folderName}$`, 'i') });
+    this.boxTableRows = this.page.locator('table tbody tr');
+
+    // Dynamic locator functions
+    this.getFileCheckboxLocator = (fileName: string): Locator =>
+      this.page.locator(`tr:has-text("${fileName}")`).locator('input[type="checkbox"]').first();
+
+    this.getFeedTextLocator = (text: string): Locator =>
+      this.page.locator("div[class*='postContent']").getByText(text, { exact: true });
+
+    this.getPostOptionsMenuLocator = (postText: string): Locator =>
+      this.page
+        .locator('p')
+        .filter({ hasText: postText })
+        .locator('xpath=./ancestor::div[4]')
+        .locator("button[class*='optionlauncher']")
+        .first();
   }
 
   /**
@@ -453,7 +472,7 @@ export class CreateFeedPostComponent
           response.url().includes(API_ENDPOINTS.feed.create) &&
           response.request().method() === 'POST' &&
           response.status() === 201,
-        { timeout: 20_000 }
+        { timeout: TIMEOUTS.LONG }
       );
     });
   }
@@ -500,7 +519,7 @@ export class CreateFeedPostComponent
    */
   async clickUpdateButton(): Promise<void> {
     await test.step('Click update button', async () => {
-      await this.clickOnElement(this.updateButton);
+      await this.clickOnElement(this.updateButton.last());
     });
   }
 
@@ -565,8 +584,8 @@ export class CreateFeedPostComponent
   async addUserNameMention(userName: string): Promise<void> {
     await test.step(`Adding user mention: @${userName}`, async () => {
       await this.typeInElement(this.feedEditor, ` @${userName}`);
-      await this.getDropdownOption(userName).waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
-      await this.clickOnElement(this.getDropdownOption(userName));
+      await this.getDropdownOption(userName).first().waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.getDropdownOption(userName).first());
     });
   }
 
@@ -637,7 +656,7 @@ export class CreateFeedPostComponent
           response.request().method() === 'POST' &&
           response.status() === 201,
         {
-          timeout: 20_000,
+          timeout: TIMEOUTS.LONG,
         }
       );
       return postResponse;
@@ -652,6 +671,7 @@ export class CreateFeedPostComponent
     if (embedUrl) {
       await test.step(`Adding embedded URL: ${embedUrl}`, async () => {
         await this.typeInElement(this.feedEditor, ` ${embedUrl}`);
+        await this.page.keyboard.press('Enter');
       });
     }
   }

@@ -1,0 +1,132 @@
+# ============================================================================
+# MANUAL E2E TRIGGER
+# ============================================================================
+#
+# PURPOSE:
+#   Run E2E/regression tests manually on any environment with optional filtering.
+#   Supports priority, test type, and feature tag filters.
+#
+# CALLS:
+#   regression-unified-template.yml with trigger_type=manual
+#
+# ============================================================================
+
+name: Manual E2E Trigger
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options:
+          - 'test'
+          - 'qa'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+          - 'prodUS'
+          - 'prodEU'
+          - 'prodCA'
+          - 'prodAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
+          - 'reward'
+          - 'reward-settings'
+          - 'reward-workAnniversary'
+          - 'reward-renaming'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'newsletter'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'form-designer'
+          - 'comms-planner'
+
+      priority_filter:
+        description: 'Filter by priority'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - '@P0'
+          - '@P1'
+          - '@P2'
+
+      test_type:
+        description: 'Filter by test type'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - '@smoke'
+          - '@regression'
+
+      feature_tags:
+        description: 'Feature tags (comma-separated, e.g., @chat-attachment)'
+        required: false
+        default: 'all'
+        type: string
+
+      workers:
+        description: 'Parallel workers'
+        required: false
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        # TEMPORARILY DISABLED: Preserving quota for QA release testing
+        default: false
+        type: boolean
+
+      git_ref:
+        description: 'Git branch (empty = current)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  regression:
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      environment: ${{ inputs.environment }}
+      trigger_type: manual
+      slack_prefix: Manual E2E
+      git_ref: ${{ inputs.git_ref || github.ref_name }}
+      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      is_browserstack: ${{ inputs.is_browserstack }}
+      workers: ${{ inputs.workers }}
+      priority_filter: ${{ inputs.priority_filter }}
+      test_type: ${{ inputs.test_type }}
+      feature_tags: ${{ inputs.feature_tags }}
+    secrets: inherit

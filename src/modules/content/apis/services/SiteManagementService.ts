@@ -1,7 +1,9 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
 
+import { HttpClient } from '@core/api/clients/httpClient';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import {
+  SearchSitesResponse,
   SiteCreationPayload,
   SiteListOptions,
   SiteListResponse,
@@ -11,8 +13,6 @@ import {
   SitePermission,
 } from '@core/types/siteManagement.types';
 import { log } from '@core/utils/logger';
-
-import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { PeopleListResponse } from '@/src/core/types/people.type';
 import { ISiteManagementOperations } from '@/src/modules/content/apis/interfaces/ISiteManagemenOperations';
@@ -400,7 +400,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       // Prepare the approval payload with all required fields from the existing content
       const approvalPayload = {
         authoredBy: content.authoredBy?.id || content.authoredBy?.peopleId || content.authoredBy?.email,
-        contentSubType: content.contentSubType || content.type || 'general',
+        contentSubType: content.contentSubType || content.type || 'news',
         contentType: content.type || 'page',
         listOfFiles: content.listOfFiles || [],
         publishAt: content.publishAt || content.expiresAt || new Date().toISOString(),
@@ -653,7 +653,50 @@ export class SiteManagementService implements ISiteManagementOperations {
       const responseBody = await response.json();
 
       if (!response.ok()) {
-        throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
+        throw new Error(
+          `Failed to get site details for ${siteId}. Status: ${response.status()} and body: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Searches for sites using the search API
+   * @param options - Search options
+   * @param options.q - Search query string
+   * @param options.canManage - Filter sites that can be managed (default: true)
+   * @param options.filter - Filter by site status (default: 'all')
+   * @param options.includeDeactivated - Include deactivated sites (default: true)
+   * @returns Promise containing the search results
+   */
+  async searchSites(
+    siteName: string,
+    options: {
+      canManage?: boolean;
+      filter?: string;
+      includeDeactivated?: boolean;
+    }
+  ): Promise<SearchSitesResponse> {
+    return await test.step(`Searching sites with query: ${siteName}`, async () => {
+      const payload = {
+        q: siteName,
+        canManage: options.canManage !== undefined ? options.canManage : true,
+        filter: options.filter || 'all',
+        includeDeactivated: options.includeDeactivated !== undefined ? options.includeDeactivated : true,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.search.sites, {
+        data: payload,
+      });
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to search sites. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
       }
 
       return responseBody;

@@ -20,7 +20,7 @@ import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/i
 test.describe(
   '@FeedCommentMentionNotification - Feed Comment Mention Notification Tests',
   {
-    tag: [ContentTestSuite.FEED_COMMENT_MENTION_NOTIFICATION],
+    tag: [ContentTestSuite.FEED_COMMENT_MENTION_NOTIFICATION, ContentTestSuite.FEED],
   },
   () => {
     let createdPostText: string;
@@ -103,10 +103,10 @@ test.describe(
         const notificationComponentSiteManager = await siteManagerFixture.navigationHelper.clickOnBellIcon({
           stepInfo: 'Application Manager clicking on bell icon to view notifications',
         });
-        const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
+        const activityNotificationPage = await notificationComponentSiteManager.clickOnViewAllNotifications();
         // Verify notification message for mention in reply
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyData.replyText}"`;
-        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+        await activityNotificationPage.verifyNotificationExists(expectedNotificationMessage);
       }
     );
 
@@ -115,30 +115,13 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-30411'],
       },
-      async ({
-        appManagerFixture,
-        standardUserFixture,
-        siteManagerFixture,
-        standardUserApiContext,
-        siteManagerApiContext,
-      }) => {
+      async ({ appManagerFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'Verify that User gets notified when it is getting mentioned in the reply of the comment of any content',
           zephyrTestId: 'CONT-30411',
           storyId: 'CONT-30411',
         });
-
-        // Get user information for mentions
-        const identityManagementHelper = new IdentityManagementHelper(
-          appManagerFixture.apiContext,
-          getContentConfigFromCache().tenant.apiBaseUrl
-        );
-
-        const [siteManagerData] = await Promise.all([
-          identityManagementHelper.getUserInfoByEmail(users.siteManager.email),
-        ]);
-        const user3Info = { userId: siteManagerData.userId, fullName: siteManagerData.fullName };
 
         // Step 1: When Login as "User1" (appManager) - already logged in via fixture
         // Step 2: And Create a content on any accessible sites
@@ -176,20 +159,20 @@ test.describe(
 
         const contentPreviewPage = new ContentPreviewPage(standardUserFixture.page, siteId, contentId, contentType);
         await contentPreviewPage.loadPage({ stepInfo: 'User2: Load content preview page' });
-        await contentPreviewPage.assertions.waitForPostToBeVisible(createdPostText);
+        await contentPreviewPage.waitForPostToBeVisible(createdPostText);
         const endUserReplyText = TestDataGenerator.generateRandomText('Reply', 1, false);
-        const replyText = await contentPreviewPage.actions.addReplyToComment(
+        const replyText = await contentPreviewPage.addReplyToComment(
           endUserReplyText,
-          siteManagerInfo.fullName,
-          createdPostId
+          createdPostId,
+          siteManagerInfo.fullName
         );
         await siteManagerFixture.homePage.loadPage();
         const notificationComponentSiteManager = await siteManagerFixture.navigationHelper.clickOnBellIcon({
           stepInfo: 'Site Manager clicking on bell icon to view notifications',
         });
-        const activityNotificationPage = await notificationComponentSiteManager.actions.clickOnViewAllNotifications();
+        const activityNotificationPage = await notificationComponentSiteManager.clickOnViewAllNotifications();
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
-        await activityNotificationPage.assertions.verifyNotificationExists(expectedNotificationMessage);
+        await activityNotificationPage.verifyNotificationExists(expectedNotificationMessage);
       }
     );
 
@@ -218,14 +201,14 @@ test.describe(
         await siteDashboard.verifyThePageIsLoaded();
 
         // Click on Feed link to navigate to site feed
-        await siteDashboard.actions.clickOnFeedLink();
+        await siteDashboard.clickOnFeedLink();
 
         // Create FeedPage instance for site feed operations
         const feedPage = new FeedPage(standardUserFixture.page);
         await feedPage.verifyThePageIsLoaded();
 
         // Click "Share your thoughts or questions" button to open editor
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
         // Create site feed post
         const feedTestData = TestDataGenerator.generateFeed({
@@ -236,25 +219,25 @@ test.describe(
         });
         createdPostText = feedTestData.text;
 
-        const postResult = await feedPage.actions.createAndPost({
+        const postResult = await feedPage.postEditor.createAndPost({
           text: createdPostText,
         });
         createdPostId = postResult.postId || '';
 
         // Verify post creation
-        await feedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Phase 2: EndUser Creates Reply with Mention
         // Open reply editor
-        await feedPage.actions.openReplyEditorForPost(createdPostText);
+        await feedPage.feedList.openReplyEditorForPost(createdPostText);
 
         // Generate reply text
         const baseReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
         replyText = baseReplyText;
 
         // Access CreateFeedPostComponent for reply operations
-        const createFeedPostComponent = feedPage['createFeedPostComponent'];
-        const listFeedComponent = feedPage['listFeedComponent'];
+        const createFeedPostComponent = feedPage['postEditor'];
+        const listFeedComponent = feedPage['feedList'];
 
         // Create reply text with mention using CreateFeedPostComponent methods
         await createFeedPostComponent.createPost(baseReplyText);
@@ -267,7 +250,7 @@ test.describe(
         replyText = `${baseReplyText} @${siteManagerInfo.fullName}`;
 
         // Verify reply is visible
-        await feedPage.assertions.verifyReplyIsVisible(replyText);
+        await feedPage.feedList.verifyReplyIsVisible(replyText);
 
         // Phase 3: Site Manager Validates Notification
         // Navigate to site dashboard as Site Manager
@@ -279,15 +262,11 @@ test.describe(
         const notificationComponent = await siteManagerFixture.navigationHelper.clickOnBellIcon({
           stepInfo: 'Site Manager clicking on bell icon to view notifications',
         });
-        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+        const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
 
         // Verify mention notification exists
         const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
-        const shortExpectedNotificationMessage =
-          expectedNotificationMessage.length > 40
-            ? expectedNotificationMessage.substring(0, 25)
-            : expectedNotificationMessage;
-        await activityNotificationPage.assertions.verifyNotificationExists(shortExpectedNotificationMessage);
+        await activityNotificationPage.verifyNotificationExists(expectedNotificationMessage);
       }
     );
 
@@ -320,11 +299,11 @@ test.describe(
         const siteDashboard = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
         await siteDashboard.verifyThePageIsLoaded();
-        await siteDashboard.actions.clickOnFeedLink();
+        await siteDashboard.clickOnFeedLink();
 
         const adminFeedPage = new FeedPage(appManagerFixture.page);
         await adminFeedPage.verifyThePageIsLoaded();
-        await adminFeedPage.actions.clickShareThoughtsButton();
+        await adminFeedPage.clickShareThoughtsButton();
 
         // Generate feed test data
         const feedTestData = TestDataGenerator.generateFeed({
@@ -336,7 +315,7 @@ test.describe(
         createdPostText = feedTestData.text;
 
         // Access CreateFeedPostComponent for mention and attachment operations
-        const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+        const createFeedPostComponent = adminFeedPage['postEditor'];
 
         // Create post with text
         await createFeedPostComponent.createPost(createdPostText);
@@ -350,29 +329,29 @@ test.describe(
         createdPostId = feedResponseBody.result.feedId;
 
         // Verify post creation with mention and inline image
-        await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await adminFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Phase 2: EndUser Validates Notification
         await standardUserFixture.homePage.verifyThePageIsLoaded();
         const notificationComponent = await standardUserFixture.navigationHelper.clickOnBellIcon({
           stepInfo: 'EndUser clicking on bell icon to view notifications',
         });
-        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+        const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
 
         // Verify notification message for mention in post
         const expectedNotificationMessage = `${appManagerFullName} mentioned you "${createdPostText}" @${endUserInfo.fullName}`;
         const shortExpectedNotificationMessage =
-          expectedNotificationMessage.length > 40
-            ? expectedNotificationMessage.substring(0, 25)
+          expectedNotificationMessage.length > 50
+            ? expectedNotificationMessage.substring(0, 50)
             : expectedNotificationMessage;
-        await activityNotificationPage.assertions.verifyNotificationExistsForMention(shortExpectedNotificationMessage);
+        await activityNotificationPage.verifyNotificationExists(shortExpectedNotificationMessage);
 
         // Phase 3: EndUser Clicks Notification and Navigates to Post
-        await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+        await activityNotificationPage.clickOnNotification(shortExpectedNotificationMessage);
 
         // Wait for navigation to feed post
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
-        await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         await appManagerFixture.feedManagementHelper.deleteFeed(createdPostId);
         createdPostId = '';
@@ -403,12 +382,12 @@ test.describe(
           const adminFeedPage = new FeedPage(appManagerFixture.page);
           await adminFeedPage.verifyThePageIsLoaded();
 
-          await adminFeedPage.actions.clickShareThoughtsButton();
+          await adminFeedPage.clickShareThoughtsButton();
 
           const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
           createdPostText = postText;
 
-          const createFeedPostComponent = adminFeedPage['createFeedPostComponent'];
+          const createFeedPostComponent = adminFeedPage.postEditor;
 
           await createFeedPostComponent.createPost(postText);
 
@@ -421,10 +400,9 @@ test.describe(
           const feedResponseBody = (await postResult.json()) as FeedPostApiResponse;
           createdPostId = feedResponseBody.result.feedId;
 
-          await adminFeedPage.assertions.waitForPostToBeVisible(postText);
-          await adminFeedPage.assertions.validatePostText(postText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(postText);
 
-          await adminFeedPage.assertions.verifyPostDetails(postText, 1);
+          await adminFeedPage.verifyAllDataPointsForFeedPost(postText, 1);
         });
 
         await test.step('Notification Validation (EndUser)', async () => {
@@ -434,39 +412,34 @@ test.describe(
             stepInfo: 'EndUser clicking on bell icon to view notifications',
           });
 
-          const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+          const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
 
           // Verify notification "mentioned you" exists from "Application Manager1" for mentioned user Standard User1
           const expectedNotificationMessage = `${appManagerFullName} mentioned you "${createdPostText}" @${endUserInfo.fullName}`;
           const shortExpectedNotificationMessage =
-            expectedNotificationMessage.length > 40
-              ? expectedNotificationMessage.substring(0, 25)
+            expectedNotificationMessage.length > 50
+              ? expectedNotificationMessage.substring(0, 50)
               : expectedNotificationMessage;
-          await activityNotificationPage.assertions.verifyNotificationExistsForMention(
-            shortExpectedNotificationMessage
-          );
+          await activityNotificationPage.verifyNotificationExists(shortExpectedNotificationMessage);
 
-          await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+          await activityNotificationPage.clickOnNotification(shortExpectedNotificationMessage);
 
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
-          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
-          await endUserFeedPage.assertions.validatePostText(createdPostText);
-
-          await endUserFeedPage.assertions.verifyPostDetails(createdPostText, 1);
+          await endUserFeedPage.verifyAllDataPointsForFeedPost(createdPostText, 1);
         });
 
         await test.step('Post Cleanup (Admin User)', async () => {
-          await appManagerFixture.homePage.verifyThePageIsLoaded();
+          // await appManagerFixture.homePage.verifyThePageIsLoaded();
 
           // Open Home → Global Feed
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-
           const adminFeedPage = new FeedPage(appManagerFixture.page);
           await adminFeedPage.verifyThePageIsLoaded();
-          await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
-          await adminFeedPage.actions.deletePost(createdPostText);
+          await adminFeedPage.deletePost(createdPostText);
           createdPostId = '';
         });
       }
@@ -497,7 +470,7 @@ test.describe(
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
           await endUserFeedPage.verifyThePageIsLoaded();
 
-          await endUserFeedPage.actions.clickShareThoughtsButton();
+          await endUserFeedPage.clickShareThoughtsButton();
 
           const feedTestData = TestDataGenerator.generateFeed({
             scope: 'public',
@@ -507,23 +480,23 @@ test.describe(
           });
           createdPostText = feedTestData.text;
 
-          const postResult = await endUserFeedPage.actions.createAndPost({
+          const postResult = await endUserFeedPage.postEditor.createAndPost({
             text: createdPostText,
           });
           createdPostId = postResult.postId || '';
-          await endUserFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await endUserFeedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         await test.step('Phase 2: EndUser Creates Reply with Mention + Topic + Image', async () => {
           const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
-          await endUserFeedPage.actions.openReplyEditorForPost(createdPostText);
+          await endUserFeedPage.feedList.openReplyEditorForPost(createdPostText);
 
           const baseReplyText = FEED_TEST_DATA.POST_TEXT.REPLY;
           replyText = baseReplyText;
 
-          const createFeedPostComponent = endUserFeedPage['createFeedPostComponent'];
-          const listFeedComponent = endUserFeedPage['listFeedComponent'];
+          const createFeedPostComponent = endUserFeedPage['postEditor'];
+          const listFeedComponent = endUserFeedPage['feedList'];
 
           await createFeedPostComponent.createPost(baseReplyText);
           await createFeedPostComponent.addUserNameMention(siteManagerInfo.fullName);
@@ -533,12 +506,12 @@ test.describe(
           const imagePath = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
           await createFeedPostComponent.uploadFiles([imagePath]);
 
-          await createFeedPostComponent.assertions.verifyAttachedFileCount(1);
+          await createFeedPostComponent.verifyAttachedFileCount(1);
 
           await listFeedComponent.submitReplyAndGetResponse();
 
           replyText = `${baseReplyText} @${siteManagerInfo.fullName} #${topicName}`;
-          await endUserFeedPage.assertions.verifyReplyIsVisible(replyText);
+          await endUserFeedPage.feedList.verifyReplyIsVisible(replyText);
         });
 
         await test.step('Phase 3: Standard User2 (EndUser1) Validates Notification', async () => {
@@ -547,31 +520,27 @@ test.describe(
           const notificationComponent = await siteManagerFixture.navigationHelper.clickOnBellIcon({
             stepInfo: 'Standard User2 clicking on bell icon to view notifications',
           });
-          const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+          const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
 
           // Verify "mentioned you" notification exists
 
           const expectedNotificationMessage = `${endUserInfo.fullName} mentioned you "${replyText}"`;
           const shortExpectedNotificationMessage =
-            expectedNotificationMessage.length > 40
-              ? expectedNotificationMessage.substring(0, 25)
+            expectedNotificationMessage.length > 60
+              ? expectedNotificationMessage.substring(0, 60)
               : expectedNotificationMessage;
-          await activityNotificationPage.assertions.verifyNotificationExists(shortExpectedNotificationMessage);
+          await activityNotificationPage.verifyNotificationExists(shortExpectedNotificationMessage);
 
           // Click notification
-          await activityNotificationPage.actions.clickOnNotificationForMention(shortExpectedNotificationMessage);
+          await activityNotificationPage.clickOnNotification(shortExpectedNotificationMessage);
 
           // Verify user can view the feed reply with the mention
           const siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
-          await siteManagerFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-          await siteManagerFeedPage.assertions.verifyReplyIsVisible(replyText);
+          await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+          await siteManagerFeedPage.feedList.verifyReplyIsVisible(replyText);
 
           // Verify inline image in the reply
-          const listFeedComponent = siteManagerFeedPage['listFeedComponent'];
-          const replyImageLocator = listFeedComponent.getReplyBoxImageLocator(replyText);
-          await siteManagerFeedPage['verifier'].verifyTheElementIsVisible(replyImageLocator, {
-            assertionMessage: 'Inline image should be displayed in reply',
-          });
+          await siteManagerFeedPage.feedList.clickReplyImagePreview(replyText);
         });
 
         await test.step('Phase 4: Admin Deletes Post', async () => {
@@ -582,11 +551,12 @@ test.describe(
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
 
           const adminFeedPage = new FeedPage(appManagerFixture.page);
+          await adminFeedPage.reloadPage();
           await adminFeedPage.verifyThePageIsLoaded();
-          await adminFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+          await adminFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
           // Delete the created post
-          await adminFeedPage.actions.deletePost(createdPostText);
+          await adminFeedPage.deletePost(createdPostText);
 
           createdPostId = '';
         });

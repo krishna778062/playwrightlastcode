@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -6,44 +6,29 @@ import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { SiteDetailsComponent } from '@/src/modules/content/ui/components/siteDetailsComponent';
 import { TargetAudienceComponent } from '@/src/modules/content/ui/components/targetAudienceComponent';
 
-export interface ISiteDetailsPageActions {
-  removingAudienceGroup: () => Promise<void>;
-  clickOnContentTab: () => Promise<void>;
-  typeContentInSearchBar: (contentName: string) => Promise<void>;
-  clickSearchIcon: () => Promise<void>;
-  openContentDetailsPage: () => Promise<void>;
-  ViewSite: () => Promise<void>;
-}
-
-export interface ISiteDetailsPageAssertions {
-  verifyWarningMessage: () => Promise<void>;
-  validatingCategory: () => Promise<void>;
-  validatingCategoryToUncategorized: () => Promise<void>;
-  verifyThePageIsLoaded: () => Promise<void>;
-}
 export class SiteDetailsPage extends BasePage {
   private siteDetailsComponent: SiteDetailsComponent;
-  readonly categoryName = this.page.locator('id="category":has-text("Uncategorized")');
-  readonly contentTab = this.page.getByRole('tab', { name: 'Content' });
-  readonly searchBar = this.page.locator("[aria-label='Search…']");
-  readonly searchIcon = this.page.locator('.SearchField-submit');
-  readonly clickingOnCheckbox = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+  readonly categoryName: Locator;
+  readonly contentTab: Locator;
+  readonly searchBar: Locator;
+  readonly searchIcon: Locator;
+  readonly clickingOnCheckbox: Locator;
+  readonly contentLink: (pageName: string) => Locator;
   private targetAudienceComponent: TargetAudienceComponent;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.SITE_DETAILS_PAGE(siteId));
     this.targetAudienceComponent = new TargetAudienceComponent(page);
     this.siteDetailsComponent = new SiteDetailsComponent(page);
-  }
 
-  get actions(): ISiteDetailsPageActions {
-    return this;
+    // Initialize locators
+    this.categoryName = this.page.locator('id="category":has-text("Uncategorized")');
+    this.contentTab = this.page.getByRole('tab', { name: 'Content' });
+    this.searchBar = this.page.locator("[aria-label='Search…']");
+    this.searchIcon = this.page.locator('.SearchField-submit');
+    this.clickingOnCheckbox = this.page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.contentLink = (pageName: string) => this.page.getByRole('link', { name: pageName });
   }
-
-  get assertions(): ISiteDetailsPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {}
 
   async removingAudienceGroup(): Promise<void> {
@@ -66,10 +51,8 @@ export class SiteDetailsPage extends BasePage {
     });
   }
 
-  async openContentDetailsPage(): Promise<void> {
-    await this.clickOnElement(this.clickingOnCheckbox);
-    await this.page.keyboard.press('Tab');
-    await this.page.keyboard.press('Enter');
+  async openContentDetailsPage(pageName: string): Promise<void> {
+    await this.clickOnElement(this.contentLink(pageName));
   }
 
   async ViewSite(): Promise<void> {

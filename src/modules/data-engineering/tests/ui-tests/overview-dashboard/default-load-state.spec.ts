@@ -53,7 +53,7 @@ test.describe(
     });
 
     test(
-      'verify total users metric data validation',
+      'TS To verify the answer of total users in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -65,8 +65,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Verify total users metric in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of total users in overview dashboard',
+          zephyrTestId: 'DE-27725',
         });
 
         const { appAdoptionQueryHelper } = testEnvironment;
@@ -82,7 +82,7 @@ test.describe(
     );
 
     test(
-      'verify logged in users metric data validation',
+      'TS To verify the answer of Logged in users in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -94,8 +94,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Verify logged in users metric in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Logged in users in overview dashboard',
+          zephyrTestId: 'DE-27726',
         });
 
         const { appAdoptionQueryHelper } = testEnvironment;
@@ -117,7 +117,7 @@ test.describe(
     );
 
     test(
-      'verify contributors and participants metric data validation',
+      'TS To verify the answer of Contributors and participants in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -129,8 +129,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Verify contributors and participants metric in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Contributors and participants in overview dashboard',
+          zephyrTestId: 'DE-27727',
         });
 
         const { appAdoptionQueryHelper } = testEnvironment;
@@ -153,7 +153,7 @@ test.describe(
     );
 
     test(
-      'verify adoption rate - user logins metric data validation',
+      'TS To verify the answer of App adoption rate - User logins in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -165,8 +165,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Verify adoption rate - user logins metric in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of App adoption rate - User logins in overview dashboard',
+          zephyrTestId: 'DE-27728',
         });
 
         const { appAdoptionQueryHelper, overviewDashboard } = testEnvironment;
@@ -187,7 +187,7 @@ test.describe(
     );
 
     test(
-      'verify user engagement breakdown metric data validation',
+      'TS To verify the answer of User engagement breakdown in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -199,8 +199,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Verify user engagement breakdown metric in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of User engagement breakdown in overview dashboard',
+          zephyrTestId: 'DE-27729',
         });
 
         const { appAdoptionQueryHelper, overviewDashboard } = testEnvironment;
@@ -240,7 +240,7 @@ test.describe(
 
     // Sites Dashboard Metrics Tests
     test(
-      'tS To verify the answer Total sites in Sites Dashboard',
+      'TS To verify the answer of Total sites in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -252,8 +252,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Total sites in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Total sites in overview dashboard',
+          zephyrTestId: 'DE-27735',
         });
 
         const { sitesDashboardQueryHelper, overviewDashboard } = testEnvironment;
@@ -272,7 +272,7 @@ test.describe(
     );
 
     test(
-      'tS To verify the answer Featured sites in Sites Dashboard',
+      'TS To verify the answer of Featured sites in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -284,8 +284,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Featured sites in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Featured sites in overview dashboard',
+          zephyrTestId: 'DE-27736',
         });
 
         const { sitesDashboardQueryHelper, overviewDashboard } = testEnvironment;
@@ -304,7 +304,7 @@ test.describe(
     );
 
     test(
-      'tS To verify the answer Total managers in Sites Dashboard',
+      'TS To verify the answer of Total managers in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -316,8 +316,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Total managers in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Total managers in overview dashboard',
+          zephyrTestId: 'DE-27737',
         });
 
         const { sitesDashboardQueryHelper, overviewDashboard } = testEnvironment;
@@ -336,7 +336,7 @@ test.describe(
     );
 
     test(
-      'tS To verify the answer Total sites distribution in Sites Dashboard',
+      'TS To verify the answer of total sites distribution in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -348,8 +348,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Total sites distribution in Overview Dashboard',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of total sites distribution in overview dashboard',
+          zephyrTestId: 'DE-26527',
         });
 
         const { sitesDashboardQueryHelper, overviewDashboard } = testEnvironment;
@@ -385,7 +385,7 @@ test.describe(
     );
 
     test(
-      'tS To verify the answer Most Popular in Sites Dashboard',
+      'TS To verify the answer of Most popular in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -397,7 +397,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Most Popular in Overview Dashboard',
+          description: 'TS To verify the answer of Most popular in overview dashboard',
           zephyrTestId: '',
         });
 
@@ -422,7 +422,7 @@ test.describe(
 
     // Content Dashboard Metrics Tests
     test(
-      'verify Total content published metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Total content published in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -434,8 +434,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Total content published in Overview Dashboard with default filter',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Total content published in overview dashboard',
+          zephyrTestId: 'DE-27730',
         });
 
         const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
@@ -454,7 +454,7 @@ test.describe(
     );
 
     test(
-      'verify Users who viewed content metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Users who viewed content in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -466,8 +466,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Users who viewed content in Overview Dashboard with default filter',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Users who viewed content in overview dashboard',
+          zephyrTestId: 'DE-27731',
         });
 
         const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
@@ -487,7 +487,7 @@ test.describe(
     );
 
     test(
-      'verify Content published metric data validation with default period filter (Last 30 days)',
+      'TS To verify the answer of Content published in overview dashboard',
       {
         tag: [
           TestPriority.P0,
@@ -499,8 +499,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'To verify the answer of Content published pie chart in Overview Dashboard with default filter',
-          zephyrTestId: '',
+          description: 'TS To verify the answer of Content published in overview dashboard',
+          zephyrTestId: 'DE-27733',
         });
 
         const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;

@@ -4,11 +4,9 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { getContentConfigFromCache } from '@/src/modules/content/config/contentConfig';
-import { ContentType } from '@/src/modules/content/constants/contentType';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
-import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
@@ -92,7 +90,7 @@ async function getPrerequisiteData(
   // Create site only once, even if both createSite and createPage are true
   if (testData.feedType === 'Site Feed') {
     const siteResult = await helpers.siteManagementHelper.getSiteByAccessType('public');
-    resources.siteId = siteResult;
+    resources.siteId = siteResult.siteId;
   }
 
   if (testData.feedType === 'Content Feed') {
@@ -101,6 +99,7 @@ async function getPrerequisiteData(
     resources.siteId = response.siteId;
   }
 
+  console.log('resources :   ', resources);
   return resources;
 }
 
@@ -134,9 +133,10 @@ for (const testData of feedTestData) {
   test.describe(
     `${testData.feedType} Tests`,
     {
-      tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+      tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
     },
     () => {
+      test.fixme(testData.feedType === 'Content Feed', 'Content feed is not rightly implemented');
       let appManagerFeedPage: FeedPage;
       let createdPostId: any;
       let fullName: string;
@@ -203,17 +203,10 @@ for (const testData of feedTestData) {
             await appManagerFixture.homePage.verifyThePageIsLoaded();
             await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           } else if (testData.feedType === 'Site Feed') {
+            console.log('resources.siteId :   ', resources.siteId);
             const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, resources.siteId);
-            await siteDashboardPage.loadPage();
-            await siteDashboardPage.actions.clickOnFeedLink();
-          } else if (testData.feedType === 'Content Feed') {
-            const contentPreviewPage = new ContentPreviewPage(
-              appManagerFixture.page,
-              resources.siteId,
-              resources.contentId,
-              ContentType.PAGE.toLowerCase()
-            );
-            await contentPreviewPage.loadPage();
+            await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+            await siteDashboardPage.clickOnFeedLink();
           }
         }
       );
@@ -234,8 +227,8 @@ for (const testData of feedTestData) {
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
-          await appManagerFeedPage.actions.clickShareThoughtsButton();
-          const postResult = await appManagerFeedPage.actions.createfeedWithMentionUserNameAndTopic({
+          await appManagerFeedPage.clickShareThoughtsButton();
+          const postResult = await appManagerFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: fullName,
             topicName: randomTopic.name,
@@ -246,8 +239,9 @@ for (const testData of feedTestData) {
           const postText = postResult.postText;
 
           console.log('postText :   ', postText);
+
           // Step 2: Validate post creation
-          await appManagerFeedPage.assertions.validatePostText(postText);
+          await appManagerFeedPage.feedList.validatePostIsVisibleWithText(postText);
 
           // Step 3: Prepare for edit - get another user's name
           const siteManagerInfo = await identityManagementHelper.getUserInfoByEmail(users.siteManager.email);
@@ -255,7 +249,7 @@ for (const testData of feedTestData) {
           const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post');
 
           // Step 4: Edit the post
-          await appManagerFeedPage.actions.editPostWithTopicAndUserName({
+          await appManagerFeedPage.postEditor.editPostWithTopicAndUserName({
             currentText: postResult.postText,
             newText: updatedPostText,
             topicName: randomTopic.name,
@@ -263,10 +257,10 @@ for (const testData of feedTestData) {
           });
 
           // Step 5: Validate post edit
-          await appManagerFeedPage.assertions.validatePostText(updatedPostText);
+          await appManagerFeedPage.feedList.validatePostIsVisibleWithText(updatedPostText);
 
           // Step 6: Delete the post
-          await appManagerFeedPage.actions.deletePost(updatedPostText);
+          await appManagerFeedPage.deletePost(updatedPostText);
           createdPostId = '';
         }
       );

@@ -22,9 +22,10 @@ import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 test.describe(
   '@ContentModerationQueue',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED, ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
+    test.slow();
     // Shared helper functions for both test parts
     const createHomeDashboardPost = async (userFixture: any, inappropriateText: string) => {
       const homeFeedPage = new FeedPage(userFixture.page);
@@ -34,25 +35,25 @@ test.describe(
       await homeFeedPage.verifyThePageIsLoaded();
 
       // Click Share your thoughts button
-      await homeFeedPage.actions.clickShareThoughtsButton();
+      await homeFeedPage.clickShareThoughtsButton();
 
       // Enter inappropriate text
-      await homeFeedPage.actions.createPost(inappropriateText);
+      await homeFeedPage.postEditor.createPost(inappropriateText);
 
       // Click Post button
-      await homeFeedPage.actions.clickPostWithoutWaitingForResponse();
+      await homeFeedPage.postEditor.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-      await warningPopup.assertions.verifyWarningPopupVisible();
-      await warningPopup.assertions.verifyWarningMessage();
+      await warningPopup.verifyWarningPopupVisible();
+      await warningPopup.verifyWarningMessage();
 
       // Click Submit Anyway
-      await warningPopup.actions.clickContinue();
-      await warningPopup.assertions.verifyWarningPopupClosed();
+      await warningPopup.clickContinue();
+      await warningPopup.verifyWarningPopupClosed();
 
       // Wait for post to be submitted
-      await homeFeedPage.assertions.waitForPostToBeVisible(inappropriateText);
+      await homeFeedPage.feedList.waitForPostToBeVisible(inappropriateText);
     };
 
     const createSiteDashboardPost = async (userFixture: any, siteId: string, inappropriateText: string) => {
@@ -62,26 +63,26 @@ test.describe(
       await siteDashboard.verifyThePageIsLoaded();
 
       // Click Share your thoughts button
-      await siteDashboard.actions.clickShareThoughtsButton();
+      await siteDashboard.clickShareThoughtsButton();
 
       // Enter inappropriate text
-      const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
-      await createFeedPostComponent.actions.createPost(inappropriateText);
+      const createFeedPostComponent = siteDashboard.createFeedPostComponent;
+      await createFeedPostComponent.createPost(inappropriateText);
 
       // Click Post button
-      await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
+      await createFeedPostComponent.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-      await warningPopup.assertions.verifyWarningPopupVisible();
-      await warningPopup.assertions.verifyWarningMessage();
+      await warningPopup.verifyWarningPopupVisible();
+      await warningPopup.verifyWarningMessage();
 
       // Click Submit Anyway
-      await warningPopup.actions.clickContinue();
-      await warningPopup.assertions.verifyWarningPopupClosed();
+      await warningPopup.clickContinue();
+      await warningPopup.verifyWarningPopupClosed();
 
       // Wait for post to be submitted
-      await siteDashboard.assertions.validatePostText(inappropriateText);
+      await siteDashboard.listFeedComponent.validatePostText(inappropriateText);
     };
 
     const createContentPageComment = async (
@@ -95,29 +96,29 @@ test.describe(
       await contentPreviewPage.verifyThePageIsLoaded();
 
       // Verify comment option is visible
-      await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+      await contentPreviewPage.verifyCommentOptionIsVisible();
 
       // Click Share your thoughts button
-      await contentPreviewPage.actions.clickShareThoughtsButton();
+      await contentPreviewPage.clickShareThoughtsButton();
 
       // Enter inappropriate text
       const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
-      await createFeedPostComponent.actions.createPost(inappropriateText);
+      await createFeedPostComponent.createPost(inappropriateText);
 
       // Click Post button
-      await createFeedPostComponent.actions.clickPostWithoutWaitingForResponse();
+      await createFeedPostComponent.clickPostWithoutWaitingForResponse();
 
       // Verify warning popup appears
       const warningPopup = new InappropriateContentWarningPopupComponent(userFixture.page);
-      await warningPopup.assertions.verifyWarningPopupVisible();
-      await warningPopup.assertions.verifyWarningMessage();
+      await warningPopup.verifyWarningPopupVisible();
+      await warningPopup.verifyWarningMessage();
 
       // Click Submit Anyway
-      await warningPopup.actions.clickContinue();
-      await warningPopup.assertions.verifyWarningPopupClosed();
+      await warningPopup.clickContinue();
+      await warningPopup.verifyWarningPopupClosed();
 
       // Wait for comment to be submitted
-      await contentPreviewPage.assertions.waitForPostToBeVisible(inappropriateText);
+      await contentPreviewPage.waitForPostToBeVisible(inappropriateText);
     };
 
     test(
@@ -126,6 +127,7 @@ test.describe(
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-29513'],
       },
       async ({ appManagerFixture, appManagerApiFixture, siteManagerFixture, standardUserFixture }) => {
+        test.slow();
         tagTest(test.info(), {
           description:
             'Verify Content Moderator can view Toxic posts/comments/replies in Content Moderation queue for Content Manager and Manager roles',
@@ -137,7 +139,7 @@ test.describe(
 
         const inappropriatePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
         const inappropriateSitePostText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
-        const inappropriateCommentText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_POST_TEXT;
+        const inappropriateCommentText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_COMMENT_TEXT;
 
         // Phase 1: Parallel Setup - Get site, user info, and create content in parallel
         const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
@@ -178,13 +180,13 @@ test.describe(
 
           // Navigate to queue once and verify all 3 items
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
+          await moderationQueuePage.clickQueuesTab();
 
           // Verify all items are in queue (2 posts + 1 comment)
           // Note: Since all items use the same text, we verify posts and comments separately
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriateSitePostText);
-          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriatePostText);
+          await moderationQueuePage.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.verifyPostInQueue(inappropriateSitePostText);
+          await moderationQueuePage.verifyCommentInQueue(inappropriateCommentText);
         });
 
         // Site Manager
@@ -207,13 +209,13 @@ test.describe(
 
           // Navigate to queue once and verify all 3 items
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
+          await moderationQueuePage.clickQueuesTab();
 
           // Verify all items are in queue (2 posts + 1 comment)
           // Note: Since all items use the same text, we verify posts and comments separately
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
-          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriateCommentText);
+          await moderationQueuePage.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.verifyCommentInQueue(inappropriateCommentText);
         });
       }
     );
@@ -279,13 +281,13 @@ test.describe(
 
           // Navigate to queue once and verify all 3 items
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
+          await moderationQueuePage.clickQueuesTab();
 
           // Verify all items are in queue (2 posts + 1 comment)
           // Note: Since all items use the same text, we verify posts and comments separately
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriateSitePostText);
-          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriateCommentText);
+          await moderationQueuePage.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.verifyPostInQueue(inappropriateSitePostText);
+          await moderationQueuePage.verifyCommentInQueue(inappropriateCommentText);
         });
 
         // Site Owner
@@ -308,13 +310,13 @@ test.describe(
 
           // Navigate to queue once and verify all 3 items
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
+          await moderationQueuePage.clickQueuesTab();
 
           // Verify all items are in queue (2 posts + 1 comment)
           // Note: Since all items use the same text, we verify posts and comments separately
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriatePostText);
-          await moderationQueuePage.assertions.verifyPostInQueue(inappropriateSitePostText);
-          await moderationQueuePage.assertions.verifyCommentInQueue(inappropriateCommentText);
+          await moderationQueuePage.verifyPostInQueue(inappropriatePostText);
+          await moderationQueuePage.verifyPostInQueue(inappropriateSitePostText);
+          await moderationQueuePage.verifyCommentInQueue(inappropriateCommentText);
         });
       }
     );
@@ -362,21 +364,21 @@ test.describe(
           const contentPreviewPage = new ContentPreviewPage(userFixture.page, siteId, contentId, 'page');
           await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
           await contentPreviewPage.verifyThePageIsLoaded();
-          await contentPreviewPage.assertions.verifyCommentOptionIsVisible();
+          await contentPreviewPage.verifyCommentOptionIsVisible();
 
-          await contentPreviewPage.actions.clickShareThoughtsButton();
+          await contentPreviewPage.clickShareThoughtsButton();
           const createFeedPostComponent = new CreateFeedPostComponent(userFixture.page);
-          await createFeedPostComponent.actions.createPost(appropriateText);
-          await createFeedPostComponent.actions.clickPostButton();
+          await createFeedPostComponent.createPost(appropriateText);
+          await createFeedPostComponent.clickPostButton();
 
-          await contentPreviewPage.assertions.waitForPostToBeVisible(appropriateText);
+          await contentPreviewPage.waitForPostToBeVisible(appropriateText);
 
           const listFeedComponent = new ListFeedComponent(userFixture.page);
           // Use the new method that handles appropriate content warning popup
           await listFeedComponent.addReplyToPostWithInappropriateContent(replyText, '');
 
           // Wait for reply to be visible
-          await contentPreviewPage.assertions.waitForPostToBeVisible(replyText);
+          await contentPreviewPage.waitForPostToBeVisible(replyText);
         };
 
         // Helper function to report a post
@@ -386,15 +388,15 @@ test.describe(
           await listFeedComponent.clickReportPostOption();
 
           const reportModal = new ReportPostModalComponent(userFixture.page);
-          await reportModal.assertions.verifyModalVisible();
-          await reportModal.assertions.verifyReportButtonDisabled();
-          await reportModal.actions.enterReportReason(reason);
-          await reportModal.assertions.verifyReportButtonEnabled();
-          await reportModal.actions.clickReportButton();
-          await reportModal.assertions.verifyModalClosed();
+          await reportModal.verifyModalVisible();
+          await reportModal.verifyReportButtonDisabled();
+          await reportModal.enterReportReason(reason);
+          await reportModal.verifyReportButtonEnabled();
+          await reportModal.clickReportButton();
+          await reportModal.verifyModalClosed();
 
           // Verify toast message
-          await feedPage.assertions.verifyToastMessageIsVisibleWithText(reportToastMessage);
+          await feedPage.feedList.verifyToastMessageIsVisibleWithText(reportToastMessage);
         };
 
         // Helper function to report a comment
@@ -404,14 +406,14 @@ test.describe(
           await listFeedComponent.clickReportPostOption();
 
           const reportModal = new ReportPostModalComponent(userFixture.page);
-          await reportModal.assertions.verifyModalVisible();
-          await reportModal.assertions.verifyReportButtonDisabled();
-          await reportModal.actions.enterReportReason(reason);
-          await reportModal.assertions.verifyReportButtonEnabled();
-          await reportModal.actions.clickReportButton();
-          await reportModal.assertions.verifyModalClosed();
+          await reportModal.verifyModalVisible();
+          await reportModal.verifyReportButtonDisabled();
+          await reportModal.enterReportReason(reason);
+          await reportModal.verifyReportButtonEnabled();
+          await reportModal.clickReportButton();
+          await reportModal.verifyModalClosed();
 
-          await feedPage.assertions.verifyToastMessageIsVisibleWithText(reportToastMessage);
+          await feedPage.feedList.verifyToastMessageIsVisibleWithText(reportToastMessage);
         };
 
         // Helper function to report a reply
@@ -421,14 +423,14 @@ test.describe(
           await listFeedComponent.clickReportReplyOption();
 
           const reportModal = new ReportPostModalComponent(userFixture.page, 'reply');
-          await reportModal.assertions.verifyModalVisible();
-          await reportModal.assertions.verifyReportButtonDisabled();
-          await reportModal.actions.enterReportReason(reason);
-          await reportModal.assertions.verifyReportButtonEnabled();
-          await reportModal.actions.clickReportButton();
-          await reportModal.assertions.verifyModalClosed();
+          await reportModal.verifyModalVisible();
+          await reportModal.verifyReportButtonDisabled();
+          await reportModal.enterReportReason(reason);
+          await reportModal.verifyReportButtonEnabled();
+          await reportModal.clickReportButton();
+          await reportModal.verifyModalClosed();
 
-          await feedPage.assertions.verifyToastMessageIsVisibleWithText(reportToastMessage);
+          await feedPage.feedList.verifyToastMessageIsVisibleWithText(reportToastMessage);
         };
 
         // Home Dashboard: Create post, report it, and verify in queue
@@ -440,10 +442,10 @@ test.describe(
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           await homeFeedPage.verifyThePageIsLoaded();
 
-          await homeFeedPage.actions.clickShareThoughtsButton();
-          await homeFeedPage.actions.createPost(appropriatePostText);
-          await homeFeedPage.actions.clickPostButton();
-          await homeFeedPage.assertions.waitForPostToBeVisible(appropriatePostText);
+          await homeFeedPage.clickShareThoughtsButton();
+          await homeFeedPage.postEditor.createPost(appropriatePostText);
+          await homeFeedPage.postEditor.clickPostButton();
+          await homeFeedPage.feedList.waitForPostToBeVisible(appropriatePostText);
 
           // End User 2 reports the post
           await siteManagerFixture.homePage.loadPage();
@@ -451,14 +453,14 @@ test.describe(
           await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
           const feedPage = new FeedPage(siteManagerFixture.page);
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.assertions.waitForPostToBeVisible(appropriatePostText);
+          await feedPage.feedList.waitForPostToBeVisible(appropriatePostText);
           await reportPost(siteManagerFixture, appropriatePostText, reportReason, feedPage);
 
           // Admin views reported post in moderation queue
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-          await moderationQueuePage.assertions.verifyPostInQueue(appropriatePostText);
-          await moderationQueuePage.actions.dismissPost(appropriatePostText);
+          await moderationQueuePage.clickQueuesTab();
+          await moderationQueuePage.verifyPostInQueue(appropriatePostText);
+          await moderationQueuePage.dismissPost(appropriatePostText);
         });
 
         // Site Dashboard: Create post, report it, and verify in queue
@@ -469,19 +471,19 @@ test.describe(
           await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
           await siteDashboard.verifyThePageIsLoaded();
 
-          await siteDashboard.actions.clickShareThoughtsButton();
-          const createFeedPostComponent = siteDashboard['createFeedPostComponent'];
-          await createFeedPostComponent.actions.createPost(appropriatePostText);
-          await createFeedPostComponent.actions.clickPostButton();
-          await siteDashboard.assertions.validatePostText(appropriatePostText);
+          await siteDashboard.clickShareThoughtsButton();
+          const createFeedPostComponent = siteDashboard.createFeedPostComponent;
+          await createFeedPostComponent.createPost(appropriatePostText);
+          await createFeedPostComponent.clickPostButton();
+          await siteDashboard.validatePostText(appropriatePostText);
 
           // End User 2 reports the post
           const siteDashboard2 = new SiteDashboardPage(siteManagerFixture.page, publicSiteId);
           await siteDashboard2.loadPage({ stepInfo: 'Load site dashboard page' });
           await siteDashboard2.navigateToTab(SitePageTab.DashboardTab);
           await siteDashboard2.verifyThePageIsLoaded();
-          await siteDashboard2.actions.clickOnFeedLink();
-          await siteDashboard2.assertions.validatePostText(appropriatePostText);
+          await siteDashboard2.clickOnFeedLink();
+          await siteDashboard2.validatePostText(appropriatePostText);
           await reportPost(
             siteManagerFixture,
             appropriatePostText,
@@ -491,9 +493,9 @@ test.describe(
 
           // Admin views reported post in moderation queue
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-          await moderationQueuePage.assertions.verifyPostInQueue(appropriatePostText);
-          await moderationQueuePage.actions.removePost(appropriatePostText);
+          await moderationQueuePage.clickQueuesTab();
+          await moderationQueuePage.verifyPostInQueue(appropriatePostText);
+          await moderationQueuePage.removePost(appropriatePostText);
         });
 
         // Content Detail Page: Create comment and reply, report them, and verify in queue
@@ -531,11 +533,11 @@ test.describe(
 
           // Admin views reported comment and reply in moderation queue
           const moderationQueuePage = await appManagerFixture.navigationHelper.navigateToContentModerationQueue();
-          await moderationQueuePage.actions.clickQueuesTab();
-          await moderationQueuePage.assertions.verifyCommentInQueue(appropriatePostText);
-          await moderationQueuePage.assertions.verifyCommentInQueue(`Reply to ${appropriatePostText}`);
-          await moderationQueuePage.actions.removeComment(`Reply to ${appropriatePostText}`);
-          await moderationQueuePage.actions.dismissComment(appropriatePostText);
+          await moderationQueuePage.clickQueuesTab();
+          await moderationQueuePage.verifyCommentInQueue(appropriatePostText);
+          await moderationQueuePage.verifyCommentInQueue(`Reply to ${appropriatePostText}`);
+          await moderationQueuePage.removeComment(`Reply to ${appropriatePostText}`);
+          await moderationQueuePage.dismissComment(appropriatePostText);
         });
       }
     );

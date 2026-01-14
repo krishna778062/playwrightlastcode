@@ -110,6 +110,7 @@ export const API_ENDPOINTS = {
     onboarding: '/onboarding',
     createTemplate: '/content-template/v2/templates',
     b2bContentList: '/v1/content/b2b/content/list',
+    dashboardLayout: '/v1/content/dashboard/layout',
   },
 
   fileUpload: {
@@ -163,6 +164,7 @@ export const API_ENDPOINTS = {
   search: {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
+    sites: '/v1/search/sites',
   },
   externalSearch: {
     config: '/v1/account/appConfig/app.integrations.enterprise.search',

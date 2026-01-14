@@ -101,7 +101,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    'RC-5385 Validate sorting of column on rewards options page',
+    '[RC-5385] Validate sorting of column on rewards options page',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

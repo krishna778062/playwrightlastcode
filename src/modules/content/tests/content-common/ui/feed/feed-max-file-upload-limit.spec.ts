@@ -12,7 +12,7 @@ import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 test.describe(
   '@FeedPost - Home Feed Maximum File Upload Limit',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
@@ -79,31 +79,31 @@ test.describe(
           faviconPath,
         ];
 
-        await feedPage.actions.clickShareThoughtsButton();
+        await feedPage.clickShareThoughtsButton();
 
-        await feedPage.actions.createPost(postText);
+        await feedPage.postEditor.createPost(postText);
 
         await test.step('Upload 11 files and verify warning message', async () => {
-          await feedPage.actions.uploadFiles(elevenFiles);
-          await feedPage.actions.waitForFileToAppear();
+          await feedPage.postEditor.uploadFiles(elevenFiles);
+          await feedPage.postEditor.waitForFileToAppear();
 
-          await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
+          await feedPage.feedList.verifyToastMessageIsVisibleWithText(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
 
-          await feedPage.assertions.verifyAttachedFileCount(10);
+          await feedPage.postEditor.verifyAttachedFileCount(10);
         });
 
         await test.step('Attempt to drag and drop another file', async () => {
-          await feedPage.actions.addFileToPost(image1Path);
+          await feedPage.postEditor.addFileToPost(image1Path);
 
-          await feedPage.assertions.verifyToastMessage(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
+          await feedPage.feedList.verifyToastMessageIsVisibleWithText(FEED_TEST_DATA.FILE_UPLOAD_WARNING_MESSAGE);
 
-          await feedPage.actions.waitForFileToAppear();
+          await feedPage.postEditor.waitForFileToAppear();
 
           // Verify still only 10 files
-          await feedPage.assertions.verifyAttachedFileCount(10);
+          await feedPage.postEditor.verifyAttachedFileCount(10);
         });
 
-        const postResult = await feedPage.actions.createAndPost({
+        const postResult = await feedPage.postEditor.createAndPost({
           text: postText,
           attachments: {
             files: elevenFiles.slice(0, 10),
@@ -115,52 +115,52 @@ test.describe(
         createdPostId = postResult.postId || '';
 
         // Wait for post to be visible
-        await feedPage.assertions.waitForPostToBeVisible(postResult.postText);
+        await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
 
         // Part 2: Edit Feed Post
-        await feedPage.actions.openPostOptionsMenu(createdPostText);
+        await feedPage.postEditor.openPostOptionsMenu(createdPostText);
 
         // Click on "Edit"
-        await feedPage.actions.clickEditOption();
+        await feedPage.postEditor.clickEditOption();
 
         // Verify "Update" button is disabled initially
-        await feedPage.assertions.verifyUpdateButtonDisabled();
+        await feedPage.postEditor.verifyUpdateButtonDisabled();
 
         // Remove any file to enable the Update button
-        await feedPage.actions.removeAttachedFile(0);
+        await feedPage.postEditor.removeAttachedFile(0);
 
         // Verify 9 files remain
-        await feedPage.assertions.verifyAttachedFileCount(9);
+        await feedPage.postEditor.verifyAttachedFileCount(9);
 
         // Drag and drop a file from computer (add one more file to get back to 10)
         await test.step('Add one more file to get back to 10', async () => {
-          await feedPage.actions.addFileToPost(image3Path);
-          await feedPage.actions.waitForFileToAppear();
+          await feedPage.postEditor.addFileToPost(image3Path);
+          await feedPage.postEditor.waitForFileToAppear();
         });
 
         // Verify file added successfully (total 10 files)
-        await feedPage.assertions.verifyAttachedFileCount(FEED_TEST_DATA.MAX_FILE_UPLOAD_LIMIT);
+        await feedPage.postEditor.verifyAttachedFileCount(FEED_TEST_DATA.MAX_FILE_UPLOAD_LIMIT);
 
         // Drag and drop another file from computer (attempt to add 11th file)
         await test.step('Attempt to add 11th file in edit mode', async () => {
-          await feedPage.actions.addFileToPost(image4Path);
-          await feedPage.actions.waitForFileToAppear();
+          await feedPage.postEditor.addFileToPost(image4Path);
+          await feedPage.postEditor.waitForFileToAppear();
 
-          await feedPage.assertions.verifyAttachedFileCount(FEED_TEST_DATA.MAX_FILE_UPLOAD_LIMIT);
+          await feedPage.postEditor.verifyAttachedFileCount(FEED_TEST_DATA.MAX_FILE_UPLOAD_LIMIT);
         });
 
         // Enter text as "10 files" in the Edit Text box
         const updatedText = '10 files';
-        await feedPage.actions.updatePostText(updatedText);
+        await feedPage.postEditor.updatePostText(updatedText);
 
         // Click on "Update" button with exactly 10 files
-        await feedPage.actions.clickUpdateButton();
+        await feedPage.postEditor.clickUpdateButton();
 
         // Wait for post to update successfully
-        await feedPage.assertions.waitForPostToBeVisible(updatedText);
+        await feedPage.feedList.waitForPostToBeVisible(updatedText);
 
         // Part 3: Delete Feed Post
-        await feedPage.actions.deletePost(createdPostText);
+        await feedPage.deletePost(createdPostText);
 
         // Clear post ID as post is already deleted
         createdPostId = '';
