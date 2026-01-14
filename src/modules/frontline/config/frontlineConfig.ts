@@ -150,6 +150,7 @@ export const config = {
       endUserPassword: 'Test@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
       orgId: '6818dda4-b91e-4180-9ecb-d192c062af5a',
     },
     uatCA: {
@@ -162,6 +163,7 @@ export const config = {
       endUserPassword: 'Test@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
       orgId: '6fcd4de3-1cea-4bc4-92dd-49d05295669f',
     },
     prodUS: {
@@ -251,6 +253,7 @@ export const config = {
       endUserPassword: 'Test@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
       orgId: 'd59535e2-fb3e-4deb-87ad-b8ad3733ed2b',
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
@@ -265,6 +268,7 @@ export const config = {
       endUserPassword: 'Test@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
       orgId: '166d8aef-ae9f-46dc-9a2b-eae55e09cde2',
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
