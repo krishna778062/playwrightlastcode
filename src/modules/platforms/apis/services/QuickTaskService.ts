@@ -1,9 +1,12 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import { DEFAULT_FUTURE_DAYS_OFFSET } from '@platforms/constants/quickTask';
+import { DEFAULT_FUTURE_DAYS_OFFSET, DEFAULT_TASK_TAGS } from '@platforms/constants/quickTask';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import {
   CreateTaskPayload,
   CreateTaskResponse,
@@ -43,8 +46,8 @@ export class QuickTaskService {
 
   /**
    * Gets the current authenticated user's ID from the API
-   * Uses cached value if available, otherwise tries multiple endpoints
-   * @returns Promise with the user ID
+   * Uses cached value if available, otherwise calls /v2/account/basic-app-config endpoint
+   * @returns Promise with the user ID (uid from the response)
    */
   private async getCurrentUserId(): Promise<string> {
     // Return cached user ID if available
@@ -52,32 +55,25 @@ export class QuickTaskService {
       return this.cachedUserId;
     }
 
-    // Try different possible endpoints to get current user info
-    const possibleEndpoints = [
-      '/v1/w-task/user/me',
-      '/v1/w-task/users/me',
-      '/v1/user/me',
-      '/v1/users/me',
-      '/v1/identity/user/me',
-    ];
-
-    for (const endpoint of possibleEndpoints) {
-      try {
-        const response = await this.httpClient.get(endpoint);
-        const userData = await this.httpClient.parseResponse<{ result: { id: string } }>(response, {
-          expectedStatusCodes: [200],
-        });
-        if (userData.result?.id) {
-          this.cachedUserId = userData.result.id;
-          return this.cachedUserId;
-        }
-      } catch (error) {
-        // Try next endpoint
-        continue;
+    // Use v2/account/basic-app-config endpoint to get current user ID (returns uid)
+    const endpoint = '/v2/account/basic-app-config';
+    try {
+      const response = await this.httpClient.get(endpoint);
+      const userData = await this.httpClient.parseResponse<{ result: { uid: string } }>(response, {
+        expectedStatusCodes: [200],
+      });
+      const userId = userData.result?.uid;
+      if (userId) {
+        this.cachedUserId = userId;
+        return this.cachedUserId;
       }
+      throw new Error('User ID (uid) not found in response from /v2/account/basic-app-config');
+    } catch (error) {
+      // If endpoint fails, will fall back to extracting from task creation response
+      throw new Error(
+        `Failed to get user ID from ${endpoint}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
-
-    throw new Error('Could not determine current user ID. Please ensure the API context is properly authenticated.');
   }
 
   /**
@@ -182,6 +178,10 @@ export class QuickTaskService {
    */
   async createTask(payload: CreateTaskPayload): Promise<CreateTaskResponse> {
     return await test.step('Create task', async () => {
+      // Log payload for debugging attachment issues
+      if (payload.attachments) {
+        console.log('Task creation payload with attachments:', JSON.stringify(payload, null, 2));
+      }
       const response = await this.httpClient.post(PLATFORM_API_ENDPOINTS.quickTask.tasks, {
         data: payload,
       });
@@ -255,18 +255,237 @@ export class QuickTaskService {
   }
 
   /**
+   * Gets MIME type from file extension
+   * @param filePath - Path to the file
+   * @returns MIME type string
+   */
+  private getMimeType(filePath: string): string {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.pdf': 'application/pdf',
+      '.csv': 'text/csv',
+      '.txt': 'text/plain',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  /**
+   * Uploads a file and gets signed URL for upload
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param uploadContext - Upload context (default: 'home-feed')
+   * @returns Promise with fileId and uploadUrl
+   */
+  private async uploadFile(
+    fileName: string,
+    filePath: string,
+    uploadContext: string = 'home-feed'
+  ): Promise<{ fileId: string; uploadUrl: string }> {
+    return await test.step(`Uploading file "${fileName}" to get signed URL`, async () => {
+      const fileStats = fs.statSync(filePath);
+      const fileSize = fileStats.size;
+
+      // Validate file size - API requires size >= 1
+      if (fileSize < 1) {
+        throw new Error(`File "${fileName}" is empty (size: ${fileSize} bytes). Files must have at least 1 byte.`);
+      }
+
+      const mimeType = this.getMimeType(filePath);
+
+      const payload = {
+        file_name: fileName,
+        size: fileSize,
+        mime_type: mimeType,
+        uploadContext: uploadContext,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
+        data: payload,
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`Failed to get signed upload URL. Status: ${response.status()}, Error: ${errorText}`);
+      }
+
+      const uploadResponse = await response.json();
+      const fileId = uploadResponse.result?.file_id;
+      const uploadUrl = uploadResponse.result?.upload_url;
+
+      if (!fileId || !uploadUrl) {
+        throw new Error(`Failed to get fileId or uploadUrl from upload response: ${JSON.stringify(uploadResponse)}`);
+      }
+
+      return { fileId, uploadUrl };
+    });
+  }
+
+  /**
+   * Uploads file binary data to the signed upload URL
+   * @param uploadUrl - The signed upload URL from uploadFile response
+   * @param fileName - The original filename for Content-Disposition header
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file
+   * @returns Promise with upload response
+   */
+  private async uploadToAttachmentURL(
+    uploadUrl: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<void> {
+    return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
+      if (!uploadUrl) {
+        throw new Error('Upload URL is required but not provided');
+      }
+      const fileBuffer = fs.readFileSync(filePath);
+
+      const headers = {
+        'Content-Type': mimeType,
+        'Content-Disposition': `attachment; filename=${fileName}`,
+      };
+
+      const response = await this.context.put(uploadUrl, {
+        headers,
+        data: fileBuffer,
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`File upload to attachment URL failed. Status: ${response.status()}, Error: ${errorText}`);
+      }
+    });
+  }
+
+  /**
+   * Uploads one or more files and returns attachment objects
+   * Quick Task API expects: [{ id, name, mimeType, size }]
+   * @param filePaths - Array of file paths to upload
+   * @param uploadContext - Upload context (default: 'home-feed')
+   * @returns Promise with array of attachment objects
+   */
+  private async uploadAttachments(filePaths: string[], uploadContext: string = 'home-feed'): Promise<any[]> {
+    const attachments: any[] = [];
+
+    for (const filePath of filePaths) {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+
+      const fileName = path.basename(filePath);
+      const mimeType = this.getMimeType(filePath);
+      const fileStats = fs.statSync(filePath);
+      const fileSize = fileStats.size;
+
+      // Get signed URL and fileId
+      const { fileId, uploadUrl } = await this.uploadFile(fileName, filePath, uploadContext);
+
+      // Upload file binary to signed URL
+      await this.uploadToAttachmentURL(uploadUrl, fileName, filePath, mimeType);
+
+      // Quick Task API expects: { id, name, mimeType, size }
+      attachments.push({
+        id: fileId,
+        name: fileName,
+        mimeType: mimeType,
+        size: fileSize,
+      });
+    }
+
+    return attachments;
+  }
+
+  /**
    * Prerequisite helper: Creates a task with mandatory fields (QT-001)
    * This can be used as a prerequisite in any test case
    * @param title - Task title
    * @param priority - Task priority (e.g., 'urgent', 'high', 'medium', 'low')
+   * @param tags - Optional array of tags to assign to the task
+   * @param assignToSelf - Optional flag to assign task to current logged-in user (default: false)
+   * @param description - Optional task description
+   * @param attachmentFilePaths - Optional array of file paths to attach to the task
    * @returns Promise with task details including taskId, title, and priority
    */
-  async createTaskAsPrerequisite(title: string, priority: string): Promise<TaskDetails> {
+  async createTaskAsPrerequisite(
+    title: string,
+    priority: string,
+    tags?: string[],
+    assignToSelf: boolean = false,
+    description?: string,
+    attachmentFilePaths?: string[]
+  ): Promise<TaskDetails> {
     return await test.step(`Prerequisite (QT-001): Create task with title "${title}" and priority "${priority}"`, async () => {
-      const createTaskResponse = await this.createTaskWithMandatoryFields({
+      // Use provided tags or default tags
+      const taskTags = tags && tags.length > 0 ? tags : DEFAULT_TASK_TAGS;
+
+      // Get the payload that will be used to create the task
+      const mandatoryFields = await this.getMandatoryTaskFields();
+      const taskOptions: Partial<CreateTaskPayload> = {
         title,
         priority,
-      });
+        tags: taskTags,
+      };
+
+      // Add description if provided
+      if (description) {
+        taskOptions.description = description;
+      }
+
+      // Upload attachments if provided
+      if (attachmentFilePaths && attachmentFilePaths.length > 0) {
+        // Quick Task API expects: attachments: [{ id, name, mimeType, size }]
+        const attachments = await this.uploadAttachments(attachmentFilePaths);
+        taskOptions.attachments = attachments;
+      }
+
+      // Get a user ID for assignedTo field if needed
+      let userId: string | undefined;
+      const assignedToField = mandatoryFields.find(field => field.name === 'assignedTo');
+      if (assignedToField) {
+        if (assignToSelf) {
+          // Get current logged-in user ID
+          if (this.cachedUserId) {
+            userId = this.cachedUserId;
+          } else {
+            // Try to get user ID from API endpoints first
+            try {
+              userId = await this.getCurrentUserId();
+            } catch (error) {
+              // If API endpoints fail, create task without assignedTo (empty array)
+              // The API will automatically assign it to the current logged-in user
+              // Then extract assignedBy.id from the response for future use
+              taskOptions.assignedTo = {
+                users: [],
+              };
+            }
+          }
+
+          // If we have userId, set it in taskOptions
+          if (userId) {
+            taskOptions.assignedTo = {
+              users: [{ id: userId }],
+            };
+          }
+        } else {
+          // Get first available person ID (default behavior)
+          userId = await this.getFirstAvailablePersonId();
+          if (userId) {
+            taskOptions.assignedTo = {
+              users: [{ id: userId }],
+            };
+          }
+        }
+      }
+
+      const createTaskResponse = await this.createTaskWithMandatoryFields(taskOptions);
 
       // Extract task ID from response
       const taskId = createTaskResponse.result?._id || createTaskResponse.result?.taskId || '';
@@ -275,23 +494,33 @@ export class QuickTaskService {
         throw new Error('Task ID not found in create task response');
       }
 
-      // Get the payload that was used to create the task
-      const mandatoryFields = await this.getMandatoryTaskFields();
+      // If assignToSelf and we didn't have userId, extract it from response and cache it
+      if (assignToSelf && !this.cachedUserId) {
+        const assignedById = (createTaskResponse.result as any)?.assignedBy?.id;
+        if (assignedById) {
+          this.cachedUserId = assignedById;
+        }
+      }
+
+      // Build the payload that was used to create the task
       const payload: CreateTaskPayload = {
         title,
         priority,
+        tags: taskTags,
       };
 
-      // Get a user ID for assignedTo field if needed
-      let userId: string | undefined;
-      const assignedToField = mandatoryFields.find(field => field.name === 'assignedTo');
-      if (assignedToField) {
-        userId = await this.getFirstAvailablePersonId();
-        if (userId) {
-          payload.assignedTo = {
-            users: [{ id: userId }],
-          };
-        }
+      // Add attachments to payload if they were uploaded
+      if (taskOptions.attachments) {
+        payload.attachments = taskOptions.attachments;
+      }
+
+      // Add assignedTo to payload (either with userId or empty array for self-assignment)
+      if (taskOptions.assignedTo) {
+        payload.assignedTo = taskOptions.assignedTo;
+      } else if (userId) {
+        payload.assignedTo = {
+          users: [{ id: userId }],
+        };
       }
 
       // Set dueDate if it's mandatory
