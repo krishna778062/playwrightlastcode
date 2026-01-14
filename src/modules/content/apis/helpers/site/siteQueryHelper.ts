@@ -148,7 +148,6 @@ export class SiteQueryHelper {
 
     for (const site of siteListResponse.result.listOfItems) {
       if (!site.isActive) continue;
-
       // Only filter by properties that are explicitly specified (not undefined)
       const matchesHasPages = requiredHasPages === undefined || site.hasPages === requiredHasPages;
       const matchesHasEvents = requiredHasEvents === undefined || site.hasEvents === requiredHasEvents;

@@ -1,37 +1,33 @@
 # ============================================================================
-# UAT RELEASE REGRESSION TESTS
+# TEST ENVIRONMENT REGRESSION TESTS
 # ============================================================================
 #
 # PURPOSE:
-#   Runs regression tests for UAT release validation.
-#   Branch depends on CURRENT_STAGE repository variable.
+#   Runs regression tests on the TEST environment.
+#   Always uses the 'develop' branch for latest code.
 #
 # SCHEDULE:
-#   - Runs Mon, Wed, Fri at 1:30 AM UTC (7:00 AM IST)
-#
-# BRANCH LOGIC:
-#   - CURRENT_STAGE = 'production' → 'main' branch
-#   - CURRENT_STAGE = 'uat' → 'release' branch
-#   - CURRENT_STAGE = 'qa' → SKIPPED
+#   - Can be scheduled daily at 6:00 AM UTC (11:30 AM IST)
+#   - Can also be triggered manually
 #
 # CALLS:
-#   regression-unified-template.yml with trigger_type=uat_release
+#   regression-unified-template.yml with trigger_type=test_env_regression
 #
 # ============================================================================
 
-name: UAT Release Regression (v2)
+name: Test Env Regression (v2)
 
 on:
   # DISABLED: BrowserStack workflows removed from scheduler to preserve quota
   # schedule:
-  #   - cron: '30 1 * * 1,3,5'
+  #   - cron: '0 6 * * *'
 
   workflow_dispatch:
     inputs:
       environment:
         description: 'Environment'
         required: false
-        default: 'uat'
+        default: 'test'
         type: choice
         options:
           - 'test'
@@ -84,10 +80,10 @@ jobs:
   regression:
     uses: ./.github/workflows/regression-unified-template.yml
     with:
-      environment: ${{ inputs.environment || 'uat' }}
-      trigger_type: uat_release
-      slack_prefix: UAT Release Regression
-      git_ref: ''
+      environment: ${{ inputs.environment || 'test' }}
+      trigger_type: test_env_regression
+      slack_prefix: Test Env Regression
+      git_ref: ${{ github.event_name == 'schedule' && '' || github.ref_name }}
       # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
       modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
       # TEMPORARILY DISABLED: Preserving quota for QA release testing

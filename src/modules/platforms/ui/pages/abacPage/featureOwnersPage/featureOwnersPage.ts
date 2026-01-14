@@ -42,6 +42,7 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
   readonly showMoreButton: Locator;
   readonly noResultsFoundHeading: Locator;
   readonly noResultsFoundDescription: Locator;
+  readonly featureOwnerRecords: Locator;
 
   // Component
   readonly userCountPopup: UserCountPopupComponent;
@@ -74,6 +75,7 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.noResultsFoundHeading = page.getByText('No results found');
     this.noResultsFoundDescription = page.getByText('Try adjusting search terms or filters');
+    this.featureOwnerRecords = page.locator('[data-testid*="dataGridRow"]');
 
     // Initialize component
     this.userCountPopup = new UserCountPopupComponent(page);
@@ -237,5 +239,26 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
    */
   async verifyUserCountPopupOpened(expectedCount: string): Promise<void> {
     await this.userCountPopup.verifyPopupOpenedWithCount(expectedCount);
+  }
+
+  /**
+   * Verifies that the user count popup is opened with correct count using dedicated component (to be used in the future)
+   * @param expectedCount - Expected user count to verify
+   */
+  async verifyFeatureOwnerList(featureName: string, numberOfFeaturesDisplayed: number): Promise<void> {
+    await test.step(`Verify that ${featureName} feature and only ${numberOfFeaturesDisplayed} count of asset is displayed in the feature owner list`, async () => {
+      const expectedNumberOfFeatureOwnerRecords = await this.featureOwnerRecords.count();
+      expect(
+        expectedNumberOfFeatureOwnerRecords,
+        `Expected number of feature owner records is ${numberOfFeaturesDisplayed} but found be ${expectedNumberOfFeatureOwnerRecords}`
+      ).toBe(numberOfFeaturesDisplayed);
+
+      const feature = this.featureOwnerRecords.filter({
+        has: this.page.locator(`[class*='FeatureColumn-module-featureName'] p`).filter({ hasText: featureName }),
+      });
+      await this.verifier.verifyTheElementIsVisible(feature, {
+        assertionMessage: `Feature ${featureName} should be visible in the feature owner list`,
+      });
+    });
   }
 }

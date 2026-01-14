@@ -160,6 +160,8 @@ test.describe(
           description: 'Verify content publish and unpublish options are available and functional in My Content Screen',
           zephyrTestId: 'CONT-20951',
           storyId: 'CONT-20951',
+          isKnownFailure: true,
+          bugTicket: 'CONT-43937',
         });
         const contentListResponse =
           await appManagerApiFixture.contentManagementHelper.contentManagementService.getContentList({

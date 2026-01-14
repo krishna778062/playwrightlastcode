@@ -18,7 +18,7 @@ import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 test.describe(
   '@FeedPost - Restrict feed posting permission to managers only',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction', ContentTestSuite.FEED],
   },
   () => {
     const verifyRestrictionForUser = async (siteId: string, page: any) => {
