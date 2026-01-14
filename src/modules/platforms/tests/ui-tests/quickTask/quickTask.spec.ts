@@ -749,7 +749,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify tags are displayed in the task detail view',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37326', 'PS-37323'],
@@ -798,7 +798,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'Verify status updates are immediately reflected',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-pre-created-task', '@task-assigned-to-self'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-assigned-to-self'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37325'],
@@ -870,7 +870,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'verify task description and title is displayed in the task detail view',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-pre-created-task', '@task-with-description'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-with-description'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37322', 'PS-37321'],
@@ -932,7 +932,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'Verify admin can edit tasks successfully',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-pre-created-task'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37320', 'PS-37316', 'PS-37312', 'PS-37331', 'PS-37318'],
@@ -997,7 +997,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'Verify task can be created with attachment',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-pre-created-task', '@task-with-attachment'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-with-attachment'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37333', 'PS-37328'],
