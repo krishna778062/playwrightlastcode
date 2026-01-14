@@ -44,7 +44,7 @@ export class AppsLinksComponents extends BaseComponent {
   constructor(page: Page) {
     super(page);
     const getButtonByName = (name: string) => this.page.getByRole('button', { name });
-    this.customJsonInputField = this.page.getByPlaceholder(APPS_LINKS.CUSTOM_JSON_PLACEHOLDER);
+    this.customJsonInputField = this.page.locator("textarea[name='customJson']");
     this.appsIntegrationDropdown = this.page.locator('select[id="appsIntegrationProvider"]');
     this.saveButton = this.page.locator('span', { hasText: 'Save' });
     this.saveButtonElement = getButtonByName(APPS_LINKS.SAVE);
@@ -119,6 +119,7 @@ export class AppsLinksComponents extends BaseComponent {
   async clickOnCustomJsonInputField(): Promise<void> {
     await test.step(`Clicking on custom JSON input field`, async () => {
       await this.customJsonInputField.clear();
+      await this.customJsonInputField.click();
       await this.clickOnElement(this.customJsonInputField);
     });
   }
@@ -181,7 +182,6 @@ export class AppsLinksComponents extends BaseComponent {
   async verifyAppsAreMarkedAsFavorite(appName: string): Promise<void> {
     await test.step(`Verifying apps are marked as favorite`, async () => {
       const appLocator = this.getAppLocatorFn(appName);
-      await appLocator.hover();
       await expect(appLocator, `${appName} not visible`).toBeVisible();
     });
   }
@@ -432,6 +432,7 @@ export class AppsLinksComponents extends BaseComponent {
   async verifyAppsDuplicate(message: string): Promise<void> {
     await test.step(`Verifying apps duplicate`, async () => {
       await this.customJsonInputField.clear();
+      await this.customJsonInputField.click();
       await this.customJsonInputField.fill(JSON.stringify(this.apps_json));
       await this.saveButton.click();
       const error = this.pTextLocatorFn(message);
@@ -511,8 +512,11 @@ export class AppsLinksComponents extends BaseComponent {
   async addDuplicateCustomApps(): Promise<void> {
     await test.step(`Adding duplicate custom apps`, async () => {
       await this.customJsonInputField.clear();
-      await this.customJsonInputField.click();
-      await this.customJsonInputField.click();
+      // Wait for the element to be ready and scroll it into view
+      await this.customJsonInputField.waitFor({ state: 'visible' });
+      await this.customJsonInputField.scrollIntoViewIfNeeded();
+      // fill() already focuses the element, so click is not needed
+      // Using fill() directly is more reliable than click() when overlays are present
       await this.customJsonInputField.fill(JSON.stringify(this.apps_json, null, 2));
       await this.saveButton.click();
       await this.page.waitForTimeout(3000);

@@ -27,121 +27,6 @@ test.describe(
     });
 
     test(
-      'add Apps & Links and mark them as favorite',
-      {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
-      },
-      async () => {
-        //Add Apps: custom JSON
-        await appsLinks.addAppsFromCustomJson(APPS_LINKS.CUSTOM_JSON);
-
-        //Add links
-        await appsLinks.addLinks(formattedLinks);
-
-        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-
-        //apps and links launchpad verify
-        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
-        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.LINKS_TEXT);
-        await appsLinks.markAppsFavorite(APPS_LINKS.GOOGLE_DRIVE);
-        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.LINKS_TEXT);
-        await appsLinks.clickOnSubButtonsInsideLinksTab(APPS_LINKS.ORG_LINKS);
-        await appsLinks.markLinksFavorite(APPS_LINKS.YOUTUBE);
-        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.FAVORITES);
-        await appsLinks.verifyAppsAreMarkedAsFavorite(APPS_LINKS.GOOGLE_DRIVE);
-        await appsLinks.clickOnSubButtonsInsideFavorite(APPS_LINKS.LINKS_TEXT);
-        await appsLinks.verifyLinksAreMarkedAsFavorite(APPS_LINKS.YOUTUBE);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
-        await appsLinks.cancelAllLinksPresent();
-        await appsLinks.clickOnSaveButton();
-        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
-      }
-    );
-
-    test(
-      'verify apps and links URL in launchpad',
-      {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
-      },
-      async () => {
-        //Add Apps: custom JSON
-        await appsLinks.addAppsFromCustomJson(APPS_LINKS.CUSTOM_JSON);
-
-        //Add links
-        await appsLinks.addLinks(formattedLinks);
-        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.verifyApps(APPS_LINKS.GOOGLE_DRIVE);
-        await appsLinks.verifyApps(APPS_LINKS.MICROSOFT_365);
-        await appsLinks.verifyURL(APPS_LINKS.APPS_CAPS_OFF, APPS_LINKS.GOOGLE_DRIVE, APPS_LINKS.GOOGLE_DRIVE_LINK);
-        await appsLinks.verifyURL(APPS_LINKS.APPS_CAPS_OFF, APPS_LINKS.MICROSOFT_365, APPS_LINKS.MICROSOFT_LINK);
-        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.LINKS_TEXT);
-        await appsLinks.verifyOrgLinks(APPS_LINKS.GOOGLE);
-        await appsLinks.verifyOrgLinks(APPS_LINKS.YOUTUBE);
-        await appsLinks.verifyOrgLinks(APPS_LINKS.AMAZON);
-        await appsLinks.verifyOrgLinks(APPS_LINKS.FLIPKART);
-        await appsLinks.verifyOrgLinks(APPS_LINKS.SIMMPLR);
-        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.GOOGLE, APPS_LINKS.GOOGLE_LINK);
-        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.YOUTUBE, APPS_LINKS.YOUTUBE_LINK);
-        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.AMAZON, APPS_LINKS.AMAZON_LINK);
-        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.FLIPKART, APPS_LINKS.FLIPKART_LINK);
-        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.SIMMPLR, APPS_LINKS.SIMPPLR_LINK);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
-        await appsLinks.cancelAllLinksPresent();
-        await appsLinks.clickOnSaveButton();
-        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
-      }
-    );
-
-    test(
-      'verify custom links: If Custom links checkbox is selected then user should be able to see add custom link options else not',
-      {
-        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
-      },
-      async () => {
-        //Add Apps: custom JSON
-        await appsLinks.addAppsFromCustomJson(APPS_LINKS.CUSTOM_JSON);
-
-        //Add links
-        await appsLinks.addLinks(formattedLinks);
-        //CheckBox Unchecked
-        await appsLinks.customLinkCheckBox(APPS_LINKS.FALSE);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.verifySubTabsInsideLinksVisibility(
-          APPS_LINKS.LINKS_TEXT,
-          APPS_LINKS.CUSTOM_LINKS,
-          APPS_LINKS.FALSE
-        );
-
-        //CheckBox Checked
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.customLinkCheckBox(APPS_LINKS.TRUE);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.verifySubTabsInsideLinksVisibility(
-          APPS_LINKS.LINKS_TEXT,
-          APPS_LINKS.CUSTOM_LINKS,
-          APPS_LINKS.TRUE
-        );
-        await appsLinks.clickOnSubButtonsInsideLinksTab(APPS_LINKS.CUSTOM_LINKS);
-        await appsLinks.addAndVerifyCustomLinks(APPS_LINKS.YOUTUBE, APPS_LINKS.YOUTUBE_LINK);
-        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
-        await appsLinks.markLinksFavorite(APPS_LINKS.YOUTUBE);
-        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.FAVORITES);
-        await appsLinks.clickOnSubButtonsInsideFavorite(APPS_LINKS.LINKS_TEXT);
-        await appsLinks.verifyLinksAreMarkedAsFavorite(APPS_LINKS.YOUTUBE);
-        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.LINKS_TEXT);
-        await appsLinks.clickOnSubButtonsInsideLinksTab(APPS_LINKS.CUSTOM_LINKS);
-        await appsLinks.deleteCustomLink(APPS_LINKS.YOUTUBE);
-        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
-        await appsLinks.cancelAllLinksPresent();
-        await appsLinks.clickOnSaveButton();
-      }
-    );
-
-    test(
       'verify a user cannot save duplicate apps or links',
       {
         tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
@@ -188,6 +73,40 @@ test.describe(
         await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
         await appsLinks.cancelAllLinksPresent();
         await appsLinks.clickOnSaveButton();
+      }
+    );
+
+    test(
+      'add Apps & Links and mark them as favorite',
+      {
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
+      },
+      async () => {
+        //Add Apps: custom JSON
+        await appsLinks.addAppsFromCustomJson(APPS_LINKS.CUSTOM_JSON);
+
+        //Add links
+        await appsLinks.addLinks(formattedLinks);
+
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+
+        //apps and links launchpad verify
+        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.APPS_TEXT);
+        await appsLinks.verifySubTabsInsideAppsLinksTabIsVisible(APPS_LINKS.LINKS_TEXT);
+        await appsLinks.markAppsFavorite(APPS_LINKS.GOOGLE_DRIVE);
+        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.LINKS_TEXT);
+        await appsLinks.clickOnSubButtonsInsideLinksTab(APPS_LINKS.ORG_LINKS);
+        await appsLinks.markLinksFavorite(APPS_LINKS.YOUTUBE);
+        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.FAVORITES);
+        await appsLinks.verifyAppsAreMarkedAsFavorite(APPS_LINKS.GOOGLE_DRIVE);
+        await appsLinks.clickOnSubButtonsInsideFavorite(APPS_LINKS.LINKS_TEXT);
+        await appsLinks.verifyLinksAreMarkedAsFavorite(APPS_LINKS.YOUTUBE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+        await appsLinks.cancelAllLinksPresent();
+        await appsLinks.clickOnSaveButton();
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
       }
     );
 
@@ -266,6 +185,85 @@ test.describe(
         await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
         await appsLinks.cancelAllLinksPresent();
         await appsLinks.clickOnSaveButton();
+      }
+    );
+
+    test(
+      'verify custom links: If Custom links checkbox is selected then user should be able to see add custom link options else not',
+      {
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
+      },
+      async () => {
+        //Add Apps: custom JSON
+        await appsLinks.addAppsFromCustomJson(APPS_LINKS.CUSTOM_JSON);
+
+        //Add links
+        await appsLinks.addLinks(formattedLinks);
+        //CheckBox Unchecked
+        await appsLinks.customLinkCheckBox(APPS_LINKS.FALSE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.verifySubTabsInsideLinksVisibility(
+          APPS_LINKS.LINKS_TEXT,
+          APPS_LINKS.CUSTOM_LINKS,
+          APPS_LINKS.FALSE
+        );
+
+        //CheckBox Checked
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.customLinkCheckBox(APPS_LINKS.TRUE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.verifySubTabsInsideLinksVisibility(
+          APPS_LINKS.LINKS_TEXT,
+          APPS_LINKS.CUSTOM_LINKS,
+          APPS_LINKS.TRUE
+        );
+        await appsLinks.clickOnSubButtonsInsideLinksTab(APPS_LINKS.CUSTOM_LINKS);
+        await appsLinks.addAndVerifyCustomLinks(APPS_LINKS.YOUTUBE, APPS_LINKS.YOUTUBE_LINK);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.markLinksFavorite(APPS_LINKS.YOUTUBE);
+        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.FAVORITES);
+        await appsLinks.clickOnSubButtonsInsideFavorite(APPS_LINKS.LINKS_TEXT);
+        await appsLinks.verifyLinksAreMarkedAsFavorite(APPS_LINKS.YOUTUBE);
+        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.LINKS_TEXT);
+        await appsLinks.clickOnSubButtonsInsideLinksTab(APPS_LINKS.CUSTOM_LINKS);
+        await appsLinks.deleteCustomLink(APPS_LINKS.YOUTUBE);
+        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+        await appsLinks.cancelAllLinksPresent();
+        await appsLinks.clickOnSaveButton();
+      }
+    );
+
+    test(
+      'verify apps and links URL in launchpad',
+      {
+        tag: [TestGroupType.SMOKE, TestGroupType.SANITY, TestPriority.P1, TestGroupType.HEALTHCHECK],
+      },
+      async () => {
+        //Add Apps: custom JSON
+        await appsLinks.addAppsFromCustomJson(APPS_LINKS.CUSTOM_JSON);
+
+        //Add links
+        await appsLinks.addLinks(formattedLinks);
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.verifyURL(APPS_LINKS.APPS_CAPS_OFF, APPS_LINKS.GOOGLE_DRIVE, APPS_LINKS.GOOGLE_DRIVE_LINK);
+        await appsLinks.verifyURL(APPS_LINKS.APPS_CAPS_OFF, APPS_LINKS.MICROSOFT_365, APPS_LINKS.MICROSOFT_LINK);
+        await appsLinks.appsLinksLaunchpadButtons(APPS_LINKS.LINKS_TEXT);
+        await appsLinks.verifyOrgLinks(APPS_LINKS.GOOGLE);
+        await appsLinks.verifyOrgLinks(APPS_LINKS.YOUTUBE);
+        await appsLinks.verifyOrgLinks(APPS_LINKS.AMAZON);
+        await appsLinks.verifyOrgLinks(APPS_LINKS.FLIPKART);
+        await appsLinks.verifyOrgLinks(APPS_LINKS.SIMMPLR);
+        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.GOOGLE, APPS_LINKS.GOOGLE_LINK);
+        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.YOUTUBE, APPS_LINKS.YOUTUBE_LINK);
+        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.AMAZON, APPS_LINKS.AMAZON_LINK);
+        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.FLIPKART, APPS_LINKS.FLIPKART_LINK);
+        await appsLinks.verifyURL(APPS_LINKS.LINKS_CAPS_OFF, APPS_LINKS.SIMMPLR, APPS_LINKS.SIMPPLR_LINK);
+        await appsLinks.clickOnHomePageHeader(APPS_LINKS.APPS_LINKS);
+        await appsLinks.clickOnAppsIntegrationDropdown(APPS_LINKS.NONE);
+        await appsLinks.cancelAllLinksPresent();
+        await appsLinks.clickOnSaveButton();
+        await appsLinks.verifyToastMessage(MESSAGES.SAVE_CHANGES_SUCCESS_MESSAGE);
       }
     );
 
