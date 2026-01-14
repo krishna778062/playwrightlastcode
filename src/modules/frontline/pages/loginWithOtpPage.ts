@@ -3,7 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { BasePage } from '@core/ui/pages/basePage';
 import { LoginPage } from '@core/ui/pages/loginPage';
 
-import { LWO_MESSAGES } from '../constants/lwoConstants';
+import { LWO_MESSAGES, OTP_RESEND_TIMEOUTS, OTP_TEST_VALUES } from '../constants/lwoConstants';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { OTPUtils } from '@/src/core/utils/smsUtil';
@@ -108,6 +108,10 @@ export class LoginWithOtpPage extends BasePage {
     this.verificationCodeMessageMobile = page.getByText('A verification code has been sent to your mobile');
     this.enterOtpTextbox = page.getByRole('textbox', { name: 'Enter OTP' });
     this.verifyOtpButton = page.getByRole('button', { name: 'Verify OTP' });
+  }
+
+  getToastMessageWithText(messageText: string | RegExp): Locator {
+    return this.page.getByRole('alert').filter({ hasText: messageText });
   }
 
   /**
@@ -470,24 +474,11 @@ export class LoginWithOtpPage extends BasePage {
     options?: { timeout?: number }
   ): Promise<void> {
     await test.step(`Logging in with ${loginIdentifier} using ${otpType} OTP`, async () => {
-      // Navigate to login page and enter login identifier in username input field
+      // Verify login page elements before navigation
       await this.verifyLoginPageElements(loginPage);
-      await this.fillInElement(loginPage.usernameInput, loginIdentifier);
-      await this.clickOnElement(loginPage.continueButton);
 
-      // Wait for authenticate page and validate Use OTP button is visible
-      await this.verifyAuthenticatePage(options);
-
-      // Click Use OTP button to navigate to lets get started page
-      await this.clickOnElement(this.useOtpButton);
-      await this.verifyLetsGetStartedHeading(options);
-
-      // Select the OTP type from dropdown
-      await this.selectOTPType(otpType);
-
-      // Click Send OTP and validate verification messages and OTP input field is visible
-      await this.clickOnElement(this.sendOtpButton);
-      await this.verifyOtpSentConfirmation(otpType, options);
+      // Navigate to OTP verification page
+      await this.navigateToOtpVerificationPage(loginPage, loginIdentifier, otpType, options);
 
       // Get and enter OTP based on the selected type
       await this.page.waitForTimeout(8000); // Wait for OTP to be sent
@@ -501,6 +492,128 @@ export class LoginWithOtpPage extends BasePage {
 
       // Click Verify OTP button to verify OTP
       await this.clickOnElement(this.verifyOtpButton);
+    });
+  }
+
+  async navigateToOtpVerificationPage(
+    loginPage: LoginPage,
+    employeeId: string,
+    otpType: 'email' | 'mobile',
+    options?: { timeout?: number }
+  ): Promise<void> {
+    await test.step(`Navigating to OTP verification page for ${employeeId}`, async () => {
+      await this.fillInElement(loginPage.usernameInput, employeeId);
+
+      await Promise.all([
+        this.page.waitForURL(/authenticate/, {
+          timeout: options?.timeout || TIMEOUTS.MEDIUM,
+        }),
+        this.clickOnElement(loginPage.continueButton),
+      ]);
+
+      await this.verifier.verifyTheElementIsVisible(this.useOtpButton, {
+        timeout: options?.timeout || TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.useOtpButton);
+
+      await this.verifyLetsGetStartedHeading(options);
+
+      await this.selectOTPType(otpType);
+      await this.clickOnElement(this.sendOtpButton);
+
+      await this.verifyOtpSentConfirmation(otpType, options);
+    });
+  }
+
+  async verifyOtpButtonDisabledForInvalidOtpLength(): Promise<void> {
+    const invalidOtp = OTP_TEST_VALUES.INVALID_LENGTH_OTP;
+    await test.step(`Verifying Verify OTP button is disabled for ${invalidOtp.length} digit OTP`, async () => {
+      await this.fillInElement(this.enterOtpTextbox, invalidOtp);
+      await this.verifier.verifyTheElementIsDisabled(this.verifyOtpButton, {
+        assertionMessage: `Verify OTP button should be disabled for ${invalidOtp.length} digit OTP`,
+      });
+    });
+  }
+
+  private async enterIncorrectOtpAndVerifyError(): Promise<void> {
+    await this.enterOtpTextbox.clear();
+    await this.fillInElement(this.enterOtpTextbox, OTP_TEST_VALUES.INCORRECT_OTP);
+    await this.clickOnElement(this.verifyOtpButton);
+    await this.verifier.verifyTheElementIsVisible(
+      this.getToastMessageWithText(LWO_MESSAGES.INCORRECT_VERIFICATION_CODE),
+      { timeout: TIMEOUTS.MEDIUM }
+    );
+  }
+
+  private async clickVerifyAndCheckErrorMessage(expectedMessage: string): Promise<void> {
+    await this.clickOnElement(this.verifyOtpButton);
+    await this.verifier.verifyTheElementIsVisible(this.getToastMessageWithText(expectedMessage), {
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  private async verifyAccountBlockedOnLogin(loginPage: LoginPage, employeeId: string): Promise<void> {
+    await this.fillInElement(loginPage.usernameInput, employeeId);
+    await this.clickOnElement(loginPage.continueButton);
+    await this.verifier.verifyTheElementIsVisible(this.getToastMessageWithText(LWO_MESSAGES.BLOCKED_FOR_30_MINUTES), {
+      timeout: TIMEOUTS.MEDIUM,
+    });
+  }
+
+  async verifyOtpErrorMessagesAndAccountLockout(loginPage: LoginPage, employeeId: string): Promise<void> {
+    await test.step('Verifying OTP error messages and account lockout flow', async () => {
+      await this.verifyOtpButtonDisabledForInvalidOtpLength();
+      await this.enterIncorrectOtpAndVerifyError();
+      await this.clickVerifyAndCheckErrorMessage(LWO_MESSAGES.INCORRECT_VERIFICATION_CODE);
+      await this.clickVerifyAndCheckErrorMessage(LWO_MESSAGES.TWO_ATTEMPTS_REMAINING);
+      await this.clickVerifyAndCheckErrorMessage(LWO_MESSAGES.ONE_ATTEMPT_REMAINING);
+      await this.clickVerifyAndCheckErrorMessage(LWO_MESSAGES.ACCOUNT_LOCKED_30_MINUTES);
+      await loginPage.reloadPage({ stepInfo: 'Reloading login page to verify blocked message' });
+      await this.verifyAccountBlockedOnLogin(loginPage, employeeId);
+    });
+  }
+
+  private async clickResendAndVerifyWaitMessage(): Promise<void> {
+    await this.clickOnElement(this.resendOtpButton);
+    const waitSecondsToast = this.getToastMessageWithText(LWO_MESSAGES.RESEND_WAIT_SECONDS_PATTERN);
+    const waitMinutesToast = this.getToastMessageWithText(LWO_MESSAGES.RESEND_WAIT_MINUTES_PATTERN);
+
+    const isSecondsVisible = await this.verifier.isTheElementVisible(waitSecondsToast, { timeout: 5000 });
+    const isMinutesVisible = await this.verifier.isTheElementVisible(waitMinutesToast, { timeout: 5000 });
+
+    if (!isSecondsVisible && !isMinutesVisible) {
+      throw new Error('Expected wait message toast after clicking Resend OTP');
+    }
+  }
+
+  private async clickResendAndVerifySuccess(_otpType: 'email' | 'mobile'): Promise<void> {
+    await this.clickOnElement(this.resendOtpButton);
+    await this.verifier.verifyTheElementIsVisible(this.otpSentToHeading, { timeout: TIMEOUTS.MEDIUM });
+    await this.verifier.verifyTheElementIsVisible(this.enterOtpTextbox, { timeout: TIMEOUTS.MEDIUM });
+    await this.verifier.verifyTheElementIsVisible(this.resendOtpButton, { timeout: TIMEOUTS.MEDIUM });
+  }
+
+  private async clickResendAndVerifyLockout(): Promise<void> {
+    await this.clickOnElement(this.resendOtpButton);
+    await this.verifier.verifyTheElementIsVisible(
+      this.getToastMessageWithText(LWO_MESSAGES.RESEND_WAIT_MINUTES_PATTERN),
+      { timeout: TIMEOUTS.MEDIUM }
+    );
+  }
+
+  async verifyResendOtpRateLimitingAndLockout(otpType: 'email' | 'mobile'): Promise<void> {
+    await test.step('Verifying resend OTP rate limiting and lockout flow', async () => {
+      await this.clickResendAndVerifyWaitMessage();
+      await this.page.waitForTimeout(OTP_RESEND_TIMEOUTS.COOLDOWN_SECONDS * 1000);
+
+      await this.clickResendAndVerifySuccess(otpType);
+      await this.clickResendAndVerifyWaitMessage();
+      await this.page.waitForTimeout(OTP_RESEND_TIMEOUTS.COOLDOWN_SECONDS * 1000);
+
+      await this.clickResendAndVerifySuccess(otpType);
+      await this.page.waitForTimeout(OTP_RESEND_TIMEOUTS.COOLDOWN_SECONDS * 1000);
+
+      await this.clickResendAndVerifyLockout();
     });
   }
 }
