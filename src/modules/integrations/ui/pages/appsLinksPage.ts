@@ -94,6 +94,10 @@ export class AppsLinksPage extends BasePage {
     return this.appslinksComponent.verifyApps(name);
   }
 
+  async verifyAppsByTitle(expectedAppTitles?: string[]): Promise<string[]> {
+    return this.appslinksComponent.verifyAllAppsByTitle(expectedAppTitles);
+  }
+
   async verifyURL(type: string, name: string, url: string): Promise<void> {
     return this.appslinksComponent.verifyURL(type, name, url);
   }
@@ -177,5 +181,33 @@ export class AppsLinksPage extends BasePage {
 
   async addDuplicateCustomApps(): Promise<void> {
     return this.appslinksComponent.addDuplicateCustomApps();
+  }
+
+  async selectAppsIntegration(integrationName: string): Promise<void> {
+    return this.appslinksComponent.selectAppsIntegration(integrationName);
+  }
+
+  async enterApiToken(apiToken: string): Promise<void> {
+    return this.appslinksComponent.enterApiToken(apiToken);
+  }
+
+  async enterOktaLink(oktaLink: string): Promise<void> {
+    return this.appslinksComponent.enterOktaLink(oktaLink);
+  }
+
+  async selectOktaUserNameFormat(userNameFormat: string): Promise<void> {
+    return this.appslinksComponent.selectOktaUserNameFormat(userNameFormat);
+  }
+
+  async selectExistingOktaConfigurationCheckbox(): Promise<void> {
+    return this.appslinksComponent.selectExistingOktaConfigurationCheckbox();
+  }
+
+  async enterOneLoginEmbeddingCode(embeddingCode: string): Promise<void> {
+    return this.appslinksComponent.enterOneLoginEmbeddingCode(embeddingCode);
+  }
+
+  async enterOneLoginURL(url: string): Promise<void> {
+    return this.appslinksComponent.enterOneLoginURL(url);
   }
 }
