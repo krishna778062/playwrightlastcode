@@ -18,6 +18,9 @@ test.describe.serial('quick Task', () => {
   let testTaskTitles: string[] = [];
   let testTaskDueDates: string[] = [];
 
+  // Store UI-created task IDs for cleanup
+  const uiCreatedTaskIds: string[] = [];
+
   // Store tasks for specific tests that need pre-created tasks
   const preCreatedTasks: Map<string, TaskDetails> = new Map();
 
@@ -425,34 +428,162 @@ test.describe.serial('quick Task', () => {
   );
 
   /**
-   * Verifies that user can assign a task to multiple users simultaneously
+   * Verifies that user can create a task with the maximum allowed title length (200 characters, no spaces)
    */
   test(
-    'verify that user can assign a task to multiple users simultaneously',
-    { tag: [TestPriority.P0, '@quick-task'] },
+    'verify that user can create a task with the maximum allowed title length',
+    { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
-        zephyrTestId: ['PS-36895'],
+        zephyrTestId: ['PS-36934'],
+      });
+
+      const quickTaskPage = new QuickTaskPage(page);
+      const maxLengthTitle = faker.string.alphanumeric(200);
+      const taskDescription = `Description ${faker.lorem.sentence()}`;
+
+      await quickTaskPage.createTaskWithUserAssignment(maxLengthTitle, taskDescription);
+
+      // Extract and store task ID for cleanup
+      const taskId = quickTaskPage.extractTaskIdFromUrl();
+      if (taskId) {
+        uiCreatedTaskIds.push(taskId);
+      }
+    }
+  );
+
+  /**
+   * Verifies that user can enter a very long description without breaking the UI or limits (2048 characters)
+   */
+  test(
+    'verify that user can enter a very long description without breaking the UI or limits',
+    { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+    async ({ quickTaskPage: page }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-36935'],
+      });
+
+      const quickTaskPage = new QuickTaskPage(page);
+      const taskName = `Task ${faker.word.noun()} ${Date.now()}`;
+      const longDescription = faker.string.alphanumeric(2048);
+
+      await quickTaskPage.createTaskWithUserAssignment(taskName, longDescription);
+
+      // Extract and store task ID for cleanup
+      const taskId = quickTaskPage.extractTaskIdFromUrl();
+      if (taskId) {
+        uiCreatedTaskIds.push(taskId);
+      }
+    }
+  );
+
+  /**
+   * Verifies Priority dropdown functionality - each Zephyr ID as separate test case
+   */
+  const priorityTestCases = [
+    {
+      zephyrId: 'PS-36945',
+      description: 'verify that user can open the Priority dropdown and view all available options',
+    },
+    { zephyrId: 'PS-36946', description: 'verify that user can select any value from the Priority dropdown' },
+    { zephyrId: 'PS-36947', description: 'verify that user sees the selected Priority value displayed correctly' },
+    { zephyrId: 'PS-36949', description: 'verify that Priority dropdown options appear in the correct order' },
+  ];
+
+  for (const testCase of priorityTestCases) {
+    test(
+      `${testCase.description} - ${testCase.zephyrId}`,
+      { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+      async ({ quickTaskPage: page }) => {
+        tagTest(test.info(), {
+          zephyrTestId: [testCase.zephyrId],
+        });
+
+        const quickTaskPage = new QuickTaskPage(page);
+        await quickTaskPage.openCreateTaskForm();
+        await quickTaskPage.verifyAllPriorityOptionsAreVisibleAndSelectable();
+      }
+    );
+  }
+
+  /**
+   * Verifies that user can change the selected Priority value before saving the task - PS-36948
+   */
+  test(
+    'verify that user can change Priority value before saving task - PS-36948',
+    { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+    async ({ quickTaskPage: page }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-36948'],
       });
 
       const quickTaskPage = new QuickTaskPage(page);
       const taskName = `Task ${faker.word.noun()} ${Date.now()}`;
       const taskDescription = `Description ${faker.lorem.sentence()}`;
 
-      // Create task with multiple user assignments (first 3 users from dropdown)
-      const selectedUserNames = await quickTaskPage.createTaskWithMultipleUserAssignment(taskName, taskDescription, 3);
+      await quickTaskPage.openCreateTaskForm();
+      await quickTaskPage.verifyPriorityCanBeChangedAndCreateTask(taskName, taskDescription, 'High', 'Urgent');
 
-      // Verify all selected users are assigned to the task
-      // Pass expected count even if names couldn't be extracted from dropdown
-      await quickTaskPage.verifyMultipleAssignedUsers(selectedUserNames, 3);
-
-      // Verify created by shows logged-in user
-      const createdByUserName = await quickTaskPage.getCreatedByUserName();
-      expect(createdByUserName).toBeTruthy();
-      expect(createdByUserName.length).toBeGreaterThan(0);
-      await quickTaskPage.verifyCreatedByUser(createdByUserName);
+      // Extract and store task ID for cleanup
+      const taskId = quickTaskPage.extractTaskIdFromUrl();
+      if (taskId) {
+        uiCreatedTaskIds.push(taskId);
+      }
     }
   );
+
+  /**
+   * Verifies that user can assign a task to multiple users simultaneously - each Zephyr ID as separate test case
+   */
+  const multipleUserAssignmentTestCases = [
+    {
+      zephyrId: 'PS-36895',
+      description: 'verify that user can assign a task to multiple users simultaneously',
+    },
+    {
+      zephyrId: 'PS-36956',
+      description: 'verify that user can assign a task to multiple users simultaneously',
+    },
+  ];
+
+  for (const testCase of multipleUserAssignmentTestCases) {
+    test(
+      `${testCase.description} - ${testCase.zephyrId}`,
+      { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+      async ({ quickTaskPage: page }) => {
+        tagTest(test.info(), {
+          zephyrTestId: [testCase.zephyrId],
+        });
+
+        const quickTaskPage = new QuickTaskPage(page);
+        const taskName = `Task ${faker.word.noun()} ${Date.now()}`;
+        const taskDescription = `Description ${faker.lorem.sentence()}`;
+
+        // Create task with multiple user assignments (first 3 users from dropdown)
+        const selectedUserNames = await quickTaskPage.createTaskWithMultipleUserAssignment(
+          taskName,
+          taskDescription,
+          3
+        );
+
+        // Verify all selected users are assigned to the task
+        // Pass expected count even if names couldn't be extracted from dropdown
+        await quickTaskPage.verifyMultipleAssignedUsers(selectedUserNames, 3);
+
+        // Verify created by shows logged-in user
+        const createdByUserName = await quickTaskPage.getCreatedByUserName();
+        expect(createdByUserName).toBeTruthy();
+        expect(createdByUserName.length).toBeGreaterThan(0);
+        await quickTaskPage.verifyCreatedByUser(createdByUserName);
+
+        // Extract and store task ID for cleanup
+        const taskId = quickTaskPage.extractTaskIdFromUrl();
+        if (taskId) {
+          uiCreatedTaskIds.push(taskId);
+        }
+      }
+    );
+  }
 
   test(
     'verify that the user can search a task using the exact task title',
