@@ -656,7 +656,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify tags are displayed in the task detail view',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37326', 'PS-37323'],
@@ -705,7 +705,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'Verify status updates are immediately reflected',
-    { tag: [TestPriority.P0, '@quick-task1'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37325'],
@@ -791,7 +791,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'verify task description and title is displayed in the task detail view',
-    { tag: [TestPriority.P0, '@quick-task1'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37322', 'PS-37321'],
@@ -866,7 +866,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'Verify admin can edit tasks successfully',
-    { tag: [TestPriority.P0, '@quick-task1'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37320', 'PS-37316', 'PS-37312', 'PS-37331', 'PS-37318'],
