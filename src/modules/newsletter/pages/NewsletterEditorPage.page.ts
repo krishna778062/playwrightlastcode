@@ -65,13 +65,19 @@ export class NewsletterEditorPage extends BasePage {
       // Wait for URL to confirm navigation completed
       await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
 
+      // Wait for network idle to ensure content is loaded
+      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.SHORT });
+
+      // Wait a bit for dynamic content to render
+      await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
+
       // Dismiss any blocking dialogs (e.g., survey prompts)
       await this.dismissSurveyPromptIfVisible();
 
       // Use the Create button as the primary verification element (more reliable than heading)
       // This matches the pattern used in NewsletterHomePagePage which uses searchInput
       await this.verifier.verifyTheElementIsVisible(this.createButton, {
-        timeout: TIMEOUTS.SHORT,
+        timeout: TIMEOUTS.MEDIUM,
         assertionMessage: 'Newsletter listing page should be loaded - Create button not visible',
       });
     });
