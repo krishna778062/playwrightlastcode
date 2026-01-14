@@ -997,7 +997,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'Verify task can be created with attachment',
-    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-with-attachment'] },
+    { tag: [TestPriority.P0, '@quick-task1', '@requires-pre-created-task', '@task-with-attachment'] },
     async ({ quickTaskPage, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37333', 'PS-37328'],
