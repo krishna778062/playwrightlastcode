@@ -85,6 +85,7 @@ export class UserManagementService implements IUserManagementOperations {
           timezone_id: user.timezone_id || this.defaultTimezoneId,
           language_id: user.language_id || this.defaultLanguageId,
           locale_id: user.locale_id || this.defaultLocaleId,
+          license_type: 'Corporate', // Required for production environments
         },
         role_id: roleId,
         silent_upload: false,
