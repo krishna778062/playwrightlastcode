@@ -200,19 +200,11 @@ test.describe(
         // Click "Share your thoughts or question" button
         await feedPage.clickShareThoughtsButton();
 
-        // Create post with text, topic, user mention, site mentions, and embedded URL
-        console.log('Creating post with mentions:');
-        console.log('Text:', initialPostText);
-        console.log('User Name:', standardUserFullName);
-        console.log('Topic Name:', simpplrTopic.name);
-        console.log('Site Names:', [publicSiteName, privateSiteName, unlistedSiteName]);
-        console.log('Embed URL:', embedUrl);
-
         // Create a simple post first to test basic functionality
         const postResult = await feedPage.postEditor.createfeedWithMentionUserNameAndTopic({
           text: initialPostText,
           userName: standardUserFullName,
-          topicName: simpplrTopic.name,
+          topicName: simpplrTopic?.name,
           siteName: [publicSiteName, privateSiteName, unlistedSiteName],
           embedUrl: embedUrl,
         });

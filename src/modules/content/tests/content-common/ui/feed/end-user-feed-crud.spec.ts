@@ -1012,11 +1012,6 @@ test.describe(
           simpplrTopic = topicList.result.listOfItems[0];
         }
 
-        console.log('Test data retrieved:');
-        console.log('Standard User Full Name:', standardUserFullName);
-        console.log('Public Site Name:', publicSiteName);
-        console.log('Simpplr Topic:', simpplrTopic?.name);
-
         // Initialize feed page for admin
         adminFeedPage = new FeedPage(appManagerFixture.page);
 
@@ -1038,7 +1033,7 @@ test.describe(
           const postResult = await adminFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: postText,
             userName: standardUserFullName,
-            topicName: simpplrTopic.name,
+            topicName: simpplrTopic?.name,
             siteName: [publicSiteName],
             embedUrl: embedUrl,
           });
