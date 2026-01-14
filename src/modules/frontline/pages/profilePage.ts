@@ -4,6 +4,7 @@ import { BasePage } from '@core/ui/pages/basePage';
 import { OTPUtils } from '@core/utils/smsUtil';
 
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { LWO_MESSAGES } from '@/src/modules/frontline/constants/lwoConstants';
 
 export class ProfilePage extends BasePage {
   readonly contactEditButton: Locator;
@@ -20,6 +21,7 @@ export class ProfilePage extends BasePage {
   readonly continueButton: Locator;
   readonly otpVerifiedSuccessToast: Locator;
   readonly mobileNumberDisplay: Locator;
+  readonly invalidMobileNumberErrorToast: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -37,6 +39,7 @@ export class ProfilePage extends BasePage {
     this.continueButton = page.getByRole('button', { name: 'Continue' });
     this.otpVerifiedSuccessToast = page.getByText('OTP verified successfully');
     this.mobileNumberDisplay = page.locator('a[href^="tel:"]');
+    this.invalidMobileNumberErrorToast = page.getByText(LWO_MESSAGES.INVALID_MOBILE_NUMBER_FORMAT_ERROR);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -187,6 +190,36 @@ export class ProfilePage extends BasePage {
       await this.verifyMobileVerificationScreen();
       await this.enterOtpAndVerify(otpUtils, phoneNumber);
       await this.verifyMobileNumberIsDisplayed(phoneNumber);
+    });
+  }
+
+  async verifyInvalidMobileNumberErrorToast(options?: { stepInfo?: string }): Promise<void> {
+    await test.step(options?.stepInfo || 'Verifying invalid mobile number error toast is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.invalidMobileNumberErrorToast, {
+        timeout: TIMEOUTS.SHORT,
+        assertionMessage: `Error toast message should be "${LWO_MESSAGES.INVALID_MOBILE_NUMBER_FORMAT_ERROR}"`,
+      });
+
+      await this.verifier.verifyElementHasText(
+        this.invalidMobileNumberErrorToast,
+        LWO_MESSAGES.INVALID_MOBILE_NUMBER_FORMAT_ERROR,
+        {
+          timeout: TIMEOUTS.SHORT,
+          assertionMessage: `Error toast message should be "${LWO_MESSAGES.INVALID_MOBILE_NUMBER_FORMAT_ERROR}"`,
+        }
+      );
+    });
+  }
+
+  async addInvalidMobileNumberAndVerifyErrorMessage(
+    invalidPhoneNumber: string,
+    options?: { stepInfo?: string }
+  ): Promise<void> {
+    await test.step(options?.stepInfo || 'Adding invalid mobile number and verifying error message', async () => {
+      await this.clickContactEditButton();
+      await this.fillMobileNumberOnProfilePage(invalidPhoneNumber);
+      await this.clickSaveButton();
+      await this.verifyInvalidMobileNumberErrorToast();
     });
   }
 }
