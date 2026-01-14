@@ -1,17 +1,24 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/ui/pages/basePage';
 
 export class AddSiteScreenPage extends BasePage {
-  readonly removeAudienceButton = this.page.getByRole('button', { name: 'Remove audience' });
-  readonly iUnderstandCheckbox = this.page.getByRole('checkbox', { name: 'I understand' });
-  readonly continueButton = this.page.getByRole('button', { name: 'Continue' });
-  readonly browseButton = this.page.getByRole('button', { name: 'Browse' });
-  readonly addSiteHeading = this.page.getByRole('heading', { name: 'Add site' });
+  readonly removeAudienceButton: Locator;
+  readonly iUnderstandCheckbox: Locator;
+  readonly continueButton: Locator;
+  readonly browseButton: Locator;
+  readonly addSiteHeading: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.ADD_SITE_SCREEN_PAGE);
+
+    // Initialize locators
+    this.removeAudienceButton = this.page.getByRole('button', { name: 'Remove audience' });
+    this.iUnderstandCheckbox = this.page.getByRole('checkbox', { name: 'I understand' });
+    this.continueButton = this.page.getByRole('button', { name: 'Continue' });
+    this.browseButton = this.page.getByRole('button', { name: 'Browse' });
+    this.addSiteHeading = this.page.getByRole('heading', { name: 'Add site' });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.addSiteHeading, {

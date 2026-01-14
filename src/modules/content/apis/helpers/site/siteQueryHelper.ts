@@ -148,11 +148,12 @@ export class SiteQueryHelper {
 
     for (const site of siteListResponse.result.listOfItems) {
       if (!site.isActive) continue;
+      // Only filter by properties that are explicitly specified (not undefined)
+      const matchesHasPages = requiredHasPages === undefined || site.hasPages === requiredHasPages;
+      const matchesHasEvents = requiredHasEvents === undefined || site.hasEvents === requiredHasEvents;
+      const matchesHasAlbums = requiredHasAlbums === undefined || site.hasAlbums === requiredHasAlbums;
 
-      const matchesRequirements =
-        site.hasPages === requiredHasPages &&
-        site.hasEvents === requiredHasEvents &&
-        site.hasAlbums === requiredHasAlbums;
+      const matchesRequirements = matchesHasPages && matchesHasEvents && matchesHasAlbums;
 
       if (matchesRequirements) {
         log.debug(`Found matching site: ${site.name} (${site.siteId})`);
