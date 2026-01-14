@@ -1,8 +1,11 @@
 import { faker } from '@faker-js/faker';
 import { expect } from '@playwright/test';
+import * as path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
+import { TaskDetails } from '@platforms/apis/interfaces/quickTask.interface';
+import { DEFAULT_TASK_TAGS } from '@platforms/constants/quickTask';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { QuickTaskPage } from '@platforms/ui/pages/quickTask/quickTaskPage';
 
@@ -10,9 +13,13 @@ import { QuickTaskPage } from '@platforms/ui/pages/quickTask/quickTaskPage';
  * Test suite for Quick Task functionality
  */
 test.describe.serial('quick Task', () => {
-  // Store task IDs and titles for each test that needs them
+  // Store task IDs, titles, and due dates for each test that needs them
   let testTaskIds: string[] = [];
   let testTaskTitles: string[] = [];
+  let testTaskDueDates: string[] = [];
+
+  // Store tasks for specific tests that need pre-created tasks
+  const preCreatedTasks: Map<string, TaskDetails> = new Map();
 
   /**
    * Creates multiple tasks (more than 3) before each test that needs them
@@ -35,10 +42,86 @@ test.describe.serial('quick Task', () => {
         const taskDetails = await quickTaskApiFixture.quickTaskService.createTaskAsPrerequisite(uniqueTitle, 'urgent');
         testTaskIds.push(taskDetails.taskId);
         testTaskTitles.push(taskDetails.title);
+        testTaskDueDates.push(taskDetails.dueDate || '');
         console.log(`Created task ${i + 1}/${taskCount} for test: ${testInfo.title}`);
-        console.log(`Task ID: ${taskDetails.taskId}, Title: ${taskDetails.title}`);
+        console.log(
+          `Task ID: ${taskDetails.taskId}, Title: ${taskDetails.title}, Due Date: ${taskDetails.dueDate || 'N/A'}`
+        );
       }
       console.log(`Total ${taskCount} tasks created for test: ${testInfo.title}`);
+    }
+  });
+
+  /**
+   * Creates tasks before each test for specific test cases
+   * Only runs for tests tagged with @requires-pre-created-task
+   * Task type is determined by additional tags: @task-with-description, @task-with-attachment, @task-assigned-to-self
+   */
+  test.beforeEach(async ({ quickTaskApiFixture }, testInfo) => {
+    const testTags = testInfo.tags || [];
+    const needsPreCreatedTask = testTags.includes('@requires-pre-created-task');
+
+    if (needsPreCreatedTask) {
+      const quickTaskService = quickTaskApiFixture.quickTaskService;
+      const testName = testInfo.title;
+      let taskDetails: TaskDetails;
+
+      // Determine task type based on tags
+      if (testTags.includes('@task-assigned-to-self')) {
+        // Create task assigned to self
+        const statusUpdateTitle = `My Task ${faker.lorem.words({ min: 2, max: 3 })} ${Date.now()}`;
+        taskDetails = await quickTaskService.createTaskAsPrerequisite(
+          statusUpdateTitle,
+          'urgent',
+          undefined,
+          true // assignToSelf = true
+        );
+        preCreatedTasks.set(testName, taskDetails);
+        console.log(
+          `Created task assigned to self for "${testName}": ${statusUpdateTitle}, Task ID: ${taskDetails.taskId}`
+        );
+      } else if (testTags.includes('@task-with-description')) {
+        // Create task with description
+        const descriptionTitle = `Task with Description ${faker.lorem.words({ min: 2, max: 3 })} ${Date.now()}`;
+        const taskDescription = `This is a test task description created at ${new Date().toLocaleString()}. ${faker.lorem.sentence()}`;
+        taskDetails = await quickTaskService.createTaskAsPrerequisite(
+          descriptionTitle,
+          'urgent',
+          undefined,
+          false,
+          taskDescription
+        );
+        // Store description in taskDetails for later use
+        (taskDetails as any).description = taskDescription;
+        preCreatedTasks.set(testName, taskDetails);
+        console.log(
+          `Created task with description for "${testName}": ${descriptionTitle}, Task ID: ${taskDetails.taskId}`
+        );
+      } else if (testTags.includes('@task-with-attachment')) {
+        // Create task with attachment
+        const attachmentTitle = `Task with Attachment ${faker.lorem.words({ min: 2, max: 3 })} ${Date.now()}`;
+        const csvFilePath = path.join(__dirname, '..', '..', 'test-data', 'validAudience.csv');
+        taskDetails = await quickTaskService.createTaskAsPrerequisite(
+          attachmentTitle,
+          'urgent',
+          undefined,
+          false,
+          undefined,
+          [csvFilePath]
+        );
+        // Store file path for later use
+        (taskDetails as any).attachmentFilePath = csvFilePath;
+        preCreatedTasks.set(testName, taskDetails);
+        console.log(
+          `Created task with attachment for "${testName}": ${attachmentTitle}, Task ID: ${taskDetails.taskId}`
+        );
+      } else {
+        // Default: Create regular task (for editing test)
+        const editTitle = `Task to Edit ${faker.lorem.words({ min: 2, max: 3 })} ${Date.now()}`;
+        taskDetails = await quickTaskService.createTaskAsPrerequisite(editTitle, 'urgent', undefined, false);
+        preCreatedTasks.set(testName, taskDetails);
+        console.log(`Created regular task for "${testName}": ${editTitle}, Task ID: ${taskDetails.taskId}`);
+      }
     }
   });
 
@@ -46,6 +129,21 @@ test.describe.serial('quick Task', () => {
    * Cleans up all tasks created in beforeEach after each test
    */
   test.afterEach(async ({ quickTaskApiFixture }, testInfo) => {
+    // Clean up pre-created tasks
+    const testName = testInfo.title;
+    const taskDetails = preCreatedTasks.get(testName);
+    if (taskDetails) {
+      try {
+        console.log(`Cleaning up pre-created task for "${testName}": ${taskDetails.taskId}`);
+        await quickTaskApiFixture.quickTaskService.deleteTask(taskDetails.taskId);
+        console.log(`Successfully deleted task with ID: ${taskDetails.taskId}`);
+        preCreatedTasks.delete(testName);
+      } catch (error) {
+        console.warn(`Failed to delete task with ID: ${taskDetails.taskId}:`, error);
+      }
+    }
+
+    // Clean up tasks from the existing beforeEach (for @requires-task-prerequisite tests)
     if (testTaskIds.length > 0) {
       console.log(`Cleaning up ${testTaskIds.length} task(s) for test: ${testInfo.title}`);
       for (const taskId of testTaskIds) {
@@ -60,6 +158,7 @@ test.describe.serial('quick Task', () => {
       }
       testTaskIds = [];
       testTaskTitles = [];
+      testTaskDueDates = [];
     }
   });
 
@@ -357,7 +456,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that the user can search a task using the exact task title',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37278'],
@@ -399,7 +498,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that the task list filters correctly when searching with a partial task title',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37279'],
@@ -442,7 +541,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that no tasks appear when the user searches for a non-existing task title',
-    { tag: [TestPriority.P0, '@quick-task1'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37281'],
@@ -473,7 +572,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that clearing the search input displays the full task list again',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37282'],
@@ -514,7 +613,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify that tasks are filtered in real-time while typing in the search bar',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37283'],
@@ -572,7 +671,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify the Edit Task option is visible in task view',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37308'],
@@ -612,7 +711,7 @@ test.describe.serial('quick Task', () => {
 
   test(
     'verify the Edit Task option is visible in the task list',
-    { tag: [TestPriority.P0, '@quick-task1', '@requires-task-prerequisite'] },
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
     async ({ quickTaskPage }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-37309'],
@@ -645,6 +744,321 @@ test.describe.serial('quick Task', () => {
 
       // Verify the Edit option is visible in the dropdown menu
       await quickTaskPageObj.verifyEditOptionInDropdownIsVisible();
+    }
+  );
+
+  test(
+    'verify tags are displayed in the task detail view',
+    { tag: [TestPriority.P0, '@quick-task', '@requires-task-prerequisite'] },
+    async ({ quickTaskPage }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-37326', 'PS-37323'],
+      });
+
+      if (!testTaskTitles || testTaskTitles.length === 0) {
+        throw new Error('Task titles not available. Tasks should be created in beforeEach.');
+      }
+
+      // Use the first dynamically created task title and due date
+      const taskTitle = testTaskTitles[0];
+      const taskDueDate = testTaskDueDates[0];
+
+      const currentUrl = quickTaskPage.url();
+      expect(currentUrl, 'Should be logged in (URL should not contain login/authenticate)').not.toContain('login');
+      expect(currentUrl, 'Should be logged in (URL should not contain authenticate)').not.toContain('authenticate');
+
+      // Navigate to quick tasks page (user is already logged in via fixture)
+      const quickTaskPageObj = new QuickTaskPage(quickTaskPage);
+      await quickTaskPageObj.loadPage();
+      await quickTaskPageObj.verifyThePageIsLoaded();
+
+      // Click on the "Created tasks" tab
+      await quickTaskPageObj.clickCreatedTasksTab();
+
+      // Verify the task is displayed
+      await quickTaskPageObj.verifyTaskIsDisplayed(taskTitle);
+
+      // Click on the task to open its detail view
+      await quickTaskPageObj.clickTaskByTitle(taskTitle);
+
+      // Verify tags are displayed in the task detail view
+      // Expected tags are from DEFAULT_TASK_TAGS constant
+      await quickTaskPageObj.verifyTagsInTaskDetail(DEFAULT_TASK_TAGS);
+
+      // Verify due date is displayed in the task detail view
+      if (taskDueDate) {
+        await quickTaskPageObj.verifyDueDateInTaskDetail(taskDueDate);
+      }
+    }
+  );
+
+  /**
+   * Verifies that a task assigned to self appears in "My tasks" tab
+   * Creates a single task assigned to the current logged-in user and verifies it appears in My tasks
+   */
+  test(
+    'Verify status updates are immediately reflected',
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-assigned-to-self'] },
+    async ({ quickTaskPage, quickTaskApiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-37325'],
+      });
+
+      const quickTaskPageObj = new QuickTaskPage(quickTaskPage);
+
+      // Get pre-created task from beforeEach
+      const taskDetails = preCreatedTasks.get('Verify status updates are immediately reflected');
+      if (!taskDetails) {
+        throw new Error('Pre-created task not found for this test');
+      }
+
+      const taskTitle = taskDetails.title;
+      const taskId = taskDetails.taskId;
+
+      console.log(`Using pre-created task assigned to self: ${taskTitle}, Task ID: ${taskId}`);
+
+      try {
+        // Wait a moment for the task to be available in the UI
+        await quickTaskPage.waitForTimeout(2000);
+
+        // Navigate to quick tasks page
+        await quickTaskPageObj.loadPage();
+        await quickTaskPageObj.verifyThePageIsLoaded();
+
+        // Click on the "My tasks" tab
+        await quickTaskPageObj.reloadAndNavigateToMyTasks();
+
+        // Verify the task is displayed in "My tasks" tab
+        await quickTaskPageObj.verifyTaskIsDisplayed(taskTitle);
+
+        // Click on the task to open its detail view
+        await quickTaskPageObj.clickTaskByTitle(taskTitle);
+
+        // Verify the task is assigned to the current user (should show in task detail)
+        await quickTaskPageObj.verifyTaskDetailPageComponents();
+
+        // Click on "Start task" button
+        await quickTaskPageObj.clickStartTaskButton();
+
+        // Verify the button changed to "Mark as completed"
+        await quickTaskPageObj.verifyTaskActionButton('Mark as completed', true);
+
+        // Click on "Mark as completed" button
+        await quickTaskPageObj.clickMarkAsCompletedButton();
+
+        // Verify the "Mark as completed" modal is open (using modal component)
+        await quickTaskPageObj.quickTaskModal.verifyMarkAsCompletedModalIsVisible();
+
+        // Click on the "Mark as completed" submit button in the modal
+        await quickTaskPageObj.clickMarkAsCompletedSubmitButton();
+
+        // Verify there's no "Mark as completed" button anymore
+        await quickTaskPageObj.verifyTaskActionButton('Mark as completed', false);
+
+        // Verify the status shows "Completed" badge
+        await quickTaskPageObj.verifyCompletedStatusBadgeIsVisible();
+      } catch (error) {
+        // Error handling - task cleanup is done in afterEach
+        throw error;
+      }
+    }
+  );
+
+  /**
+   * Verifies that task description is displayed in the task detail view
+   * Creates a task with a description and verifies it appears correctly
+   */
+  test(
+    'verify task description and title is displayed in the task detail view',
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-with-description'] },
+    async ({ quickTaskPage, quickTaskApiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-37322', 'PS-37321'],
+      });
+
+      const quickTaskPageObj = new QuickTaskPage(quickTaskPage);
+
+      // Get pre-created task from beforeEach
+      const taskDetails = preCreatedTasks.get('verify task description and title is displayed in the task detail view');
+      if (!taskDetails) {
+        throw new Error('Pre-created task not found for this test');
+      }
+
+      const taskTitle = taskDetails.title;
+      const taskId = taskDetails.taskId;
+      const taskDescription = (taskDetails as any).description;
+
+      console.log(`Using pre-created task with description: ${taskTitle}, Task ID: ${taskId}`);
+
+      try {
+        // Wait a moment for the task to be available in the UI
+        await quickTaskPage.waitForTimeout(2000);
+
+        // Navigate to quick tasks page
+        await quickTaskPageObj.loadPage();
+        await quickTaskPageObj.verifyThePageIsLoaded();
+
+        // Click on the "Created tasks" tab
+        await quickTaskPageObj.clickCreatedTasksTab();
+
+        // Verify the task is displayed
+        await quickTaskPageObj.verifyTaskIsDisplayed(taskTitle);
+
+        // Click on the task to open its detail view
+        await quickTaskPageObj.clickTaskByTitle(taskTitle);
+
+        // Verify task detail page components
+        await quickTaskPageObj.verifyTaskDetailPageComponents();
+
+        // Verify task title is displayed in the task detail view
+        await expect(quickTaskPageObj.taskDetailTitle, 'Task title should be visible in task detail view').toBeVisible({
+          timeout: 10000,
+        });
+        const titleText = quickTaskPageObj.taskDetailTitle;
+        await expect(titleText, 'Task title should match expected title').toHaveText(taskTitle);
+
+        // Verify description is displayed in the task detail view
+        await quickTaskPageObj.verifyDescriptionInTaskDetail(taskDescription);
+      } catch (error) {
+        // Error handling - task cleanup is done in afterEach
+        throw error;
+      }
+    }
+  );
+
+  /**
+   * Verifies that task title can be updated via Edit option from dropdown
+   * Creates a task, clicks Edit from dropdown, updates title, and verifies success message
+   */
+  test(
+    'Verify admin can edit tasks successfully',
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task'] },
+    async ({ quickTaskPage, quickTaskApiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-37320', 'PS-37316', 'PS-37312', 'PS-37331', 'PS-37318'],
+      });
+
+      const quickTaskPageObj = new QuickTaskPage(quickTaskPage);
+
+      // Get pre-created task from beforeEach
+      const taskDetails = preCreatedTasks.get('Verify admin can edit tasks successfully');
+      if (!taskDetails) {
+        throw new Error('Pre-created task not found for this test');
+      }
+
+      const originalTaskTitle = taskDetails.title;
+      const taskId = taskDetails.taskId;
+      const updatedTaskTitle = `Updated Task ${faker.lorem.words({ min: 2, max: 3 })} ${Date.now()}`;
+
+      console.log(`Using pre-created task: ${originalTaskTitle}, Task ID: ${taskId}`);
+
+      try {
+        await quickTaskPage.waitForTimeout(2000);
+        await quickTaskPageObj.loadPage();
+        await quickTaskPageObj.verifyThePageIsLoaded();
+        await quickTaskPageObj.clickCreatedTasksTab();
+        await quickTaskPageObj.verifyTaskIsDisplayed(originalTaskTitle);
+
+        await quickTaskPageObj.clickEditOptionFromDropdown(originalTaskTitle);
+        await quickTaskPageObj.fillTaskTitleInEditModal(updatedTaskTitle);
+        await quickTaskPageObj.quickTaskModal.clickEditModalCancelButton();
+        await quickTaskPage.waitForTimeout(1000);
+        await quickTaskPageObj.verifyTaskIsDisplayed(originalTaskTitle);
+
+        await quickTaskPageObj.clickEditOptionFromDropdown(originalTaskTitle);
+        await quickTaskPageObj.updateTaskTitle(updatedTaskTitle);
+        await quickTaskPageObj.verifyTaskUpdatedMessage();
+        await quickTaskPage.waitForTimeout(2000);
+
+        await quickTaskPageObj.loadPage();
+        await quickTaskPageObj.verifyThePageIsLoaded();
+        await quickTaskPageObj.clickCreatedTasksTab();
+        await quickTaskPageObj.verifyTaskIsDisplayed(updatedTaskTitle);
+        await quickTaskPageObj.clickTaskByTitle(updatedTaskTitle);
+
+        await expect(
+          quickTaskPageObj.taskDetailTitle,
+          'Updated task title should be visible in task detail view'
+        ).toBeVisible({
+          timeout: 10000,
+        });
+        const titleText = quickTaskPageObj.taskDetailTitle;
+        await expect(titleText, 'Task title should match the updated title').toHaveText(updatedTaskTitle);
+      } catch (error) {
+        // Error handling - task cleanup is done in afterEach
+        throw error;
+      }
+    }
+  );
+
+  /**
+   * Verifies that a task can be created with an attachment
+   * Creates a task with CSV attachment and verifies it was created successfully
+   */
+  test(
+    'Verify task can be created with attachment',
+    { tag: [TestPriority.P0, '@quick-task', '@requires-pre-created-task', '@task-with-attachment'] },
+    async ({ quickTaskPage, quickTaskApiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-37333', 'PS-37328'],
+      });
+
+      const quickTaskPageObj = new QuickTaskPage(quickTaskPage);
+
+      // Get pre-created task from beforeEach
+      const taskDetails = preCreatedTasks.get('Verify task can be created with attachment');
+      if (!taskDetails) {
+        throw new Error('Pre-created task not found for this test');
+      }
+
+      const taskTitle = taskDetails.title;
+      const taskId = taskDetails.taskId;
+      const csvFilePath = (taskDetails as any).attachmentFilePath;
+
+      console.log(`Using pre-created task with attachment: ${taskTitle}, Task ID: ${taskId}`);
+      console.log(`Attachment file: ${csvFilePath}`);
+
+      try {
+        // Verify task was created with attachment
+        expect(taskDetails.taskId, 'Task ID should be present').toBeTruthy();
+        expect(taskDetails.payload.attachments, 'Task should have attachments').toBeDefined();
+        expect(taskDetails.payload.attachments?.length, 'Task should have at least one attachment').toBeGreaterThan(0);
+
+        // Wait a moment for the task to be available in the UI
+        await quickTaskPage.waitForTimeout(2000);
+
+        // Navigate to quick tasks page
+        await quickTaskPageObj.loadPage();
+        await quickTaskPageObj.verifyThePageIsLoaded();
+
+        // Click on the "Created tasks" tab
+        await quickTaskPageObj.clickCreatedTasksTab();
+
+        // Verify the task is displayed
+        await quickTaskPageObj.verifyTaskIsDisplayed(taskTitle);
+
+        // Click on the task to open its detail view
+        await quickTaskPageObj.clickTaskByTitle(taskTitle);
+
+        // Verify task detail page components
+        await quickTaskPageObj.verifyTaskDetailPageComponents();
+
+        // Verify task title is displayed in the task detail view
+        await expect(quickTaskPageObj.taskDetailTitle, 'Task title should be visible in task detail view').toBeVisible({
+          timeout: 10000,
+        });
+        const titleText = quickTaskPageObj.taskDetailTitle;
+        await expect(titleText, 'Task title should match expected title').toHaveText(taskTitle);
+
+        // Verify attachment is displayed in the task detail view
+        const fileName = path.basename(csvFilePath);
+        await quickTaskPageObj.verifyAttachmentInTaskDetail(fileName);
+
+        console.log('Task created successfully with attachment and verified in UI');
+      } catch (error) {
+        // Error handling - task cleanup is done in afterEach
+        throw error;
+      }
     }
   );
 });

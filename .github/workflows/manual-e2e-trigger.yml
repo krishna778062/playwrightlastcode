@@ -62,6 +62,10 @@ on:
           - 'employee-listening'
           - 'form-designer'
           - 'comms-planner'
+          - 'integrations-primary'
+          - 'integrations-workday'
+          - 'integrations-azuresso'
+          - 'integrations-api'
 
       priority_filter:
         description: 'Filter by priority'
