@@ -45,6 +45,10 @@ export class QuickTaskPage extends BasePage {
   readonly taskDetailDueDate: Locator;
   readonly taskDetailDescription: Locator;
   readonly taskDetailTitle: Locator;
+  readonly taskDetailAttachments: Locator;
+  readonly taskDetailAttachment: (fileName: string) => Locator;
+  readonly taskDetailAttachmentFileName: (fileName: string) => Locator;
+  readonly taskDetailAttachmentDownloadButton: (fileName: string) => Locator;
   readonly editTitleInput: Locator;
   readonly updateTaskButton: Locator;
   readonly taskUpdatedMessage: Locator;
@@ -130,6 +134,23 @@ export class QuickTaskPage extends BasePage {
     this.taskDetailDescription = page.locator('p.text-foreground.text-sm.whitespace-pre-wrap');
     // Task detail view title - displayed as h1 with data-slot="page-header-title"
     this.taskDetailTitle = page.locator('h1[data-slot="page-header-title"]');
+    // Task detail view attachments - container with data-slot="attachment"
+    this.taskDetailAttachments = page.locator('div[data-slot="attachment"]');
+    // Task detail view attachment by file name
+    this.taskDetailAttachment = (fileName: string) =>
+      page.locator('div[data-slot="attachment"]').filter({ hasText: fileName });
+    // Task detail view attachment file name - span with class "truncate-2 max-w-46 font-semibold"
+    this.taskDetailAttachmentFileName = (fileName: string) =>
+      page
+        .locator('div[data-slot="attachment"]')
+        .locator('span.truncate-2.max-w-46.font-semibold')
+        .filter({ hasText: fileName });
+    // Task detail view attachment download button - button with aria-label="Download file" within attachment
+    this.taskDetailAttachmentDownloadButton = (fileName: string) =>
+      page
+        .locator('div[data-slot="attachment"]')
+        .filter({ hasText: fileName })
+        .locator('button[aria-label="Download file"]');
     // Edit task modal - title input
     this.editTitleInput = page.locator('input[data-slot="input"][name="title"][placeholder="Add title"]');
     // Update task button in edit modal
@@ -1373,7 +1394,7 @@ export class QuickTaskPage extends BasePage {
 
       if (expectedDueDate) {
         const [datePart] = expectedDueDate.split(' ');
-        const [year, day] = datePart.split('-');
+        const [year, month, day] = datePart.split('-');
         const dueDateText = await this.taskDetailDueDate.first().textContent();
         expect(dueDateText, 'Due date text should contain expected date').toContain(year);
         expect(dueDateText, 'Due date text should contain expected day').toContain(day);
@@ -1395,6 +1416,41 @@ export class QuickTaskPage extends BasePage {
 
       const descriptionText = await this.taskDetailDescription.first().textContent();
       expect(descriptionText, 'Description text should contain expected content').toContain(expectedDescription);
+    });
+  }
+
+  /**
+   * Verifies that an attachment is displayed in the task detail view
+   * @param fileName - The expected file name of the attachment
+   */
+  async verifyAttachmentInTaskDetail(fileName: string): Promise<void> {
+    await test.step(`Verify attachment "${fileName}" is displayed in task detail view`, async () => {
+      // Verify attachment container is visible
+      await expect(
+        this.taskDetailAttachment(fileName),
+        `Attachment container for "${fileName}" should be visible`
+      ).toBeVisible({
+        timeout: 10000,
+      });
+
+      // Verify file name is displayed correctly
+      await expect(
+        this.taskDetailAttachmentFileName(fileName),
+        `Attachment file name "${fileName}" should be visible`
+      ).toBeVisible({
+        timeout: 10000,
+      });
+
+      const fileNameText = await this.taskDetailAttachmentFileName(fileName).textContent();
+      expect(fileNameText, `Attachment file name should match "${fileName}"`).toContain(fileName);
+
+      // Verify download button is present for the attachment
+      await expect(
+        this.taskDetailAttachmentDownloadButton(fileName),
+        `Download button for attachment "${fileName}" should be visible`
+      ).toBeVisible({
+        timeout: 10000,
+      });
     });
   }
 

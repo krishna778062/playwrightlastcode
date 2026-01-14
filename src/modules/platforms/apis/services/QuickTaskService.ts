@@ -1,9 +1,12 @@
 import { faker } from '@faker-js/faker';
 import { APIRequestContext, test } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
 import { DEFAULT_FUTURE_DAYS_OFFSET, DEFAULT_TASK_TAGS } from '@platforms/constants/quickTask';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import {
   CreateTaskPayload,
   CreateTaskResponse,
@@ -175,6 +178,10 @@ export class QuickTaskService {
    */
   async createTask(payload: CreateTaskPayload): Promise<CreateTaskResponse> {
     return await test.step('Create task', async () => {
+      // Log payload for debugging attachment issues
+      if (payload.attachments) {
+        console.log('Task creation payload with attachments:', JSON.stringify(payload, null, 2));
+      }
       const response = await this.httpClient.post(PLATFORM_API_ENDPOINTS.quickTask.tasks, {
         data: payload,
       });
@@ -248,6 +255,155 @@ export class QuickTaskService {
   }
 
   /**
+   * Gets MIME type from file extension
+   * @param filePath - Path to the file
+   * @returns MIME type string
+   */
+  private getMimeType(filePath: string): string {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.pdf': 'application/pdf',
+      '.csv': 'text/csv',
+      '.txt': 'text/plain',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  /**
+   * Uploads a file and gets signed URL for upload
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param uploadContext - Upload context (default: 'home-feed')
+   * @returns Promise with fileId and uploadUrl
+   */
+  private async uploadFile(
+    fileName: string,
+    filePath: string,
+    uploadContext: string = 'home-feed'
+  ): Promise<{ fileId: string; uploadUrl: string }> {
+    return await test.step(`Uploading file "${fileName}" to get signed URL`, async () => {
+      const fileStats = fs.statSync(filePath);
+      const fileSize = fileStats.size;
+
+      // Validate file size - API requires size >= 1
+      if (fileSize < 1) {
+        throw new Error(`File "${fileName}" is empty (size: ${fileSize} bytes). Files must have at least 1 byte.`);
+      }
+
+      const mimeType = this.getMimeType(filePath);
+
+      const payload = {
+        file_name: fileName,
+        size: fileSize,
+        mime_type: mimeType,
+        uploadContext: uploadContext,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
+        data: payload,
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`Failed to get signed upload URL. Status: ${response.status()}, Error: ${errorText}`);
+      }
+
+      const uploadResponse = await response.json();
+      const fileId = uploadResponse.result?.file_id;
+      const uploadUrl = uploadResponse.result?.upload_url;
+
+      if (!fileId || !uploadUrl) {
+        throw new Error(`Failed to get fileId or uploadUrl from upload response: ${JSON.stringify(uploadResponse)}`);
+      }
+
+      return { fileId, uploadUrl };
+    });
+  }
+
+  /**
+   * Uploads file binary data to the signed upload URL
+   * @param uploadUrl - The signed upload URL from uploadFile response
+   * @param fileName - The original filename for Content-Disposition header
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file
+   * @returns Promise with upload response
+   */
+  private async uploadToAttachmentURL(
+    uploadUrl: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<void> {
+    return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
+      if (!uploadUrl) {
+        throw new Error('Upload URL is required but not provided');
+      }
+      const fileBuffer = fs.readFileSync(filePath);
+
+      const headers = {
+        'Content-Type': mimeType,
+        'Content-Disposition': `attachment; filename=${fileName}`,
+      };
+
+      const response = await this.context.put(uploadUrl, {
+        headers,
+        data: fileBuffer,
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`File upload to attachment URL failed. Status: ${response.status()}, Error: ${errorText}`);
+      }
+    });
+  }
+
+  /**
+   * Uploads one or more files and returns attachment objects
+   * Quick Task API expects: [{ id, name, mimeType, size }]
+   * @param filePaths - Array of file paths to upload
+   * @param uploadContext - Upload context (default: 'home-feed')
+   * @returns Promise with array of attachment objects
+   */
+  private async uploadAttachments(filePaths: string[], uploadContext: string = 'home-feed'): Promise<any[]> {
+    const attachments: any[] = [];
+
+    for (const filePath of filePaths) {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+
+      const fileName = path.basename(filePath);
+      const mimeType = this.getMimeType(filePath);
+      const fileStats = fs.statSync(filePath);
+      const fileSize = fileStats.size;
+
+      // Get signed URL and fileId
+      const { fileId, uploadUrl } = await this.uploadFile(fileName, filePath, uploadContext);
+
+      // Upload file binary to signed URL
+      await this.uploadToAttachmentURL(uploadUrl, fileName, filePath, mimeType);
+
+      // Quick Task API expects: { id, name, mimeType, size }
+      attachments.push({
+        id: fileId,
+        name: fileName,
+        mimeType: mimeType,
+        size: fileSize,
+      });
+    }
+
+    return attachments;
+  }
+
+  /**
    * Prerequisite helper: Creates a task with mandatory fields (QT-001)
    * This can be used as a prerequisite in any test case
    * @param title - Task title
@@ -255,6 +411,7 @@ export class QuickTaskService {
    * @param tags - Optional array of tags to assign to the task
    * @param assignToSelf - Optional flag to assign task to current logged-in user (default: false)
    * @param description - Optional task description
+   * @param attachmentFilePaths - Optional array of file paths to attach to the task
    * @returns Promise with task details including taskId, title, and priority
    */
   async createTaskAsPrerequisite(
@@ -262,7 +419,8 @@ export class QuickTaskService {
     priority: string,
     tags?: string[],
     assignToSelf: boolean = false,
-    description?: string
+    description?: string,
+    attachmentFilePaths?: string[]
   ): Promise<TaskDetails> {
     return await test.step(`Prerequisite (QT-001): Create task with title "${title}" and priority "${priority}"`, async () => {
       // Use provided tags or default tags
@@ -279,6 +437,13 @@ export class QuickTaskService {
       // Add description if provided
       if (description) {
         taskOptions.description = description;
+      }
+
+      // Upload attachments if provided
+      if (attachmentFilePaths && attachmentFilePaths.length > 0) {
+        // Quick Task API expects: attachments: [{ id, name, mimeType, size }]
+        const attachments = await this.uploadAttachments(attachmentFilePaths);
+        taskOptions.attachments = attachments;
       }
 
       // Get a user ID for assignedTo field if needed
@@ -343,6 +508,11 @@ export class QuickTaskService {
         priority,
         tags: taskTags,
       };
+
+      // Add attachments to payload if they were uploaded
+      if (taskOptions.attachments) {
+        payload.attachments = taskOptions.attachments;
+      }
 
       // Add assignedTo to payload (either with userId or empty array for self-assignment)
       if (taskOptions.assignedTo) {
