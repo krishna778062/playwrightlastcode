@@ -12,18 +12,8 @@ export class ManageTopicsPage extends BasePage {
   private manageTopicsComponent: ManageTopicsComponent;
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
-  readonly searchingTopic: Locator = this.page.locator('[aria-label="Search topics…"]');
-  readonly verifiedTheSearhcedTopic: (topicName: string) => Locator = (topicName: string) =>
-    this.page.locator('[data-testid="dataGridRow"]').filter({ hasText: topicName }).first();
-  readonly clickingOnSearchButton: Locator = this.page.locator('.SearchField-submit');
-  readonly nothingToShowHereText: Locator = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
-  readonly clickingOnCrossSearchButton: Locator = this.page.locator('[aria-label="Clear"]');
-  readonly paginationControls: Locator = this.page
-    .locator('[aria-label*="pagination"], [data-testid*="pagination"], .Pagination, button[aria-label*="page"]')
-    .first();
-  readonly listOfTopic: Locator = this.page.locator('td.Table-cell div a');
   readonly searchingTopic: Locator;
-  readonly verifiedTheSearhcedTopic: Locator;
+  readonly verifiedTheSearhcedTopic: (topicName: string) => Locator;
   readonly clickingOnSearchButton: Locator;
   readonly nothingToShowHereText: Locator;
   readonly clickingOnCrossSearchButton: Locator;
@@ -38,7 +28,8 @@ export class ManageTopicsPage extends BasePage {
 
     // Initialize locators
     this.searchingTopic = this.page.locator('[aria-label="Search topics…"]');
-    this.verifiedTheSearhcedTopic = this.page.locator('[data-testid="dataGridRow"]').first();
+    this.verifiedTheSearhcedTopic = (topicName: string) =>
+      this.page.locator('[data-testid="dataGridRow"]').filter({ hasText: topicName }).first();
     this.clickingOnSearchButton = this.page.locator('.SearchField-submit');
     this.nothingToShowHereText = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
     this.clickingOnCrossSearchButton = this.page.locator('[aria-label="Clear"]');
