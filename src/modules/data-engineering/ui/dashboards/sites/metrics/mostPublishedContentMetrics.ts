@@ -51,10 +51,14 @@ export class MostPublishedContentMetrics extends TabluarMetricsComponent {
    * Handles all CSV validation logic internally including data transformation
    * @param snowflakeDataArray - Raw database data from Snowflake
    * @param selectedPeriod - Selected period filter for validation
+   * @param customStartDate - Optional custom start date (required for CUSTOM period)
+   * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
     snowflakeDataArray: MostPublishedContentData[],
-    selectedPeriod: string
+    selectedPeriod: string,
+    customStartDate?: string,
+    customEndDate?: string
   ): Promise<void> {
     await this.verifyDataIsLoaded();
     const { filePath } = await this.downloadDataAsCSV();
@@ -76,6 +80,8 @@ export class MostPublishedContentMetrics extends TabluarMetricsComponent {
         expectedDBData: transformedDataForValidation as any,
         metricName: 'Most published content',
         selectedPeriod: selectedPeriod,
+        customStartDate: customStartDate,
+        customEndDate: customEndDate,
         expectedHeaders: ['Site name', 'Page', 'Event', 'Album', 'Content published'],
         transformations: {
           headerMapping: {
