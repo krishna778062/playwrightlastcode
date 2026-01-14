@@ -18,7 +18,7 @@
 #   ┌─────────────────────────────────────────────────────────────────────┐
 #   │  Trigger Type       │ Environment │ CURRENT_STAGE │ Git Ref        │
 #   ├─────────────────────┼─────────────┼───────────────┼────────────────┤
-#   │  daily_cron         │ test        │ any           │ develop        │
+#   │  test_env_regression         │ test        │ any           │ develop        │
 #   │  qa_release         │ qa          │ production    │ main           │
 #   │  qa_release         │ qa          │ qa            │ release        │
 #   │  qa_release         │ qa          │ uat           │ SKIP           │
@@ -73,7 +73,7 @@ on:
           Type of trigger that initiated this workflow.
           Used to determine branch selection and module list.
           Values:
-            - daily_cron: Daily regression on test environment
+            - test_env_regression: Daily regression on test environment
             - qa_release: QA release regression
             - uat_release: UAT release regression  
             - prod_healthcheck: Production health check
@@ -142,6 +142,37 @@ on:
         required: false
         type: string
         default: ''
+
+      # ========================================================================
+      # FILTERING INPUTS (for manual/targeted runs)
+      # ========================================================================
+
+      priority_filter:
+        description: |
+          Filter tests by priority tag.
+          Values: @P0, @P1, @P2, all (no filter)
+          Example: '@P0' runs only P0 priority tests
+        required: false
+        type: string
+        default: 'all'
+
+      test_type:
+        description: |
+          Filter tests by test type tag.
+          Values: @smoke, @regression, all (no filter)
+          Example: '@smoke' runs only smoke tests
+        required: false
+        type: string
+        default: 'all'
+
+      feature_tags:
+        description: |
+          Comma-separated list of feature tags to filter tests.
+          Example: '@chat-attachment,@chat-mentions'
+          Use 'all' for no filter.
+        required: false
+        type: string
+        default: 'all'
 
 # ============================================================================
 # PERMISSIONS
@@ -230,7 +261,7 @@ jobs:
               # ────────────────────────────────────────────────────────────
               # DAILY CRON: Test environment always uses develop branch
               # ────────────────────────────────────────────────────────────
-              "daily_cron")
+              "test_env_regression")
                 if [ "$ENVIRONMENT" = "test" ]; then
                   CHECKOUT_REF="develop"
                   echo "✅ Daily cron on test → develop branch"
@@ -347,7 +378,7 @@ jobs:
               # DAILY CRON: Full UI regression suite
               # Runs daily on test environment
               # ──────────────────────────────────────────────────────────
-              "daily_cron")
+              "test_env_regression")
                 MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
                 echo "✅ Daily cron: Full UI regression (all modules including content)"
                 ;;
@@ -585,7 +616,7 @@ jobs:
 
           # Generate build name based on trigger type
           case "$TRIGGER" in
-            "daily_cron")
+            "test_env_regression")
               # Daily regression: Daily-{branch}-{Module}-{env}
               BUILD_NAME="Daily-${BRANCH}-${MODULE_CAP}-${ENV}"
               ;;
@@ -640,26 +671,62 @@ jobs:
           # ================================================================
           # TEST EXECUTION SCRIPT
           # ================================================================
-          # - Full regression: Runs ALL tests for the module
+          # - Full regression: Runs ALL tests for the module (no filters)
           # - Prod healthcheck: Runs only @healthcheck tagged tests
-          # - For other filtered runs, use manual-regression-v2.yml
+          # - Filtered runs: Use priority_filter, test_type, feature_tags
           # ================================================================
 
           MODULE="${{ matrix.module }}"
           WORKERS="${{ inputs.workers }}"
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
           TRIGGER_TYPE="${{ inputs.trigger_type }}"
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
 
           # Set TLS config for test environments (some use self-signed certs)
           export NODE_TLS_REJECT_UNAUTHORIZED=0
 
           # ────────────────────────────────────────────────────────────
-          # Determine grep filter based on trigger type
+          # Build grep filter from inputs
           # ────────────────────────────────────────────────────────────
-          GREP_FILTER=""
+          ALL_TAGS=()
+
+          # Production healthcheck: always filter by @healthcheck
           if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
-            GREP_FILTER='--grep="@healthcheck"'
-            echo "🏥 Production Healthcheck: Filtering by @healthcheck tag"
+            ALL_TAGS+=("@healthcheck")
+            echo "🏥 Production Healthcheck: Adding @healthcheck filter"
+          fi
+
+          # Add priority filter (skip if "all" or empty)
+          if [ "$PRIORITY" != "all" ] && [ -n "$PRIORITY" ]; then
+            ALL_TAGS+=("$PRIORITY")
+            echo "🎯 Priority filter: $PRIORITY"
+          fi
+
+          # Add test type filter (skip if "all" or empty)
+          if [ "$TEST_TYPE" != "all" ] && [ -n "$TEST_TYPE" ]; then
+            ALL_TAGS+=("$TEST_TYPE")
+            echo "🧪 Test type filter: $TEST_TYPE"
+          fi
+
+          # Add feature tags (skip if "all" or empty)
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              tag=$(echo "$tag" | xargs)  # Trim whitespace
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+            echo "🏷️ Feature tags: $FEATURE_TAGS"
+          fi
+
+          # Build grep filter string
+          GREP_FILTER=""
+          if [ ${#ALL_TAGS[@]} -gt 0 ]; then
+            # Join tags with | for OR matching
+            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+            GREP_FILTER="--grep=\"$GREP_REGEX\""
+            echo "🔍 Combined grep filter: $GREP_REGEX"
           fi
 
           echo "=========================================="
@@ -669,6 +736,9 @@ jobs:
           echo "Workers: $WORKERS"
           echo "BrowserStack: $IS_BROWSERSTACK"
           echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Priority: ${PRIORITY:-'all'}"
+          echo "Test Type: ${TEST_TYPE:-'all'}"
+          echo "Feature Tags: ${FEATURE_TAGS:-'all'}"
           echo "Grep Filter: ${GREP_FILTER:-'(none - full regression)'}"
           echo ""
 
@@ -1010,19 +1080,30 @@ jobs:
       # ────────────────────────────────────────────────────────────────────
       # STEP 17: SEND SLACK NOTIFICATION
       # Purpose: Notify team of test results
-      # Format: Includes emojis, counts, and links to reports
+      # Format: Rich multi-line format with filters, branch, and stats
       # ────────────────────────────────────────────────────────────────────
       - name: Send Slack Notification
         if: always()
         run: |
           # Only send notification if tests actually ran
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Build message with or without known failures info
+            # Build rich multi-line Slack message
+            PRIORITY="${{ inputs.priority_filter }}"
+            TEST_TYPE="${{ inputs.test_type }}"
+            FEATURE_TAGS="${{ inputs.feature_tags }}"
+            BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+            MODULE="${{ matrix.module }}"
+            ENV="${{ inputs.environment }}"
+            TRIGGERED_BY="${{ github.actor }}"
+            
+            # Build known failures suffix if any
+            KNOWN_SUFFIX=""
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` (\`${{ needs.determine-config.outputs.checkout_ref }}\`) completed: ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
-            else
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` (\`${{ needs.determine-config.outputs.checkout_ref }}\`) completed: ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
             fi
+            
+            # Rich multi-line message format (using \n for newlines, indented for hierarchy)
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
             
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
@@ -1036,19 +1117,26 @@ jobs:
       - name: Send Failure Notification
         if: always()
         run: |
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
+          BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+          MODULE="${{ matrix.module }}"
+          ENV="${{ inputs.environment }}"
+
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
             
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found matching criteria
-              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` found no tests. Check filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      💡 No tests matched the filter criteria. Please check your filters.\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$MESSAGE\"}" \
                 $SLACK_WEBHOOK_URL
             fi
           else
             # Pipeline failed before tests could run
-            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` could not execute. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      ❌ Pipeline could not execute. Check job logs for errors.\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1068,7 +1156,7 @@ jobs:
     steps:
       - name: Notify Slack about skip
         run: |
-          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped* - ${{ needs.determine-config.outputs.skip_reason }} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n      📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }}\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL

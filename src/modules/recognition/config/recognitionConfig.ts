@@ -2,13 +2,13 @@ export type TenantKey = 'primary' | 'onlyPeerToPeer';
 export type EnvironmentKey =
   | 'qa'
   | 'test'
+  | 'uat'
   | 'uatAU'
   | 'uatCA'
-  | 'uatUS'
   | 'uatEU'
+  | 'prodUS'
   | 'prodAU'
   | 'prodCA'
-  | 'prodUS'
   | 'prodEU';
 
 /**
@@ -108,7 +108,7 @@ export const config = {
       siteId: '8f87117a-8f62-47e8-9a17-34cf90179880',
       newUxEnabled: true,
     },
-    uatUS: {
+    uat: {
       tenantName: 'Recognition Primary',
       frontendBaseUrl: 'https://reco.uat.simpplr.xyz/',
       apiBaseUrl: 'https://reco-api.uat.simpplr.xyz/',
@@ -321,22 +321,13 @@ function getCurrentEnvironment(): EnvironmentKey {
     );
   }
 
-  if (!['qa', 'uat', 'prod', 'test', 'uatAU', 'uatCA'].includes(testEnv)) {
+  if (!['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS', 'prodAU', 'prodCA', 'prodEU'].includes(testEnv)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod, uatAU\n` +
+        `Valid values are: qa, test, uat, uatAU, uatCA, uatEU, prodUS, prodAU, prodCA, prodEU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prod npm run test\n` +
-        `Example: TEST_ENV=test npm run test\n` +
-        `Example: TEST_ENV=uatAU npm run test\n` +
-        `Example: TEST_ENV=uatCA npm run test\n` +
-        `Example: TEST_ENV=uatUS npm run test\n` +
-        `Example: TEST_ENV=uatEU npm run test\n` +
-        `Example: TEST_ENV=prodAU npm run test\n` +
-        `Example: TEST_ENV=prodCA npm run test\n` +
-        `Example: TEST_ENV=prodUS npm run test\n` +
-        `Example: TEST_ENV=prodEU npm run test\n`
+        `Example: TEST_ENV=prodUS npm run test\n`
     );
   }
 
