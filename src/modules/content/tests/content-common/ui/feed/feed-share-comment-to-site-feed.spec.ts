@@ -19,7 +19,7 @@ import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/i
 test.describe(
   'content Feed Comment Share to Site Feed Tests',
   {
-    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let siteManagerFeedPage: FeedPage;

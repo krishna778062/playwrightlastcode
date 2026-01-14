@@ -72,4 +72,35 @@ test.describe('renaming page', () => {
       );
     }
   );
+
+  test(
+    '[RC-7011] Validate reset all translation to automatic option on edit program name and translation page of Reward Store',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate reset all translation to automatic option on edit program name and translation page of Reward Store',
+        zephyrTestId: 'RC-7011',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.enableTheLanguageInTenantIfNotEnabled(['English (UK)', 'French', 'German']);
+      await renamingPage.loadPage();
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
+      await renamingPage.enableTheOtherLanguageAndEnterCustomValue('rewardsStore');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      await renamingPage.clickOnResetButton();
+      await renamingPage.validateTheLanguageDataRested(defaultOtherLanguageTranslationValue);
+      await renamingPage.clickOnSaveButton();
+    }
+  );
 });

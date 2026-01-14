@@ -62,7 +62,6 @@ jobs:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: global-search-api
       SLACK_WEBHOOK_URL_1: https://hooks.slack.com/services/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
-      SLACK_WEBHOOK_URL_2: https://hooks.slack.com/services/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
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -258,7 +257,7 @@ jobs:
       - name: Send Slack Notification
         if: always()
         run: |
-          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
+          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 ")
           # Only send notification if tests actually ran (TOTAL_TESTS > 0)
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
             # Prepare Slack message with hyperlinks
@@ -281,7 +280,7 @@ jobs:
       - name: Send Smart Slack Notifications
         if: always()
         run: |
-          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 " " $SLACK_WEBHOOK_URL_2 ")
+          WEBHOOKS=(" $SLACK_WEBHOOK_URL_1 ")
            # Check if tests were executed
            if [ -f "test-results/test-results.json" ]; then
              TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)

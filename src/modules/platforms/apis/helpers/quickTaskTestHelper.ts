@@ -1,4 +1,5 @@
-import { CreateTaskResponse, QuickTaskService } from '../services/QuickTaskService';
+import { CreateTaskResponse } from '../interfaces/quickTask.interface';
+import { QuickTaskService } from '../services/QuickTaskService';
 
 /**
  * Helper class for managing Quick Task test data lifecycle
@@ -16,7 +17,10 @@ export class QuickTaskTestHelper {
    */
   async createTestTask(priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium'): Promise<CreateTaskResponse> {
     const response = await this.quickTaskService.createTestTask(priority);
-    this.createdTaskIds.push(response.result._id);
+    const taskId = response.result?._id || response.result?.taskId;
+    if (taskId) {
+      this.createdTaskIds.push(taskId);
+    }
     return response;
   }
 

@@ -98,7 +98,7 @@ test.describe('currency conversion flow', { tag: [REWARD_SUITE_TAGS.MANAGE_REWAR
   test(
     'RC-4590 Validate Download CSV option if some active users on the platform have not set a payroll currency on their profile',
     {
-      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P2],
+      tag: [REWARD_FEATURE_TAGS.REWARDS_DB_CASES, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P1],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
