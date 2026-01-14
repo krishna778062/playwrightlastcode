@@ -432,7 +432,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'verify that user can create a task with the maximum allowed title length',
-    { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36934'],
@@ -457,7 +457,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'verify that user can enter a very long description without breaking the UI or limits',
-    { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36935'],
@@ -493,7 +493,7 @@ test.describe.serial('quick Task', () => {
   for (const testCase of priorityTestCases) {
     test(
       `${testCase.description} - ${testCase.zephyrId}`,
-      { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+      { tag: [TestPriority.P0, '@quick-task'] },
       async ({ quickTaskPage: page }) => {
         tagTest(test.info(), {
           zephyrTestId: [testCase.zephyrId],
@@ -511,7 +511,7 @@ test.describe.serial('quick Task', () => {
    */
   test(
     'verify that user can change Priority value before saving task - PS-36948',
-    { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36948'],
@@ -549,7 +549,7 @@ test.describe.serial('quick Task', () => {
   for (const testCase of multipleUserAssignmentTestCases) {
     test(
       `${testCase.description} - ${testCase.zephyrId}`,
-      { tag: [TestPriority.P0, '@quick-task', '@quicktasknew'] },
+      { tag: [TestPriority.P0, '@quick-task'] },
       async ({ quickTaskPage: page }) => {
         tagTest(test.info(), {
           zephyrTestId: [testCase.zephyrId],
