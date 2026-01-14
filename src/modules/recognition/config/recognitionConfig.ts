@@ -298,11 +298,13 @@ export const config = {
   },
 };
 
+// Environment resolution helpers ------------------------------------------------
+
 /**
- * Get current environment from TEST_ENV (required)
- * Throws error if TEST_ENV is not set or invalid
+ * Get current environment from TEST_ENV (required).
+ * Throws an error if TEST_ENV is not set or invalid.
  */
-function getCurrentEnvironment(): EnvironmentKey {
+export function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
   if (!testEnv) {
@@ -318,8 +320,7 @@ function getCurrentEnvironment(): EnvironmentKey {
         `  TEST_ENV=prodAU npm run test\n` +
         `  TEST_ENV=prodCA npm run test\n` +
         `  TEST_ENV=prodUS npm run test\n` +
-        `  TEST_ENV=prodEU npm run test\n` +
-        `  TEST_ENV=prod npm run test`
+        `  TEST_ENV=prodEU npm run test\n`
     );
   }
 
@@ -354,16 +355,15 @@ function getCurrentEnvironment(): EnvironmentKey {
 }
 
 /**
- * Initialize config cache for specific tenant once per test run
- * This is the equivalent of loading properties file in Java
- * Call this at the start of your test suite with the tenant you're testing
+ * Initialize config cache for specific tenant once per test run.
+ * Call this at the start of your test suite with the tenant you're testing.
  */
 export function initializeRecognitionConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
   if (configCache && configCache.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
-    return; // Already initialized for the same tenant
+    return;
   }
 
   // Allow tenant switching - clear cache if different tenant
@@ -398,9 +398,7 @@ export function initializeRecognitionConfig(tenant: TenantKey): void {
 }
 
 /**
- * Get tenant configuration for current environment (from cache)
- * No need to pass tenant - uses the initialized tenant
- * @returns Tenant configuration object
+ * Get tenant configuration for current environment (from cache).
  */
 export function getRecognitionTenantConfigFromCache(): RecognitionTenantConfig {
   if (!configCache) {
@@ -408,4 +406,15 @@ export function getRecognitionTenantConfigFromCache(): RecognitionTenantConfig {
   }
 
   return configCache.tenantConfig;
+}
+
+/**
+ * Get app-level configuration (from cache).
+ */
+export function getRecognitionAppConfigFromCache(): AppConfig {
+  if (!configCache) {
+    throw new Error(`❌ Config not initialized! Call initializeRecognitionConfig(tenant) first`);
+  }
+
+  return configCache.appConfig;
 }
