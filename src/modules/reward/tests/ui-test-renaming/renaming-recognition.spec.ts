@@ -129,4 +129,31 @@ test.describe('renaming page', () => {
       expect(defaultOtherLanguageTranslationValue).not.toEqual(customOtherLanguage);
     }
   );
+
+  test(
+    '[RC-7106] Validate "Use the default language name for all languages" option in different languages showing in application for recognition',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate "Use the default language name for all languages" option in different languages showing in application for recognition',
+        zephyrTestId: 'RC-7106',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
+      const customOtherLanguageValue = await renamingPage.getTheDefaultTranslationValues();
+      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!, defaultCustomizedValue!];
+      expect(customOtherLanguageValue).toEqual(customOtherLanguage);
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
+      expect(defaultOtherLanguageTranslationValue).not.toEqual(customOtherLanguage);
+    }
+  );
 });
