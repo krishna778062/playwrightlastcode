@@ -95,10 +95,10 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites' });
 
     //recognition section
-    this.recognitionLink = page.getByRole('link', { name: 'Recognition' });
+    this.recognitionLink = page.locator('[data-testid="main-nav"] a[href="/recognition"]');
     this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
-    this.homeNavMenu = page.locator("[data-testid='main-nav-item'][href*='/home']");
-    this.manageNavMenu = page.getByRole('menuitem', { name: 'Manage features Manage' });
+    this.homeNavMenu = page.locator('[data-testid="main-nav"] a[href="/home"]');
+    this.manageNavMenu = page.locator('[class*="primary-nav"] [aria-label="Manage"]');
   }
 
   /**
@@ -121,7 +121,11 @@ export class SideNavBarComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
-        await this.clickOnElement(this.homeLink);
+        try {
+          await this.clickOnElement(this.homeLink);
+        } catch (error) {
+          await this.clickOnElement(this.homeLink);
+        }
       }
     });
   }
@@ -283,8 +287,11 @@ export class SideNavBarComponent extends BaseComponent {
   async clickRecognitionLinkUnderHomeNavMenu(options?: TestOptions): Promise<void> {
     await test.step(options?.stepInfo || `Clicking recognition link under home side navigation menu`, async () => {
       await this.clickOnElement(this.homeNavMenu, { stepInfo: `clicking home side navigation menu` });
-      await expect(this.recognitionLink, `expecting recognition link to be visible on side bar menu`).toBeVisible();
-      await this.clickOnElement(this.recognitionLink, {
+      await expect(
+        this.recognitionLink.first(),
+        `expecting recognition link to be visible on side bar menu`
+      ).toBeVisible();
+      await this.clickOnElement(this.recognitionLink.first(), {
         stepInfo: `clicking recognition link under home side navigation menu`,
       });
     });
