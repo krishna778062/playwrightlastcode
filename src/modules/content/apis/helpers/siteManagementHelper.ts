@@ -273,6 +273,16 @@ export class SiteManagementHelper {
     return await this.membershipHelper.getNonMemberUserNames(siteId, options);
   }
 
+  /**
+   * Gets a follower name from the site, excluding specified names
+   * @param siteId - The site ID
+   * @param excludeNames - Array of names to exclude from the followers list
+   * @returns Promise with the follower name
+   */
+  async getFollowerNameExcluding(siteId: string, excludeNames: string[]): Promise<string> {
+    return await this.membershipHelper.getFollowerNameExcluding(siteId, excludeNames);
+  }
+
   async acceptMembershipRequest(siteId: string, requestId: string): Promise<void> {
     return await this.membershipHelper.acceptMembershipRequest(siteId, requestId);
   }
