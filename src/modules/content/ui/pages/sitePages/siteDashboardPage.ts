@@ -19,15 +19,14 @@ export class SiteDashboardPage extends BaseSitePage {
   readonly siteLinkAfterSearch: (siteName: string) => Locator;
   readonly dashboardFeedLink: Locator;
   readonly feedLink: Locator;
-  readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
-  readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
-  readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
-  readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
-    this.page.getByRole('button', { name: socialCampaignName }).first();
-  readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
-  readonly fileUploadInput = this.page.locator("input[type='file']");
-  readonly cropImageDialog = this.page.getByRole('dialog', { name: 'Crop image' });
-  readonly cropButton = this.page.getByRole('button', { name: 'Crop' });
+  readonly editDashboardButton: Locator;
+  readonly carouselItemText: (text: string) => Locator;
+  readonly tileListComponent: (tileTitle: string) => Locator;
+  readonly socialCampaignNameInTileList: (socialCampaignName: string) => Locator;
+  readonly addContentButton: Locator;
+  readonly fileUploadInput: Locator;
+  readonly cropImageDialog: Locator;
+  readonly cropButton: Locator;
   readonly shareThoughtsButton: Locator;
   readonly dismissButton: Locator;
 
@@ -58,6 +57,17 @@ export class SiteDashboardPage extends BaseSitePage {
     this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
     this.siteLinkAfterSearch = (siteName: string) =>
       this.page.locator('#page-content').getByRole('link', { name: siteName });
+
+    // Initialize locators defined outside constructor
+    this.editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
+    this.carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
+    this.tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
+    this.socialCampaignNameInTileList = (socialCampaignName: string) =>
+      this.page.getByRole('button', { name: socialCampaignName }).first();
+    this.addContentButton = this.page.getByRole('button', { name: 'Add content' });
+    this.fileUploadInput = this.page.locator("input[type='file']");
+    this.cropImageDialog = this.page.getByRole('dialog', { name: 'Crop image' });
+    this.cropButton = this.page.getByRole('button', { name: 'Crop' });
   }
 
   /**
@@ -380,7 +390,7 @@ export class SiteDashboardPage extends BaseSitePage {
 
   async verifySiteNameIsDisplayedAfterSearch(siteName: string): Promise<void> {
     await test.step(`Verify site name "${siteName}" is displayed`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.siteLink(siteName), {
+      await this.verifier.verifyTheElementIsVisible(this.siteLinkAfterSearch(siteName), {
         assertionMessage: `Site link "${siteName}" should be visible`,
       });
     });

@@ -12,7 +12,7 @@ import { FeedPage, FeedPostOptions } from '@/src/modules/content/ui/pages/feedPa
 test.describe(
   '@FeedPostCreationWithEmbedURL - Feed Post Creation With Embed URL Tests',
   {
-    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL],
+    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL, ContentTestSuite.FEED],
   },
   () => {
     let createdPostText: string;
@@ -114,7 +114,7 @@ test.describe(
 test.describe(
   '@FeedPostCreationWithEmbedURL - Feed Post and Reply With Embed Video URL Tests',
   {
-    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL],
+    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL, ContentTestSuite.FEED],
   },
   () => {
     let createdPostId: string;

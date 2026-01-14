@@ -22,12 +22,30 @@ export class ManageTopicsPage extends BasePage {
     .locator('[aria-label*="pagination"], [data-testid*="pagination"], .Pagination, button[aria-label*="page"]')
     .first();
   readonly listOfTopic: Locator = this.page.locator('td.Table-cell div a');
+  readonly searchingTopic: Locator;
+  readonly verifiedTheSearhcedTopic: Locator;
+  readonly clickingOnSearchButton: Locator;
+  readonly nothingToShowHereText: Locator;
+  readonly clickingOnCrossSearchButton: Locator;
+  readonly paginationControls: Locator;
+  readonly listOfTopic: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_TOPICS_SCREEN);
     this.manageTopicsComponent = new ManageTopicsComponent(page);
     this.addTopicComponent = new AddTopicComponent(page);
     this.editTopicComponent = new EditTopicComponent(page);
+
+    // Initialize locators
+    this.searchingTopic = this.page.locator('[aria-label="Search topics…"]');
+    this.verifiedTheSearhcedTopic = this.page.locator('[data-testid="dataGridRow"]').first();
+    this.clickingOnSearchButton = this.page.locator('.SearchField-submit');
+    this.nothingToShowHereText = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
+    this.clickingOnCrossSearchButton = this.page.locator('[aria-label="Clear"]');
+    this.paginationControls = this.page
+      .locator('[aria-label*="pagination"], [data-testid*="pagination"], .Pagination, button[aria-label*="page"]')
+      .first();
+    this.listOfTopic = this.page.locator('td.Table-cell div a');
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify manage topics page is visible', async () => {

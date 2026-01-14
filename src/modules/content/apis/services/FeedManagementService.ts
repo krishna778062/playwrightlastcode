@@ -876,6 +876,7 @@ export class FeedManagementService implements IFeedManagementOperations {
     fileName: string,
     size: number,
     mimeType: string,
+    uploadContext: string,
     options: {
       altText?: string | null;
       fileId?: string;
@@ -893,7 +894,10 @@ export class FeedManagementService implements IFeedManagementOperations {
         mime_type: mimeType,
         file_id: fileId,
         siteId: siteId,
+        uploadContext: uploadContext,
       };
+
+      log.debug('upload image payload', { payload: JSON.stringify(payload, null, 2) });
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
         data: payload,
@@ -999,13 +1003,14 @@ export class FeedManagementService implements IFeedManagementOperations {
     fileSize: number,
     mimeType: string,
     filePath: string,
+    uploadContext: string,
     overrides: Partial<CreateFeedPostPayload> = {}
   ): Promise<FeedPostResponse> {
     return await test.step('Creating a feed with attachment via API post request', async () => {
       // Default image upload parameters
 
       // Upload image to get fileId
-      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType);
+      const uploadResponse = await this.uploadImage(fileName, fileSize, mimeType, uploadContext);
       const fileId = uploadResponse.result.file_id;
       const attachmentURL = uploadResponse.result.upload_url;
       log.debug('File upload details', { fileId, attachmentURL });
@@ -1656,6 +1661,53 @@ export class FeedManagementService implements IFeedManagementOperations {
 
       // If structure is different, return the full response
       return questionDetails;
+    });
+  }
+
+  /**
+   * Updates the dashboard layout
+   * @param type - The type of dashboard ('home' for home dashboard)
+   * @param layout - The layout value (e.g., 'a', 'b', 'c', etc.)
+   * @param siteId - Optional site ID (null for home dashboard)
+   * @returns Promise with the API response
+   */
+  async updateDashboardLayout(type: string, layout: string, siteId: string | null = null): Promise<any> {
+    return await test.step(`Updating dashboard layout to "${layout}" for type "${type}"`, async () => {
+      // Extract CSRF token from storage state
+      const storageState = await this.context.storageState();
+      const cookies = storageState.cookies || [];
+      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
+
+      const payload = {
+        type,
+        site_id: siteId,
+        layout,
+      };
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Accept: '*/*',
+      };
+
+      if (csrfid) {
+        headers['x-smtip-csrfid'] = csrfid;
+      }
+
+      log.debug('Dashboard layout update payload', { payload: JSON.stringify(payload, null, 2) });
+
+      const response = await this.httpClient.put(API_ENDPOINTS.content.dashboardLayout, {
+        data: payload,
+        headers,
+      });
+
+      const responseBody = await response.json();
+      log.debug('Dashboard layout update response', { response: JSON.stringify(responseBody, null, 2) });
+
+      if (!response.ok() || responseBody.status !== 'success') {
+        throw new Error(`Failed to update dashboard layout. Status: ${response.status()}`);
+      }
+
+      return responseBody;
     });
   }
 }

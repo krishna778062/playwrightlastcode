@@ -12,7 +12,7 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
   '@Site Carousel API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.SITE_DASHBOARD, ContentTestSuite.CAROUSEL],
   },
   () => {
     let carouselApiHelper: CarouselApiHelper;

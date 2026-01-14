@@ -116,7 +116,7 @@ export class ContentManagementHelper {
       siteId,
       contentInfo: {
         contentType: 'page',
-        contentSubType: 'general',
+        contentSubType: 'news',
       },
       options: {
         waitForSearchIndex: false,
@@ -233,7 +233,7 @@ export class ContentManagementHelper {
         siteId,
         contentInfo: {
           contentType: 'page',
-          contentSubType: 'general',
+          contentSubType: 'news',
         },
         options: {
           waitForSearchIndex: false,
