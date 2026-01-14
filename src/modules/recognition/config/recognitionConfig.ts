@@ -47,6 +47,8 @@ export interface RecognitionTenantConfig {
   tenantName: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  siteName?: string;
+  siteId?: string;
   appManagerEmail: string;
   appManagerName: string;
   appManagerUserId: string;

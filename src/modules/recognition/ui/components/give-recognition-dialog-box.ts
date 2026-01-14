@@ -110,23 +110,16 @@ export class GiveRecognitionDialogBox extends DialogBox {
    */
   async selectTheUserForRecognition(userName: string | number): Promise<void> {
     await this.loadingIndicator.first().waitFor({ state: 'detached' });
-    await this.recognitionRecipientsInput.click();
-    await this.page.waitForTimeout(500);
-    await this.recognitionRecipientsInput.waitFor({ state: 'visible' });
     if (typeof userName === 'string') {
+      await this.recognitionRecipientsInput.click();
+      await this.suggesterContainer.last().waitFor({ state: 'visible' });
+      await this.page.waitForTimeout(200);
       await this.recognitionRecipientsInput.fill(userName);
-      await this.suggesterContainer.waitFor({ state: 'visible' });
-      await this.getOption(userName).click();
+      await this.suggesterContainer.last().waitFor({ state: 'visible' });
+      await this.getOption(userName).first().click();
     } else {
-      const requiredFieldWarning = this.page.getByText('Please fill out this field');
-      const warningVisible = await requiredFieldWarning
-        .waitFor({ state: 'visible', timeout: 500 })
-        .then(() => true)
-        .catch(() => false);
-      if (warningVisible) {
-        await this.recognitionRecipientsInput.click();
-      }
-      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.recognitionRecipientsInput.click();
+      await this.suggesterContainer.last().waitFor({ state: 'visible' });
       await this.getOption(userName).first().click();
     }
   }
