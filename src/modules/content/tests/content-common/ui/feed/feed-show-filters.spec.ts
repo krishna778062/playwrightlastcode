@@ -19,7 +19,7 @@ import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 test.describe(
   '@FeedPost - Show Filters Display Correct Shared Feed Posts',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let createdPostId: string = '';

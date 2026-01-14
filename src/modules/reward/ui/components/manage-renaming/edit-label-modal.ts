@@ -15,6 +15,10 @@ export class EditLabelModal extends BasePage {
   private customLabelInputBox: Locator;
   private customLabelForAllLanguageCheckbox: Locator | undefined;
   private manualTranslationDisabledAlert: Locator;
+  private resetAllTranslationToAutomatic: Locator;
+  private otherLanguageCustomInputBox: Locator;
+  private otherLanguageCustomLabel: Locator;
+  private manualTranlationToggerSwitch: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -30,6 +34,14 @@ export class EditLabelModal extends BasePage {
     this.customLabelToggleSwitch = this.container.locator('[data-testid="default-language-name-switch"]');
     this.customLabelInputBox = this.container.locator('input[data-testid="default-language-name-input"]');
     this.manualTranslationDisabledAlert = this.container.locator('[role="alert"][aria-live="polite"]');
+
+    this.resetAllTranslationToAutomatic = this.container.locator(
+      '//button[text()="Reset all translations to automatic"]'
+    );
+
+    this.otherLanguageCustomInputBox = this.container.locator('input[name="languageValues"]');
+    this.otherLanguageCustomLabel = this.container.locator('label[data-slot="form-label"]');
+    this.manualTranlationToggerSwitch = this.container.locator('button[data-testid*="-toggle"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -76,5 +88,21 @@ export class EditLabelModal extends BasePage {
 
   getManualTranslationDisabledAlert() {
     return this.manualTranslationDisabledAlert;
+  }
+
+  getResetAllTranslationToAutomatic(): Locator {
+    return this.resetAllTranslationToAutomatic;
+  }
+
+  getOtherLanguageCustomInputBox(index?: number) {
+    return index === undefined ? this.otherLanguageCustomInputBox : this.otherLanguageCustomInputBox.nth(index);
+  }
+
+  getOtherLanguageCustomLabel(index?: number) {
+    return index === undefined ? this.otherLanguageCustomLabel : this.otherLanguageCustomLabel.nth(index);
+  }
+
+  getManualTranslationToggleSwitch(index?: number) {
+    return index === undefined ? this.manualTranlationToggerSwitch : this.manualTranlationToggerSwitch.nth(index);
   }
 }
