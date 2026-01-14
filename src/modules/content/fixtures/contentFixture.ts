@@ -1,14 +1,17 @@
 import { APIRequestContext, BrowserContext, Page, test } from '@playwright/test';
 
+import { ABACContentManagementHelper } from '../apis/helpers/ABACContentManagementHelper';
+import { ABACSiteManagementHelper } from '../apis/helpers/ABACSiteManagementHelper';
+
 import { RequestContextFactory } from '@/src/core/api/factories/requestContextFactory';
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
+import { ABACAudienceHelper } from '@/src/modules/content/apis/helpers/ABACAudienceHelper';
 import { AudienceManagementHelper } from '@/src/modules/content/apis/helpers/audienceManagementHelper';
 import { B2BHelper } from '@/src/modules/content/apis/helpers/b2bHelper';
 import { CarouselHelper } from '@/src/modules/content/apis/helpers/carouselHelper';
 import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/contentManagementHelper';
 import { FeedManagementHelper } from '@/src/modules/content/apis/helpers/feedManagementHelper';
-import { SiteAudienceHelper } from '@/src/modules/content/apis/helpers/siteAudienceHelper';
 import { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { SocialCampaignHelper } from '@/src/modules/content/apis/helpers/socialCampaignHelper';
 import { TileManagementHelper } from '@/src/modules/content/apis/helpers/tileManagementHelper';
@@ -20,7 +23,6 @@ import {
 } from '@/src/modules/content/config/contentConfig';
 import { createAuthenticatedContextAndPageWithCache } from '@/src/modules/content/helpers/storageStateHelper';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
-
 // API-only fixture type for API helpers and services
 export interface ApiFixture {
   apiContext: APIRequestContext;
@@ -32,10 +34,12 @@ export interface ApiFixture {
   tileManagementHelper: TileManagementHelper;
   carouselHelper: CarouselHelper;
   audienceManagementHelper: AudienceManagementHelper;
-  siteAudienceHelper: SiteAudienceHelper;
   b2bHelper: B2BHelper;
   siteManagementService: SiteManagementService;
   feedManagerService: FeedManagementService;
+  abacSiteManagementHelper: ABACSiteManagementHelper;
+  abacContentManagementHelper: ABACContentManagementHelper;
+  abacAudienceHelper: ABACAudienceHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -74,6 +78,14 @@ export const users = {
 async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixture> {
   // Create all helpers and services
   const siteManagementHelper = new SiteManagementHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const abacSiteManagementHelper = new ABACSiteManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl
+  );
+  const abacContentManagementHelper = new ABACContentManagementHelper(
+    apiContext,
+    getContentTenantConfigFromCache().apiBaseUrl
+  );
   const tileManagementHelper = new TileManagementHelper(
     apiContext,
     getContentTenantConfigFromCache().apiBaseUrl,
@@ -94,7 +106,7 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
 
   const siteManagementService = new SiteManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const feedManagerService = new FeedManagementService(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
-  const siteAudienceHelper = new SiteAudienceHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
+  const abacAudienceHelper = new ABACAudienceHelper(apiContext, getContentTenantConfigFromCache().apiBaseUrl);
   const b2bHelper = new B2BHelper(
     apiContext,
     getContentTenantConfigFromCache().orgId,
@@ -111,10 +123,12 @@ async function createApiFixture(apiContext: APIRequestContext): Promise<ApiFixtu
     tileManagementHelper,
     carouselHelper,
     audienceManagementHelper,
-    siteAudienceHelper,
+    abacAudienceHelper,
     b2bHelper,
     siteManagementService,
     feedManagerService,
+    abacSiteManagementHelper,
+    abacContentManagementHelper,
   };
 }
 
@@ -251,6 +265,8 @@ export const contentTestFixture = test.extend<
         await fixture.contentManagementHelper.cleanup();
         await fixture.feedManagementHelper.cleanup();
         await fixture.socialCampaignHelper.cleanup();
+        await fixture.abacSiteManagementHelper.cleanup();
+        await fixture.abacContentManagementHelper.cleanup();
       } catch (error) {
         console.warn('App manager API fixture cleanup failed:', error);
       }

@@ -12,7 +12,6 @@ import {
   TotalContentPublishedMetrics,
   UsersWhoViewedContentMetrics,
 } from '../content-dashboard/metrics';
-// Import reusable metrics from sites dashboard
 import {
   FeaturedSitesMetrics,
   MostPopularSitesMetrics,
@@ -20,6 +19,9 @@ import {
   TotalSitesDistributionMetrics,
   TotalSitesMetrics,
 } from '../sites/metrics';
+// Import reusable metrics from sites dashboard
+// Import reusable metrics from social-interaction dashboard
+import { ParticipantEngagementActivity } from '../social-interaction/metrics/participantEngagementActivity';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseAnalyticsDashboardPage } from '@/src/modules/data-engineering/ui/pages/baseAnalyticsDashboardPage';
@@ -44,6 +46,9 @@ export class OverviewDashboard extends BaseAnalyticsDashboardPage {
   readonly usersWhoViewedContentMetric: UsersWhoViewedContentMetrics;
   readonly contentPublishedMetric: ContentPublishedMetrics;
 
+  // Reuse metric components from social-interaction dashboard
+  readonly participantEngagementActivity: ParticipantEngagementActivity;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APP_ANALYTICS_OVERVIEW_DASHBOARD);
     this.totalUsersMetrics = new TotalUsersMetrics(page, this.thoughtSpotIframe);
@@ -63,6 +68,9 @@ export class OverviewDashboard extends BaseAnalyticsDashboardPage {
     this.totalContentPublishedMetric = new TotalContentPublishedMetrics(page, this.thoughtSpotIframe);
     this.usersWhoViewedContentMetric = new UsersWhoViewedContentMetrics(page, this.thoughtSpotIframe);
     this.contentPublishedMetric = new ContentPublishedMetrics(page, this.thoughtSpotIframe);
+
+    // Initialize social-interaction metrics
+    this.participantEngagementActivity = new ParticipantEngagementActivity(page, this.thoughtSpotIframe);
   }
 
   /**

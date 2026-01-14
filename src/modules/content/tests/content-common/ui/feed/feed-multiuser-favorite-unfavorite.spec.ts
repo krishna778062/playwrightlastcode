@@ -19,7 +19,7 @@ import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/i
 test.describe.skip(
   '@FeedMultiUser - Multi-User Feed Post Favorite/Unfavorite Tests (Site Owner, Manager, Content Manager)',
   {
-    tag: [ContentTestSuite.FEED_MULTI_USER],
+    tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],
   },
   () => {
     let appManagerFeedPage: FeedPage;
@@ -181,7 +181,7 @@ test.describe.skip(
 test.describe(
   'site Feed Post Favorite/Unfavorite Multi-User Tests',
   {
-    tag: [ContentTestSuite.FEED_MULTI_USER],
+    tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],
   },
   () => {
     let createdPostText: string;
@@ -387,7 +387,7 @@ test.describe(
 test.describe.skip(
   'home Feed Post Favorite/Unfavorite Tests',
   {
-    tag: [ContentTestSuite.FEED_MULTI_USER],
+    tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
