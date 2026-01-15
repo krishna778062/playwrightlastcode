@@ -115,7 +115,7 @@ for (const testData of feedTestData) {
   test.describe(
     `@FeedFileDelete - ${testData.feedType} File Deletion Tests`,
     {
-      tag: [ContentTestSuite.FEED_FILE_DELETE_APP_MANAGER],
+      tag: [ContentTestSuite.FEED_FILE_DELETE_APP_MANAGER, ContentTestSuite.FEED],
     },
     () => {
       let appManagerFeedPage: FeedPage;

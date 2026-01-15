@@ -22,7 +22,7 @@ import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 test.describe(
   '@ContentModerationQueue',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED, ContentTestSuite.FEED_STANDARD_USER],
   },
   () => {
     test.slow();

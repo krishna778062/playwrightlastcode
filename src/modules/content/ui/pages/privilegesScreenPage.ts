@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -7,24 +7,34 @@ import { ProtectedAuthorsComponent } from '@/src/modules/content/ui/components/p
 
 export class PrivilegesScreenPage extends BasePage {
   private protectedAuthorsComponent: ProtectedAuthorsComponent;
-  readonly clickOnSaveButton = this.page.getByRole('button', { name: 'Save' });
-  readonly changesConfirmation = this.page.getByText('Saved changes successfully');
-  mustReadChangesConfirmation = (text: string) => this.page.getByText(text).first();
-  alertChangesConfirmation = (text: string) => this.page.getByText(text).nth(1);
-  readonly alertInputBox = this.page
-    .locator('label[for="alertsControlSite"]')
-    .locator('..')
-    .locator('input.ReactSelectInput-inputField');
-  alertInputBoxList = (text: string) => this.page.locator('a').filter({ hasText: text });
-  readonly mustReadInputBox = this.page
-    .locator('label[for="mustReadsControlSite"]')
-    .locator('..')
-    .locator('input.ReactSelectInput-inputField');
-  mustReadInputBoxList = (text: string) => this.page.locator('a').filter({ hasText: text });
+  readonly clickOnSaveButton: Locator;
+  readonly changesConfirmation: Locator;
+  readonly mustReadChangesConfirmation: (text: string) => Locator;
+  readonly alertChangesConfirmation: (text: string) => Locator;
+  readonly alertInputBox: Locator;
+  readonly alertInputBoxList: (text: string) => Locator;
+  readonly mustReadInputBox: Locator;
+  readonly mustReadInputBoxList: (text: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PRIVILEGES_SCREEN);
     this.protectedAuthorsComponent = new ProtectedAuthorsComponent(page);
+
+    // Initialize locators
+    this.clickOnSaveButton = this.page.getByRole('button', { name: 'Save' });
+    this.changesConfirmation = this.page.getByText('Saved changes successfully');
+    this.mustReadChangesConfirmation = (text: string) => this.page.getByText(text).first();
+    this.alertChangesConfirmation = (text: string) => this.page.getByText(text).nth(1);
+    this.alertInputBox = this.page
+      .locator('label[for="alertsControlSite"]')
+      .locator('..')
+      .locator('input.ReactSelectInput-inputField');
+    this.alertInputBoxList = (text: string) => this.page.locator('a').filter({ hasText: text });
+    this.mustReadInputBox = this.page
+      .locator('label[for="mustReadsControlSite"]')
+      .locator('..')
+      .locator('input.ReactSelectInput-inputField');
+    this.mustReadInputBoxList = (text: string) => this.page.locator('a').filter({ hasText: text });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify governance page is visible', async () => {

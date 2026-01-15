@@ -52,7 +52,7 @@ async function navigateToContentFeedAsRole(
 test.describe(
   'feed Post Like/Unlike Multi-User Tests - Content Feed',
   {
-    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let siteOwnerFeedPage: FeedPage;
@@ -302,7 +302,7 @@ test.describe(
 test.describe(
   'feed Post Like/Unlike Multi-User Tests - Site Feed',
   {
-    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let siteFeedPostText: string;
@@ -494,7 +494,7 @@ test.describe(
 test.describe(
   'feed Post Like/Unlike Tests - Home Feed',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
@@ -582,7 +582,7 @@ test.describe(
 test.describe(
   'feed Post Reaction Emoji Replacement Test',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;

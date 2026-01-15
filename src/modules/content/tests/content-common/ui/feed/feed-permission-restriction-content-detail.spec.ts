@@ -16,7 +16,7 @@ import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/cre
 test.describe(
   '@FeedPost - Restrict feed posting permission on Content Detail Page to managers only',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction-content-detail'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction-content-detail', ContentTestSuite.FEED],
   },
   () => {
     test(
