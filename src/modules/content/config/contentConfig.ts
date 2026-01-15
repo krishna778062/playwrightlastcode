@@ -249,7 +249,7 @@ export const config = {
       appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
-      siteManagerEmail: 'diksha.gaur@simpplr.com',
+      siteManagerEmail: 'sonali.gupta+3@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
