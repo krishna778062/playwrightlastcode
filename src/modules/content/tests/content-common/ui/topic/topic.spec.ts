@@ -540,6 +540,69 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
+    'verify standard user is able to add/list topic in Feed and Replies',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41624'],
+    },
+    async ({ appManagerFixture, standardUserFixture }) => {
+      tagTest(test.info(), {
+        description: 'verify standard user is able to add/list topic in Feed and Replies',
+        zephyrTestId: 'CONT-41624',
+        storyId: 'CONT-41624',
+      });
+      const feedPage = new FeedPage(standardUserFixture.page);
+      await feedPage.clickShareThoughtsButton();
+      const topicName = TestDataGenerator.generateRandomString();
+      const postResult = await feedPage.postEditor.createAndPostWithTopic(`test topic`, topicName);
+      const topicNameInReply = TestDataGenerator.generateRandomString();
+      await feedPage.feedList.addReplyToPost(`test topic`, postResult.postId || '', undefined, topicNameInReply);
+      await appManagerFixture.navigationHelper.openApplicationSettings();
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.searchingTopicInSearchBar(topicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName);
+      await manageTopicsPage.clearSearchBar();
+      await manageTopicsPage.searchingTopicInSearchBar(topicNameInReply);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicNameInReply);
+      const siteInfo = await standardUserFixture.siteManagementHelper.getListOfSites({
+        filter: `active`,
+      });
+      const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteInfo.result.listOfItems[0].siteId);
+      await siteDashboardPage.loadPage();
+      await siteDashboardPage.verifyThePageIsLoaded();
+      await feedPage.clickShareThoughtsButton();
+      const siteTopicName = TestDataGenerator.generateRandomString();
+      await feedPage.postEditor.createAndPostWithTopic(`test topic`, siteTopicName);
+      await manageTopicsPage.clearSearchBar();
+      await manageTopicsPage.searchingTopicInSearchBar(siteTopicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(siteTopicName);
+      const siteInfoForCreateContent = await standardUserFixture.siteManagementHelper.getListOfSites({
+        filter: `active`,
+      });
+      const pageInfo = await standardUserFixture.contentManagementHelper.getContentId({
+        accessType: SITE_TYPES.PUBLIC,
+      });
+      const contentPreviewPage = new ContentPreviewPage(
+        standardUserFixture.page,
+        siteInfoForCreateContent.result.listOfItems[0].siteId,
+        pageInfo.contentId,
+        ContentType.PAGE.toLowerCase()
+      );
+      await contentPreviewPage.loadPage();
+      await contentPreviewPage.clickShareThoughtsButton();
+      const contentTopicName = TestDataGenerator.generateRandomString();
+      const contentPostResult = await feedPage.postEditor.createAndPostWithTopic(`test topic`, contentTopicName);
+      const contentReplyText = TestDataGenerator.generateRandomString('Reply');
+      await feedPage.feedList.addReplyToPost(`test topic`, contentPostResult.postId || '', undefined, contentReplyText);
+      await manageTopicsPage.clearSearchBar();
+      await manageTopicsPage.searchingTopicInSearchBar(contentTopicName);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(contentTopicName);
+      await manageTopicsPage.clearSearchBar();
+      await manageTopicsPage.searchingTopicInSearchBar(contentReplyText);
+      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(contentReplyText);
+    }
+  );
+
+  test(
     'managing Topic Follow/Unfollow Status CONT-41028',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-41028'],

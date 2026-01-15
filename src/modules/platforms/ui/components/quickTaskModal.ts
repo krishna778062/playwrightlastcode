@@ -9,6 +9,7 @@ export class QuickTaskModalComponent extends BaseComponent {
   private createTaskModalTitle: Locator;
   private editTaskModalTitle: Locator;
   private markAsCompletedModalTitle: Locator;
+  private editModalCancelButton: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -33,6 +34,11 @@ export class QuickTaskModalComponent extends BaseComponent {
       .locator('[data-slot="dialog-title"]')
       .or(this.markAsCompletedModal.getByRole('heading', { name: /mark as completed/i }))
       .or(this.markAsCompletedModal.locator('h1, h2, h3').filter({ hasText: /mark as completed/i }));
+
+    // Cancel button in edit modal
+    this.editModalCancelButton = this.editTaskModal
+      .locator('button[data-slot="dialog-close"]')
+      .filter({ hasText: 'Cancel' });
   }
 
   /**
@@ -53,9 +59,21 @@ export class QuickTaskModalComponent extends BaseComponent {
    */
   async verifyEditTaskModalIsVisible(taskTitle?: string): Promise<boolean> {
     return await test.step('Verify edit task modal is visible', async () => {
+      // Verify the dialog is open with data-state="open"
+      const editDialog = this.page.locator('[role="dialog"][data-state="open"]').filter({
+        has: this.page.locator('[data-slot="dialog-title"]').filter({ hasText: 'Edit task' }),
+      });
+      await expect(editDialog, 'Edit task modal dialog should be visible and open').toBeVisible({ timeout: 10000 });
+
+      // Verify the modal title "Edit task" is visible
+      const editTaskHeading = this.page.locator('h2[data-slot="dialog-title"]').filter({ hasText: 'Edit task' });
+      await expect(editTaskHeading, 'Edit task heading should be visible').toBeVisible({ timeout: 5000 });
+
+      // Verify the modal structure
       await expect(this.editTaskModal).toBeVisible({ timeout: 10000 });
       await expect(this.editTaskModalTitle).toBeVisible({ timeout: 5000 });
       await expect(this.page.locator('textarea[name="description"]')).toBeVisible({ timeout: 5000 });
+
       if (taskTitle) {
         await expect(this.page.getByText(taskTitle, { exact: false })).toBeVisible({ timeout: 5000 });
       }
@@ -70,7 +88,11 @@ export class QuickTaskModalComponent extends BaseComponent {
     return await test.step('Verify mark as completed modal is visible', async () => {
       await expect(this.markAsCompletedModal).toBeVisible({ timeout: 10000 });
       await expect(this.markAsCompletedModalTitle).toBeVisible({ timeout: 5000 });
-      await expect(this.page.getByText(/mark as completed/i)).toBeVisible({ timeout: 5000 });
+      // Verify the submit button is visible within the modal (using form attribute for specificity)
+      const submitButton = this.markAsCompletedModal.locator('button[type="submit"][form="update-task-status-form"]');
+      await expect(submitButton, 'Mark as completed submit button should be visible in modal').toBeVisible({
+        timeout: 5000,
+      });
       return true;
     });
   }
@@ -115,5 +137,12 @@ export class QuickTaskModalComponent extends BaseComponent {
 
       return true;
     });
+  }
+
+  /**
+   * Clicks the Cancel button in the edit task modal
+   */
+  async clickEditModalCancelButton(): Promise<void> {
+    await super.clickCancelButton(this.editModalCancelButton, 'Click Cancel button in edit task modal');
   }
 }

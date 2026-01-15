@@ -1102,8 +1102,8 @@ jobs:
               KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
             fi
             
-            # Rich multi-line message format (using \n for newlines, indented for hierarchy)
-            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>"
+            # Rich multi-line message format (using \n for newlines, with separators)
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
@@ -1129,14 +1129,14 @@ jobs:
             
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found matching criteria
-              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      💡 No tests matched the filter criteria. Please check your filters.\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      💡 No tests matched the filter criteria.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$MESSAGE\"}" \
                 $SLACK_WEBHOOK_URL
             fi
           else
             # Pipeline failed before tests could run
-            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      ❌ Pipeline could not execute. Check job logs for errors.\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      ❌ Pipeline could not execute. Check job logs for errors.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1156,7 +1156,7 @@ jobs:
     steps:
       - name: Notify Slack about skip
         run: |
-          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n      📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }}\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>"
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL
