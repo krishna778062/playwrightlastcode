@@ -452,6 +452,22 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyEditOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, {
+        assertionMessage: `Edit option should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionNotVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is NOT visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should NOT be visible for post "${postText}"`,
+      });
+    });
+  }
+
   async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
     await test.step(`Verify reply options menu is not visible for reply: ${replyText}`, async () => {
       const replyOptionsMenu = this.getReplyOptionsMenuLocator(replyText);
@@ -1582,6 +1598,27 @@ export class ListFeedComponent extends BaseComponent {
       const userMentionLink = postTextLocator.getByRole('link', { name: `@${standardUserFullName}` });
       await this.verifier.verifyTheElementIsVisible(userMentionLink, {
         assertionMessage: 'User name mention should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyMentionIsPlainText(postText: string, userName: string): Promise<void> {
+    await test.step(`Verify mention @${userName} is rendered as plain text (not clickable)`, async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+
+      // Verify the mention link is NOT visible (not clickable)
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${userName}` });
+      await this.verifier.verifyTheElementIsNotVisible(userMentionLink, {
+        assertionMessage: `Mention @${userName} should NOT be a clickable link (should be plain text)`,
+      });
+
+      // Verify the mention text IS visible as plain text
+      const mentionAsPlainText = postTextLocator.getByText(`@${userName}`);
+      await this.verifier.verifyTheElementIsVisible(mentionAsPlainText, {
+        assertionMessage: `Mention @${userName} should be visible as plain text`,
       });
     });
   }
