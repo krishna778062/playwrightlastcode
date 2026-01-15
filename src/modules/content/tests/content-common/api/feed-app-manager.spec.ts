@@ -21,7 +21,7 @@ import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-
 test.describe(
   '@FeedAPI',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.FEED],
   },
   () => {
     let feedApiHelper: FeedApiHelper;
@@ -164,7 +164,8 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'home-feed'
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -262,7 +263,8 @@ test.describe(
           const uploadResponse = await standardUserApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'home-feed'
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -893,7 +895,8 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'home-feed'
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -934,7 +937,8 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'home-feed'
           );
           updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -1282,7 +1286,9 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: publicSiteId, type: 'site' }
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -1324,7 +1330,9 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: publicSiteId, type: 'site' }
           );
           updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -1613,7 +1621,9 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: privateSite.siteId, type: 'site' }
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -1655,7 +1665,9 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: privateSite.siteId, type: 'site' }
           );
           updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -1708,7 +1720,9 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: unlistedSite.siteId, type: 'site' }
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -1750,7 +1764,9 @@ test.describe(
           const uploadResponse = await appManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: unlistedSite.siteId, type: 'site' }
           );
           updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
