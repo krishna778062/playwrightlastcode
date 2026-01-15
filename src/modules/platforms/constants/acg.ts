@@ -65,3 +65,8 @@ export enum ACG_FEATURE_FOR_API {
   NEWSLETTERS = 'NEWSLETTERS',
   SURVEYS = 'SURVEYS',
 }
+
+export enum ACG_TOAST_MESSAGES {
+  ACCESS_CONTROL_GROUP_UPDATED = 'Access control group was successfully updated',
+  UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS = 'Updating access control groups and audience relationships…',
+}
