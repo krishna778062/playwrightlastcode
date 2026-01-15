@@ -3234,5 +3234,171 @@ test.describe(
         });
       }
     );
+
+    test(
+      'Verify FO can share a comment made on a Restricted Content (Public Site) to Home Feed with Restricted viewers (UX Designs)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42203', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a comment from a restricted Page (Engineering audience) to Home Feed with different Restricted Viewers (UX Designs). Validates inverse visibility - Engineering can see Page but NOT Home Feed share, UX can see Home Feed share but NOT Page.',
+          zephyrTestId: 'CONT-42203',
+          storyId: 'CONT-42203',
+        });
+
+        let pageId: string = '';
+        let pageCommentText: string;
+        let shareCommentText: string;
+        let publicSiteId: string = '';
+        let engineeringAudienceId: string = '';
+        let contentPreviewPage: ContentPreviewPage;
+
+        // ==================== Get or create Public Site with Pages ====================
+        await test.step('Get or create a Public Site with Pages', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            hasPages: true,
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+        });
+
+        // ==================== Get Engineering audience ID ====================
+        await test.step('Get Engineering audience ID', async () => {
+          engineeringAudienceId =
+            await appManagerApiFixture.audienceManagementHelper.getAudienceIdByName('Engineering');
+        });
+
+        // ==================== FO creates a Page with Restricted Viewers (Engineering) ====================
+        await test.step('FO creates a Page with Restricted Viewers (Engineering audience) on Public Site', async () => {
+          const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: publicSiteId,
+            contentInfo: {
+              contentType: 'page',
+              contentSubType: 'news',
+            },
+            options: {
+              waitForSearchIndex: false,
+              targetAudience: [engineeringAudienceId],
+              isRestricted: true,
+            },
+          });
+          pageId = pageInfo.contentId;
+        });
+
+        // ==================== FO navigates to Page and creates a comment ====================
+        await test.step('FO navigates to restricted Page and creates a comment', async () => {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            publicSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Create comment on the restricted Page
+          pageCommentText = TestDataGenerator.generateRandomText('Comment on restricted Page for UX share', 2, true);
+          await contentPreviewPage.clickShareThoughtsButton();
+
+          const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+          await createFeedPostComponent.createAndPost({ text: pageCommentText });
+
+          // Verify comment is visible
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
+        });
+
+        // ==================== Engineering user (standardUser) CAN see the restricted Page and comment ====================
+        await test.step('Engineering user (standardUser) navigates to restricted Page and verifies comment IS visible', async () => {
+          const engineeringUserContentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            publicSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await engineeringUserContentPreviewPage.loadPage();
+          await engineeringUserContentPreviewPage.verifyThePageIsLoaded();
+
+          // Verify the comment IS visible to Engineering user
+          await engineeringUserContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
+        });
+
+        // ==================== Non-Engineering user (socialCampaignManager) CANNOT access the restricted Page ====================
+        await test.step('Non-Engineering user (socialCampaignManager) attempts to access restricted Page and verifies Page not available', async () => {
+          const nonEngineeringContentPreviewPage = new ContentPreviewPage(
+            socialCampaignManagerFixture.page,
+            publicSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await socialCampaignManagerFixture.page.goto(nonEngineeringContentPreviewPage.url);
+
+          await nonEngineeringContentPreviewPage.verifyPageNotAvailableVisibility({
+            stepInfo: 'Verify non-Engineering user sees Page not available when accessing Engineering-restricted Page',
+          });
+        });
+
+        // ==================== FO shares the Page comment to Home Feed WITH UX Designs restrictions ====================
+        await test.step('FO shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
+          // Navigate back to the Page as FO
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          const feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.feedList.clickShareIcon(pageCommentText);
+          await feedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          shareCommentText = TestDataGenerator.generateRandomText('Shared restricted Page comment to UX', 2, true);
+
+          // Share to Home Feed with UX Designs restriction
+          await shareComponent.enterShareDescription(shareCommentText);
+          await shareComponent.toggleLimitVisibility();
+          await shareComponent.selectAudience('UX');
+
+          await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await feedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== UX user (socialCampaignManager) CAN see shared comment on Home Feed ====================
+        await test.step('UX user (socialCampaignManager) navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const scmHomeFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmHomeFeedPage.reloadPageWithTimelineMode();
+          await scmHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to UX user (who couldn't see the original Page)
+          await scmHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+
+        // ==================== Engineering user (standardUser) CANNOT see shared comment on Home Feed (not in UX audience) ====================
+        await test.step('Engineering user (standardUser) navigates to Home Feed and verifies shared comment is NOT visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const standardUserHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserHomeFeedPage.reloadPageWithTimelineMode();
+          await standardUserHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment is NOT visible to Engineering user (not in UX audience)
+          await standardUserHomeFeedPage.feedList.verifyPostIsNotVisible(shareCommentText);
+        });
+
+        // ==================== FO can see shared comment on Home Feed ====================
+        await test.step('FO navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const appManagerHomeFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerHomeFeedPage.reloadPageWithTimelineMode();
+          await appManagerHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to FO
+          await appManagerHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+      }
+    );
   }
 );
