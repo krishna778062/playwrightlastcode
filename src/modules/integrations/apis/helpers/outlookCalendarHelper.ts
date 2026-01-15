@@ -35,9 +35,20 @@ export class OutlookCalendarHelper {
   private accessToken: string | null = null;
   private tokenExpiryTime: number = 0;
   private credentialsPrefix: string = 'OUTLOOK'; // Default to app manager
+  private meProfile?: { displayName?: string; mail?: string; userPrincipalName?: string };
 
   constructor(credentialsPrefix: string = 'OUTLOOK') {
     this.credentialsPrefix = credentialsPrefix;
+  }
+
+  private async getMeProfile(): Promise<{ displayName?: string; mail?: string; userPrincipalName?: string }> {
+    if (this.meProfile) return this.meProfile;
+    const profile = (await this.makeRequest(`/me?$select=displayName,mail,userPrincipalName`, {
+      method: 'GET',
+    })) as { displayName?: string; mail?: string; userPrincipalName?: string } | null | undefined;
+    const normalized = profile ?? {};
+    this.meProfile = normalized;
+    return normalized;
   }
 
   async getAccessToken(): Promise<string> {
@@ -101,7 +112,9 @@ export class OutlookCalendarHelper {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Outlook Calendar API error: ${errorText}`);
+      throw new Error(
+        `Outlook Calendar API error (${this.credentialsPrefix}) [${response.status} ${response.statusText}] ${endpoint}: ${errorText}`
+      );
     }
 
     // Handle empty responses (e.g., from accept/decline endpoints)
@@ -153,6 +166,37 @@ export class OutlookCalendarHelper {
     email: string,
     status: 'accepted' | 'declined' | 'tentativelyAccepted'
   ): Promise<any> {
+    // Graph does not allow the meeting organizer to accept/decline their own meeting.
+    // If this happens, it's usually because END_USER_OUTLOOK_* secrets are actually for the organizer mailbox,
+    // or because the eventId was pulled from the organizer's calendar.
+    const me = await this.getMeProfile();
+    const meIdentity = (me.mail || me.userPrincipalName || '').toLowerCase();
+    try {
+      const event = await this.makeRequest(`/me/events/${eventId}?$select=organizer,subject`, { method: 'GET' });
+      const organizerEmail = (event?.organizer?.emailAddress?.address || '').toLowerCase();
+      if (organizerEmail && meIdentity && organizerEmail === meIdentity) {
+        throw new Error(
+          [
+            `Cannot RSVP to Outlook meeting because the authenticated user is the organizer.`,
+            `- credentialsPrefix: ${this.credentialsPrefix}`,
+            `- me: ${me.mail || me.userPrincipalName || 'unknown'}`,
+            `- organizer: ${event?.organizer?.emailAddress?.address || 'unknown'}`,
+            `- eventId: ${eventId}`,
+            ``,
+            `Fix: ensure END_USER_OUTLOOK_* secrets belong to the attendee mailbox (not organizer), and that endUserEventSyncResult.event.id was fetched using the end-user helper/token.`,
+          ].join('\n')
+        );
+      }
+    } catch (e) {
+      // If we already threw the "organizer" error above, rethrow; otherwise proceed to the RSVP call.
+      if (
+        e instanceof Error &&
+        e.message.includes('Cannot RSVP to Outlook meeting because the authenticated user is the organizer')
+      ) {
+        throw e;
+      }
+    }
+
     let endpoint: string;
     const body: any = {};
 
@@ -187,11 +231,17 @@ export class OutlookCalendarHelper {
   ): Promise<{ found: boolean; event?: OutlookCalendarEvent; attempts: number }> {
     const { maxAttempts = 12, retryDelayMs = 10000, calendarId = 'primary', expectFound = true } = options;
 
-    console.log(`[Outlook Calendar] Searching "${eventTitle}" - expect ${expectFound ? 'found' : 'NOT found'}`);
+    const me = await this.getMeProfile();
+    const meIdentity = me.mail || me.userPrincipalName || 'unknown';
+    console.log(
+      `[Outlook Calendar:${this.credentialsPrefix}] /me=${meIdentity} Searching "${eventTitle}" - expect ${expectFound ? 'found' : 'NOT found'}`
+    );
+
+    let lastMatchingEvents: OutlookCalendarEvent[] = [];
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      const matchingEvents = await this.findEvents(eventTitle, calendarId);
-      const eventFound = matchingEvents.length > 0;
+      lastMatchingEvents = await this.findEvents(eventTitle, calendarId);
+      const eventFound = lastMatchingEvents.length > 0;
 
       console.log(`[Outlook Calendar] Attempt ${attempt}/${maxAttempts}: ${eventFound ? 'Found' : 'Not found'}`);
 
@@ -199,7 +249,7 @@ export class OutlookCalendarHelper {
         console.log(`[Outlook Calendar] ✅ SUCCESS after ${attempt} attempts`);
         return {
           found: eventFound,
-          event: eventFound ? matchingEvents[0] : undefined,
+          event: eventFound ? lastMatchingEvents[0] : undefined,
           attempts: attempt,
         };
       }
@@ -210,7 +260,12 @@ export class OutlookCalendarHelper {
     }
 
     console.log(`[Outlook Calendar] ❌ FAILED after ${maxAttempts} attempts`);
-    return { found: !expectFound, attempts: maxAttempts };
+    const finalFound = lastMatchingEvents.length > 0;
+    return {
+      found: finalFound,
+      event: finalFound ? lastMatchingEvents[0] : undefined,
+      attempts: maxAttempts,
+    };
   }
 
   async verifyEventDetailsWithRetry(
