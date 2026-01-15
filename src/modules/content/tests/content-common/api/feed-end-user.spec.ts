@@ -20,7 +20,7 @@ import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-
 test.describe(
   '@FeedAPI - End User',
   {
-    tag: [ContentTestSuite.API, ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.API, ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedApiHelper: FeedApiHelper;
@@ -600,7 +600,8 @@ test.describe(
           const uploadResponse = await standardUserApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'home-feed'
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {

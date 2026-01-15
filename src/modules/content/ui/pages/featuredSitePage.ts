@@ -1,4 +1,4 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { FeatureSiteComponent } from '@content/ui/components/featureSiteComponent';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -11,16 +11,22 @@ export class FeaturedSitePage extends BasePage {
   private featureSiteComponent: FeatureSiteComponent;
 
   //LOCATORS
-  readonly featuredTab = this.page.locator('a').filter({ hasText: /^Featured$/ });
-  readonly featuredSiteNames = (siteName: string) =>
-    this.page.locator('h2').filter({ hasText: siteName }).getByRole('link');
-  readonly successToastMessage = (message: string) =>
-    this.page.locator('div[class*="Toast-module"] p', { hasText: message });
-  readonly addUpdateFeaturedSiteButton = this.page.locator('button').filter({ hasText: 'Add/update' });
+  readonly featuredTab: Locator;
+  readonly featuredSiteNames: (siteName: string) => Locator;
+  readonly successToastMessage: (message: string) => Locator;
+  readonly addUpdateFeaturedSiteButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FEATURED_SITES_PAGE);
     this.featureSiteComponent = new FeatureSiteComponent(page);
+
+    // Initialize locators
+    this.featuredTab = this.page.locator('a').filter({ hasText: /^Featured$/ });
+    this.featuredSiteNames = (siteName: string) =>
+      this.page.locator('h2').filter({ hasText: siteName }).getByRole('link');
+    this.successToastMessage = (message: string) =>
+      this.page.locator('div[class*="Toast-module"] p', { hasText: message });
+    this.addUpdateFeaturedSiteButton = this.page.locator('button').filter({ hasText: 'Add/update' });
   }
 
   async verifyToastMessage(message: string): Promise<void> {

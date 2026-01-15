@@ -119,15 +119,15 @@ export interface PlatformUiFixture {
   navigationHelper: NavigationHelper;
 }
 
-// Combined user fixture type that extends both API and UI fixtures
-export interface PlatformUserFixture extends PlatformApiFixture, PlatformUiFixture {}
-
-// Quick Task API fixture type
+// Quick Task API-only fixture type
 export interface QuickTaskApiFixture {
   apiContext: APIRequestContext;
   quickTaskService: QuickTaskService;
   quickTaskTestHelper: QuickTaskTestHelper;
 }
+
+// Combined user fixture type that extends both API and UI fixtures
+export interface PlatformUserFixture extends PlatformApiFixture, PlatformUiFixture {}
 
 export type PlatformUserType = 'appManager' | 'userManager';
 
@@ -187,6 +187,7 @@ export const platformTestFixture = test.extend<
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: PlatformApiFixture;
     userManagerApiFixture: PlatformApiFixture;
+    quickTaskApiFixture: QuickTaskApiFixture;
 
     // UI-only fixtures - browser and page components
     appManagerUiFixture: PlatformUiFixture;
@@ -200,7 +201,6 @@ export const platformTestFixture = test.extend<
     zuluEndUserPage: Page;
     zuluBrandingManagerPage: Page;
     quickTaskPage: Page;
-    quickTaskApiFixture: QuickTaskApiFixture;
   },
   {
     // Worker-scoped fixtures
@@ -237,12 +237,16 @@ export const platformTestFixture = test.extend<
   quickTaskApiContext: [
     async ({}, use) => {
       const quickTaskApiUrl = process.env.QUICK_TASK_API_URL;
-      if (!quickTaskApiUrl) {
-        throw new Error('QUICK_TASK_API_URL not configured in environment variables');
+      const quickTaskUsername = process.env.QUICK_TASK_APP_MANAGER_USERNAME;
+      const quickTaskPassword = process.env.QUICK_TASK_APP_MANAGER_PASSWORD;
+
+      if (!quickTaskApiUrl || !quickTaskUsername || !quickTaskPassword) {
+        throw new Error('Quick Task API credentials not configured in environment variables');
       }
+
       const context = await RequestContextFactory.createAuthenticatedContext(quickTaskApiUrl, {
-        email: process.env.QUICK_TASK_APP_MANAGER_USERNAME!,
-        password: process.env.QUICK_TASK_APP_MANAGER_PASSWORD!,
+        email: quickTaskUsername,
+        password: quickTaskPassword,
       });
       await use(context);
       await context.dispose();
@@ -385,10 +389,14 @@ export const platformTestFixture = test.extend<
 
   quickTaskPage: [
     async ({ page }, use) => {
-      const _quickTaskHomePage = await loginToQuickTask(page, {
+      const quickTaskHomePage = await loginToQuickTask(page, {
         email: process.env.QUICK_TASK_APP_MANAGER_USERNAME!,
         password: process.env.QUICK_TASK_APP_MANAGER_PASSWORD!,
       });
+
+      // Verify the home page is loaded after login
+      await quickTaskHomePage.verifyThePageIsLoaded();
+
       await use(page);
 
       // Logout after each test case
