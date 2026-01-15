@@ -19,6 +19,8 @@ export type EnvConfig = {
   socialCampaignManagerPassword?: string;
   promotionManagerEmail?: string;
   promotionManagerPassword?: string;
+  siteId?: string;
+  siteName?: string;
 };
 
 export const getEnvConfig = (): EnvConfig => {

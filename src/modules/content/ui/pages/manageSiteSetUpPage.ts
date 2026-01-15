@@ -7,16 +7,13 @@ import { SubscriptionComponent } from '@/src/modules/content/ui/components/subsc
 import { UpdateSiteCategoryComponent } from '@/src/modules/content/ui/components/updateSiteCategoryComponent';
 
 export class ManageSiteSetUpPage extends BasePage {
-  readonly contentTab = this.page.locator(
-    'a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]'
-  );
-  readonly ellipses = this.page.locator('[aria-label="Category option"]').first();
-  readonly clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
-  readonly selectASite = this.page.getByRole('cell', { name: 'Name' });
-  readonly siteNameLocator = (siteName: string) => this.page.getByText(siteName, { exact: true });
-  readonly templateRowLocator = (templateName: string) =>
-    this.page.locator(`[data-testid^="dataGridRow-"]`).filter({ hasText: templateName }).first();
-  readonly threeDotsButtonInRow = (row: Locator) => row.getByRole('button', { name: 'Show more' });
+  readonly contentTab: Locator;
+  readonly ellipses: Locator;
+  readonly clickOnUpdateCategoryOption: Locator;
+  readonly selectASite: Locator;
+  readonly siteNameLocator: (siteName: string) => Locator;
+  readonly templateRowLocator: (templateName: string) => Locator;
+  readonly threeDotsButtonInRow: (row: Locator) => Locator;
 
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
@@ -27,6 +24,16 @@ export class ManageSiteSetUpPage extends BasePage {
     this.manageSitesComponent = new ManageSitesComponent(page);
     this.updateSiteCategoryComponent = new UpdateSiteCategoryComponent(page);
     this.subscriptionComponent = new SubscriptionComponent(page);
+
+    // Initialize locators
+    this.contentTab = this.page.locator('a[href*="/content"], button:has-text("Content"), [data-testid="content-tab"]');
+    this.ellipses = this.page.locator('[aria-label="Category option"]').first();
+    this.clickOnUpdateCategoryOption = this.page.getByRole('button', { name: 'Update category' });
+    this.selectASite = this.page.getByRole('cell', { name: 'Name' });
+    this.siteNameLocator = (siteName: string) => this.page.getByText(siteName, { exact: true });
+    this.templateRowLocator = (templateName: string) =>
+      this.page.locator(`[data-testid^="dataGridRow-"]`).filter({ hasText: templateName }).first();
+    this.threeDotsButtonInRow = (row: Locator) => row.getByRole('button', { name: 'Show more' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {

@@ -513,7 +513,17 @@ export class SiteManagementHelper {
   async approveContent(siteId: string, contentId: string): Promise<any> {
     return await this.siteManagementService.approveContent(siteId, contentId);
   }
-
+  async getSiteList(options?: {
+    size?: number;
+    filter?: string;
+    sortBy?: string;
+  }): Promise<{ siteId: string; siteName: string }[]> {
+    const siteListResponse = await this.getListOfSites(options);
+    return siteListResponse.result.listOfItems.map((site: any) => ({
+      siteId: site.siteId,
+      siteName: site.name || site.siteName,
+    }));
+  }
   async rejectContent(siteId: string, contentId: string, rejectionComment?: string): Promise<any> {
     return await this.siteManagementService.rejectContent(siteId, contentId, rejectionComment);
   }
