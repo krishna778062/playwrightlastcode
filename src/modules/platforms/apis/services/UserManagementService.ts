@@ -76,23 +76,49 @@ export class UserManagementService implements IUserManagementOperations {
   async addUser(user: User, role: Roles): Promise<AddUserResponse> {
     const roleId = await this.identityService.fetchRoleId(role);
 
-    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
-      data: {
-        personal_info: {
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          timezone_id: user.timezone_id || this.defaultTimezoneId,
-          language_id: user.language_id || this.defaultLanguageId,
-          locale_id: user.locale_id || this.defaultLocaleId,
-          license_type: 'Corporate', // Required for production environments
-        },
-        role_id: roleId,
-        silent_upload: false,
-      },
-    });
+    const personal_info_base = {
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      timezone_id: user.timezone_id || this.defaultTimezoneId,
+      language_id: user.language_id || this.defaultLanguageId,
+      locale_id: user.locale_id || this.defaultLocaleId,
+    };
 
-    return await this.httpClient.parseResponse<AddUserResponse>(response);
+    // Try with Corporate license first, then without license_type
+    const licenseTypesToTry = ['Corporate', null];
+
+    for (const licenseType of licenseTypesToTry) {
+      try {
+        const personal_info = licenseType ? { ...personal_info_base, license_type: licenseType } : personal_info_base;
+
+        const response = await this.httpClient.post(API_ENDPOINTS.appManagement.users.add, {
+          data: {
+            personal_info,
+            role_id: roleId,
+            silent_upload: false,
+          },
+        });
+
+        return await this.httpClient.parseResponse<AddUserResponse>(response);
+      } catch (error) {
+        const errorMessage = (error as Error).message || '';
+        const isLicenseTypeError =
+          errorMessage.includes('license_type') || errorMessage.includes('Invalid license type');
+
+        // If it's a license_type error, try next option
+        if (isLicenseTypeError && licenseType !== null) {
+          console.log(`⚠️ license_type '${licenseType}' failed, trying next option...`);
+          continue;
+        }
+
+        // If it's not a license_type error or we've exhausted all options, throw
+        throw error;
+      }
+    }
+
+    // This should never be reached, but TypeScript needs it
+    throw new Error('Failed to add user after trying all license type options');
   }
 
   async addUserWithEmail(user: UserWithLicenseAndDepartment, role: Roles): Promise<AddUserResponse> {
