@@ -327,6 +327,9 @@ export class ContentPreviewPage extends BasePage {
    */
   async clickShareThoughtsButton(): Promise<void> {
     await test.step('Click on Share your thoughts button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+        assertionMessage: 'Share your thoughts button should be visible',
+      });
       await this.clickOnElement(this.shareThoughtsButton);
     });
   }
@@ -345,6 +348,23 @@ export class ContentPreviewPage extends BasePage {
 
   async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
     await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
+  }
+
+  async getPostTitle(siteName: string): Promise<string> {
+    return await test.step('Get post title', async () => {
+      try {
+        const postTitleContainer = this.page.locator('header').filter({ hasText: siteName });
+        const postTitle = await postTitleContainer.getByRole('heading').first().textContent();
+        console.log(`Post title: ${postTitle}`);
+        if (!postTitle) {
+          throw new Error('Post title not found');
+        }
+        return postTitle.trim();
+      } catch (error) {
+        console.error('Error getting post title:', error);
+        throw error;
+      }
+    });
   }
 
   /**

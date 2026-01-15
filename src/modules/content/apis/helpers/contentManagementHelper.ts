@@ -14,9 +14,9 @@ import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageU
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
 import { ContentSortBy } from '@/src/modules/content/constants';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Content {
   siteId: string;
@@ -51,7 +51,7 @@ export class ContentManagementHelper {
     status?: string;
     sortBy?: string;
     accessType?: SITE_TYPES;
-  }): Promise<{ siteId: string; contentId: string; contentType: string }> {
+  }): Promise<{ siteId: string; contentId: string; contentType: string; pageName?: string }> {
     // Default to 'public' if not specified
     const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const response = await this.contentManagementService.getContentList(options);
@@ -83,6 +83,7 @@ export class ContentManagementHelper {
           siteId: randomContent.site.siteId,
           contentId: randomContent.contentId || randomContent.id,
           contentType: randomContent.type,
+          pageName: randomContent.title,
         };
       }
     }
@@ -126,6 +127,7 @@ export class ContentManagementHelper {
       siteId: pageResult.siteId,
       contentId: pageResult.contentId,
       contentType: 'page',
+      pageName: pageResult.pageName,
     };
   }
 
@@ -1263,5 +1265,25 @@ export class ContentManagementHelper {
         `No page category found with at least ${minPageCount} pages after checking ${sitesResponse.result.listOfItems.length} sites.`
       );
     });
+  }
+
+  /**
+   * Uploads an intranet file to a site
+   * This method handles the complete file upload flow: getting signed URL, uploading file, and getting file details
+   * @param siteId - The site ID to upload the file to
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file (e.g., 'image/jpeg')
+   * @returns Promise with file details including fileInfo
+   */
+  async uploadIntranetFile(
+    siteId: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<{
+    fileInfo: any;
+  }> {
+    return await this.imageUploaderService.uploadIntranetFile(siteId, fileName, filePath, mimeType);
   }
 }

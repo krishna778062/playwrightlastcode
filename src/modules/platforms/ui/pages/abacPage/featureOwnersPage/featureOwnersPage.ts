@@ -8,7 +8,25 @@ import { FeatureOwnerModalComponent } from '../../../components/featureOwnerModa
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
-export class FeatureOwnersPage extends BasePage {
+export interface IFeatureOwnersActions {
+  searchForFeature(featureName: string, expectResults?: boolean): Promise<void>;
+  clickOnButtonForFeature(
+    featureName: string,
+    optionName: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void>;
+  clickShowMore(): Promise<void>;
+  getAllFeatureNames(): Promise<string[]>;
+  verifyNoResultsFoundMessages(): Promise<void>;
+  clickOnCountButton(featureNameOrIndex: string | number): Promise<string>;
+  verifyUserCountPopupOpened(expectedCount: string): Promise<void>;
+}
+
+export interface IFeatureOwnersAssertions {
+  verifyThePageIsLoaded(): Promise<void>;
+}
+
+export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions, IFeatureOwnersAssertions {
   readonly userCountButton: Locator;
   readonly feature: Locator;
   readonly searchInputBox: Locator;
@@ -29,6 +47,14 @@ export class FeatureOwnersPage extends BasePage {
   // Component
   readonly userCountPopup: UserCountPopupComponent;
   readonly featureOwnerModal: FeatureOwnerModalComponent;
+
+  get actions(): IFeatureOwnersActions {
+    return this;
+  }
+
+  get assertions(): IFeatureOwnersAssertions {
+    return this;
+  }
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
