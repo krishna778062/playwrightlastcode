@@ -36,6 +36,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
+  readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly showButton: Locator;
   readonly loadMoreRepliesButton: Locator;
@@ -66,6 +67,9 @@ export class ListFeedComponent extends BaseComponent {
   readonly muteButton: Locator;
   readonly unmuteButton: Locator;
   readonly randomClickOnPage: Locator;
+
+  readonly feedTitleLocator = (expectedTitle: string): Locator =>
+    this.page.getByTestId('headerLabel').filter({ hasText: expectedTitle }).first();
 
   // Dynamic locator functions
   /**
@@ -205,6 +209,8 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.topicNameEditor = (topicName: string): Locator =>
+      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
     // Smart feed block locators
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
@@ -446,6 +452,22 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyEditOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, {
+        assertionMessage: `Edit option should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionNotVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is NOT visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should NOT be visible for post "${postText}"`,
+      });
+    });
+  }
+
   async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
     await test.step(`Verify reply options menu is not visible for reply: ${replyText}`, async () => {
       const replyOptionsMenu = this.getReplyOptionsMenuLocator(replyText);
@@ -642,7 +664,12 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string,
+    topicName?: string
+  ): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
@@ -655,6 +682,10 @@ export class ListFeedComponent extends BaseComponent {
         replyText = replyText + ` @${mentionUserName}`;
         await this.fillInElement(this.replyEditor, replyText);
         await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else if (topicName) {
+        await this.typeInElement(this.replyEditor, ` #${topicName}`);
+        await this.clickOnElement(this.topicNameEditor(topicName));
+        replyText = replyText + ` #${topicName}`;
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
@@ -1571,6 +1602,27 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyMentionIsPlainText(postText: string, userName: string): Promise<void> {
+    await test.step(`Verify mention @${userName} is rendered as plain text (not clickable)`, async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+
+      // Verify the mention link is NOT visible (not clickable)
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${userName}` });
+      await this.verifier.verifyTheElementIsNotVisible(userMentionLink, {
+        assertionMessage: `Mention @${userName} should NOT be a clickable link (should be plain text)`,
+      });
+
+      // Verify the mention text IS visible as plain text
+      const mentionAsPlainText = postTextLocator.getByText(`@${userName}`);
+      await this.verifier.verifyTheElementIsVisible(mentionAsPlainText, {
+        assertionMessage: `Mention @${userName} should be visible as plain text`,
+      });
+    });
+  }
+
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify reaction button is not visible on feed post', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
@@ -2033,6 +2085,28 @@ export class ListFeedComponent extends BaseComponent {
       const userNameLocator = this.page.getByTestId('profilePopover').getByRole('link', { name: userName });
       await this.verifier.verifyTheElementIsVisible(userNameLocator, {
         assertionMessage: `User name "${userName}" should be visible on hover`,
+      });
+    });
+  }
+
+  async verifyFeedTitle(postText: string, expectedTitle: string): Promise<void> {
+    await test.step(`Verify feed title "${expectedTitle}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+
+      const feedTitleLocator = this.feedTitleLocator(expectedTitle);
+      await this.verifier.verifyTheElementIsVisible(feedTitleLocator, {
+        assertionMessage: `Feed title "${expectedTitle}" should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyOriginalPostTitle(postText: string, expectedFormat: string): Promise<void> {
+    await test.step(`Verify original post title format "${expectedFormat}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const originalPostTitleLocator = this.page.getByText(expectedFormat).first();
+
+      await this.verifier.verifyTheElementIsVisible(originalPostTitleLocator, {
+        assertionMessage: `Original post title matching "${expectedFormat}" should be visible for post "${postText}"`,
       });
     });
   }

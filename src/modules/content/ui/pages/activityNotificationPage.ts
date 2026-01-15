@@ -40,4 +40,12 @@ export class ActivityNotificationPage extends BasePage {
       });
     });
   }
+
+  async verifyNotificationDoesNotExist(notificationText: string): Promise<void> {
+    await test.step(`Verify notification does NOT exist: ${notificationText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.notificationByText(notificationText).first(), {
+        assertionMessage: `Notification with text "${notificationText}" should NOT be visible`,
+      });
+    });
+  }
 }
