@@ -1264,5 +1264,150 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify FO can share restricted (Engineering) Home Feed post to Private Site Feed without restrictions',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42205', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a Home Feed post (restricted to Engineering) to a Private Site Feed WITHOUT restrictions. Site Feed post should be visible to ALL Private Site members regardless of audience.',
+          zephyrTestId: 'CONT-42205',
+          storyId: 'CONT-42205',
+        });
+
+        let foPostText: string;
+        let sharePostText: string;
+        let privateSiteId: string = '';
+        let privateSiteName: string = '';
+
+        // ==================== Get or create Private Site ====================
+        await test.step('Get or create a Private Site for sharing', async () => {
+          const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
+            waitForSearchIndex: true,
+          });
+          privateSiteId = privateSite.siteId;
+          privateSiteName = privateSite.name;
+        });
+
+        // ==================== FO creates Home Feed post WITH restrictions (Engineering) ====================
+        await test.step('FO creates Home Feed post WITH Restricted Viewers (Engineering audience)', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeIconButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          foPostText = TestDataGenerator.generateRandomText('ABAC Restricted to Private Site Test', 3, true);
+          await feedPage.clickShareThoughtsButton();
+
+          const postResult = await feedPage.createAndPostWithLimitVisibility({
+            text: foPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post HAS limit visibility (restricted to Engineering)
+          await feedPage.postEditor.verifyPostHasLimitVisibility(foPostText);
+        });
+
+        // ==================== Engineering User can see restricted post on Home Feed ====================
+        await test.step('Standard User (in Engineering audience) navigates to Home Feed and verifies post is visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.reloadPageWithTimelineMode();
+          await standardUserFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the restricted post IS visible to Engineering user
+          await standardUserFeedPage.feedList.waitForPostToBeVisible(foPostText);
+        });
+
+        // ==================== Non-Engineering User CANNOT see restricted post on Home Feed ====================
+        await test.step('Social Campaign Manager (NOT in Engineering audience) navigates to Home Feed and verifies post is NOT visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.reloadPageWithTimelineMode();
+          await socialCampaignManagerFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the restricted post is NOT visible to non-Engineering user on Home Feed
+          await socialCampaignManagerFeedPage.feedList.verifyPostIsNotVisible(foPostText);
+        });
+
+        // ==================== FO shares to Private Site Feed WITHOUT restrictions ====================
+        await test.step('FO shares restricted Home Feed post to Private Site Feed WITHOUT Restricted Viewers', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          await feedPage.feedList.clickShareIcon(foPostText);
+          await feedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText('Shared to Private Site without restriction', 2, true);
+
+          // Share to Private Site Feed WITHOUT enabling limit visibility
+          await shareComponent.selectShareOptionAsSiteFeed();
+          await shareComponent.enterSiteName(privateSiteName);
+          await shareComponent.enterShareDescription(sharePostText);
+
+          await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await feedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== Engineering User (Site Member) can see shared post on Private Site Feed ====================
+        await test.step('Standard User (Engineering - Private Site member) navigates to Private Site Feed and verifies shared post is visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to Engineering user on Private Site Feed
+          await standardUserFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== Non-Engineering User (Site Member) can ALSO see shared post on Private Site Feed ====================
+        await test.step('Social Campaign Manager (Non-Engineering - Private Site member) navigates to Private Site Feed and verifies shared post IS visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(socialCampaignManagerFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to non-Engineering user on Private Site Feed (no restriction on Site Feed)
+          await socialCampaignManagerFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== FO can see shared post on Private Site Feed ====================
+        await test.step('FO navigates to Private Site Feed and verifies shared post IS visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const foSiteFeedPage = new FeedPage(appManagerFixture.page);
+          await foSiteFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to FO on Private Site Feed
+          await foSiteFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+      }
+    );
   }
 );
