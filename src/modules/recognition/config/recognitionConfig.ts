@@ -307,33 +307,16 @@ export const config = {
 export function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!testEnv) {
-    throw new Error(
-      `❌ TEST_ENV environment variable is required!\n` +
-        `Please set TEST_ENV before running tests:\n` +
-        `  TEST_ENV=qa npm run test\n` +
-        `  TEST_ENV=uat npm run test\n` +
-        `  TEST_ENV=uatAU npm run test\n` +
-        `  TEST_ENV=uatCA npm run test\n` +
-        `  TEST_ENV=uatUS npm run test\n` +
-        `  TEST_ENV=uatEU npm run test\n` +
-        `  TEST_ENV=prodAU npm run test\n` +
-        `  TEST_ENV=prodCA npm run test\n` +
-        `  TEST_ENV=prodUS npm run test\n` +
-        `  TEST_ENV=prodEU npm run test\n`
-    );
-  }
-
   const allowedEnvs: EnvironmentKey[] = [
     'qa',
     'test',
+    'uat',
     'uatAU',
     'uatCA',
-    'uatUS',
     'uatEU',
+    'prodUS',
     'prodAU',
     'prodCA',
-    'prodUS',
     'prodEU',
   ];
 
@@ -341,13 +324,15 @@ export function getCurrentEnvironment(): EnvironmentKey {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
         `Valid values are: ${allowedEnvs.join(', ')}\n` +
-  if (!['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS', 'prodAU', 'prodCA', 'prodEU'].includes(testEnv)) {
-    throw new Error(
-      `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, test, uat, uatAU, uatCA, uatEU, prodUS, prodAU, prodCA, prodEU\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prodUS npm run test\n`
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodAU npm run test\n` +
+        `Example: TEST_ENV=prodCA npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n` +
+        `Example: TEST_ENV=uatCA npm run test\n` +
+        `Example: TEST_ENV=test npm run test\n`
     );
   }
 
@@ -406,15 +391,4 @@ export function getRecognitionTenantConfigFromCache(): RecognitionTenantConfig {
   }
 
   return configCache.tenantConfig;
-}
-
-/**
- * Get app-level configuration (from cache).
- */
-export function getRecognitionAppConfigFromCache(): AppConfig {
-  if (!configCache) {
-    throw new Error(`❌ Config not initialized! Call initializeRecognitionConfig(tenant) first`);
-  }
-
-  return configCache.appConfig;
 }
