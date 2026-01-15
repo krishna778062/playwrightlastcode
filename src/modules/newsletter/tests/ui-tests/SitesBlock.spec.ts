@@ -11,7 +11,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 // Test data
 const TEMPLATE_NAME = 'Blank template';
-const LOCATIONS: [string][] = [['London'], ['San Francisco'], ['Paris']];
+const LOCATIONS: string[] = ['London', 'San Francisco', 'Paris'];
 
 test.describe('Newsletter Sites Block - Smart Blocks', { tag: [NEWSLETTER_SUITE_TAGS.NEWSLETTER] }, () => {
   let newsletterEditorPage: NewsletterEditorPage;
@@ -65,7 +65,7 @@ test.describe('Newsletter Sites Block - Smart Blocks', { tag: [NEWSLETTER_SUITE_
       await browseSitesModal.clickAdd();
 
       // Verify all locations are displayed in newsletter
-      for (const [location] of LOCATIONS) {
+      for (const location of LOCATIONS) {
         await sitesBlockComponent.assertSelectedLocationOptionsAreDisplayedInNewsletter(location);
       }
     }

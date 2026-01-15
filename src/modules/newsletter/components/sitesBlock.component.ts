@@ -21,7 +21,6 @@ export class SitesBlockComponent extends BaseActionUtil {
   readonly plusButton: Locator;
   readonly minusButton: Locator;
   readonly numberOfItemsInput: Locator;
-  readonly numberOfItemsField: Locator;
 
   // Newsletter template block for verification
   readonly newsletterTemplateBlock: Locator;
@@ -56,7 +55,6 @@ export class SitesBlockComponent extends BaseActionUtil {
     this.plusButton = this.page.getByRole('button', { name: 'Plus' });
     this.minusButton = this.page.getByRole('button', { name: 'Minus' });
     this.numberOfItemsInput = this.page.locator('input[id*="_itemCount_"]');
-    this.numberOfItemsField = this.page.locator('div[data-testid="field-Number of items"]');
 
     // Newsletter template block
     this.newsletterTemplateBlock = this.page.locator('div[class*="Block_inner"]').first();
@@ -194,10 +192,9 @@ export class SitesBlockComponent extends BaseActionUtil {
    */
   async typeNumberOfItems(number: string): Promise<void> {
     await test.step(`Type number of items: ${number}`, async () => {
-      const inputField = this.numberOfItemsField.locator('input[id*="_itemCount_"]');
-      await inputField.clear();
-      await inputField.fill(number);
-      await inputField.press('Enter');
+      await this.numberOfItemsInput.clear();
+      await this.numberOfItemsInput.fill(number);
+      await this.numberOfItemsInput.press('Enter');
       // Click outside to trigger any blur events
       await this.clickOnElement(this.stageOuter, {
         stepInfo: 'Click outside to apply changes',
@@ -220,27 +217,21 @@ export class SitesBlockComponent extends BaseActionUtil {
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      // Poll for count to stabilize (handles slow card removal/addition)
-      let actualCount = 0;
-      let attempts = 0;
-      const maxAttempts = 6; // 3 seconds total (6 * 500ms)
+      // Use Playwright's toPass() for automatic polling with framework timeout
+      await expect(async () => {
+        const actualCount = await this.siteImagesLocator.count();
 
-      do {
-        if (attempts > 0) {
-          await this.page.waitForTimeout(500);
-        }
-        actualCount = await this.siteImagesLocator.count();
-        attempts++;
-      } while (actualCount > expectedCount && attempts < maxAttempts);
+        // Verify we have at least 1 site (system may not have expectedCount sites available)
+        expect(
+          actualCount,
+          `Should have at least 1 site displayed (requested ${expectedCount}, found ${actualCount})`
+        ).toBeGreaterThanOrEqual(1);
 
-      // Verify we have at least 1 site (system may not have expectedCount sites available)
-      expect(
-        actualCount,
-        `Should have at least 1 site displayed (requested ${expectedCount}, found ${actualCount} after ${attempts * 500}ms)`
-      ).toBeGreaterThanOrEqual(1);
-
-      // Verify count doesn't exceed expected (respects the number input setting)
-      expect(actualCount, `Should not exceed ${expectedCount} sites`).toBeLessThanOrEqual(expectedCount);
+        // Verify count doesn't exceed expected (respects the number input setting)
+        expect(actualCount, `Should not exceed ${expectedCount} sites`).toBeLessThanOrEqual(expectedCount);
+      }).toPass({
+        timeout: TIMEOUTS.VERY_VERY_SHORT,
+      });
     });
   }
 

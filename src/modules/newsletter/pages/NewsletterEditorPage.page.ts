@@ -66,10 +66,7 @@ export class NewsletterEditorPage extends BasePage {
       await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
 
       // Wait for network idle to ensure content is loaded
-      await this.page.waitForLoadState('domcontentloaded', { timeout: TIMEOUTS.SHORT });
-
-      // Wait a bit for dynamic content to render
-      await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
 
       // Dismiss any blocking dialogs (e.g., survey prompts)
       await this.dismissSurveyPromptIfVisible();
