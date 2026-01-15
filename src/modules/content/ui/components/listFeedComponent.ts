@@ -36,6 +36,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
+  readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly showButton: Locator;
   readonly loadMoreRepliesButton: Locator;
@@ -208,6 +209,8 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.topicNameEditor = (topicName: string): Locator =>
+      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
     // Smart feed block locators
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
@@ -645,7 +648,12 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string,
+    topicName?: string
+  ): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
@@ -658,6 +666,10 @@ export class ListFeedComponent extends BaseComponent {
         replyText = replyText + ` @${mentionUserName}`;
         await this.fillInElement(this.replyEditor, replyText);
         await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else if (topicName) {
+        await this.typeInElement(this.replyEditor, ` #${topicName}`);
+        await this.clickOnElement(this.topicNameEditor(topicName));
+        replyText = replyText + ` #${topicName}`;
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }

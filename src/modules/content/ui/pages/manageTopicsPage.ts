@@ -13,7 +13,7 @@ export class ManageTopicsPage extends BasePage {
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
   readonly searchingTopic: Locator;
-  readonly verifiedTheSearhcedTopic: Locator;
+  readonly verifiedTheSearhcedTopic: (topicName: string) => Locator;
   readonly clickingOnSearchButton: Locator;
   readonly nothingToShowHereText: Locator;
   readonly clickingOnCrossSearchButton: Locator;
@@ -28,7 +28,8 @@ export class ManageTopicsPage extends BasePage {
 
     // Initialize locators
     this.searchingTopic = this.page.locator('[aria-label="Search topics…"]');
-    this.verifiedTheSearhcedTopic = this.page.locator('[data-testid="dataGridRow"]').first();
+    this.verifiedTheSearhcedTopic = (topicName: string) =>
+      this.page.locator('[data-testid="dataGridRow"]').filter({ hasText: topicName }).first();
     this.clickingOnSearchButton = this.page.locator('.SearchField-submit');
     this.nothingToShowHereText = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
     this.clickingOnCrossSearchButton = this.page.locator('[aria-label="Clear"]');
@@ -95,6 +96,9 @@ export class ManageTopicsPage extends BasePage {
     );
   }
 
+  async clearSearchBar(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCrossSearchButton);
+  }
   async fillTopicName(topicName: string): Promise<void> {
     await this.addTopicComponent.fillTopicName(topicName);
   }
@@ -127,7 +131,7 @@ export class ManageTopicsPage extends BasePage {
 
   async verifyingTheSearhcedTopicIsVisible(topicName: string): Promise<void> {
     await test.step(`Verifying topic "${topicName}" is visible in search results`, async () => {
-      const topicLocator = this.verifiedTheSearhcedTopic.filter({ hasText: topicName });
+      const topicLocator = this.verifiedTheSearhcedTopic(topicName);
       await this.verifier.verifyTheElementIsVisible(topicLocator, {
         assertionMessage: `Topic "${topicName}" should be visible in search results`,
       });
