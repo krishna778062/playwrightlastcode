@@ -12,8 +12,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
-// eslint-disable-next-line playwright/no-focused-test
-test.describe.only('Reaction check for comments to recognition posts - hub', () => {
+test.describe('Reaction check for comments to recognition posts - hub', () => {
   test(
     'Validate any change in cheer/like and share when comments are enabled',
     {
