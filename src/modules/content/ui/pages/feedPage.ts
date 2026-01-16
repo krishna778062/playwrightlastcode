@@ -77,6 +77,8 @@ export class FeedPage extends BasePage {
   readonly commentOptionsMenu: Locator;
   readonly pageNotFoundHeading: Locator;
   readonly feedPostContainer: Locator;
+  readonly mustReadSection: Locator;
+  readonly topicLinkLocator: (topicName: string, postContainer: Locator) => Locator;
 
   constructor(page: Page, feedId?: string) {
     super(page, feedId ? PAGE_ENDPOINTS.getFeedPage(feedId) : '');
@@ -112,7 +114,9 @@ export class FeedPage extends BasePage {
     this.pageNotFoundHeading = this.page.locator('h3', { hasText: 'Page not found' });
     this.getUserCardFromCelebrationBlock = (userName: string) =>
       this.page.locator("[class*='UserCard--withCelebrations']").filter({ hasText: `Birthday${userName}` });
-
+    this.mustReadSection = this.page.getByRole('link', { name: 'Must reads' }).first();
+    this.topicLinkLocator = (topicName: string, postContainer: Locator) =>
+      postContainer.getByRole('link', { name: `#${topicName}` });
     this.feedPostContainer = this.page.locator("[class*='PostInner']");
   }
 
@@ -137,6 +141,12 @@ export class FeedPage extends BasePage {
       await this.verifyThePageIsLoaded();
     });
   }
+  async reloadPageWithTimelineMode(): Promise<void> {
+    await test.step('Reload page with timeline mode', async () => {
+      await this.page.reload();
+      await this.feedList.verifyThePageIsLoadedWithTimelineMode();
+    });
+  }
 
   async reloadFeedDetailPage(postText: string): Promise<void> {
     await test.step('Reload feed detail page', async () => {
@@ -147,6 +157,18 @@ export class FeedPage extends BasePage {
 
   async getPostContainerLocator(postText: string): Promise<Locator> {
     return this.feedPostContainer.filter({ hasText: postText }).first();
+  }
+
+  async createAndPostWithLimitVisibility(options: FeedPostOptions): Promise<FeedPostResult> {
+    return await this.postEditor.createAndPostWithLimitVisibility(options);
+  }
+
+  async editPostAndRemoveLimitVisibility(currentText: string, newText: string): Promise<void> {
+    await this.postEditor.editPostAndRemoveLimitVisibility(currentText, newText);
+  }
+
+  async toggleLimitVisibility(): Promise<void> {
+    await this.postEditor.toggleLimitVisibility();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -360,6 +382,14 @@ export class FeedPage extends BasePage {
     await test.step('Verify Celebration smart block is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.celebrationBlock, {
         assertionMessage: 'Celebration smart block should be visible',
+      });
+    });
+  }
+
+  async verifyMustReadSectionIsVisible(): Promise<void> {
+    await test.step('Verify Must Read section is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.mustReadSection, {
+        assertionMessage: 'Must Read section should be visible',
       });
     });
   }
@@ -633,6 +663,41 @@ export class FeedPage extends BasePage {
   async verifyPostTextOnDetailPage(postText: string): Promise<void> {
     await test.step(`Verify post text on detail page: ${postText}`, async () => {
       await this.feedList.validatePostText(postText);
+    });
+  }
+
+  async clickTopicInPost(postText: string, topicName: string, topicId: string): Promise<void> {
+    await test.step(`Click topic #${topicName} in post and verify navigation`, async () => {
+      // Get the post container
+      const postContainer = this.feedList.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postContainer, {
+        assertionMessage: `Post ${postText} should be visible`,
+      });
+
+      // Find the topic link within the post
+      // Topics are rendered as links with data-type="topic" and href="/topic/{topicId}"
+      const topicLink = this.topicLinkLocator(topicName, postContainer);
+
+      // Verify the link is visible
+      await this.verifier.verifyTheElementIsVisible(topicLink, {
+        assertionMessage: `Topic #${topicName} should be visible in post`,
+      });
+
+      // Click the topic link
+      await this.clickOnElement(topicLink);
+
+      // Verify navigation to the topic details page
+      await this.verifyNavigationToTopic(topicId);
+    });
+  }
+
+  async verifyNavigationToTopic(topicId: string): Promise<void> {
+    await test.step(`Verify navigation to topic ${topicId}`, async () => {
+      // Wait for URL to contain the topic ID (could be /topic/{topicId} or /topic/{topicId}/content, etc.)
+      await this.page.waitForURL(new RegExp(`/topic/${topicId}`), { timeout: TIMEOUTS.MEDIUM });
+
+      // Verify the page has loaded
+      await this.page.waitForLoadState('domcontentloaded');
     });
   }
 

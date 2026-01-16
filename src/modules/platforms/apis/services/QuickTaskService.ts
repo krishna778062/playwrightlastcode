@@ -1,9 +1,22 @@
 import { faker } from '@faker-js/faker';
-import { APIRequestContext } from '@playwright/test';
+import { APIRequestContext, test } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
-import { DEFAULT_FUTURE_DAYS_OFFSET } from '@platforms/constants/quickTask';
+import { DEFAULT_FUTURE_DAYS_OFFSET, DEFAULT_TASK_TAGS } from '@platforms/constants/quickTask';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import {
+  CreateTaskPayload,
+  CreateTaskResponse,
+  PeopleResponse,
+  Person,
+  TaskDetails,
+  TaskField,
+  TaskFieldsResponse,
+} from '@/src/modules/platforms/apis/interfaces/quickTask.interface';
+import { PLATFORM_API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
 
 export interface CreateTaskRequest {
   title: string;
@@ -15,24 +28,17 @@ export interface CreateTaskRequest {
   };
 }
 
-export interface CreateTaskResponse {
-  status: string;
-  result: {
-    _id: string;
-    title: string;
-    priority: string;
-    dueDate: string;
-    description: string;
-    assignedTo: {
-      users: Array<{ id: string }>;
-    };
-  };
-}
-
+/**
+ * Service for Quick Task API operations
+ * Handles task field fetching, people/user retrieval, and task creation
+ */
 export class QuickTaskService {
   private httpClient: HttpClient;
 
-  constructor(context: APIRequestContext, baseUrl: string) {
+  constructor(
+    readonly context: APIRequestContext,
+    readonly baseUrl: string
+  ) {
     this.httpClient = new HttpClient(context, baseUrl);
   }
 
@@ -40,8 +46,8 @@ export class QuickTaskService {
 
   /**
    * Gets the current authenticated user's ID from the API
-   * Uses cached value if available, otherwise tries multiple endpoints
-   * @returns Promise with the user ID
+   * Uses cached value if available, otherwise calls /v2/account/basic-app-config endpoint
+   * @returns Promise with the user ID (uid from the response)
    */
   private async getCurrentUserId(): Promise<string> {
     // Return cached user ID if available
@@ -49,40 +55,93 @@ export class QuickTaskService {
       return this.cachedUserId;
     }
 
-    // Try different possible endpoints to get current user info
-    const possibleEndpoints = [
-      '/v1/w-task/user/me',
-      '/v1/w-task/users/me',
-      '/v1/user/me',
-      '/v1/users/me',
-      '/v1/identity/user/me',
-    ];
-
-    for (const endpoint of possibleEndpoints) {
-      try {
-        const response = await this.httpClient.get(endpoint);
-        const userData = await this.httpClient.parseResponse<{ result: { id: string } }>(response, {
-          expectedStatusCodes: [200],
-        });
-        if (userData.result?.id) {
-          this.cachedUserId = userData.result.id;
-          return this.cachedUserId;
-        }
-      } catch (error) {
-        // Try next endpoint
-        continue;
+    // Use v2/account/basic-app-config endpoint to get current user ID (returns uid)
+    const endpoint = '/v2/account/basic-app-config';
+    try {
+      const response = await this.httpClient.get(endpoint);
+      const userData = await this.httpClient.parseResponse<{ result: { uid: string } }>(response, {
+        expectedStatusCodes: [200],
+      });
+      const userId = userData.result?.uid;
+      if (userId) {
+        this.cachedUserId = userId;
+        return this.cachedUserId;
       }
+      throw new Error('User ID (uid) not found in response from /v2/account/basic-app-config');
+    } catch (error) {
+      // If endpoint fails, will fall back to extracting from task creation response
+      throw new Error(
+        `Failed to get user ID from ${endpoint}: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
-
-    throw new Error('Could not determine current user ID. Please ensure the API context is properly authenticated.');
   }
 
   /**
-   * Creates a new task via API
+   * Fetches all task fields from the API
+   * @returns Promise with task fields response
+   */
+  async getTaskFields(): Promise<TaskFieldsResponse> {
+    return await test.step('Fetch task fields', async () => {
+      const response = await this.httpClient.get(PLATFORM_API_ENDPOINTS.quickTask.taskFields);
+      return await this.httpClient.parseResponse<TaskFieldsResponse>(response);
+    });
+  }
+
+  /**
+   * Gets mandatory task fields from the API
+   * @returns Promise with array of mandatory task fields
+   */
+  async getMandatoryTaskFields(): Promise<TaskField[]> {
+    return await test.step('Get mandatory task fields', async () => {
+      const taskFieldsResponse = await this.getTaskFields();
+      return taskFieldsResponse.result.listOfItems.filter(field => field.isMandatory && field.isVisible);
+    });
+  }
+
+  /**
+   * Fetches all people/users from the API
+   * @returns Promise with people response
+   */
+  async getPeople(): Promise<PeopleResponse> {
+    return await test.step('Fetch people/users', async () => {
+      const response = await this.httpClient.get(PLATFORM_API_ENDPOINTS.quickTask.people);
+      return await this.httpClient.parseResponse<PeopleResponse>(response);
+    });
+  }
+
+  /**
+   * Gets a person/user by email
+   * @param email - Email of the person to find
+   * @returns Promise with person object or null if not found
+   */
+  async getPersonByEmail(email: string): Promise<Person | null> {
+    return await test.step(`Get person by email: ${email}`, async () => {
+      const peopleResponse = await this.getPeople();
+      const person = peopleResponse.result.listOfItems.find(p => p.email === email);
+      return person || null;
+    });
+  }
+
+  /**
+   * Gets the first available person/user ID
+   * @returns Promise with person ID string
+   */
+  async getFirstAvailablePersonId(): Promise<string> {
+    return await test.step('Get first available person ID', async () => {
+      const peopleResponse = await this.getPeople();
+      if (peopleResponse.result.listOfItems.length === 0) {
+        throw new Error('No people found in the system');
+      }
+      return peopleResponse.result.listOfItems[0].peopleId;
+    });
+  }
+
+  /**
+   * Creates a new task via API (legacy method using CreateTaskRequest)
    * @param taskData - Task data including title, priority, dueDate, description, and assignedTo
    * @returns Promise with the created task response
    */
-  async createTask(taskData: CreateTaskRequest): Promise<CreateTaskResponse> {
+  async createTaskLegacy(taskData: CreateTaskRequest): Promise<CreateTaskResponse> {
     const response = await this.httpClient.post('/v1/w-task/tasks', {
       data: taskData,
       headers: {
@@ -113,6 +172,384 @@ export class QuickTaskService {
   }
 
   /**
+   * Creates a new task with the provided payload
+   * @param payload - Task creation payload
+   * @returns Promise with task creation response
+   */
+  async createTask(payload: CreateTaskPayload): Promise<CreateTaskResponse> {
+    return await test.step('Create task', async () => {
+      // Log payload for debugging attachment issues
+      if (payload.attachments) {
+        console.log('Task creation payload with attachments:', JSON.stringify(payload, null, 2));
+      }
+      const response = await this.httpClient.post(PLATFORM_API_ENDPOINTS.quickTask.tasks, {
+        data: payload,
+      });
+      return await this.httpClient.parseResponse<CreateTaskResponse>(response);
+    });
+  }
+
+  /**
+   * Creates a task with all mandatory fields populated
+   * Automatically fetches mandatory fields and populates them with default values
+   * @param options - Optional overrides for specific fields
+   * @returns Promise with task creation response
+   */
+  async createTaskWithMandatoryFields(options?: Partial<CreateTaskPayload>): Promise<CreateTaskResponse> {
+    return await test.step('Create task with mandatory fields', async () => {
+      const mandatoryFields = await this.getMandatoryTaskFields();
+      const payload: CreateTaskPayload = {};
+
+      // Get a user ID for assignedTo field if needed
+      let userId: string | undefined;
+      const assignedToField = mandatoryFields.find(field => field.name === 'assignedTo');
+      if (assignedToField) {
+        userId = await this.getFirstAvailablePersonId();
+      }
+
+      // Populate mandatory fields with default values
+      for (const field of mandatoryFields) {
+        switch (field.name) {
+          case 'title':
+            payload.title = options?.title || 'Test Task Title';
+            break;
+          case 'description':
+            payload.description = options?.description || 'Test task description';
+            break;
+          case 'priority':
+            // Use first available option or default to 'medium'
+            payload.priority =
+              options?.priority || (field.options && field.options.length > 0 ? field.options[0].value : 'medium');
+            break;
+          case 'dueDate':
+            // Default to tomorrow's date in YYYY-MM-DD HH:mm format
+            if (!options?.dueDate) {
+              const tomorrow = new Date();
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              payload.dueDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')} 00:00`;
+            } else {
+              payload.dueDate = options.dueDate;
+            }
+            break;
+          case 'assignedTo':
+            if (userId) {
+              payload.assignedTo = options?.assignedTo || {
+                users: [{ id: userId }],
+              };
+            }
+            break;
+          default:
+            // For any other mandatory fields, try to use options if provided
+            if (options?.[field.name]) {
+              payload[field.name] = options[field.name];
+            }
+            break;
+        }
+      }
+
+      // Merge with any provided options (options take precedence)
+      const finalPayload = { ...payload, ...options };
+
+      return await this.createTask(finalPayload);
+    });
+  }
+
+  /**
+   * Gets MIME type from file extension
+   * @param filePath - Path to the file
+   * @returns MIME type string
+   */
+  private getMimeType(filePath: string): string {
+    const ext = path.extname(filePath).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.png': 'image/png',
+      '.gif': 'image/gif',
+      '.pdf': 'application/pdf',
+      '.csv': 'text/csv',
+      '.txt': 'text/plain',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  }
+
+  /**
+   * Uploads a file and gets signed URL for upload
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param uploadContext - Upload context (default: 'home-feed')
+   * @returns Promise with fileId and uploadUrl
+   */
+  private async uploadFile(
+    fileName: string,
+    filePath: string,
+    uploadContext: string = 'home-feed'
+  ): Promise<{ fileId: string; uploadUrl: string }> {
+    return await test.step(`Uploading file "${fileName}" to get signed URL`, async () => {
+      const fileStats = fs.statSync(filePath);
+      const fileSize = fileStats.size;
+
+      // Validate file size - API requires size >= 1
+      if (fileSize < 1) {
+        throw new Error(`File "${fileName}" is empty (size: ${fileSize} bytes). Files must have at least 1 byte.`);
+      }
+
+      const mimeType = this.getMimeType(filePath);
+
+      const payload = {
+        file_name: fileName,
+        size: fileSize,
+        mime_type: mimeType,
+        uploadContext: uploadContext,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.content.signedUrl, {
+        data: payload,
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`Failed to get signed upload URL. Status: ${response.status()}, Error: ${errorText}`);
+      }
+
+      const uploadResponse = await response.json();
+      const fileId = uploadResponse.result?.file_id;
+      const uploadUrl = uploadResponse.result?.upload_url;
+
+      if (!fileId || !uploadUrl) {
+        throw new Error(`Failed to get fileId or uploadUrl from upload response: ${JSON.stringify(uploadResponse)}`);
+      }
+
+      return { fileId, uploadUrl };
+    });
+  }
+
+  /**
+   * Uploads file binary data to the signed upload URL
+   * @param uploadUrl - The signed upload URL from uploadFile response
+   * @param fileName - The original filename for Content-Disposition header
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file
+   * @returns Promise with upload response
+   */
+  private async uploadToAttachmentURL(
+    uploadUrl: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<void> {
+    return await test.step(`Uploading file binary data to attachment URL for "${fileName}"`, async () => {
+      if (!uploadUrl) {
+        throw new Error('Upload URL is required but not provided');
+      }
+      const fileBuffer = fs.readFileSync(filePath);
+
+      const headers = {
+        'Content-Type': mimeType,
+        'Content-Disposition': `attachment; filename=${fileName}`,
+      };
+
+      const response = await this.context.put(uploadUrl, {
+        headers,
+        data: fileBuffer,
+      });
+
+      if (!response.ok()) {
+        const errorText = await response.text();
+        throw new Error(`File upload to attachment URL failed. Status: ${response.status()}, Error: ${errorText}`);
+      }
+    });
+  }
+
+  /**
+   * Uploads one or more files and returns attachment objects
+   * Quick Task API expects: [{ id, name, mimeType, size }]
+   * @param filePaths - Array of file paths to upload
+   * @param uploadContext - Upload context (default: 'home-feed')
+   * @returns Promise with array of attachment objects
+   */
+  private async uploadAttachments(filePaths: string[], uploadContext: string = 'home-feed'): Promise<any[]> {
+    const attachments: any[] = [];
+
+    for (const filePath of filePaths) {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+
+      const fileName = path.basename(filePath);
+      const mimeType = this.getMimeType(filePath);
+      const fileStats = fs.statSync(filePath);
+      const fileSize = fileStats.size;
+
+      // Get signed URL and fileId
+      const { fileId, uploadUrl } = await this.uploadFile(fileName, filePath, uploadContext);
+
+      // Upload file binary to signed URL
+      await this.uploadToAttachmentURL(uploadUrl, fileName, filePath, mimeType);
+
+      // Quick Task API expects: { id, name, mimeType, size }
+      attachments.push({
+        id: fileId,
+        name: fileName,
+        mimeType: mimeType,
+        size: fileSize,
+      });
+    }
+
+    return attachments;
+  }
+
+  /**
+   * Prerequisite helper: Creates a task with mandatory fields (QT-001)
+   * This can be used as a prerequisite in any test case
+   * @param title - Task title
+   * @param priority - Task priority (e.g., 'urgent', 'high', 'medium', 'low')
+   * @param tags - Optional array of tags to assign to the task
+   * @param assignToSelf - Optional flag to assign task to current logged-in user (default: false)
+   * @param description - Optional task description
+   * @param attachmentFilePaths - Optional array of file paths to attach to the task
+   * @returns Promise with task details including taskId, title, and priority
+   */
+  async createTaskAsPrerequisite(
+    title: string,
+    priority: string,
+    tags?: string[],
+    assignToSelf: boolean = false,
+    description?: string,
+    attachmentFilePaths?: string[]
+  ): Promise<TaskDetails> {
+    return await test.step(`Prerequisite (QT-001): Create task with title "${title}" and priority "${priority}"`, async () => {
+      // Use provided tags or default tags
+      const taskTags = tags && tags.length > 0 ? tags : DEFAULT_TASK_TAGS;
+
+      // Get the payload that will be used to create the task
+      const mandatoryFields = await this.getMandatoryTaskFields();
+      const taskOptions: Partial<CreateTaskPayload> = {
+        title,
+        priority,
+        tags: taskTags,
+      };
+
+      // Add description if provided
+      if (description) {
+        taskOptions.description = description;
+      }
+
+      // Upload attachments if provided
+      if (attachmentFilePaths && attachmentFilePaths.length > 0) {
+        // Quick Task API expects: attachments: [{ id, name, mimeType, size }]
+        const attachments = await this.uploadAttachments(attachmentFilePaths);
+        taskOptions.attachments = attachments;
+      }
+
+      // Get a user ID for assignedTo field if needed
+      let userId: string | undefined;
+      const assignedToField = mandatoryFields.find(field => field.name === 'assignedTo');
+      if (assignedToField) {
+        if (assignToSelf) {
+          // Get current logged-in user ID
+          if (this.cachedUserId) {
+            userId = this.cachedUserId;
+          } else {
+            // Try to get user ID from API endpoints first
+            try {
+              userId = await this.getCurrentUserId();
+            } catch (error) {
+              // If API endpoints fail, create task without assignedTo (empty array)
+              // The API will automatically assign it to the current logged-in user
+              // Then extract assignedBy.id from the response for future use
+              taskOptions.assignedTo = {
+                users: [],
+              };
+            }
+          }
+
+          // If we have userId, set it in taskOptions
+          if (userId) {
+            taskOptions.assignedTo = {
+              users: [{ id: userId }],
+            };
+          }
+        } else {
+          // Get first available person ID (default behavior)
+          userId = await this.getFirstAvailablePersonId();
+          if (userId) {
+            taskOptions.assignedTo = {
+              users: [{ id: userId }],
+            };
+          }
+        }
+      }
+
+      const createTaskResponse = await this.createTaskWithMandatoryFields(taskOptions);
+
+      // Extract task ID from response
+      const taskId = createTaskResponse.result?._id || createTaskResponse.result?.taskId || '';
+
+      if (!taskId) {
+        throw new Error('Task ID not found in create task response');
+      }
+
+      // If assignToSelf and we didn't have userId, extract it from response and cache it
+      if (assignToSelf && !this.cachedUserId) {
+        const assignedById = (createTaskResponse.result as any)?.assignedBy?.id;
+        if (assignedById) {
+          this.cachedUserId = assignedById;
+        }
+      }
+
+      // Build the payload that was used to create the task
+      const payload: CreateTaskPayload = {
+        title,
+        priority,
+        tags: taskTags,
+      };
+
+      // Add attachments to payload if they were uploaded
+      if (taskOptions.attachments) {
+        payload.attachments = taskOptions.attachments;
+      }
+
+      // Add assignedTo to payload (either with userId or empty array for self-assignment)
+      if (taskOptions.assignedTo) {
+        payload.assignedTo = taskOptions.assignedTo;
+      } else if (userId) {
+        payload.assignedTo = {
+          users: [{ id: userId }],
+        };
+      }
+
+      // Set dueDate if it's mandatory
+      const dueDateField = mandatoryFields.find(field => field.name === 'dueDate');
+      if (dueDateField) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        payload.dueDate = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')} 00:00`;
+      }
+
+      // Set description if it's mandatory
+      const descriptionField = mandatoryFields.find(field => field.name === 'description');
+      if (descriptionField?.isMandatory) {
+        payload.description = 'Test task description';
+      }
+
+      return {
+        taskId,
+        title,
+        priority,
+        dueDate: payload.dueDate,
+        assignedTo: payload.assignedTo,
+        payload,
+        response: createTaskResponse,
+      };
+    });
+  }
+
+  /**
    * Gets a task by ID via API
    * @param taskId - The ID of the task to retrieve
    * @returns Promise with the task response
@@ -125,19 +562,35 @@ export class QuickTaskService {
   }
 
   /**
-   * Deletes a task via API
-   * @param taskId - The ID of the task to delete
-   * @returns Promise with the delete response
+   * Deletes a task by task ID
+   * @param taskId - The task ID (_id from create response) to delete
+   * @returns Promise with delete response
    */
   async deleteTask(taskId: string): Promise<void> {
-    const response = await this.httpClient.delete(`/v1/w-task/tasks/${taskId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return await test.step(`Delete task with ID: ${taskId}`, async () => {
+      const deleteEndpoint = `${PLATFORM_API_ENDPOINTS.quickTask.tasks}/${taskId}`;
+      console.log(`Attempting to delete task using endpoint: ${deleteEndpoint}`);
+      console.log(`Full URL: ${this.baseUrl}${deleteEndpoint}`);
+      console.log(`Task ID being used: ${taskId}`);
 
-    await this.httpClient.validateResponse(response, {
-      expectedStatusCodes: [200, 204],
+      const response = await this.httpClient.delete(deleteEndpoint, {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      });
+
+      const status = response.status();
+      const responseBody = await response.json().catch(() => ({}));
+      console.log(`Delete response status: ${status}`);
+      console.log(`Delete response body:`, JSON.stringify(responseBody, null, 2));
+
+      // Check if deletion was successful (200 or 204 are common success codes)
+      if (status === 200 || status === 204) {
+        console.log(`Task ${taskId} deleted successfully`);
+      } else {
+        throw new Error(`Failed to delete task. Status: ${status}, Response: ${JSON.stringify(responseBody)}`);
+      }
     });
   }
 
@@ -163,7 +616,7 @@ export class QuickTaskService {
         currentUserId = await this.getCurrentUserId();
       } catch (error) {
         // If API endpoints fail, create a temporary task to get assignedBy.id (current logged-in user)
-        const tempTask = await this.createTask({
+        const tempTask = await this.createTaskLegacy({
           title: `Temp ${Date.now()}`,
           priority,
           dueDate,
@@ -173,9 +626,12 @@ export class QuickTaskService {
           },
         });
 
-        const assignedById = (tempTask.result as any).assignedBy?.id;
-        if (!assignedById) {
-          await this.deleteTask(tempTask.result._id).catch(() => {});
+        const assignedById = (tempTask.result as any)?.assignedBy?.id;
+        const tempTaskId = tempTask.result?._id;
+        if (!assignedById || !tempTaskId) {
+          if (tempTaskId) {
+            await this.deleteTask(tempTaskId).catch(() => {});
+          }
           throw new Error('Could not determine current logged-in user ID');
         }
 
@@ -183,12 +639,12 @@ export class QuickTaskService {
         currentUserId = assignedById;
 
         // Delete the temporary task
-        await this.deleteTask(tempTask.result._id).catch(() => {});
+        await this.deleteTask(tempTaskId).catch(() => {});
       }
     }
 
     // Create the task directly with the logged-in user ID in the payload
-    return this.createTask({
+    return this.createTaskLegacy({
       title: `Task ${faker.word.noun()} ${Date.now()}`,
       priority,
       dueDate,
