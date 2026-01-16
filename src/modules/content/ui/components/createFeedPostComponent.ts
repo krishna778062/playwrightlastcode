@@ -155,7 +155,9 @@ export class CreateFeedPostComponent extends BaseComponent {
     this.fileUploadInput = this.page.locator("input[type='file']");
     this.attachedFiles = this.page.locator("div[class='FileItem-name']");
     this.deleteFileIcon = this.page.locator("button[class*='delete']");
-    this.postButton = this.page.locator("div[class*='PostFormShareContainer']").getByRole('button', { name: 'Post' });
+    this.postButton = this.page
+      .locator("div[class*='PostFormShareContainer']")
+      .getByRole('button', { name: 'Post', exact: true });
     this.cancelButton = this.page
       .locator("div[class*='PostFormShareContainer']")
       .getByRole('button', { name: 'Cancel' });
