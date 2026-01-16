@@ -371,4 +371,18 @@ export class RecognitionHubPage extends BasePage {
       await this.manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.RECOGNITION_SHARED_SUCCESSFULLY);
     });
   }
+
+  /**
+   * Toggle cheer on the recognition post card
+   */
+  async toggleCheerOnCard(card: Locator): Promise<void> {
+    const cheerIcon = card.locator('[data-testid^="i-cheer"]').first();
+    await expect(cheerIcon, 'Cheer button should be visible').toBeVisible();
+    const before = await cheerIcon.getAttribute('data-testid');
+    await this.clickOnElement(cheerIcon, {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Clicking on cheer button',
+    });
+    await expect.poll(async () => await cheerIcon.getAttribute('data-testid')).not.toBe(before);
+  }
 }
