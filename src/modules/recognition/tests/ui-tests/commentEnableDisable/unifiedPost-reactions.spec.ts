@@ -124,6 +124,7 @@ test.describe('Reaction check for comments to recognition posts - hub', () => {
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
       await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await manageAppSettingsApi.enableDisableCommentsSettingViaApi(appManagerPage, 'enable', false);
     }
   );
 });
