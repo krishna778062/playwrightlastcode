@@ -433,7 +433,7 @@ export class RecognitionHubPage extends BasePage {
       }
     });
   }
-  
+
   /**
    * Verify spot awards for single recipient
    * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
