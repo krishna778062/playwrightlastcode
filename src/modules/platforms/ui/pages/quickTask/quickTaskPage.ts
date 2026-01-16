@@ -344,6 +344,102 @@ export class QuickTaskPage extends BasePage {
   }
 
   /**
+   * Verifies that all priority options are visible, can be selected, and the selected value is displayed correctly
+   * Verifies: Urgent, High, Medium, and Low options
+   * Also verifies that options appear in the correct order: Urgent → High → Medium → Low
+   */
+  async verifyAllPriorityOptionsAreVisibleAndSelectable(): Promise<void> {
+    await test.step('Verify all priority options are visible, selectable, and displayed correctly', async () => {
+      await this.setPriorityButton.click();
+
+      const priorityOptions = ['Urgent', 'High', 'Medium', 'Low'];
+
+      // Verify options appear in the correct order
+      const allOptions = this.page.getByRole('option');
+      const optionCount = await allOptions.count();
+      expect(optionCount, 'Should have exactly 4 priority options').toBe(4);
+
+      for (let i = 0; i < priorityOptions.length; i++) {
+        const option = allOptions.nth(i);
+        const optionText = await option.textContent();
+        expect(optionText?.trim(), `Option at position ${i + 1} should be "${priorityOptions[i]}"`).toBe(
+          priorityOptions[i]
+        );
+        await expect(option).toBeVisible({ timeout: 5000 });
+      }
+
+      // Verify each option can be selected and displayed correctly
+      for (const option of priorityOptions) {
+        await this.page.getByRole('option', { name: option }).click();
+        // After selection, button name changes to the selected priority - verify it's displayed correctly
+        const selectedPriorityButton = this.page.getByRole('combobox', { name: option });
+        await expect(selectedPriorityButton, `Selected priority "${option}" should be displayed correctly`).toBeVisible(
+          { timeout: 5000 }
+        );
+        // Only click to reopen dropdown if not the last option
+        if (option !== priorityOptions[priorityOptions.length - 1]) {
+          await selectedPriorityButton.click();
+        }
+      }
+    });
+  }
+
+  /**
+   * Verifies that user can change the selected Priority value before saving the task and creates the task
+   * @param title - Task title
+   * @param description - Task description
+   * @param initialPriority - The initial priority to select (e.g., 'High')
+   * @param newPriority - The new priority to change to (e.g., 'Urgent')
+   */
+  async verifyPriorityCanBeChangedAndCreateTask(
+    title: string,
+    description: string,
+    initialPriority: string,
+    newPriority: string
+  ): Promise<void> {
+    await test.step(`Verify priority can be changed from "${initialPriority}" to "${newPriority}" and create task`, async () => {
+      // Fill title and description
+      await this.titleInput.fill(title);
+      await this.contextInput.click();
+      await this.contextInput.fill(description);
+
+      // Select initial priority - handle both "Set priority" and already selected priority button names
+      const initialButton = this.page
+        .getByRole('combobox', { name: 'Set priority' })
+        .or(this.page.getByRole('combobox', { name: initialPriority }));
+      await initialButton.click();
+      await this.page.getByRole('option', { name: initialPriority }).click();
+
+      // Verify initial priority is displayed
+      const initialSelectedButton = this.page.getByRole('combobox', { name: initialPriority });
+      await expect(initialSelectedButton, `Initial priority "${initialPriority}" should be displayed`).toBeVisible({
+        timeout: 5000,
+      });
+
+      // Change to new priority
+      await initialSelectedButton.click();
+      await this.page.getByRole('option', { name: newPriority }).click();
+
+      // Verify new priority is displayed
+      const newSelectedButton = this.page.getByRole('combobox', { name: newPriority });
+      await expect(newSelectedButton, `Changed priority "${newPriority}" should be displayed correctly`).toBeVisible({
+        timeout: 5000,
+      });
+
+      // Create the task
+      await this.createTaskButton.click();
+      // Wait for task creation to complete - modal should close
+      await this.page
+        .locator('[role="dialog"]')
+        .filter({
+          has: this.page.getByRole('textbox', { name: 'Add title' }),
+        })
+        .waitFor({ state: 'hidden', timeout: 10000 })
+        .catch(() => {});
+    });
+  }
+
+  /**
    * Selects the current date as the due date
    */
   async selectCurrentDate(): Promise<void> {
@@ -630,6 +726,17 @@ export class QuickTaskPage extends BasePage {
   }
 
   /**
+   * Extracts task ID from the current URL
+   * URL pattern: /tasks/[task-id] or /quick-tasks/[task-id]
+   * @returns Task ID if found, null otherwise
+   */
+  extractTaskIdFromUrl(): string | null {
+    const currentUrl = this.page.url();
+    const taskIdMatch = currentUrl.match(/\/tasks\/([^/?]+)/) || currentUrl.match(/\/quick-tasks\/([^/?]+)/);
+    return taskIdMatch ? taskIdMatch[1] : null;
+  }
+
+  /**
    * Clicks on a task by its title
    * Verifies that the task detail page is opened and displays the task title before proceeding
    * @param taskTitle - The title of the task to click
@@ -643,20 +750,40 @@ export class QuickTaskPage extends BasePage {
       .catch(() => {});
 
     // Use retry mechanism to wait for task link to appear
-    // Try both link and text-based selector
+    // Handle truncated titles by matching the beginning of the title
     await expect(async () => {
-      // Try link first
-      const taskLink = this.page.getByRole('link', { name: taskTitle });
-      const isVisible = await taskLink.isVisible().catch(() => false);
-      if (isVisible) {
-        await taskLink.click();
+      // Try exact match first
+      const exactLink = this.page.getByRole('link', { name: taskTitle });
+      const isExactVisible = await exactLink.isVisible().catch(() => false);
+      if (isExactVisible) {
+        await exactLink.click();
         return;
       }
 
-      // If link not found, try text-based selector
-      const taskElement = this.page.locator(`text=${taskTitle}`).first();
-      await expect(taskElement).toBeVisible({ timeout: 5000 });
-      await taskElement.click();
+      // If exact match not found, try partial match (for truncated titles)
+      // Get all task links and find one that starts with the task title
+      const allLinks = this.page.getByRole('link');
+      const linkCount = await allLinks.count();
+
+      for (let i = 0; i < linkCount; i++) {
+        const link = allLinks.nth(i);
+        const linkText = await link.textContent().catch(() => '');
+        // Check if link text starts with task title (handles truncation)
+        if (linkText?.trim().startsWith(taskTitle.trim())) {
+          await link.click();
+          return;
+        }
+      }
+
+      // Fallback: try text-based selector with partial match
+      const taskElement = this.page.locator(`text=/^${taskTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/`).first();
+      const isVisible = await taskElement.isVisible().catch(() => false);
+      if (isVisible) {
+        await taskElement.click();
+        return;
+      }
+
+      throw new Error(`Task with title starting with "${taskTitle}" not found`);
     }).toPass({ timeout: 30000 });
 
     // Verify task detail page is opened, task title is visible, and basic components are displayed
