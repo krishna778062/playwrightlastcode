@@ -39,6 +39,18 @@ export interface LowActivitySitesData {
   total_views: number;
 }
 
+export interface TotalSitesDistributionCSVData {
+  site_code: string;
+  site_name: string;
+  site_category_name: string;
+  site_type: string;
+  is_feature_site: boolean;
+  is_broadcast_only: boolean;
+  role: string;
+  user_name: string;
+  email: string;
+}
+
 export class SitesDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   constructor(snowflakeHelper: SnowflakeHelper, orgId: string) {
     super(snowflakeHelper, orgId);
@@ -361,5 +373,41 @@ export class SitesDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformLowActivitySitesResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to typed TotalSitesDistributionCSVData objects
+   * @param rawResults - Raw results from database query
+   * @returns TotalSitesDistributionCSVData[] - Properly typed and transformed data
+   */
+  private transformTotalSitesDistributionCSVResults(rawResults: any[]): TotalSitesDistributionCSVData[] {
+    return rawResults.map(result => ({
+      site_code: result.SITE_CODE || '',
+      site_name: result.SITE_NAME || '',
+      site_category_name: result.SITE_CATEGORY_NAME || '',
+      site_type: result.SITE_TYPE || '',
+      is_feature_site: result.IS_FEATURE_SITE === true || result.IS_FEATURE_SITE === 'true',
+      is_broadcast_only: result.IS_BROADCAST_ONLY === true || result.IS_BROADCAST_ONLY === 'true',
+      role: result.ROLE || '',
+      user_name: result.USER_NAME || '',
+      email: result.EMAIL || '',
+    }));
+  }
+
+  /**
+   * Gets total sites distribution CSV data from database with filters.
+   * Returns detailed site data matching the pie chart CSV export format.
+   * @param filterBy - Filter options including tenantCode
+   * @returns Promise<TotalSitesDistributionCSVData[]> - Total sites distribution CSV data
+   */
+  async getTotalSitesDistributionCSVDataFromDBWithFilters({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<TotalSitesDistributionCSVData[]> {
+    const finalQuery = SitesSql.TOTAL_SITES_DISTRIBUTION_CSV.replace(/{tenantCode}/g, filterBy.tenantCode);
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformTotalSitesDistributionCSVResults(rawResults);
   }
 }

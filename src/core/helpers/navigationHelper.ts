@@ -140,6 +140,11 @@ export class NavigationHelper {
       await this.sideNavBarComponent.clickOnManageFeature.click();
     });
   }
+  async clickOnSocialCampaignsUnderManageFeature() {
+    await test.step('Clicking on social campaigns under manage feature', async () => {
+      await this.sideNavBarComponent.clickOnSocialCampaignsUnderManageFeature.click();
+    });
+  }
 
   async clickOnHomeIconButton(): Promise<void> {
     await test.step('Clicking on home button on side bar', async () => {

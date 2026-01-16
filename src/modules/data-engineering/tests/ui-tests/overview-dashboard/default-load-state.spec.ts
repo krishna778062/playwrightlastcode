@@ -1,6 +1,10 @@
 import { TestCaseType } from '@data-engineering/constants/testCaseType';
 import { DataEngineeringTestSuite } from '@data-engineering/constants/testSuite';
-import { ContentDashboardQueryHelper, SitesDashboardQueryHelper } from '@data-engineering/helpers';
+import {
+  ContentDashboardQueryHelper,
+  SitesDashboardQueryHelper,
+  SocialInteractionDashboardQueryHelper,
+} from '@data-engineering/helpers';
 import { Page, test } from '@playwright/test';
 
 import { PeriodFilterTimeRange } from '../../../constants/periodFilterTimeRange';
@@ -34,6 +38,7 @@ test.describe(
       appAdoptionQueryHelper: AppAdoptionDashboardQueryHelper;
       sitesDashboardQueryHelper: SitesDashboardQueryHelper;
       contentDashboardQueryHelper: ContentDashboardQueryHelper;
+      socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
     };
     let testFiltersConfig: FilterOptions;
 
@@ -238,6 +243,160 @@ test.describe(
       }
     );
 
+    // Content Dashboard Metrics Tests
+    test(
+      'TS To verify the answer of Total content published in overview dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@overview-total-content-published',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer of Total content published in overview dashboard',
+          zephyrTestId: 'DE-27730',
+        });
+
+        const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue = await contentDashboardQueryHelper.getTotalContentPublishedDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // UI validation
+        const totalContentPublishedMetric = overviewDashboard.totalContentPublishedMetric;
+        await totalContentPublishedMetric.verifyMetricIsLoaded();
+        // Verify the absolute value (the metric shows just a number, not a percentage)
+        await totalContentPublishedMetric.verifyAbsoluteMetricValueIs(expectedMetricValue.toString());
+      }
+    );
+
+    test(
+      'TS To verify the answer of Users who viewed content in overview dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@overview-users-who-viewed-content',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer of Users who viewed content in overview dashboard',
+          zephyrTestId: 'DE-27731',
+        });
+
+        const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const expectedMetricValue =
+          await contentDashboardQueryHelper.getUsersWhoViewedContentPercentageFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
+        const usersWhoViewedContentMetric = overviewDashboard.usersWhoViewedContentMetric;
+        await usersWhoViewedContentMetric.verifyMetricIsLoaded();
+        // Verify the percentage value (e.g., 14.1 for 14.1%)
+        await usersWhoViewedContentMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'TS To verify the answer of Content published in overview dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.PIE_CHART,
+          '@overview-content-published-pie-chart',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer of Content published in overview dashboard',
+          zephyrTestId: 'DE-27733',
+        });
+
+        const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
+
+        // Get expected metric data from snowflake with default period (Last 30 days)
+        const dbResults = await contentDashboardQueryHelper.getContentPublishedByTypeDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        console.log('Content Published by Type DB Results:', dbResults);
+
+        // UI validation
+        const contentPublishedMetric = overviewDashboard.contentPublishedMetric;
+        await contentPublishedMetric.scrollToComponent();
+        await contentPublishedMetric.waitForChartToLoad();
+
+        // Verify number of segments matches DB results
+        await contentPublishedMetric.verifyNumberOfSegmentsVisibleonPieChartIs(dbResults.length);
+
+        // Verify each segment label data points (includes percentage from DB)
+        for (const data of dbResults) {
+          await contentPublishedMetric.verifySegmentLabelDataPointsAreAsExpected({
+            label: data.contentTypeName,
+            expectedText: `${data.contentTypeName} - ${data.count} (${data.percentage}%)`,
+          });
+        }
+
+        // Verify tooltip is visible for each segment (hover interaction)
+        for (const data of dbResults) {
+          await contentPublishedMetric.hoverOverSegmentLabelWithLabelAs(data.contentTypeName);
+          await contentPublishedMetric.waitForToolTipContainerToBeVisible();
+          // Note: Tooltip content validation is skipped as tooltip structure may vary
+          // The main validation is the segment label data points above
+        }
+      }
+    );
+
+    // Social Interaction Dashboard Metrics Tests
+    test(
+      'TS To verify the answer of participant engagement activity in overview dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@participant-engagement-activity',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the answer of participant engagement activity in overview dashboard',
+          zephyrTestId: 'DE-26542',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Verify the chart is loaded (for now, we verify the chart is visible)
+        // Future enhancement: can add data validation if needed
+        const participantEngagementActivity = testEnvironment.overviewDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyChartIsLoaded();
+
+        // Log the data for verification
+        console.log('Participant Engagement Activity Data:', participantEngagementActivityData);
+      }
+    );
+
     // Sites Dashboard Metrics Tests
     test(
       'TS To verify the answer of Total sites in overview dashboard',
@@ -417,124 +576,6 @@ test.describe(
 
         // Verify UI data matches DB data
         await mostPopularSitesMetrics.verifyUIDataMatchesWithSnowflakeData(dbResults);
-      }
-    );
-
-    // Content Dashboard Metrics Tests
-    test(
-      'TS To verify the answer of Total content published in overview dashboard',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.HERO_METRIC,
-          '@overview-total-content-published',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'TS To verify the answer of Total content published in overview dashboard',
-          zephyrTestId: 'DE-27730',
-        });
-
-        const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue = await contentDashboardQueryHelper.getTotalContentPublishedDataFromDBWithFilters({
-          filterBy: testFiltersConfig,
-        });
-
-        // UI validation
-        const totalContentPublishedMetric = overviewDashboard.totalContentPublishedMetric;
-        await totalContentPublishedMetric.verifyMetricIsLoaded();
-        // Verify the absolute value (the metric shows just a number, not a percentage)
-        await totalContentPublishedMetric.verifyAbsoluteMetricValueIs(expectedMetricValue.toString());
-      }
-    );
-
-    test(
-      'TS To verify the answer of Users who viewed content in overview dashboard',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.HERO_METRIC,
-          '@overview-users-who-viewed-content',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'TS To verify the answer of Users who viewed content in overview dashboard',
-          zephyrTestId: 'DE-27731',
-        });
-
-        const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        const expectedMetricValue =
-          await contentDashboardQueryHelper.getUsersWhoViewedContentPercentageFromDBWithFilters({
-            filterBy: testFiltersConfig,
-          });
-
-        // UI validation
-        const usersWhoViewedContentMetric = overviewDashboard.usersWhoViewedContentMetric;
-        await usersWhoViewedContentMetric.verifyMetricIsLoaded();
-        // Verify the percentage value (e.g., 14.1 for 14.1%)
-        await usersWhoViewedContentMetric.verifyMetricValue(expectedMetricValue);
-      }
-    );
-
-    test(
-      'TS To verify the answer of Content published in overview dashboard',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.PIE_CHART,
-          '@overview-content-published-pie-chart',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'TS To verify the answer of Content published in overview dashboard',
-          zephyrTestId: 'DE-27733',
-        });
-
-        const { contentDashboardQueryHelper, overviewDashboard } = testEnvironment;
-
-        // Get expected metric data from snowflake with default period (Last 30 days)
-        const dbResults = await contentDashboardQueryHelper.getContentPublishedByTypeDataFromDBWithFilters({
-          filterBy: testFiltersConfig,
-        });
-
-        console.log('Content Published by Type DB Results:', dbResults);
-
-        // UI validation
-        const contentPublishedMetric = overviewDashboard.contentPublishedMetric;
-        await contentPublishedMetric.scrollToComponent();
-        await contentPublishedMetric.waitForChartToLoad();
-
-        // Verify number of segments matches DB results
-        await contentPublishedMetric.verifyNumberOfSegmentsVisibleonPieChartIs(dbResults.length);
-
-        // Verify each segment label data points (includes percentage from DB)
-        for (const data of dbResults) {
-          await contentPublishedMetric.verifySegmentLabelDataPointsAreAsExpected({
-            label: data.contentTypeName,
-            expectedText: `${data.contentTypeName} - ${data.count} (${data.percentage}%)`,
-          });
-        }
-
-        // Verify tooltip is visible for each segment (hover interaction)
-        for (const data of dbResults) {
-          await contentPublishedMetric.hoverOverSegmentLabelWithLabelAs(data.contentTypeName);
-          await contentPublishedMetric.waitForToolTipContainerToBeVisible();
-          // Note: Tooltip content validation is skipped as tooltip structure may vary
-          // The main validation is the segment label data points above
-        }
       }
     );
   }
