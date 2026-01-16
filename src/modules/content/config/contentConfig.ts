@@ -83,7 +83,7 @@ export const config = {
       b2bBaseUrl: 'https://api-be.test.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr002',
-      endUserEmail: 'keerthana.ks@simpplr.com',
+      endUserEmail: 'sonali.gupta+10@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'chaitanya.sharma@simpplr.com',
       siteManagerPassword: 'simpplr001',

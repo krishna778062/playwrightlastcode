@@ -39,6 +39,7 @@ export class ManageAppSettingsApiService {
       }
     } finally {
       await apiContext.dispose();
+      await page.reload();
     }
   }
 }

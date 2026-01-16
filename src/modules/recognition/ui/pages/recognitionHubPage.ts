@@ -1,15 +1,22 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { commonRecognitionTestData } from '@recognition/test-data/awardTestData';
 import { GiveRecognitionDialogBox } from '@recognition-components/give-recognition-dialog-box';
 import { ManageRecognitionPage } from '@recognition-pages/manage/manageRecognitionPage';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
+
+import { MESSAGES } from '@/src/modules/recognition/constants/messages';
+
 export class RecognitionHubPage extends BasePage {
   readonly recognitionHeader: Locator;
   readonly giveRecognitionButton: Locator;
   readonly recognizeButton: Locator;
   readonly shareModal: Locator;
+  readonly shareModalHeading: Locator;
+  readonly shareModalPostTextArea: Locator;
+  readonly shareModalSubmitButton: Locator;
   readonly shareToFeedCheckbox: Locator;
   readonly shareToSlackCheckbox: Locator;
   readonly homeFeedOption: Locator;
@@ -38,12 +45,15 @@ export class RecognitionHubPage extends BasePage {
     this.giveRecognitionButton = page.locator('header').filter({ hasText: 'Give recognition' }).getByRole('button');
     this.recognizeButton = page.getByRole('button', { name: /recognize/i }).first();
     this.shareModal = page.locator('[data-testid="share-recognition-modal"], [role="dialog"]').first();
+    this.shareModalHeading = this.shareModal.getByRole('heading', { name: /share recognition/i }).first();
+    this.shareModalPostTextArea = this.shareModal.getByTestId('tiptap-content').first();
+    this.shareModalSubmitButton = this.shareModal.getByRole('button', { name: /^share$/i }).first();
     this.shareToFeedCheckbox = page.locator('#shareToFeedAndSlack_shareToFeed');
     this.shareToSlackCheckbox = page.locator('#shareToFeedAndSlack_shareToSlack');
     this.homeFeedOption = page.locator('#feedNamehome');
     this.siteFeedOption = page.locator('#feedNamesite');
-    this.siteInputField = page.locator('[data-testid="site-input"], input[name="siteName"], input[id*="siteInput"]');
-    this.siteSuggestionOption = page.locator('[data-testid="site-suggestion"], [role="option"]');
+    this.siteInputField = this.shareModal.locator('input[autocomplete="off"]');
+    this.siteSuggestionOption = this.shareModal.getByLabel(`${commonRecognitionTestData.siteName}`).first();
     this.slackChannelInput = page.locator('[data-testid="slack-channel-input"], input[name="slackChannel"]');
     this.shareButton = page.getByRole('button', { name: /share/i }).first();
     this.skipButton = page.getByRole('button', { name: /skip/i }).first();
@@ -288,7 +298,7 @@ export class RecognitionHubPage extends BasePage {
       await this.page.keyboard.insertText(commentText);
       await expect(this.commentSubmitButton).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
       await this.commentSubmitButton.click();
-      await expect(this.commentInput).toBeHidden({ timeout: TIMEOUTS.LONG });
+      await expect(this.commentInput).toBeHidden();
     });
   }
 
@@ -305,5 +315,74 @@ export class RecognitionHubPage extends BasePage {
         return 0;
       }
     });
+  }
+
+  /**
+   * Share a recognition post from the hub feed to home/site feed.
+   */
+  async shareRecognitionPostFromHubToFeed(
+    sharePostText: string,
+    feedType: 'home feed' | 'site feed',
+    siteName?: string
+  ): Promise<void> {
+    await test.step('Share recognition post to feed', async () => {
+      const firstPost = this.feedPost.first();
+      await firstPost.scrollIntoViewIfNeeded();
+
+      const sharePostButton = firstPost.getByRole('button', { name: /share this recognition/i }).first();
+      await expect(sharePostButton, 'Share button on first post should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(sharePostButton, {
+        timeout: TIMEOUTS.MEDIUM,
+        stepInfo: 'Clicking on share post button',
+      });
+
+      await expect(this.shareModal, 'Share modal should appear').toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await expect(this.shareModalHeading, 'Share modal heading should be visible').toBeVisible({
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      // Ensure share to feed is enabled
+      await this.ensureChecked(this.shareToFeedCheckbox);
+      if (feedType === 'site feed') {
+        await this.siteFeedOption.click({ timeout: TIMEOUTS.MEDIUM });
+        await this.siteInputField.waitFor({ state: 'visible' });
+        if (siteName) {
+          await this.siteInputField.fill(siteName);
+          const suggestion = this.siteSuggestionOption.first();
+          await suggestion.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+          await suggestion.click({ timeout: TIMEOUTS.MEDIUM });
+        }
+      }
+      await expect(this.shareModalPostTextArea, 'Share message input should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.shareModalPostTextArea.click({ force: true });
+      await this.page.keyboard.insertText(sharePostText);
+      await expect(this.shareModalSubmitButton, 'Share button in modal should be enabled').toBeEnabled({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.shareModalSubmitButton, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: 'Clicking on share modal submit button',
+      });
+      await expect(this.shareModal, 'Share modal should close after submission').toBeHidden();
+      await this.manageRecognitionPage.assertToastMessageIsVisible(MESSAGES.RECOGNITION_SHARED_SUCCESSFULLY);
+    });
+  }
+
+  /**
+   * Toggle cheer on the recognition post card
+   */
+  async toggleCheerOnCard(card: Locator): Promise<void> {
+    const cheerIcon = card.locator('[data-testid^="i-cheer"]').first();
+    await expect(cheerIcon, 'Cheer button should be visible').toBeVisible();
+    const before = await cheerIcon.getAttribute('data-testid');
+    await this.clickOnElement(cheerIcon, {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Clicking on cheer button',
+    });
+    await expect.poll(async () => await cheerIcon.getAttribute('data-testid')).not.toBe(before);
   }
 }
