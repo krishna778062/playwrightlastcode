@@ -1571,5 +1571,170 @@ test.describe(
         });
       }
     );
+
+    test(
+      'Verify FO can share a comment made on a Non-Restricted Content (Private Site) to Home Feed with No Restrictions',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42210', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a comment from a non-restricted Private Site Page to Home Feed without restrictions. The shared comment should be visible to all users on Home Feed, even non-members of the Private Site.',
+          zephyrTestId: 'CONT-42210',
+          storyId: 'CONT-42210',
+        });
+
+        let pageId: string = '';
+        let pageCommentText: string;
+        let shareCommentText: string;
+        let privateSiteId: string = '';
+        let contentPreviewPage: ContentPreviewPage;
+
+        // ==================== Get or create Private Site with Pages ====================
+        await test.step('Get or create a Private Site with Pages', async () => {
+          const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
+            hasPages: true,
+            waitForSearchIndex: true,
+          });
+          privateSiteId = privateSite.siteId;
+        });
+
+        // ==================== FO creates a Page with No Restrictions on Private Site ====================
+        await test.step('FO creates a Page with No Restrictions on Private Site', async () => {
+          const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: privateSiteId,
+            contentInfo: {
+              contentType: 'page',
+              contentSubType: 'news',
+            },
+            options: {
+              waitForSearchIndex: false,
+            },
+          });
+          pageId = pageInfo.contentId;
+        });
+
+        // ==================== FO navigates to Page and creates a comment ====================
+        await test.step('FO navigates to Private Site Page and creates a comment', async () => {
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            privateSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Create comment on the Page
+          pageCommentText = TestDataGenerator.generateRandomText('Private Site Page Comment', 2, true);
+          await contentPreviewPage.clickShareThoughtsButton();
+
+          const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+          await createFeedPostComponent.createAndPost({ text: pageCommentText });
+
+          // Verify comment is visible
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
+        });
+
+        // ==================== Member (Standard User) CAN access Private Site Page and see comment ====================
+        await test.step('Member (Standard User) navigates to Private Site Page and verifies comment IS visible', async () => {
+          const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+
+          const memberContentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            privateSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await memberContentPreviewPage.loadPage();
+          await memberContentPreviewPage.verifyThePageIsLoaded();
+
+          // Verify the comment IS visible to member
+          await memberContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
+        });
+
+        // ==================== Non-Member (Social Campaign Manager) CANNOT access Private Site Page ====================
+        await test.step('Non-Member (Social Campaign Manager) attempts to access Private Site Page and verifies Page not found', async () => {
+          const nonMemberContentPreviewPage = new ContentPreviewPage(
+            socialCampaignManagerFixture.page,
+            privateSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await socialCampaignManagerFixture.page.goto(nonMemberContentPreviewPage.url);
+
+          await nonMemberContentPreviewPage.verifyRequestMembershipPageVisibility();
+        });
+
+        // ==================== FO shares the Page comment to Home Feed (NO restrictions) ====================
+        await test.step('FO shares the Page comment to Home Feed WITHOUT Restricted Viewers', async () => {
+          // Navigate back to the Page as FO
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          const feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.feedList.clickShareIcon(pageCommentText);
+          await feedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          shareCommentText = TestDataGenerator.generateRandomText('Shared Private Site comment to Home Feed', 2, true);
+
+          // Share to Home Feed (default option) WITHOUT limit visibility
+          await shareComponent.enterShareDescription(shareCommentText);
+
+          // Home Feed is the default - just click share (NO restrictions applied)
+          await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await feedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== Non-Member (Social Campaign Manager) CAN see shared comment on Home Feed ====================
+        await test.step('Non-Member (Social Campaign Manager) navigates to Home Feed and verifies shared comment IS  visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const scmHomeFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmHomeFeedPage.reloadPageWithTimelineMode();
+          await scmHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to non-member (who couldn't access the original Private Site Page)
+          await scmHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+
+        // ==================== Member (Standard User) CAN see shared comment on Home Feed ====================
+        await test.step('Member (Standard User) navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const standardUserHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserHomeFeedPage.reloadPageWithTimelineMode();
+          await standardUserHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared comment IS visible to member
+          await standardUserHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+
+        // ==================== FO can see shared comment on Home Feed ====================
+        await test.step('FO navigates to Home Feed and verifies shared comment IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const appManagerHomeFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerHomeFeedPage.reloadPage();
+          await appManagerHomeFeedPage.feedList.verifyThePageIsLoaded();
+
+          // Verify the shared comment IS visible to FO
+          await appManagerHomeFeedPage.feedList.waitForPostToBeVisible(shareCommentText);
+        });
+      }
+    );
   }
 );
