@@ -62,6 +62,7 @@ export class UserProfilePage extends BasePage {
    */
   async navigateToRecognitionPostFromUserProfile(): Promise<void> {
     await test.step('Navigate to recognition link from user profile', async () => {
+      await this.viewRecognitionLink.waitFor({ state: 'visible' });
       await expect(this.viewRecognitionLink, 'View recognition link should be visible').toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
