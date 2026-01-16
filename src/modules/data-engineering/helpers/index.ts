@@ -1,6 +1,7 @@
 export * from './base64Helper';
 export * from './baseAnalyticsQueryHelper';
 export * from './contentDashboardQueryHelper';
+export * from './contentModerationQueryHelper';
 export * from './dateHelper';
 export * from './filesDashboardQueryHelper';
 export * from './mobileDashboardQueryHelper';
