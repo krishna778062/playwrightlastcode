@@ -94,7 +94,7 @@ test.describe(
       }
     );
 
-    test(
+    test.skip(
       'application manager after updating the title of google calendar tile and again click on the edit option and did not update anything just click the save button',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],

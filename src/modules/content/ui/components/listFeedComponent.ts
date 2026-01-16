@@ -36,6 +36,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
+  readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly showButton: Locator;
   readonly loadMoreRepliesButton: Locator;
@@ -44,10 +45,9 @@ export class ListFeedComponent extends BaseComponent {
   readonly embedUrlLocator: (embedUrl: string) => Locator;
   readonly replyEmbedUrlPreviewLocator: (embedUrl: string) => Locator;
   readonly embedUrlPreviewLocator: Locator;
-  readonly feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
-  readonly sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
-  readonly shareSocialCampaignButton = (description: string) =>
-    this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
+  readonly feedLinkWithDescription: (description: string) => Locator;
+  readonly sharefeedLink: (linkText: string) => Locator;
+  readonly shareSocialCampaignButton: (description: string) => Locator;
   readonly sharePostButton: Locator;
   // Smart feed block locators
   readonly topPicksBlock: Locator;
@@ -57,16 +57,19 @@ export class ListFeedComponent extends BaseComponent {
   readonly popularContentBlock: Locator;
   readonly commentIcon: Locator;
 
-  readonly playButton: Locator = this.page.getByRole('button', { name: 'Play' });
-  readonly pauseButton: Locator = this.page.getByRole('button', { name: 'Pause' });
-  readonly forwardButton: Locator = this.page.getByRole('button', { name: 'Seek 10 seconds forward' });
-  readonly backwardButton: Locator = this.page.getByRole('button', { name: 'Seek 10 seconds backward' });
-  readonly fullscreenButton: Locator = this.page.getByRole('button', { name: 'Fullscreen' });
-  readonly exitFullscreenButton: Locator = this.page.getByRole('button', { name: 'Exit fullscreen' });
-  readonly settingsButton: Locator = this.page.getByRole('button', { name: 'Settings' });
-  readonly muteButton: Locator = this.page.getByRole('button', { name: 'Mute' });
-  readonly unmuteButton: Locator = this.page.getByRole('button', { name: 'Unmute' });
-  readonly randomClickOnPage: Locator = this.page.locator('.row').first();
+  readonly playButton: Locator;
+  readonly pauseButton: Locator;
+  readonly forwardButton: Locator;
+  readonly backwardButton: Locator;
+  readonly fullscreenButton: Locator;
+  readonly exitFullscreenButton: Locator;
+  readonly settingsButton: Locator;
+  readonly muteButton: Locator;
+  readonly unmuteButton: Locator;
+  readonly randomClickOnPage: Locator;
+
+  readonly feedTitleLocator = (expectedTitle: string): Locator =>
+    this.page.getByTestId('headerLabel').filter({ hasText: expectedTitle }).first();
 
   // Dynamic locator functions
   /**
@@ -74,67 +77,41 @@ export class ListFeedComponent extends BaseComponent {
    * @param text - The text content to find
    * @returns Locator for the post text
    */
-  readonly getFeedTextLocator = (text: string): Locator =>
-    this.page.locator("div[class*='postContent']").getByText(text, { exact: true }).first();
+  readonly getFeedTextLocator: (text: string) => Locator;
 
-  readonly versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
+  readonly versionImageLocator: (fileId: string) => Locator;
 
   /**
    * Gets a locator for the post timestamp
    * @param postText - The text of the post to find timestamp for
    * @returns Locator for the post timestamp
    */
-  readonly getPostTimestampLocator = (postText: string): Locator =>
-    this.page.locator(
-      `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
-    );
-  readonly imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
-  readonly infoIcon = this.page.getByTestId('i-info');
+  readonly getPostTimestampLocator: (postText: string) => Locator;
+  readonly imageButton: Locator;
+  readonly infoIcon: Locator;
 
-  readonly postTextLocator = (postText: string): Locator =>
-    this.page.locator('p').filter({ hasText: postText }).first();
+  readonly postTextLocator: (postText: string) => Locator;
 
-  readonly replyLocator = (replyText: string): Locator =>
-    this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
-  readonly replyContainer = this.page
-    .locator('div[class*="_container_q3xrp_1"]')
-    .first()
-    .locator('div[class*="_reply_11nkx_1"]');
-  readonly replyContainerWrapper = this.page.locator('._container_q3xrp_1');
-  readonly getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
+  readonly replyLocator: (replyText: string) => Locator;
+  readonly replyContainer: Locator;
+  readonly replyContainerWrapper: Locator;
+  readonly getViewPostLinkLocator: () => Locator;
 
-  readonly getReplyBoxImageLocator = (replyText: string): Locator => {
-    const reply = this.replyLocator(replyText);
-    return reply
-      .locator('..')
-      .locator('..')
-      .locator('div[class*="_reply_11nkx_1"]')
-      .getByRole('button', { name: 'Image PDF' });
-  };
+  readonly getReplyBoxImageLocator: (replyText: string) => Locator;
 
   /**
    * Gets a locator for the reply options menu
    * @param replyText - The text of the reply to find options menu for
    * @returns Locator for the reply options menu button
    */
-  readonly getReplyOptionsMenuLocator = (replyText: string): Locator =>
-    this.page
-      .locator('div[class*="replyContent"]')
-      .filter({ hasText: replyText })
-      .locator("button[class*='optionlauncher']")
-      .first();
+  readonly getReplyOptionsMenuLocator: (replyText: string) => Locator;
 
   /**
    * Gets a locator for the reply form container for a specific post
    * @param postText - The text of the post
    * @returns Locator for the reply form container
    */
-  readonly getReplyFormContainerForPost = (postText: string): Locator =>
-    this.getFeedTextLocator(postText)
-      .locator('..')
-      .locator('..')
-      .locator('div._Reply--form_qr1ju_6, div[class*="Reply--form"]')
-      .first();
+  readonly getReplyFormContainerForPost: (postText: string) => Locator;
 
   /**
    * Gets a locator for the fake input button in reply form
@@ -147,91 +124,53 @@ export class ListFeedComponent extends BaseComponent {
    * @param postText - The text of the post to find attachments for
    * @returns Locator for the post attachments
    */
-  readonly getPostAttachmentsLocator = (postText: string): Locator =>
-    this.page.locator(`div[class*='postContent']`).filter({ hasText: postText }).locator('li');
+  readonly getPostAttachmentsLocator: (postText: string) => Locator;
 
   /**
    * Gets a locator for the lightbox button on images
    * @param postText - The text of the post to find lightbox button for
    * @returns Locator for the lightbox button
    */
-  readonly getLightboxButtonLocator = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[3]')
-      .locator("button[aria-label='Open image in lightbox']");
+  readonly getLightboxButtonLocator: (postText: string) => Locator;
 
-  readonly getReplyImagePreviewLocator = (): Locator =>
-    this.page.getByTestId('replyContent').getByRole('button', { name: 'Open image in lightbox' }).first();
+  readonly getReplyImagePreviewLocator: () => Locator;
 
   /**
    * Gets a locator for the post options menu
    * @param postText - The text of the post to find options menu for
    * @returns Locator for the options menu button
    */
-  readonly getPostOptionsMenuLocator = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator("button[class*='optionlauncher']")
-      .first();
+  readonly getPostOptionsMenuLocator: (postText: string) => Locator;
 
   /**
    * Gets a locator for the favorited state indicator for a specific post
    * @param postText - The text of the post to check favorite state for
    * @returns Locator for the favorited state indicator
    */
-  readonly getFavoritedStateLocator = (postText: string): Locator =>
-    this.page
-      .locator('p')
-      .filter({ hasText: postText })
-      .locator('xpath=./ancestor::div[4]')
-      .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
-      .first();
+  readonly getFavoritedStateLocator: (postText: string) => Locator;
 
   /**
    * Gets a locator for the Share button/icon for a specific post
    * @param postText - The text of the post to find Share button for
    * @returns Locator for the Share button
    */
-  readonly getShareButtonLocator = (postText: string): Locator =>
-    this.getFeedTextLocator(postText)
-      .locator('..')
-      .locator('..')
-      .locator('..')
-      .locator('..')
-      .getByRole('button', { name: 'Share this post' })
-      .first();
+  readonly getShareButtonLocator: (postText: string) => Locator;
 
   readonly reportPostOption: Locator;
   readonly reportReplyOption: Locator;
 
-  readonly getProfileIconLocatorForPost = (postText: string, userName: string): Locator =>
-    this.page
-      .locator(
-        '._postHeader_tgt5r_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt'
-      )
-      .first();
+  readonly getProfileIconLocatorForPost: (postText: string, userName: string) => Locator;
 
-  readonly getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
-    this.page
-      .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
-      .first();
+  readonly getProfileIconLocatorForReply: (replyText: string, userName: string) => Locator;
 
-  readonly getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
+  readonly getFollowButtonLocator: (userName: string) => Locator;
 
-  readonly getFollowingButtonLocator = (userName: string): Locator =>
-    this.page.getByRole('button', { name: 'Following' });
+  readonly getFollowingButtonLocator: (userName: string) => Locator;
 
-  readonly getProfilePopoverLocator = (userName: string): Locator =>
-    this.page.getByText(`${userName}View in org chart`).first();
+  readonly getProfilePopoverLocator: (userName: string) => Locator;
 
-  readonly getReactionButton = (emojiName: string): Locator =>
-    this.page.getByRole('button', { name: `React with ${emojiName}` }).first();
-  readonly siteNameLocator = (postText: string, siteName: string): Locator =>
-    this.page.getByRole('link', { name: siteName }).first();
+  readonly getReactionButton: (emojiName: string) => Locator;
+  readonly siteNameLocator: (postText: string, siteName: string) => Locator;
 
   readonly feedPostContainer: Locator;
 
@@ -270,12 +209,14 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.topicNameEditor = (topicName: string): Locator =>
+      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
     // Smart feed block locators
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
     this.upcomingEventsBlock = this.page.locator('header').filter({ hasText: 'Upcoming event' });
     this.recentlyPublishedBlock = this.page.locator('header').filter({ hasText: 'Recently published' });
-    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebrations` });
+    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebration` });
     this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
     this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
@@ -287,6 +228,134 @@ export class ListFeedComponent extends BaseComponent {
     this.reactionModal = this.page.getByRole('dialog', { name: 'People who reacted to this' });
     this.siteImageLocator = this.page.locator('.imageAnchor img');
     this.feedPostContainer = this.page.locator("[class*='PostInner']");
+
+    // Initialize locators defined outside constructor
+    this.feedLinkWithDescription = (description: string) => this.page.locator('p').filter({ hasText: description });
+    this.sharefeedLink = (linkText: string) => this.page.locator('a').filter({ hasText: linkText });
+    this.shareSocialCampaignButton = (description: string) =>
+      this.page.locator(`xpath=//p[text()='${description}']/../../..//span[text()='Share']`);
+
+    // Video player controls
+    this.playButton = this.page.getByRole('button', { name: 'Play' });
+    this.pauseButton = this.page.getByRole('button', { name: 'Pause' });
+    this.forwardButton = this.page.getByRole('button', { name: 'Seek 10 seconds forward' });
+    this.backwardButton = this.page.getByRole('button', { name: 'Seek 10 seconds backward' });
+    this.fullscreenButton = this.page.getByRole('button', { name: 'Fullscreen' });
+    this.exitFullscreenButton = this.page.getByRole('button', { name: 'Exit fullscreen' });
+    this.settingsButton = this.page.getByRole('button', { name: 'Settings' });
+    this.muteButton = this.page.getByRole('button', { name: 'Mute' });
+    this.unmuteButton = this.page.getByRole('button', { name: 'Unmute' });
+    this.randomClickOnPage = this.page.locator('.row').first();
+
+    // Dynamic locator functions
+    this.getFeedTextLocator = (text: string): Locator =>
+      this.page.locator("div[class*='postContent']").getByText(text, { exact: true }).first();
+
+    this.versionImageLocator = (fileId: string): Locator => this.page.locator(`img[src*="${fileId}"]`);
+
+    this.getPostTimestampLocator = (postText: string): Locator =>
+      this.page.locator(
+        `xpath=//p[text()='${postText}']/ancestor::div[4]//div[contains(@class,'nameAndStatement')]/following-sibling::p/a`
+      );
+    this.imageButton = this.page.locator("button[aria-label='Open image in lightbox']");
+    this.infoIcon = this.page.getByTestId('i-info');
+
+    this.postTextLocator = (postText: string): Locator => this.page.locator('p').filter({ hasText: postText }).first();
+
+    this.replyLocator = (replyText: string): Locator =>
+      this.page.locator('div[class*="replyContent"] p').filter({ hasText: replyText }).first();
+    this.replyContainer = this.page
+      .locator('div[class*="_container_q3xrp_1"]')
+      .first()
+      .locator('div[class*="_reply_11nkx_1"]');
+    this.replyContainerWrapper = this.page.locator('._container_q3xrp_1');
+    this.getViewPostLinkLocator = (): Locator => this.page.getByRole('link', { name: 'View Post' }).first();
+
+    this.getReplyBoxImageLocator = (replyText: string): Locator => {
+      const reply = this.replyLocator(replyText);
+      return reply
+        .locator('..')
+        .locator('..')
+        .locator('div[class*="_reply_11nkx_1"]')
+        .getByRole('button', { name: 'Image PDF' });
+    };
+
+    this.getReplyOptionsMenuLocator = (replyText: string): Locator =>
+      this.page
+        .locator('div[class*="replyContent"]')
+        .filter({ hasText: replyText })
+        .locator("button[class*='optionlauncher']")
+        .first();
+
+    this.getReplyFormContainerForPost = (postText: string): Locator =>
+      this.getFeedTextLocator(postText)
+        .locator('..')
+        .locator('..')
+        .locator('div._Reply--form_qr1ju_6, div[class*="Reply--form"]')
+        .first();
+
+    this.getPostAttachmentsLocator = (postText: string): Locator =>
+      this.page.locator(`div[class*='postContent']`).filter({ hasText: postText }).locator('li');
+
+    this.getLightboxButtonLocator = (postText: string): Locator =>
+      this.page
+        .locator('p')
+        .filter({ hasText: postText })
+        .locator('xpath=./ancestor::div[3]')
+        .locator("button[aria-label='Open image in lightbox']");
+
+    this.getReplyImagePreviewLocator = (): Locator =>
+      this.page.getByTestId('replyContent').getByRole('button', { name: 'Open image in lightbox' }).first();
+
+    this.getPostOptionsMenuLocator = (postText: string): Locator =>
+      this.page
+        .locator('p')
+        .filter({ hasText: postText })
+        .locator('xpath=./ancestor::div[4]')
+        .locator("button[class*='optionlauncher']")
+        .first();
+
+    this.getFavoritedStateLocator = (postText: string): Locator =>
+      this.page
+        .locator('p')
+        .filter({ hasText: postText })
+        .locator('xpath=./ancestor::div[4]')
+        .locator("button[aria-label*='liked'], button[class*='liked'], svg[class*='liked'], .liked")
+        .first();
+
+    this.getShareButtonLocator = (postText: string): Locator =>
+      this.getFeedTextLocator(postText)
+        .locator('..')
+        .locator('..')
+        .locator('..')
+        .locator('..')
+        .getByRole('button', { name: 'Share this post' })
+        .first();
+
+    this.getProfileIconLocatorForPost = (postText: string, userName: string): Locator =>
+      this.page
+        .locator(
+          '._postHeader_tgt5r_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt'
+        )
+        .first();
+
+    this.getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
+      this.page
+        .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
+        .first();
+
+    this.getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
+
+    this.getFollowingButtonLocator = (userName: string): Locator =>
+      this.page.getByRole('button', { name: 'Following' });
+
+    this.getProfilePopoverLocator = (userName: string): Locator =>
+      this.page.getByText(`${userName}View in org chart`).first();
+
+    this.getReactionButton = (emojiName: string): Locator =>
+      this.page.getByRole('button', { name: `React with ${emojiName}` }).first();
+    this.siteNameLocator = (postText: string, siteName: string): Locator =>
+      this.page.getByRole('link', { name: siteName }).first();
   }
 
   /**
@@ -383,6 +452,22 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyEditOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, {
+        assertionMessage: `Edit option should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionNotVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is NOT visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should NOT be visible for post "${postText}"`,
+      });
+    });
+  }
+
   async verifyReplyOptionsMenuNotVisible(replyText: string): Promise<void> {
     await test.step(`Verify reply options menu is not visible for reply: ${replyText}`, async () => {
       const replyOptionsMenu = this.getReplyOptionsMenuLocator(replyText);
@@ -451,6 +536,7 @@ export class ListFeedComponent extends BaseComponent {
       const postLocator = this.postTextLocator(expectedText);
       await this.verifier.verifyTheElementIsNotVisible(postLocator, {
         assertionMessage: `Post with text "${expectedText}" should not be visible`,
+        timeout: TIMEOUTS.SHORT,
       });
     });
   }
@@ -578,7 +664,12 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string,
+    topicName?: string
+  ): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
@@ -591,6 +682,10 @@ export class ListFeedComponent extends BaseComponent {
         replyText = replyText + ` @${mentionUserName}`;
         await this.fillInElement(this.replyEditor, replyText);
         await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else if (topicName) {
+        await this.typeInElement(this.replyEditor, ` #${topicName}`);
+        await this.clickOnElement(this.topicNameEditor(topicName));
+        replyText = replyText + ` #${topicName}`;
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
@@ -645,10 +740,6 @@ export class ListFeedComponent extends BaseComponent {
   ): Promise<string> {
     await test.step(`Add reply to post with file attachment`, async () => {
       await this.clickOnElement(this.replyButton.first(), { stepInfo: 'Clicking on reply button' });
-
-      await this.verifier.verifyTheElementIsVisible(this.replyInput, {
-        assertionMessage: `Reply input should be visible`,
-      });
 
       // Enter reply text
       await this.fillInElement(this.replyEditor, replyText);
@@ -1342,7 +1433,7 @@ export class ListFeedComponent extends BaseComponent {
    */
   readonly getShareIconLocator = (postText: string): Locator =>
     this.page
-      .locator('._postBody_eonic_8')
+      .locator('div[class*="PostInner"]')
       .filter({ hasText: postText })
       .getByRole('button', { name: 'Share this post' });
 
@@ -1507,6 +1598,27 @@ export class ListFeedComponent extends BaseComponent {
       const userMentionLink = postTextLocator.getByRole('link', { name: `@${standardUserFullName}` });
       await this.verifier.verifyTheElementIsVisible(userMentionLink, {
         assertionMessage: 'User name mention should be visible on feed post',
+      });
+    });
+  }
+
+  async verifyMentionIsPlainText(postText: string, userName: string): Promise<void> {
+    await test.step(`Verify mention @${userName} is rendered as plain text (not clickable)`, async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+
+      // Verify the mention link is NOT visible (not clickable)
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${userName}` });
+      await this.verifier.verifyTheElementIsNotVisible(userMentionLink, {
+        assertionMessage: `Mention @${userName} should NOT be a clickable link (should be plain text)`,
+      });
+
+      // Verify the mention text IS visible as plain text
+      const mentionAsPlainText = postTextLocator.getByText(`@${userName}`);
+      await this.verifier.verifyTheElementIsVisible(mentionAsPlainText, {
+        assertionMessage: `Mention @${userName} should be visible as plain text`,
       });
     });
   }
@@ -1973,6 +2085,28 @@ export class ListFeedComponent extends BaseComponent {
       const userNameLocator = this.page.getByTestId('profilePopover').getByRole('link', { name: userName });
       await this.verifier.verifyTheElementIsVisible(userNameLocator, {
         assertionMessage: `User name "${userName}" should be visible on hover`,
+      });
+    });
+  }
+
+  async verifyFeedTitle(postText: string, expectedTitle: string): Promise<void> {
+    await test.step(`Verify feed title "${expectedTitle}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+
+      const feedTitleLocator = this.feedTitleLocator(expectedTitle);
+      await this.verifier.verifyTheElementIsVisible(feedTitleLocator, {
+        assertionMessage: `Feed title "${expectedTitle}" should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyOriginalPostTitle(postText: string, expectedFormat: string): Promise<void> {
+    await test.step(`Verify original post title format "${expectedFormat}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const originalPostTitleLocator = this.page.getByText(expectedFormat).first();
+
+      await this.verifier.verifyTheElementIsVisible(originalPostTitleLocator, {
+        assertionMessage: `Original post title matching "${expectedFormat}" should be visible for post "${postText}"`,
       });
     });
   }

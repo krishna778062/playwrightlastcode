@@ -72,4 +72,35 @@ test.describe('renaming page', () => {
       );
     }
   );
+
+  test(
+    '[RC-7010] Validate reset all translation to automatic option on edit program name and translation page of points',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate reset all translation to automatic option on edit program name and translation page of points',
+        zephyrTestId: 'RC-7010',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.enableTheLanguageInTenantIfNotEnabled(['English (UK)', 'French', 'German']);
+      await renamingPage.loadPage();
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
+      await renamingPage.enableTheOtherLanguageAndEnterCustomValue('points');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      await renamingPage.clickOnResetButton();
+      await renamingPage.validateTheLanguageDataRested(defaultOtherLanguageTranslationValue);
+      await renamingPage.clickOnSaveButton();
+    }
+  );
 });

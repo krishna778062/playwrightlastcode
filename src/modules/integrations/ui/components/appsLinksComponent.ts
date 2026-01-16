@@ -6,6 +6,10 @@ import { APPS_LINKS } from '@/src/modules/integrations/test-data/gamma-data-file
 export class AppsLinksComponents extends BaseComponent {
   readonly customJsonInputField: Locator;
   readonly appsIntegrationDropdown: Locator;
+  readonly apiTokenInput: Locator;
+  readonly oktaLinkInput: Locator;
+  readonly existingOktaConfigurationCheckbox: Locator;
+  readonly oneLoginURLInput: Locator;
   readonly saveButton: Locator;
   readonly saveButtonElement: Locator;
   readonly customLinkBox: Locator;
@@ -34,9 +38,13 @@ export class AppsLinksComponents extends BaseComponent {
   readonly urlInput: Locator;
   readonly labelInput: Locator;
   readonly jsonData: { name: string; url: string; img: string }[];
+  readonly accountEmailInput: Locator;
+  readonly oneLoginEmbeddingCodeInput: Locator;
+  readonly oktaUserNameFormatDropdown: Locator;
   constructor(page: Page) {
     super(page);
     const getButtonByName = (name: string) => this.page.getByRole('button', { name });
+    this.customJsonInputField = this.page.locator("textarea[name='customJson']");
     this.appsIntegrationDropdown = this.page.locator('select[id="appsIntegrationProvider"]');
     this.saveButton = this.page.locator('span', { hasText: 'Save' });
     this.saveButtonElement = getButtonByName(APPS_LINKS.SAVE);
@@ -85,7 +93,6 @@ export class AppsLinksComponents extends BaseComponent {
         img: 'https://www.gstatic.com/images/branding/product/1x/drive_96dp.png',
       },
     ];
-    this.customJsonInputField = this.page.locator('textarea[name="customJson"]');
     this.urlInput = this.page.getByPlaceholder('Link URL');
     this.labelInput = this.page.getByPlaceholder('Link label');
     this.jsonData = [
@@ -100,11 +107,19 @@ export class AppsLinksComponents extends BaseComponent {
         img: 'https://affinityit.co.uk/uploads/images/content/_large/Microsoft_365_-_New_Website.png',
       },
     ];
+    this.apiTokenInput = this.page.getByPlaceholder(APPS_LINKS.API_TOKEN_PLACEHOLDER);
+    this.oktaLinkInput = this.page.getByPlaceholder(APPS_LINKS.OKTA_LINK_PLACEHOLDER);
+    this.existingOktaConfigurationCheckbox = this.page.getByText(APPS_LINKS.OKTA_CONFIGURATION);
+    this.oneLoginURLInput = this.page.getByPlaceholder(APPS_LINKS.ONE_LOGIN_URL_PLACEHOLDER);
+    this.oneLoginEmbeddingCodeInput = this.page.getByPlaceholder(APPS_LINKS.ONE_LOGIN_EMBEDDING_CODE_PLACEHOLDER);
+    this.accountEmailInput = this.page.getByPlaceholder(APPS_LINKS.ACCOUNT_EMAIL);
+    this.oktaUserNameFormatDropdown = this.page.locator(`select#${APPS_LINKS.OKTA_USER_NAME_FORMAT_DROPDOWN}`);
   }
 
   async clickOnCustomJsonInputField(): Promise<void> {
     await test.step(`Clicking on custom JSON input field`, async () => {
       await this.customJsonInputField.clear();
+      await this.customJsonInputField.click();
       await this.clickOnElement(this.customJsonInputField);
     });
   }
@@ -158,7 +173,6 @@ export class AppsLinksComponents extends BaseComponent {
 
   async markLinksFavorite(linkName: string): Promise<void> {
     await test.step(`Marking links favorite`, async () => {
-      await this.addedLinksLocatorFn(linkName).hover();
       const starIconLocator = this.starIconLocatorLinkFn(linkName);
       await starIconLocator.waitFor({ state: 'visible' });
       await starIconLocator.click({ force: true });
@@ -168,7 +182,6 @@ export class AppsLinksComponents extends BaseComponent {
   async verifyAppsAreMarkedAsFavorite(appName: string): Promise<void> {
     await test.step(`Verifying apps are marked as favorite`, async () => {
       const appLocator = this.getAppLocatorFn(appName);
-      await appLocator.hover();
       await expect(appLocator, `${appName} not visible`).toBeVisible();
     });
   }
@@ -199,7 +212,7 @@ export class AppsLinksComponents extends BaseComponent {
     }
 
     // Wait for new tab to open
-    await this.page.waitForTimeout(2000);
+    await this.page.waitForTimeout(3000);
 
     // Get the new tab (index 1)
     const pages = this.page.context().pages();
@@ -221,6 +234,58 @@ export class AppsLinksComponents extends BaseComponent {
   async verifyApps(name: string): Promise<void> {
     await test.step(`Verifying apps`, async () => {
       await this.verifyAppsAreMarkedAsFavorite(name);
+    });
+  }
+
+  /**
+   * Verifies all apps present in the apps grid by their title names.
+   * This method finds all app links within the AppsGrid container and verifies each app is visible.
+   * @param expectedAppTitles - Optional array of expected app titles to verify. If provided, verifies that all expected apps are present.
+   * @returns Promise that resolves with an array of all app titles found in the grid
+   */
+  async verifyAllAppsByTitle(expectedAppTitles?: string[]): Promise<string[]> {
+    return await test.step(`Verifying all apps in the apps grid by their title names`, async () => {
+      // Locator for the apps grid container
+      const appsGridContainer = this.page.locator('.AppsGrid-module-appsContent___BiELt');
+
+      // Wait for the apps grid to be visible
+      await expect(appsGridContainer, 'Apps grid container should be visible').toBeVisible();
+
+      // Get all app links within the grid
+      const appLinks = appsGridContainer.locator(
+        '.AppsGrid-module-appGrid___CJqJN .AppsGrid-module-appGridItem___rv6SC a[title]'
+      );
+
+      // Wait for at least one app to be visible
+      await expect(appLinks.first(), 'At least one app should be visible').toBeVisible({ timeout: 10000 });
+
+      // Get count of apps
+      const appCount = await appLinks.count();
+      expect(appCount, 'At least one app should be present').toBeGreaterThan(0);
+
+      // Extract all app titles
+      const foundAppTitles: string[] = [];
+      for (let i = 0; i < appCount; i++) {
+        const appLink = appLinks.nth(i);
+        const title = await appLink.getAttribute('title');
+
+        if (title) {
+          foundAppTitles.push(title);
+          // Verify each app is visible
+          await expect(appLink, `App "${title}" should be visible`).toBeVisible();
+        }
+      }
+
+      // If expected titles are provided, verify all expected apps are present
+      if (expectedAppTitles && expectedAppTitles.length > 0) {
+        for (const expectedTitle of expectedAppTitles) {
+          expect(foundAppTitles, `Expected app "${expectedTitle}" should be present in the apps grid`).toContain(
+            expectedTitle
+          );
+        }
+      }
+
+      return foundAppTitles;
     });
   }
 
@@ -367,6 +432,7 @@ export class AppsLinksComponents extends BaseComponent {
   async verifyAppsDuplicate(message: string): Promise<void> {
     await test.step(`Verifying apps duplicate`, async () => {
       await this.customJsonInputField.clear();
+      await this.customJsonInputField.click();
       await this.customJsonInputField.fill(JSON.stringify(this.apps_json));
       await this.saveButton.click();
       const error = this.pTextLocatorFn(message);
@@ -393,6 +459,7 @@ export class AppsLinksComponents extends BaseComponent {
 
   async enterLinkUrl(url: string): Promise<void> {
     await test.step(`Entering link url`, async () => {
+      await this.linkPlaceholderInputField('Link URL').click();
       await this.linkPlaceholderInputField('Link URL').fill(url);
     });
   }
@@ -426,7 +493,6 @@ export class AppsLinksComponents extends BaseComponent {
     await test.step(`Adding apps from custom JSON`, async () => {
       await this.appsIntegrationDropdown.selectOption({ label: customJsonOption });
       await this.customJsonInputField.clear();
-      await this.customJsonInputField.click();
       await this.customJsonInputField.fill(JSON.stringify(this.jsonData, null, 2));
     });
   }
@@ -446,10 +512,55 @@ export class AppsLinksComponents extends BaseComponent {
   async addDuplicateCustomApps(): Promise<void> {
     await test.step(`Adding duplicate custom apps`, async () => {
       await this.customJsonInputField.clear();
-      await this.customJsonInputField.click();
+      // Wait for the element to be ready and scroll it into view
+      await this.customJsonInputField.waitFor({ state: 'visible' });
+      await this.customJsonInputField.scrollIntoViewIfNeeded();
+      // fill() already focuses the element, so click is not needed
+      // Using fill() directly is more reliable than click() when overlays are present
       await this.customJsonInputField.fill(JSON.stringify(this.apps_json, null, 2));
       await this.saveButton.click();
       await this.page.waitForTimeout(3000);
+    });
+  }
+  async selectAppsIntegration(integrationName: string): Promise<void> {
+    await test.step(`Selecting apps integration`, async () => {
+      await this.appsIntegrationDropdown.selectOption({ label: integrationName });
+    });
+  }
+
+  async enterApiToken(apiToken: string): Promise<void> {
+    await test.step(`Entering api token`, async () => {
+      await this.apiTokenInput.fill(apiToken);
+    });
+  }
+
+  async enterOktaLink(oktaLink: string): Promise<void> {
+    await test.step(`Entering okta link`, async () => {
+      await this.oktaLinkInput.fill(oktaLink);
+    });
+  }
+
+  async selectOktaUserNameFormat(userNameFormat: string): Promise<void> {
+    await test.step(`Selecting okta user name format`, async () => {
+      await this.oktaUserNameFormatDropdown.selectOption({ label: userNameFormat });
+    });
+  }
+
+  async selectExistingOktaConfigurationCheckbox(): Promise<void> {
+    await test.step(`Selecting existing okta configuration checkbox`, async () => {
+      await this.existingOktaConfigurationCheckbox.click();
+    });
+  }
+
+  async enterOneLoginEmbeddingCode(embeddingCode: string): Promise<void> {
+    await test.step(`Entering one login embedding code`, async () => {
+      await this.oneLoginEmbeddingCodeInput.fill(embeddingCode);
+    });
+  }
+
+  async enterOneLoginURL(url: string): Promise<void> {
+    await test.step(`Entering one login url`, async () => {
+      await this.oneLoginURLInput.fill(url);
     });
   }
 }

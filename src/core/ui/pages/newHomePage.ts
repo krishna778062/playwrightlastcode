@@ -25,6 +25,8 @@ export interface INewHomePageActions {
   clickOnChangeLayout: () => Promise<void>;
   clickExcludeFeed: () => Promise<void>;
   clickIncludeFeed: () => Promise<void>;
+  selectTileLayout: (layoutSign: string) => Promise<void>;
+  checkIncludeFeed(): Promise<void>;
   enterSearchCarouselInput: (text: string) => Promise<void>;
   selectCarouselItem: (text: string) => Promise<void>;
   clickDoneButton: () => Promise<void>;
@@ -192,6 +194,14 @@ export class NewHomePage extends BasePage {
 
   async clickExcludeFeed(): Promise<void> {
     return this.changeLayoutComponent.clickExcludeFeed();
+  }
+
+  async selectTileLayout(layoutSign: string): Promise<void> {
+    return this.changeLayoutComponent.selectTileLayout(layoutSign);
+  }
+
+  async checkIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.checkIncludeFeed();
   }
 
   async clickIncludeFeed(): Promise<void> {

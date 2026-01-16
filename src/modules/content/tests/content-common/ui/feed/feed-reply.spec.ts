@@ -97,7 +97,7 @@ for (const testData of feedTestData) {
   test.describe(
     `${testData.feedType} Tests`,
     {
-      tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+      tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER, ContentTestSuite.FEED],
     },
     () => {
       let appManagerFeedPage: FeedPage;
@@ -606,7 +606,7 @@ for (const testData of feedTestData) {
 test.describe(
   'post creation cancel button tests',
   {
-    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     test(
@@ -770,7 +770,7 @@ test.describe(
 test.describe(
   'feed Reply Notifications',
   {
-    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let appManagerPostId: string;
@@ -970,7 +970,7 @@ test.describe(
 test.describe(
   'comment Editing Tests',
   {
-    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_REPLY_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let appManagerFeedPage: FeedPage;

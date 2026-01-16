@@ -72,4 +72,35 @@ test.describe('renaming page', () => {
       );
     }
   );
+
+  test(
+    '[RC-6993] Validate reset all translation to automatic option on edit program name and translation page of recognition',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate reset all translation to automatic option on edit program name and translation page of recognition',
+        zephyrTestId: 'RC-6993',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.enableTheLanguageInTenantIfNotEnabled(['English (UK)', 'French', 'German']);
+      await renamingPage.loadPage();
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
+      await renamingPage.enableTheOtherLanguageAndEnterCustomValue('recognition');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      await renamingPage.clickOnResetButton();
+      await renamingPage.validateTheLanguageDataRested(defaultOtherLanguageTranslationValue);
+      await renamingPage.clickOnSaveButton();
+    }
+  );
 });
