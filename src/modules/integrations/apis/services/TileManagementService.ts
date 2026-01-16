@@ -32,6 +32,18 @@ export class TileManagementService implements ITileManagementOperations {
     return response.json();
   }
 
+  // Get tiles by connector ID
+  async getTilesByConnector(connectorId: string): Promise<any> {
+    const response = await this.httpClient.get(API_ENDPOINTS.integrations.tilesByConnector(connectorId), {
+      headers: {
+        Origin: this.frontendBaseUrl,
+        Referer: this.frontendBaseUrl,
+        Accept: 'application/json',
+      },
+    });
+    return response.json();
+  }
+
   // Get instance metadata
   async fetchInstanceMetadata(instanceId: string): Promise<any> {
     const res = await this.httpClient.get(

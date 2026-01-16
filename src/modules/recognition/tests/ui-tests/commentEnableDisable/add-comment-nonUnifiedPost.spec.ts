@@ -50,10 +50,8 @@ test.describe('Add comments to non-unified posts', () => {
       await recognitionHubPage.navigateToAwardPostViaUrl(postUrl);
       await recognitionHubPage.verifyCommentingAllowedForPost(true);
 
-      // Count before adding any comments in this test run
-      const commentCountBefore = await recognitionHubPage.countTheComments();
-
       // Add comment as app manager and validate increment
+      const commentCountBefore = await recognitionHubPage.countTheComments();
       const commentText = `Auto comment ${Date.now()}`;
       await recognitionHubPage.commentOnPost(commentText);
       const commentCountAfterManager = await recognitionHubPage.countTheComments();
@@ -243,6 +241,74 @@ test.describe('Add comments to non-unified posts', () => {
       expect(commentCountAfter).toBeGreaterThan(commentCountAfterManager);
 
       //clean up now delete recognition award as an app manager
+      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+    }
+  );
+
+  test(
+    'Verify disabled/re-enabled comments for non-unified posts',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.COMMENT_ENABLE_DISABLE,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
+      ],
+    },
+    async ({ appManagerFixture, recognitionHubApi }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-7244',
+        storyId: 'RC-6615',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const manageAppSettingsApi = new ManageAppSettingsApiService();
+      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
+
+      // Enable comments and create a non-unified post with an initial comment
+      await manageAppSettingsApi.enableDisableCommentsSettingViaApi(appManagerPage, 'enable', true);
+      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await recognitionHubPage.givePeerRecognition(0, 0);
+      await recognitionHubPage.postRecognitionAward({
+        shareToHub: false,
+        shareToSite: false,
+        shareToSlack: false,
+        nonUnifiedPost: true,
+      });
+      const { postUrl, awardId } = await recognitionHubPage.copyLinkFromPost(0);
+      await recognitionHubPage.navigateToAwardPostViaUrl(postUrl);
+      await recognitionHubPage.verifyCommentingAllowedForPost(true);
+      const initialCount = await recognitionHubPage.countTheComments();
+      const seededComment = `Auto seeded comment ${Date.now()}`;
+      await recognitionHubPage.commentOnPost(seededComment);
+      const countAfterSeed = await recognitionHubPage.countTheComments();
+      expect(countAfterSeed).toBeGreaterThan(initialCount);
+
+      // Disable comments and verify they are hidden / cannot be added
+      await manageAppSettingsApi.enableDisableCommentsSettingViaApi(appManagerPage, 'disable', false);
+      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await recognitionHubPage.navigateToAwardPostViaUrl(postUrl);
+      await recognitionHubPage.verifyCommentingAllowedForPost(false);
+      const countWhileDisabled = await recognitionHubPage.countTheComments();
+      expect(countWhileDisabled).toBe(0);
+
+      // Re-enable comments and verify existing + new comments are visible/allowed
+      await manageAppSettingsApi.enableDisableCommentsSettingViaApi(appManagerPage, 'enable', true);
+      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await recognitionHubPage.navigateToAwardPostViaUrl(postUrl);
+      await recognitionHubPage.verifyCommentingAllowedForPost(true);
+      const countAfterReEnable = await recognitionHubPage.countTheComments();
+      expect(countAfterReEnable).toBeGreaterThan(0);
+      const newComment = `Auto comment re-enabled ${Date.now()}`;
+      await recognitionHubPage.commentOnPost(newComment);
+      const countAfterNew = await recognitionHubPage.countTheComments();
+      expect(countAfterNew).toBeGreaterThan(countAfterReEnable);
+
+      // Cleanup - delete recognition award as an app manager
+      await LoginHelper.logoutByNavigatingToLogoutPage(appManagerPage);
+      await LoginHelper.loginWithPassword(appManagerPage, {
+        email: getRecognitionTenantConfigFromCache().appManagerEmail!,
+        password: getRecognitionTenantConfigFromCache().appManagerPassword!,
+      });
       await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
