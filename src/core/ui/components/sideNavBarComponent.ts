@@ -52,6 +52,9 @@ export class SideNavBarComponent extends BaseComponent {
   readonly homeNavMenu: Locator;
   readonly manageNavMenu: Locator;
 
+  //manage feature section
+  readonly clickOnSocialCampaignsUnderManageFeature: Locator;
+
   //content moderation section
   readonly clickOnContentModeration: Locator;
 
@@ -95,10 +98,15 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites' });
 
     //recognition section
-    this.recognitionLink = page.getByRole('link', { name: 'Recognition' });
+    this.recognitionLink = page.locator('[data-testid="main-nav"] a[href="/recognition"]');
     this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
-    this.homeNavMenu = page.locator("[data-testid='main-nav-item'][href*='/home']");
-    this.manageNavMenu = page.getByRole('menuitem', { name: 'Manage features Manage' });
+
+    //manage feature section
+    this.clickOnSocialCampaignsUnderManageFeature = page
+      .getByTestId('main-nav')
+      .getByRole('link', { name: 'Social campaigns' });
+    this.homeNavMenu = page.locator('[data-testid="main-nav"] a[href="/home"]');
+    this.manageNavMenu = page.locator('[class*="primary-nav"] [aria-label="Manage"]');
   }
 
   /**
@@ -121,7 +129,11 @@ export class SideNavBarComponent extends BaseComponent {
       if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
         await this.clickOnElement(this.feedLink);
       } else {
-        await this.clickOnElement(this.homeLink);
+        try {
+          await this.clickOnElement(this.homeLink);
+        } catch (error) {
+          await this.clickOnElement(this.homeLink);
+        }
       }
     });
   }

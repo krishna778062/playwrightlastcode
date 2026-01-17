@@ -81,6 +81,11 @@ export const PLATFORM_API_ENDPOINTS = {
     tilesByConnector: (connectorId: string) => `/v1/tiles?type=app&connectorId=${connectorId}`,
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
   },
+  quickTask: {
+    taskFields: '/v1/r-task/task-fields',
+    tasks: '/v1/w-task/tasks',
+    people: '/v1/identity/people',
+  },
 } as const;
 
 export const API_QUERY_PARAMS = {

@@ -92,7 +92,7 @@ async function fetchUserSiteAndTopicByOptions(
 test.describe(
   '@FeedPost - End User Feed Post CRUD with Formatting',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-post-formatting-crud'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-post-formatting-crud', ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;

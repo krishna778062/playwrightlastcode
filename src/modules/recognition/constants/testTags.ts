@@ -9,6 +9,7 @@ export enum RecognitionFeatureTags {
   MANAGE_RECOGNITION = '@manage-recognition',
   RECOGNITION_HUB = '@recognition-hub',
   ONLY_P2P_RECOGNITION = '@only-p2p-recognition',
+  COMMENT_ENABLE_DISABLE = '@comment-enable-disable',
   CUSTOM_RECURRING_AWARD = '@custom-recurring-award',
   CUSTOM_RECURRING_AWARD_STATUS_DB = '@custom-recurring-award-status-db',
   CUSTOM_NOMINATION = '@rc-custom-nomination',
@@ -24,10 +25,16 @@ export enum RecurringAwardsFeatureTags {
   EDIT_CUSTOM_RECURRING_AWARD = '@EDIT_CUSTOM_RECURRING_AWARD',
 }
 
+export enum WorkAnniversaryFeatureTags {
+  WORK_ANNIVERSARY = '@work-anniversary',
+  MANAGE_WORK_ANNIVERSARY = '@manage-work-anniversary',
+}
+
 export const RecognitionTestTags = [
   ...Object.values(RecognitionSuitTags),
   ...Object.values(RecognitionFeatureTags),
   ...Object.values(RecurringAwardsFeatureTags),
+  ...Object.values(WorkAnniversaryFeatureTags),
 ] as const;
 
 export default RecognitionTestTags;

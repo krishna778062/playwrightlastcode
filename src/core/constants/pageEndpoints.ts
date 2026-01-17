@@ -39,9 +39,12 @@ export const PAGE_ENDPOINTS = {
   IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
   // Recognition pages
+  FEED: 'feed',
+  SEARCH_SITE_FEED: 'sites/search?term=',
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
   MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
+  MANAGE_APP_RECOGNITION_SETTING: '/manage/app/setup/recognition',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',

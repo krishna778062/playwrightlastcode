@@ -20,7 +20,7 @@ import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/i
 test.describe(
   '@FeedCommentMentionNotification - Feed Comment Mention Notification Tests',
   {
-    tag: [ContentTestSuite.FEED_COMMENT_MENTION_NOTIFICATION],
+    tag: [ContentTestSuite.FEED_COMMENT_MENTION_NOTIFICATION, ContentTestSuite.FEED],
   },
   () => {
     let createdPostText: string;

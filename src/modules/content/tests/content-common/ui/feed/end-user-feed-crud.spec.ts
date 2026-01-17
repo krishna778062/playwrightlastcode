@@ -33,7 +33,7 @@ import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/i
 test.describe(
   '@FeedPost',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.ATTACHMENTS, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
@@ -1260,7 +1260,7 @@ test.describe(
     test.describe(
       'inappropriate content warning tests CONT-28090',
       {
-        tag: [TestPriority.P0, TestGroupType.REGRESSION],
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, ContentTestSuite.FEED],
       },
       () => {
         // Shared setup variables
