@@ -208,17 +208,13 @@ export class ListFeedComponent extends BaseComponent {
   readonly reportPostOption: Locator;
   readonly reportReplyOption: Locator;
 
-  readonly getProfileIconLocatorForPost = (postText: string, userName: string): Locator =>
-    this.page
-      .locator(
-        '._postHeader_tgt5r_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt'
-      )
-      .first();
+  async getProfileIconLocatorForPost(postText: string, userName: string): Promise<Locator> {
+    const postContainer = await this.getPostContainerLocator(postText);
+    return postContainer.locator(`[alt = "${userName}"][role = "img"]`).first();
+  }
 
   readonly getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
-    this.page
-      .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
-      .first();
+    this.replyContainer.first().locator(`[alt = "${userName}"][role = "img"]`).first();
 
   readonly getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
 
@@ -1884,11 +1880,11 @@ export class ListFeedComponent extends BaseComponent {
   async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {
     await test.step(`Hover on profile icon in post: ${postText} for user: ${userName}`, async () => {
       await this.waitForPostToBeVisible(postText);
-      const profileIcon = this.getProfileIconLocatorForPost(postText, userName);
+      const profileIcon = await this.getProfileIconLocatorForPost(postText, userName);
       await this.verifier.verifyTheElementIsVisible(profileIcon, {
         assertionMessage: `Profile icon should be visible for post "${postText}"`,
       });
-      await this.clickOnElement(profileIcon);
+      await this.clickByInjectingJavaScript(profileIcon);
       const profilePopover = this.getProfilePopoverLocator(userName);
       await this.verifier.verifyTheElementIsVisible(profilePopover, {
         assertionMessage: `Profile popover should be visible for user "${userName}"`,
