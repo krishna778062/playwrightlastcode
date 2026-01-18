@@ -515,5 +515,62 @@ test.describe(
         });
       }
     );
+    
+    test(
+      'Test Cases related to plus New category button under create audience modal',
+      { tag: [TestPriority.P1, `@ABAC`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-36753','PS-36755','PS-36757','PS-36758','PS-36760','PS-36759','PS-36762','PS-36761','PS-36763'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+
+        await audiencePage.openParentPicker();
+        await audiencePage.verifyButtonVisible('+ New category');
+
+        await audiencePage.clickButtonByText('+ New category');
+        await audiencePage.addCategoryModal.verifyUIElementsOfCategoryModal();
+
+        await audiencePage.addCategoryModal.triggerNameRequiredValidation();
+        await audiencePage.addCategoryModal.verifyNameRequiredErrorMessage();
+        await audiencePage.addCategoryModal.verifySubmitButtonState();
+
+        const categoryWithoutDescription = TestDataGenerator.generateCategoryName('001TestCategoryNoDesc');
+        await audiencePage.addCategoryModal.fillCategoryName(categoryWithoutDescription);
+        await audiencePage.addCategoryModal.submitCategory();
+        await audiencePage.verifyToastMessageForCategoryOperation('created');
+        await audiencePage.verifyCategoryPresentInParentPicker(categoryWithoutDescription);
+
+        await audiencePage.clickButtonByText('+ New category');
+        await audiencePage.addCategoryModal.fillCategoryName(categoryWithoutDescription);
+        await audiencePage.addCategoryModal.submitCategory();
+        await audiencePage.verifyNameAlreadyUsedError();
+        await audiencePage.addCategoryModal.clickCloseButton();  
+
+        const categoryWithDescription = TestDataGenerator.generateCategoryName('001TestCategoryWithDesc');
+        const descriptionText = TestDataGenerator.generateRandomString('Category Test description for category');
+        await audiencePage.clickButtonByText('+ New category');
+        await audiencePage.addCategoryModal.fillCategoryName(categoryWithDescription);
+        await audiencePage.addCategoryModal.fillInCategoryDescription(descriptionText);
+        await audiencePage.addCategoryModal.submitCategory();
+        await audiencePage.verifyToastMessageForCategoryOperation('created');
+        await audiencePage.addCategoryModal.clickCloseButton();
+        await audiencePage.verifyCategoryPresentInParentPicker(categoryWithDescription);
+
+        const catNotCreated = TestDataGenerator.generateCategoryName('001TestCategoryNotCreated');
+        await audiencePage.clickButtonByText('+ New category');
+        await audiencePage.addCategoryModal.fillCategoryName(categoryWithDescription);
+        await audiencePage.addCategoryModal.clickCancelButton();
+        await audiencePage.verifyCategoryNotPresentInParentPicker(catNotCreated);
+
+        // Delete the UI-created category via API (CleanUp)
+        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoryByName(categoryWithoutDescription);
+        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoryByName(categoryWithDescription);
+
+      }
+    );
+    
   }
 );

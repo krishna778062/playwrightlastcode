@@ -84,6 +84,25 @@ export class AudienceCategoryManagementHelper {
   }
 
   /**
+   * Deletes a category by its name via API.
+   * Internally resolves the category ID first and then deletes it.
+   * @param categoryName - Name of the category to delete
+   * @param options - Optional parameters for lookup and deletion
+   * @param options.size - Page size to use when searching for the category ID (default 100)
+   * @param options.forceDelete - Force deletion if category has children (default true)
+   */
+  async deleteCategoryByName(
+    categoryName: string,
+    options?: { size?: number; forceDelete?: boolean }
+  ): Promise<void> {
+    const { size = 100, forceDelete = true } = options || {};
+    await test.step(`Deleting category by name via API: ${categoryName}`, async () => {
+      const id = await this.identityService.getCategoryId(categoryName, size);
+      await this.identityService.deleteCategoryById(id, { forceDelete });
+    });
+  }
+
+  /**
    * Registers an existing category for cleanup without creating it.
    * Use this when a category was created through UI interactions rather than API.
    * @param categoryId - ID of the existing category
