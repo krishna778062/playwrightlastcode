@@ -515,13 +515,23 @@ test.describe(
         });
       }
     );
-    
+
     test(
       'Test Cases related to plus New category button under create audience modal',
       { tag: [TestPriority.P1, `@ABAC`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-36753','PS-36755','PS-36757','PS-36758','PS-36760','PS-36759','PS-36762','PS-36761','PS-36763'],
+          zephyrTestId: [
+            'PS-36753',
+            'PS-36755',
+            'PS-36757',
+            'PS-36758',
+            'PS-36760',
+            'PS-36759',
+            'PS-36762',
+            'PS-36761',
+            'PS-36763',
+          ],
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
         await audiencePage.loadPage();
@@ -547,7 +557,7 @@ test.describe(
         await audiencePage.addCategoryModal.fillCategoryName(categoryWithoutDescription);
         await audiencePage.addCategoryModal.submitCategory();
         await audiencePage.verifyNameAlreadyUsedError();
-        await audiencePage.addCategoryModal.clickCloseButton();  
+        await audiencePage.addCategoryModal.clickCloseButton();
 
         const categoryWithDescription = TestDataGenerator.generateCategoryName('001TestCategoryWithDesc');
         const descriptionText = TestDataGenerator.generateRandomString('Category Test description for category');
@@ -568,9 +578,7 @@ test.describe(
         // Delete the UI-created category via API (CleanUp)
         await appManagerFixture.audienceCategoryManagementHelper.deleteCategoryByName(categoryWithoutDescription);
         await appManagerFixture.audienceCategoryManagementHelper.deleteCategoryByName(categoryWithDescription);
-
       }
     );
-    
   }
 );

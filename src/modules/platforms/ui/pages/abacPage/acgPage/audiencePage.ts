@@ -88,7 +88,7 @@ export class AudiencePage extends BasePage {
     this.addAudienceDescriptionButton = page.getByRole('button', { name: 'Add description' });
     this.audienceDescriptionInput = page.getByRole('textbox', { name: 'Description' });
     this.selectParentTile = this.createAudienceDialog.locator("div[class*='ParentAudience']");
-      this.selectParentButton = this.selectParentTile.getByRole('button');
+    this.selectParentButton = this.selectParentTile.getByRole('button');
     // this.selectParentButton = page.locator(`xpath=//div[contains(@class,'ParentAudience')]//button`);
     this.audiencePickerDialog = page.getByRole('dialog', { name: 'Audiences' });
     this.audiencePickerSearchBox = this.audiencePickerDialog
@@ -619,7 +619,6 @@ export class AudiencePage extends BasePage {
       });
     });
   }
-
 
   async verifyButtonVisible(buttonName: string): Promise<void> {
     await test.step(`Verify presence of "${buttonName}" button in parent picker`, async () => {

@@ -91,10 +91,7 @@ export class AudienceCategoryManagementHelper {
    * @param options.size - Page size to use when searching for the category ID (default 100)
    * @param options.forceDelete - Force deletion if category has children (default true)
    */
-  async deleteCategoryByName(
-    categoryName: string,
-    options?: { size?: number; forceDelete?: boolean }
-  ): Promise<void> {
+  async deleteCategoryByName(categoryName: string, options?: { size?: number; forceDelete?: boolean }): Promise<void> {
     const { size = 100, forceDelete = true } = options || {};
     await test.step(`Deleting category by name via API: ${categoryName}`, async () => {
       const id = await this.identityService.getCategoryId(categoryName, size);
