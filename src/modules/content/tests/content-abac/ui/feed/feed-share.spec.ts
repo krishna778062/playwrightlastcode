@@ -2086,7 +2086,7 @@ test.describe(
           });
         });
 
-        // ==================== SU can not see shared post on Site Feed (creator always sees their content) ====================
+        // ==================== SU can not see shared post on Site Feed  ====================
         await test.step('SU navigates to Site Feed and verifies shared post IS NOT visible', async () => {
           const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
           await siteDashboardPage.loadPage();
@@ -2097,8 +2097,218 @@ test.describe(
           const suSiteFeedPage = new FeedPage(standardUserFixture.page);
           await suSiteFeedPage.verifyThePageIsLoaded();
 
-          // Verify the shared post IS visible to SU (creator always sees their content)
+          // Verify the shared post IS visible to SU
           await suSiteFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
+        });
+
+        // ==================== Cleanup: Remove SU from ACG ====================
+        await test.step('Cleanup: Remove SU from Post In Home Feed ACG', async () => {
+          await acgPage.loadPage();
+          await acgPage.assertions.verifyThePageIsLoaded();
+
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Managers section and remove user
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+      }
+    );
+
+    test(
+      'Verify SU can share a restricted (Engineering) Public Site Feed post to Home Feed with different restrictions (UX Designs)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42215', '@SU-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify Standard User (Manager of Post in Home Feed ACG) can share a restricted Public Site Feed post (Engineering) to Home Feed with different Restricted Viewers (UX Designs). Independent ABAC enforcement across feeds.',
+          zephyrTestId: 'CONT-42215',
+          storyId: 'CONT-42215',
+        });
+
+        let siteFeedPostText: string;
+        let sharePostText: string;
+        let sharedPostId: string = '';
+        let publicSiteId: string = '';
+        let acgPage: AccessControlGroupsPage;
+        let standardUserFullName: string;
+        let siteFeedPage: FeedPage;
+
+        // ==================== Get Standard User full name ====================
+        await test.step('Get Standard User full name', async () => {
+          const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+          standardUserFullName = userInfo.fullName;
+        });
+
+        // ==================== Get or create Public Site ====================
+        await test.step('Get or create a Public Site for sharing', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: true,
+          });
+          publicSiteId = publicSite.siteId;
+        });
+
+        // ==================== Set Site Feed Posting Permission to Everyone ====================
+        await test.step('Set Site Feed Posting Permission to Everyone', async () => {
+          const manageSitePage = new ManageSitePage(appManagerFixture.page);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+        });
+
+        // ==================== App Manager adds SU as Manager of "Post In Home Feed" ACG ====================
+        await test.step('App Manager adds SU as Manager of "Post In Home Feed" ACG', async () => {
+          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.assertions.verifyThePageIsLoaded();
+
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Managers section and add user
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
+            if (isAdded) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+            } else {
+              await acgPage.editACGModal.clickCloseButton();
+            }
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== SU creates Site Feed post WITH restrictions (Engineering) ====================
+        await test.step('SU creates Site Feed post WITH Restricted Viewers (Engineering audience)', async () => {
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          siteFeedPage = new FeedPage(standardUserFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          siteFeedPostText = TestDataGenerator.generateRandomText('SU ABAC Site Feed to Home Feed Share Test', 3, true);
+          await siteFeedPage.clickShareThoughtsButton();
+
+          const postResult = await siteFeedPage.createAndPostWithLimitVisibility({
+            text: siteFeedPostText,
+            limitVisibility: {
+              enabled: true,
+              audience: 'Engineering',
+            },
+          });
+
+          createdPostId = postResult.postId || '';
+          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post HAS limit visibility (restricted to Engineering)
+          await siteFeedPage.postEditor.verifyPostHasLimitVisibility(siteFeedPostText);
+        });
+
+        // ==================== Engineering User (standardUser - creator) CAN see Site Feed post ====================
+        await test.step('SU (Engineering audience - creator) verifies Site Feed post IS visible', async () => {
+          // SU created the post, so they can see it (and they are in Engineering)
+          await siteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+        });
+
+        // ==================== Non-Engineering User (socialCampaignManager) CANNOT see Site Feed post ====================
+        await test.step('Social Campaign Manager (Non-Engineering) navigates to Site Feed and verifies post is NOT visible', async () => {
+          const scmSiteDashboard = new SiteDashboardPage(socialCampaignManagerFixture.page, publicSiteId);
+          await scmSiteDashboard.loadPage();
+          await scmSiteDashboard.verifyThePageIsLoaded();
+
+          await scmSiteDashboard.clickOnFeedLink();
+
+          const scmSiteFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmSiteFeedPage.verifyThePageIsLoaded();
+
+          // Verify the Site Feed post is NOT visible to non-Engineering user
+          await scmSiteFeedPage.feedList.verifyPostIsNotVisible(siteFeedPostText);
+        });
+
+        // ==================== SU shares Site Feed post to Home Feed WITH Restricted Viewers (UX Designs) ====================
+        await test.step('SU shares restricted Site Feed post to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
+          // Navigate back to Site Feed as SU
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          siteFeedPage = new FeedPage(standardUserFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          await siteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+          await siteFeedPage.feedList.clickShareIcon(siteFeedPostText);
+          await siteFeedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText(
+            'SU Shared Site Feed to Home Feed with UX restriction',
+            2,
+            true
+          );
+
+          // Share to Home Feed (default option) WITH limit visibility (UX audience - different from Site Feed)
+          await shareComponent.enterShareDescription(sharePostText);
+          await shareComponent.toggleLimitVisibility();
+          await shareComponent.selectAudience('UX');
+
+          sharedPostId = await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await siteFeedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== UX User (socialCampaignManager) CAN see shared post on Home Feed ====================
+        await test.step('Social Campaign Manager (UX Designs audience) navigates to Home Feed and verifies shared post IS visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const scmHomeFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmHomeFeedPage.reloadPageWithTimelineMode();
+          await scmHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to UX Designs user on Home Feed
+          await scmHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== Engineering User (Standard User - NOT in UX) cannot access shared Home Feed post via direct URL ====================
+        // await test.step('Non-UX user (Standard User) attempts direct URL access to shared Home Feed post and verifies Page not found', async () => {
+        //   const directAccessFeedPage = new FeedPage(standardUserFixture.page, sharedPostId);
+        //   await standardUserFixture.page.goto(directAccessFeedPage.url);
+
+        //   // Standard User is not in UX Designs, so should NOT see the Home Feed shared post
+        //   await directAccessFeedPage.verifyPageNotFoundVisibility({
+        //     stepInfo: 'Verify Standard User sees Page not found when accessing UX-restricted Home Feed post via direct URL',
+        //   });
+        // });
+
+        // ==================== SU can see shared post on Home Feed ====================
+        await test.step('SU navigates to Home Feed and verifies shared post IS NOT visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const suHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await suHomeFeedPage.reloadPageWithTimelineMode();
+          await suHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to SU
+          await suHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
         });
 
         // ==================== Cleanup: Remove SU from ACG ====================
