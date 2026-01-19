@@ -149,7 +149,9 @@ test.describe('renaming page', () => {
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('rewardsStore');
-      const customValue = await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
+      await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
+      await renamingPage.verifyThePageIsLoaded();
+      const getCustomValue: Map<string, string> = await renamingPage.getAllTheCustomValue();
       const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
       const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
       const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0]);
@@ -159,9 +161,7 @@ test.describe('renaming page', () => {
         // ensure we don't stack multiple route handlers
         await appManagerFixture.page.unroute('**/account/appConfig').catch(() => {});
         await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
-        await renamingPage.validateTheCustomizedValueOnHomePage('Reward Store', customValue!);
-        await renamingPage.validateTheCustomizedValueOnRecognitionHubPage('Reward Store', customValue!);
-        await renamingPage.validateTheCustomizedValueOnSiteDashboardPage('Reward Store', customValue!);
+        await renamingPage.validateTheRewardStoreValueInApp(getCustomValue);
       }
     }
   );

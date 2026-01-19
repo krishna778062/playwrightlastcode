@@ -759,4 +759,11 @@ export class RewardsStore extends BasePage {
     });
     await this.page.reload();
   }
+
+  async openGiftCardModal(index: number = 0): Promise<void> {
+    await this.giftCardItems.nth(index).click();
+    await this.verifier.waitUntilElementIsVisible(this.rewardsDialogBox.container, {
+      stepInfo: 'Waiting for gift card modal to be visible',
+    });
+  }
 }
