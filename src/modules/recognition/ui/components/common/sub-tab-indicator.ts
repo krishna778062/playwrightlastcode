@@ -119,8 +119,8 @@ export class SubTabIndicator extends BasePage {
     await this.verifier.verifyElementHasText(awardNameCell, expectedawardName);
   }
 
-  async checkRecentlyCreatedAwardStatus(expectedawardStatus: string): Promise<void> {
-    const awardStatusCell = this.getTableCell(0, 4);
+  async checkRecentlyCreatedAwardStatus(expectedawardStatus: string, columnIndex?: number): Promise<void> {
+    const awardStatusCell = this.getTableCell(0, columnIndex || 4);
     await this.verifier.verifyTheElementIsVisible(awardStatusCell);
     await this.verifier.verifyElementHasText(awardStatusCell, expectedawardStatus);
   }

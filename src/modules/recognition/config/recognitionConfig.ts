@@ -263,7 +263,7 @@ export const config = {
       appManagerEmail: 'charan.b@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
-      appManagerPassword: 'Simpplr@1234',
+      appManagerPassword: 'Simpplr@12345',
       recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
       recognitionManagerName: 'Recognition Manager',
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
