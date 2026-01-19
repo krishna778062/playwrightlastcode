@@ -64,7 +64,7 @@ const snowflakeConfig: Record<SnowflakeEnvironmentKey, SnowflakeEnvironmentConfi
     warehouse: 'WH_REPORTING',
   },
   uatAU: {
-    account: 'yh65600.ca-central-1.privatelink',
+    account: 'jz88625.ap-southeast-2.privatelink',
     username: 'USER_DE_QA_AUTOMATION_READ',
     passphrase: 'c25vd2ZsYWtl',
     privateKey:
@@ -105,4 +105,44 @@ export function getSnowflakeConfig(): SnowflakeEnvironmentConfig {
   }
 
   return snowflakeConfig[testEnv];
+}
+
+/**
+ * The default/placeholder database name used in SQL query templates.
+ * This will be replaced at runtime with the actual database name for the current environment.
+ */
+export const DEFAULT_DATABASE_PLACEHOLDER = 'SIMPPLR_COMMON_TENANT';
+
+/**
+ * Get the database name for the current environment.
+ * Returns the database from config, or the default placeholder if not specified.
+ */
+export function getSnowflakeDatabaseName(): string {
+  const config = getSnowflakeConfig();
+  return config.database || DEFAULT_DATABASE_PLACEHOLDER;
+}
+
+/**
+ * Replaces the hardcoded database placeholder in SQL queries with the
+ * environment-specific database name.
+ *
+ * This allows SQL templates to use 'SIMPPLR_COMMON_TENANT' as a placeholder,
+ * which gets replaced at runtime with the correct database for the current
+ * environment (e.g., 'COMMON_TENANT_UAT_AU' for uatAU).
+ *
+ * @param sql - The SQL query string with hardcoded database placeholder
+ * @returns The SQL query with the correct database name for the current environment
+ */
+export function replaceDatabase(sql: string): string {
+  const targetDatabase = getSnowflakeDatabaseName();
+
+  // If the target database is the same as the placeholder, no replacement needed
+  if (targetDatabase === DEFAULT_DATABASE_PLACEHOLDER) {
+    return sql;
+  }
+
+  // Replace all case variations of the placeholder with the target database
+  // Patterns: SIMPPLR_COMMON_TENANT, simpplr_common_tenant, Simpplr_Common_Tenant, etc.
+  const pattern = new RegExp(DEFAULT_DATABASE_PLACEHOLDER, 'gi');
+  return sql.replace(pattern, targetDatabase);
 }
