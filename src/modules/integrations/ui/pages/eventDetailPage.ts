@@ -125,7 +125,7 @@ export class EventDetailPage extends BasePage implements IEventDetailActions, IE
       "//h4[text()='Outlook Calendar sync requires users connect their Microsoft accounts']"
     );
     this.googleCalendarSyncRequiresUsersConnectTheirGoogleAccountsLocator = page.locator(
-      "//h4[text()='Google Calendar sync requires users to connect their Google accounts']"
+      "//h4[text()='Google Calendar sync requires users connect their Google accounts']"
     );
   }
 
