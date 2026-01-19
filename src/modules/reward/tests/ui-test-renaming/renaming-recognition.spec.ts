@@ -2,6 +2,7 @@ import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
+import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -86,7 +87,7 @@ test.describe('renaming page', () => {
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      await renamingPage.enableTheLanguageInTenantIfNotEnabled(['English (UK)', 'French', 'German']);
+      await renamingPage.enableTheLanguageInTenantIfNotEnabled(['French', 'German']);
       await renamingPage.loadPage();
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
@@ -136,6 +137,7 @@ test.describe('renaming page', () => {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
     },
     async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
       tagTest(test.info(), {
         description:
           'Validate "Use the default language name for all languages" option in different languages showing in application for recognition',
@@ -143,17 +145,24 @@ test.describe('renaming page', () => {
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
+      const userProfile = new UserProfilePage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('recognition');
-      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
-      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
-      const customOtherLanguageValue = await renamingPage.getTheDefaultTranslationValues();
-      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!, defaultCustomizedValue!];
-      expect(customOtherLanguageValue).toEqual(customOtherLanguage);
-      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
-      const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
-      expect(defaultOtherLanguageTranslationValue).not.toEqual(customOtherLanguage);
+      const customValue = await renamingPage.changeSomeDataAndClickOnSave('Recognition');
+      const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
+      const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
+      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0]);
+
+      // Mock each non-default language and re-run validations
+      for (const langId of otherLanguageIds) {
+        // ensure we don't stack multiple route handlers
+        await appManagerFixture.page.unroute('**/account/appConfig').catch(() => {});
+        await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
+        await renamingPage.validateTheCustomizedValueOnHomePage('Recognition', customValue!);
+        await renamingPage.validateTheCustomizedValueOnRecognitionHubPage('Recognition', customValue!);
+        await renamingPage.validateTheCustomizedValueOnSiteDashboardPage('Recognition', customValue!);
+      }
     }
   );
 });

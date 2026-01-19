@@ -5,6 +5,7 @@ import { ManageRecognitionPage } from '@recognition-pages/manage/manageRecogniti
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
+
 export class RecognitionHubPage extends BasePage {
   readonly recognitionHeader: Locator;
   readonly giveRecognitionButton: Locator;
@@ -35,7 +36,7 @@ export class RecognitionHubPage extends BasePage {
     super(page, pageUrl);
     this.manageRecognitionPage = new ManageRecognitionPage(page);
     this.recognitionHeader = page.getByRole('heading', { name: 'Recognition', exact: true });
-    this.giveRecognitionButton = page.locator('header').filter({ hasText: 'Give recognition' }).getByRole('button');
+    this.giveRecognitionButton = page.locator('[class*="headerContent"] button');
     this.recognizeButton = page.getByRole('button', { name: /recognize/i }).first();
     this.shareModal = page.locator('[data-testid="share-recognition-modal"], [role="dialog"]').first();
     this.shareToFeedCheckbox = page.locator('#shareToFeedAndSlack_shareToFeed');

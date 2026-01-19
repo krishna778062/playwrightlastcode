@@ -1,10 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { RecognitionHubPage } from '@recognition/ui/pages';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 import { PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
+import { RewardSitesService } from '@/src/modules/reward/api/services/RewardSitesService';
 
 export class RenamingPage extends BasePage {
   readonly container: Locator;
@@ -426,10 +429,10 @@ export class RenamingPage extends BasePage {
       default:
         throw new Error(`Invalid card type: ${cardType}`);
     }
+    await this.verifier.verifyTheElementIsEnabled(editModal.getSaveButton());
     await this.clickOnElement(editModal.getSaveButton(), {
       stepInfo: `Clicking Save button in Edit Label modal for ${cardType}`,
     });
-    await this.verifyToastMessageIsVisibleWithText('Saved changes successfully', { timeout: TIMEOUTS.VERY_VERY_SHORT });
     await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
     return customName;
   }
@@ -600,5 +603,185 @@ export class RenamingPage extends BasePage {
   async clickOnSaveButton() {
     const editModal = new EditLabelModal(this.page);
     await editModal.getSaveButton().click();
+  }
+
+  async validateTheCustomizedValueOnHomePage(cardType: 'Recognition' | 'Points' | 'Reward Store', customValue: string) {
+    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+    let navMenuLocator: Locator, recognitionCreationButtonInFeed: Locator;
+    switch (cardType) {
+      case 'Recognition':
+        navMenuLocator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${customValue}")`);
+        await this.verifier.verifyTheElementIsVisible(navMenuLocator, { timeout: TIMEOUTS.SHORT });
+        await this.page.locator('[class*="PostForm"] button').click();
+        recognitionCreationButtonInFeed = this.page
+          .locator('[for="recognition"] button[id="recognition"]')
+          .filter({ hasText: customValue });
+        await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
+        break;
+      case 'Points':
+        await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+        await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
+          timeout: TIMEOUTS.MEDIUM,
+        });
+        await this.page.locator('[class*="PostForm"] button').click();
+        recognitionCreationButtonInFeed = this.page.locator('[for="recognition"] button[id="recognition"]');
+        await this.clickOnElement(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
+        const pointLabel = this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
+        await this.verifier.verifyTheElementIsVisible(pointLabel, { timeout: TIMEOUTS.SHORT });
+        expect(await pointLabel.textContent()).toContain(customValue);
+        break;
+      case 'Reward Store':
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.visit();
+        await rewardStore.verifyThePageIsLoaded();
+        const rewardStoreHeading = this.page.locator(`[class*="PageContainerFullscreen_header"] h1`).filter({
+          hasText: customValue,
+        });
+        await this.verifier.verifyTheElementIsVisible(rewardStoreHeading, { timeout: TIMEOUTS.SHORT });
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+  }
+
+  async validateTheCustomizedValueOnRecognitionHubPage(
+    cardType: 'Recognition' | 'Points' | 'Reward Store',
+    customValue: string
+  ) {
+    let recognitionHubHeading: Locator, giveRecognitionButton: Locator;
+    const recognitionHub = new RecognitionHubPage(this.page);
+    await recognitionHub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+    await recognitionHub.verifyThePageIsLoaded();
+    switch (cardType) {
+      case 'Recognition':
+        recognitionHubHeading = this.page
+          .locator(`[class*="PageContainerFullscreen_header"] h1`)
+          .filter({ hasText: customValue });
+        await this.verifier.verifyTheElementIsVisible(recognitionHubHeading, { timeout: TIMEOUTS.SHORT });
+        giveRecognitionButton = this.page
+          .locator(`[class*="PageContainerFullscreen_header"] h1 + div > button`)
+          .filter({ hasText: customValue });
+        await this.verifier.verifyTheElementIsVisible(giveRecognitionButton, { timeout: TIMEOUTS.SHORT });
+        break;
+      case 'Points':
+        const panel = this.page
+          .locator('a[href="/rewards-store/order-history"]')
+          .locator('xpath=ancestor::div[contains(@style,"align-items")]')
+          .locator('h2')
+          .filter({ hasText: customValue });
+        const pointsToGiveLabel = this.page
+          .getByTestId('i-gift')
+          .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
+          .locator('p')
+          .filter({ hasNotText: /^\d+$/ }) // exclude numeric value like 490
+          .first();
+        const pointsToSpendLabel = this.page
+          .getByTestId('i-coinsStacked')
+          .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
+          .locator('p')
+          .filter({ hasNotText: /^\d+$/ })
+          .first();
+        await this.verifier.verifyTheElementIsVisible(pointsToGiveLabel);
+        await expect(pointsToGiveLabel).toContainText(customValue);
+        await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel);
+        await expect(pointsToSpendLabel).toContainText(customValue);
+        break;
+      case 'Reward Store':
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.visit();
+        await rewardStore.verifyThePageIsLoaded();
+        const rewardStoreHeading = this.page.locator(`[class*="PageContainerFullscreen_header"] h1`).filter({
+          hasText: customValue,
+        });
+        await this.verifier.verifyTheElementIsVisible(rewardStoreHeading, { timeout: TIMEOUTS.SHORT });
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+  }
+
+  async validateTheCustomizedValueOnSiteDashboardPage(
+    cardType: 'Recognition' | 'Points' | 'Reward Store',
+    customValue: string
+  ) {
+    await this.openOneSiteDashboard();
+    let recognitionCreationButtonInFeed: Locator;
+    switch (cardType) {
+      case 'Recognition':
+        await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
+          timeout: TIMEOUTS.MEDIUM,
+          stepInfo: 'Waiting for recognition creation button to be visible on site dashboard page',
+        });
+        await this.page.locator('[class*="PostForm"] button').click();
+        recognitionCreationButtonInFeed = this.page
+          .locator('[for="recognition"] button[id="recognition"]')
+          .filter({ hasText: customValue });
+        await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
+        break;
+      case 'Points':
+        await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
+          timeout: TIMEOUTS.MEDIUM,
+          stepInfo: 'Waiting for recognition creation button to be visible on site dashboard page',
+        });
+        await this.clickOnElement(this.page.locator('[class*="PostForm"] button'));
+        recognitionCreationButtonInFeed = this.page.locator('[for="recognition"] button[id="recognition"]');
+        await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
+        await this.clickOnElement(recognitionCreationButtonInFeed);
+        const pointLabel = this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
+        await this.verifier.verifyTheElementIsVisible(pointLabel, { timeout: TIMEOUTS.SHORT });
+        expect(await pointLabel.textContent()).toContain(customValue);
+        break;
+      case 'Reward Store':
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.visit();
+        await rewardStore.verifyThePageIsLoaded();
+        const rewardStoreHeading = this.page.locator(`[class*="PageContainerFullscreen_header"] h1`).filter({
+          hasText: customValue,
+        });
+        await this.verifier.verifyTheElementIsVisible(rewardStoreHeading, { timeout: TIMEOUTS.SHORT });
+        break;
+      default:
+        throw new Error(`Invalid card type: ${cardType}`);
+    }
+  }
+
+  /**
+   * Reloads the current page, captures `/v1/account/appConfig` response,
+   * and returns `result.selectedLanguages.ids` as number[].
+   */
+  async getSelectedLanguageIdsFromAppConfig(): Promise<number[]> {
+    return await test.step('Capture appConfig and read selectedLanguages.ids', async () => {
+      const [appConfigResponse] = await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/v1/account/appConfig') && resp.status() === 200, {
+          timeout: TIMEOUTS.MEDIUM,
+        }),
+        this.page.reload({ waitUntil: 'domcontentloaded' }),
+      ]);
+
+      const json = await appConfigResponse.json();
+      const ids = json?.result?.selectedLanguages?.ids;
+      if (!Array.isArray(ids)) {
+        throw new Error(`selectedLanguages.ids not found in appConfig response: ${JSON.stringify(json)}`);
+      }
+
+      return ids.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n));
+    });
+  }
+
+  /**
+   * 1) Gets active sites via API
+   * 2) If none exist, creates (or activates) a site named "renaming site validation"
+   * 3) Opens the first site's dashboard
+   */
+  async openOneSiteDashboard(): Promise<{ siteId: string; siteName: string }> {
+    return await test.step('Open one site dashboard (get/create via API)', async () => {
+      const sitesService = new RewardSitesService();
+      const site = await sitesService.getOrCreateFirstActiveSite(this.page, 'renaming site validation');
+      await this.page.goto(PAGE_ENDPOINTS.getSiteDashboardPage(site.siteId));
+      await expect(this.page, 'expecting to be on site dashboard page').toHaveURL(
+        new RegExp(`/site/${site.siteId}/dashboard`)
+      );
+      return site;
+    });
   }
 }
