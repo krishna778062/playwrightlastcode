@@ -57,7 +57,7 @@ test.describe('Reaction check for comments to recognition posts - hub', () => {
         commonRecognitionTestData.siteName
       );
       // Cleanup
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -123,7 +123,7 @@ test.describe('Reaction check for comments to recognition posts - hub', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
       await manageAppSettingsApi.enableDisableCommentsSettingViaApi(appManagerPage, 'enable', false);
     }
   );
