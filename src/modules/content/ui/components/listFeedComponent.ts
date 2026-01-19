@@ -336,18 +336,6 @@ export class ListFeedComponent extends BaseComponent {
         .getByRole('button', { name: 'Share this post' })
         .first();
 
-    this.getProfileIconLocatorForPost = (postText: string, userName: string): Locator =>
-      this.page
-        .locator(
-          '._postHeader_tgt5r_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt'
-        )
-        .first();
-
-    this.getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
-      this.page
-        .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
-        .first();
-
     this.getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
 
     this.getFollowingButtonLocator = (userName: string): Locator =>
