@@ -10,7 +10,7 @@
 import { log } from '@core/utils/logger';
 
 export type TenantKey = 'primary' | 'abac';
-export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU' | 'prodUS';
+export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatAU' | 'uatCA' | 'uatEU' | 'prodUS';
 
 // Tenant-specific configuration structure
 export interface DataEngineeringTenantConfig {
@@ -70,6 +70,30 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
       standardUserPassword: 'Simpplr@123',
       orgId: '51c136f3-b99e-450c-81c8-743521eafe68',
       odinOrgId: 'uat-odin-org-id',
+    },
+    uatAU: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
+      apiBeUrl: 'https://api-be.uat-au.simpplr.com',
+      appManagerEmail: 'amit.verma@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      standardUserEmail: 'aishma.gupta+2@simpplr.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: '096fb4bf-a52c-41af-9bf8-904ed4fa602a',
+      odinOrgId: 'uat-au-odin-org-id',
+    },
+    uatCA: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
+      apiBeUrl: 'https://api-be.uat-ca.simpplr.com',
+      appManagerEmail: 'parul.sharma@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      standardUserEmail: 'aishma.gupta+5@simpplr.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: 'fd12a72a-b0fc-42b5-a5fb-61ed3f178519',
+      odinOrgId: 'uat-ca-odin-org-id',
     },
     uatEU: {
       tenantName: 'Data Engineering Primary',
@@ -156,7 +180,7 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  const validEnvs: EnvironmentKey[] = ['qa', 'test', 'uat', 'uatEU', 'prodUS'];
+  const validEnvs: EnvironmentKey[] = ['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS'];
   if (!validEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +

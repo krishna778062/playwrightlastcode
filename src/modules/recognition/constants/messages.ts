@@ -3,6 +3,7 @@ export const MESSAGES = {
   NEW_AWARD_CREATED: 'New award created',
   AWARD_DELETED: 'Award deleted',
   LINK_COPIED_TO_CLIPBOARD: 'Link copied to clipboard',
+  RECOGNITION_SHARED_SUCCESSFULLY: 'Recognition shared successfully',
 } as const;
 
 export const AWARD_CREATION_MESSAGES = {

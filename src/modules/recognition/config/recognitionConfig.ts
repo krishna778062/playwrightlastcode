@@ -47,6 +47,8 @@ export interface RecognitionTenantConfig {
   tenantName: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  siteName?: string;
+  siteId?: string;
   appManagerEmail: string;
   appManagerName: string;
   appManagerUserId: string;
@@ -261,7 +263,7 @@ export const config = {
       appManagerEmail: 'charan.b@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
-      appManagerPassword: 'Simpplr@1234',
+      appManagerPassword: 'Simpplr@12345',
       recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
       recognitionManagerName: 'Recognition Manager',
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
@@ -296,38 +298,41 @@ export const config = {
   },
 };
 
+// Environment resolution helpers ------------------------------------------------
+
 /**
- * Get current environment from TEST_ENV (required)
- * Throws error if TEST_ENV is not set or invalid
+ * Get current environment from TEST_ENV (required).
+ * Throws an error if TEST_ENV is not set or invalid.
  */
-function getCurrentEnvironment(): EnvironmentKey {
+export function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!testEnv) {
-    throw new Error(
-      `❌ TEST_ENV environment variable is required!\n` +
-        `Please set TEST_ENV before running tests:\n` +
-        `  TEST_ENV=qa npm run test\n` +
-        `  TEST_ENV=uat npm run test\n` +
-        `  TEST_ENV=uatAU npm run test\n` +
-        `  TEST_ENV=uatCA npm run test\n` +
-        `  TEST_ENV=uatUS npm run test\n` +
-        `  TEST_ENV=uatEU npm run test\n` +
-        `  TEST_ENV=prodAU npm run test\n` +
-        `  TEST_ENV=prodCA npm run test\n` +
-        `  TEST_ENV=prodUS npm run test\n` +
-        `  TEST_ENV=prodEU npm run test\n` +
-        `  TEST_ENV=prod npm run test`
-    );
-  }
+  const allowedEnvs: EnvironmentKey[] = [
+    'qa',
+    'test',
+    'uat',
+    'uatAU',
+    'uatCA',
+    'uatEU',
+    'prodUS',
+    'prodAU',
+    'prodCA',
+    'prodEU',
+  ];
 
-  if (!['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS', 'prodAU', 'prodCA', 'prodEU'].includes(testEnv)) {
+  if (!allowedEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, test, uat, uatAU, uatCA, uatEU, prodUS, prodAU, prodCA, prodEU\n` +
+        `Valid values are: ${allowedEnvs.join(', ')}\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prodUS npm run test\n`
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodAU npm run test\n` +
+        `Example: TEST_ENV=prodCA npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n` +
+        `Example: TEST_ENV=uatCA npm run test\n` +
+        `Example: TEST_ENV=test npm run test\n`
     );
   }
 
@@ -335,16 +340,15 @@ function getCurrentEnvironment(): EnvironmentKey {
 }
 
 /**
- * Initialize config cache for specific tenant once per test run
- * This is the equivalent of loading properties file in Java
- * Call this at the start of your test suite with the tenant you're testing
+ * Initialize config cache for specific tenant once per test run.
+ * Call this at the start of your test suite with the tenant you're testing.
  */
 export function initializeRecognitionConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
   if (configCache && configCache.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
-    return; // Already initialized for the same tenant
+    return;
   }
 
   // Allow tenant switching - clear cache if different tenant
@@ -379,9 +383,7 @@ export function initializeRecognitionConfig(tenant: TenantKey): void {
 }
 
 /**
- * Get tenant configuration for current environment (from cache)
- * No need to pass tenant - uses the initialized tenant
- * @returns Tenant configuration object
+ * Get tenant configuration for current environment (from cache).
  */
 export function getRecognitionTenantConfigFromCache(): RecognitionTenantConfig {
   if (!configCache) {
