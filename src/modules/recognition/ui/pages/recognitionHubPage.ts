@@ -36,6 +36,9 @@ export class RecognitionHubPage extends BasePage {
   readonly commentSubmitButton: Locator;
   readonly commentCountIndicator: Locator;
   readonly commentItems: Locator;
+  readonly giveRecognition: Locator;
+  readonly giveAwardButton: Locator;
+  readonly spotAwardPromotionTile: Locator;
   readonly receiverNameLink: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
@@ -71,6 +74,9 @@ export class RecognitionHubPage extends BasePage {
     this.commentSubmitButton = page.getByRole('button', { name: /(post)/i }).first();
     this.commentCountIndicator = page.getByRole('button', { name: /(comment|comments)/i }).first();
     this.commentItems = page.locator('[data-testid="comment-item"], [class*="comment"]');
+    this.giveRecognition = page.locator('header').filter({ hasText: 'Give recognition' }).getByRole('button');
+    this.spotAwardPromotionTile = page.locator('[data-testid*="spot-awards"]');
+    this.giveAwardButton = this.spotAwardPromotionTile.getByRole('button', { name: 'Give award' }).first();
   }
 
   /**
@@ -114,6 +120,17 @@ export class RecognitionHubPage extends BasePage {
     await this.clickOnElement(this.giveRecognitionButton, {
       timeout: TIMEOUTS.VERY_SHORT,
       stepInfo: 'Clicking on Give Recognition button',
+    });
+  }
+
+  /**
+   * Verify spot award promotion tile is visible
+   */
+  async verifySpotAwardPromotionTile(): Promise<void> {
+    await test.step('Verify promotional tile for Spot awards', async () => {
+      await expect(this.spotAwardPromotionTile, 'expecting spot award promotion tile to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
@@ -210,6 +227,56 @@ export class RecognitionHubPage extends BasePage {
       }
     });
   }
+  /**
+   * Fill form and validate Recognize button state
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   */
+  async fillFormAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Fill form and validate Recognize button', async () => {
+      await this.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
+      await this.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeDisabled();
+      await giveRecognitionDialogBox.recipientsInput.click();
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await giveRecognitionDialogBox.messageInput.fill('Test Message');
+      await giveRecognitionDialogBox.companyValuesInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeEnabled();
+    });
+  }
+
+  /**
+   * Remove optional field and validate Recognize button remains enabled
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async removeOptionalFieldAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox
+  ): Promise<void> {
+    await test.step('Remove optional field and validate Recognize button', async () => {
+      await giveRecognitionDialogBox.companyValuesInput.clear();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to remain enabled after removing optional field'
+      ).toBeEnabled();
+    });
+  }
 
   /**
    * Ensure the checkbox is checked
@@ -269,6 +336,43 @@ export class RecognitionHubPage extends BasePage {
       });
     });
   }
+  /**
+   * Remove mandatory field and validate Recognize button is disabled
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async removeMandatoryFieldAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox
+  ): Promise<void> {
+    await test.step('Remove mandatory field and validate Recognize button', async () => {
+      await giveRecognitionDialogBox.recipientsInput.clear();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled after removing mandatory field'
+      ).toBeDisabled();
+    });
+  }
+
+  /**
+   * Click on Give Recognition button and validate dialog and tabs
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async clickGiveRecognitionAndValidate(giveRecognitionDialogBox: GiveRecognitionDialogBox): Promise<void> {
+    await test.step('Click on Give Recognition button and validate', async () => {
+      await this.giveRecognitionButton.click();
+      await expect(giveRecognitionDialogBox.container, 'expecting dialog container to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(
+        giveRecognitionDialogBox.peerRecognitionTab,
+        'expecting peer recognition tab to be visible'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(giveRecognitionDialogBox.spotAwardTab, 'expecting spot award tab to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
 
   async verifyCommentingAllowedForPost(allowed: boolean): Promise<void> {
     await test.step('Verify commenting allowed for post', async () => {
@@ -281,6 +385,19 @@ export class RecognitionHubPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
       }
+    });
+  }
+  /**
+   * Select Spot Award tab and validate it's active
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async selectSpotAwardTabAndValidate(giveRecognitionDialogBox: GiveRecognitionDialogBox): Promise<void> {
+    await test.step('Select Spot Award tab and validate', async () => {
+      await giveRecognitionDialogBox.spotAwardTab.click();
+      await expect(giveRecognitionDialogBox.spotAwardTab, 'expecting spot award tab to be active').toHaveAttribute(
+        'data-state',
+        'active'
+      );
     });
   }
 
@@ -313,6 +430,44 @@ export class RecognitionHubPage extends BasePage {
       } else {
         return 0;
       }
+    });
+  }
+
+  /**
+   * Verify spot awards for single recipient
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param spotAwardPage - SpotAwardPage instance
+   */
+  async verifySpotAwardsForSingleRecipient(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Verify spot awards for single recipient', async () => {
+      await this.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
+      await this.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeDisabled();
+      await giveRecognitionDialogBox.recipientsInput.click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+
+      await giveRecognitionDialogBox.getOption(0).click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await giveRecognitionDialogBox.messageInput.fill('Test Message');
+      await giveRecognitionDialogBox.companyValuesInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeEnabled();
+      await giveRecognitionDialogBox.recognizeButton.click();
     });
   }
 

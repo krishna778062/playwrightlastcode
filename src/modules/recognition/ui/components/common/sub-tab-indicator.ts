@@ -35,10 +35,10 @@ export class SubTabIndicator extends BasePage {
   /**
    * This method returns a locator for indicator tab by name.
    * @param {string} tabName - name of the tab
-   * @returns {Locator} - The locator for the redeem button
+   * @returns {Locator} - The locator for the tab
    */
   getTab(tabName: string): Locator {
-    return this.page.getByRole('checkbox', { name: `${tabName}`, exact: true });
+    return this.page.getByRole('tab', { name: `${tabName}`, exact: true });
   }
 
   /**
