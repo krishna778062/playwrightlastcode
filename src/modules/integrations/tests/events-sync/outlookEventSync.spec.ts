@@ -41,7 +41,6 @@ test.describe(
           IntegrationsSuiteTags.HEALTH_CHECK,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
-          '@deleteEventFromOutlookCalendar',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -262,7 +261,6 @@ test.describe(
           TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
-          '@siteDeactivationReactivation',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -329,7 +327,6 @@ test.describe(
           TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.OUTLOOK_CALENDAR_EVENTS_SYNC,
-          '@siteDeactivationReactivation',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -668,10 +665,11 @@ test.describe(
           organizerId,
         });
 
-        await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
-          siteId,
-          eventPayload
-        );
+        const eventCreationResult =
+          await appManagerFixture.contentManagementHelper.contentManagementService.addNewEventContent(
+            siteId,
+            eventPayload
+          );
 
         // Verify event appears in App Manager's calendar
         const appManagerCalendarHelper = createAppManagerOutlookCalendarHelper();
@@ -696,6 +694,10 @@ test.describe(
           SiteMembershipAction.REMOVE
         );
 
+        // Verify event still exists in App Manager's calendar (should not be affected)
+        const appManagerVerificationResult2 = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
+        OutlookCalendarHelper.assertEventSyncedToCalendar(appManagerVerificationResult2);
+
         // Verify event is removed from End User's Outlook Calendar
         const removalVerificationResult = await endUserCalendarHelper.verifyEventSyncWithRetry(eventTitle, {
           maxAttempts: 15,
@@ -704,11 +706,6 @@ test.describe(
         });
 
         OutlookCalendarHelper.assertEventRemovedFromCalendar(removalVerificationResult);
-
-        // Verify event still exists in App Manager's calendar (should not be affected)
-        const appManagerVerificationResult2 = await appManagerCalendarHelper.verifyEventSyncWithRetry(eventTitle);
-
-        OutlookCalendarHelper.assertEventSyncedToCalendar(appManagerVerificationResult2);
       }
     );
 
