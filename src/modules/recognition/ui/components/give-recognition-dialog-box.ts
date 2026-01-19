@@ -23,6 +23,8 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly descriptionTextArea: Locator;
   readonly companyValuesInput: Locator;
   readonly expertiseInput: Locator;
+  readonly companyValuesField: Locator;
+  readonly expertiseField: Locator;
   readonly selectedAwardInRecognition: Locator;
   readonly recognizeButton: Locator;
   readonly doneButton: Locator;
@@ -55,8 +57,10 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.recipientsInput = this.container.locator('[data-testid*="awarding this"] input[type="text"]');
     this.descriptionTextArea = this.container.locator('[class*="tiptap ProseMirror"]');
     this.companyValues = this.container.getByTestId('field-Company values');
-    this.companyValuesInput = this.container.getByTestId('field-Company values').locator('input[type="text"]');
-    this.expertiseInput = this.container.getByTestId('field-Expertise').locator('input[type="text"]');
+    this.companyValuesField = this.container.getByTestId('field-Company values');
+    this.companyValuesInput = this.companyValuesField.locator('input[type="text"]');
+    this.expertiseField = this.container.getByTestId('field-Expertise');
+    this.expertiseInput = this.expertiseField.locator('input[type="text"]');
     this.recognizeButton = this.container.getByRole('button', { name: 'Recognize' });
     this.doneButton = this.container.getByRole('button', { name: 'Done' });
     this.loadingIndicator = page.locator('div[class*="LoadingIndicator-module__wrapper"]');
@@ -76,6 +80,22 @@ export class GiveRecognitionDialogBox extends DialogBox {
       return this.suggesterContainer.getByText(identifier).first();
     } else {
       return this.suggesterContainer.locator('[role="option"]').nth(identifier).first();
+    }
+  }
+
+  /**
+   * Verify visibility of optional fields on give recognition dialog.
+   */
+  async verifyFieldVisibility(field: 'companyValues' | 'expertise', shouldBeVisible: boolean): Promise<void> {
+    const target = field === 'companyValues' ? this.companyValuesField : this.expertiseField;
+    if (shouldBeVisible) {
+      await this.verifier.verifyTheElementIsVisible(target, {
+        assertionMessage: `${field} field should be visible`,
+      });
+    } else {
+      await this.verifier.verifyTheElementIsNotVisible(target, {
+        assertionMessage: `${field} field should not be visible`,
+      });
     }
   }
 

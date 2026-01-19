@@ -144,7 +144,6 @@ export class RecognitionHubPage extends BasePage {
         'Recognize button should disappear after submit'
       ).not.toBeVisible();
     });
-
     return recognitionPostMessage;
   }
 
@@ -344,7 +343,6 @@ export class RecognitionHubPage extends BasePage {
       });
 
       // Ensure share to feed is enabled
-      await this.ensureChecked(this.shareToFeedCheckbox);
       if (feedType === 'site feed') {
         await this.siteFeedOption.click({ timeout: TIMEOUTS.MEDIUM });
         await this.siteInputField.waitFor({ state: 'visible' });
