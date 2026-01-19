@@ -1272,6 +1272,181 @@ test.describe(
     );
 
     test(
+      'verify FO can share unrestricted Home Feed post to Private Site Feed with Restricted Viewers',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42204', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a Home Feed post (created without restrictions) to a Private Site Feed with Restricted Viewers enabled. Post should be visible only to UX audience users who are Private Site members.',
+          zephyrTestId: 'CONT-42204',
+          storyId: 'CONT-42204',
+        });
+
+        let foPostText: string;
+        let sharedPostId: string = '';
+        let privateSiteId: string = '';
+        let privateSiteName: string = '';
+        let standardUserUserId: string = '';
+        let appManagerUserId: string = '';
+        let socialCampaignManagerUserId: string = '';
+
+        // ==================== Get User info ====================
+        await test.step('Get Users info', async () => {
+          const standardUserUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+          const appManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.appManager.email
+          );
+          const socialCampaignManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.socialCampaignManager.email
+          );
+          standardUserUserId = standardUserUserInfo.userId;
+          appManagerUserId = appManagerUserInfo.userId;
+          socialCampaignManagerUserId = socialCampaignManagerUserInfo.userId;
+        });
+
+        // ==================== Get or create Private Site ====================
+        await test.step('Get or create a Private Site for sharing', async () => {
+          const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteWithUserAsOwner(
+            appManagerUserId,
+            SITE_TYPES.PRIVATE
+          );
+          privateSiteId = privateSite.siteId;
+          privateSiteName = privateSite.siteName;
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerUserId,
+            SitePermission.MANAGER,
+            SiteMembershipAction.SET_PERMISSION
+          );
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+        });
+
+        // ==================== FO creates Home Feed post WITHOUT restrictions ====================
+        await test.step('FO creates Home Feed post WITHOUT Restricted Viewers (unrestricted)', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeIconButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          feedPage = new FeedPage(appManagerFixture.page);
+          await feedPage.reloadPage();
+          await feedPage.verifyThePageIsLoaded();
+
+          foPostText = TestDataGenerator.generateRandomText('ABAC Share to Private Site Feed Test', 3, true);
+          await feedPage.clickShareThoughtsButton();
+
+          const postResult = await feedPage.postEditor.createAndPost({
+            text: foPostText,
+          });
+
+          createdPostId = postResult.postId || '';
+          await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post does NOT have limit visibility (unrestricted)
+          await feedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(foPostText);
+        });
+
+        // ==================== FO shares to Private Site Feed WITH Restricted Viewers (UX Designs) ====================
+        await test.step('FO shares post to Private Site Feed with Restricted Viewers (UX Designs audience)', async () => {
+          await feedPage.feedList.clickShareIcon(foPostText);
+          await feedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          const shareDescription = TestDataGenerator.generateRandomText(
+            'Shared to Private Site with UX restriction',
+            2,
+            true
+          );
+
+          sharedPostId = await shareComponent.shareToSiteFeedWithRestrictedViewers({
+            siteName: privateSiteName,
+            description: shareDescription,
+            targetUsers: [SitePermission.MANAGER, SitePermission.OWNER],
+          });
+
+          // Verify share was successful
+          await feedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== In Selected Users (Social Campaign Manager) CAN see shared post on Private Site Feed ====================
+        await test.step('Social Campaign Manager (In Selected Users  - Private Site) navigates to Site Feed and verifies shared post IS visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(socialCampaignManagerFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await socialCampaignManagerFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to In Selected Users
+          await socialCampaignManagerFeedPage.feedList.waitForPostToBeVisible(foPostText);
+        });
+
+        // ==================== Not In Selected Users (Standard User) CANNOT see shared post on Private Site Feed ====================
+        await test.step('Standard User (Not In Selected Users - Private Site) navigates to Site Feed and verifies shared post is NOT visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const standardUserFeedPage = new FeedPage(standardUserFixture.page);
+          await standardUserFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post is NOT visible to non-UX user
+          await standardUserFeedPage.feedList.verifyPostIsNotVisible(foPostText);
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
+        });
+
+        // ==================== Non-UX User CANNOT access shared post via direct URL ====================
+        await test.step('Standard User (non-UX) attempts direct URL access to shared post and verifies Page not found', async () => {
+          const directAccessFeedPage = new FeedPage(standardUserFixture.page, sharedPostId);
+          await standardUserFixture.page.goto(directAccessFeedPage.url);
+
+          await directAccessFeedPage.verifyPageNotFoundVisibility({
+            stepInfo: 'Verify non-UX user sees Page not found when accessing UX-restricted shared post via direct URL',
+          });
+        });
+
+        // ==================== FO CAN see shared post on Private Site Feed ====================
+        await test.step('FO navigates to Private Site Feed and verifies shared post IS visible', async () => {
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          const foSiteFeedPage = new FeedPage(appManagerFixture.page);
+          await foSiteFeedPage.verifyThePageIsLoaded();
+
+          // Verify the shared post IS visible to FO (creator always sees their content)
+          await foSiteFeedPage.feedList.waitForPostToBeVisible(foPostText);
+        });
+      }
+    );
+
+    test(
       'verify FO can share restricted (Engineering) Home Feed post to Private Site Feed without restrictions',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42205', '@FO-feed', '@share-restriction'],
@@ -1367,6 +1542,16 @@ test.describe(
 
         // ==================== Engineering User (Site Member) can see shared post on Private Site Feed ====================
         await test.step('Standard User (Engineering - Private Site member) navigates to Private Site Feed and verifies shared post is visible', async () => {
+          const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
           const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
           await siteDashboardPage.loadPage();
           await siteDashboardPage.verifyThePageIsLoaded();
@@ -1670,6 +1855,16 @@ test.describe(
 
         // ==================== Non-Member (Social Campaign Manager) CANNOT access Private Site Page ====================
         await test.step('Non-Member (Social Campaign Manager) attempts to access Private Site Page and verifies Page not found', async () => {
+          const socialCampaignManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.socialCampaignManager.email
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
           const nonMemberContentPreviewPage = new ContentPreviewPage(
             socialCampaignManagerFixture.page,
             privateSiteId,
@@ -1765,7 +1960,6 @@ test.describe(
         // ==================== Get or create Private Site with Pages ====================
         await test.step('Get or create a Private Site with Pages', async () => {
           const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
-            hasPages: true,
             waitForSearchIndex: true,
           });
           privateSiteId = privateSite.siteId;
@@ -1836,6 +2030,16 @@ test.describe(
 
         // ==================== Non-Member (Social Campaign Manager) CANNOT access Private Site Page ====================
         await test.step('Non-Member (Social Campaign Manager) attempts to access Private Site Page and verifies Request Membership page', async () => {
+          const socialCampaignManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.socialCampaignManager.email
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerInfo.userId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
           const nonMemberContentPreviewPage = new ContentPreviewPage(
             socialCampaignManagerFixture.page,
             privateSiteId,
