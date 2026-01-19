@@ -27,7 +27,7 @@ import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers/snowflak
 const selectedFilter = getRandomStaticPeriodFilter();
 
 test.describe(
-  `Content Moderation Analytics Dashboard - Period Filter (${selectedFilter})`,
+  'Content Moderation Analytics Dashboard - Static Period Filter',
   {
     tag: [DataEngineeringTestSuite.CONTENT_MODERATION_ANALYTICS, '@period-filter', '@static-period'],
   },
@@ -45,36 +45,34 @@ test.describe(
       timePeriod: selectedFilter,
     };
 
-    test.beforeAll(
-      `Setup Content Moderation Analytics Dashboard with ${selectedFilter} filter`,
-      async ({ browser }) => {
-        // Setup dashboard with Snowflake connection
-        testEnvironment = await setupContentModerationAnalyticsDashboardForTest(browser, UserRole.APP_MANAGER);
+    test.beforeAll('Setup Content Moderation Analytics Dashboard with static period filter', async ({ browser }) => {
+      // Setup dashboard with Snowflake connection
+      testEnvironment = await setupContentModerationAnalyticsDashboardForTest(browser, UserRole.APP_MANAGER);
 
-        // Set tenant code from config
-        filterConfig.tenantCode = getDataEngineeringConfigFromCache().orgId;
+      // Set tenant code from config
+      filterConfig.tenantCode = getDataEngineeringConfigFromCache().orgId;
 
-        // Verify Analytics tab is loaded
-        await testEnvironment.contentModerationAnalyticsDashboard.verifyAnalyticsTabIsLoaded();
+      // Verify Analytics tab is loaded
+      await testEnvironment.contentModerationAnalyticsDashboard.verifyAnalyticsTabIsLoaded();
 
-        // Apply the randomly selected Period filter
-        const { analyticsFiltersComponent } = testEnvironment.contentModerationAnalyticsDashboard;
-        await analyticsFiltersComponent.applyPeriodFilter(selectedFilter);
-      }
-    );
+      // Apply the randomly selected Period filter
+      const { analyticsFiltersComponent } = testEnvironment.contentModerationAnalyticsDashboard;
+      await analyticsFiltersComponent.applyPeriodFilter(selectedFilter);
+    });
 
     test.afterAll('Cleanup Content Moderation Analytics Dashboard', async () => {
       await cleanupDashboardTesting(testEnvironment);
     });
 
     test(
-      `verify Total Sources metric data validation with period filter (${selectedFilter})`,
+      'verify Total Sources metric data validation with period filter',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, TestCaseType.HERO_METRIC, '@total-sources'],
       },
       async () => {
         tagTest(test.info(), {
-          description: `To verify the Total Sources metric in Content Moderation Analytics dashboard with ${selectedFilter} filter`,
+          description:
+            'To verify the Total Sources metric in Content Moderation Analytics dashboard with static period filter',
           zephyrTestId: 'DE-28137',
           storyId: 'DE-27431',
         });
@@ -92,13 +90,14 @@ test.describe(
     );
 
     test(
-      `verify Detected metric data validation with period filter (${selectedFilter})`,
+      'verify Detected metric data validation with period filter',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, TestCaseType.HERO_METRIC, '@detected'],
       },
       async () => {
         tagTest(test.info(), {
-          description: `To verify the Detected metric in Content Moderation Analytics dashboard with ${selectedFilter} filter`,
+          description:
+            'To verify the Detected metric in Content Moderation Analytics dashboard with static period filter',
           zephyrTestId: 'DE-28140',
           storyId: 'DE-27432',
         });
@@ -125,13 +124,14 @@ test.describe(
     );
 
     test(
-      `verify Reported metric data validation with period filter (${selectedFilter})`,
+      'verify Reported metric data validation with period filter',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, TestCaseType.HERO_METRIC, '@reported'],
       },
       async () => {
         tagTest(test.info(), {
-          description: `To verify the Reported metric in Content Moderation Analytics dashboard with ${selectedFilter} filter`,
+          description:
+            'To verify the Reported metric in Content Moderation Analytics dashboard with static period filter',
           zephyrTestId: 'DE-28143',
           storyId: 'DE-27433',
         });
@@ -158,13 +158,14 @@ test.describe(
     );
 
     test(
-      `verify Removed metric data validation with period filter (${selectedFilter})`,
+      'verify Removed metric data validation with period filter',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, TestCaseType.HERO_METRIC, '@removed'],
       },
       async () => {
         tagTest(test.info(), {
-          description: `To verify the Removed metric in Content Moderation Analytics dashboard with ${selectedFilter} filter`,
+          description:
+            'To verify the Removed metric in Content Moderation Analytics dashboard with static period filter',
           zephyrTestId: 'DE-28146',
           storyId: 'DE-27434',
         });
