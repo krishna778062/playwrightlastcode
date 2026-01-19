@@ -36,6 +36,7 @@ on:
           - '@overview'
           - '@on-page-analytics'
           - '@analytics'
+          - '@content-moderation-analytics'
       priority_filter:
         description: 'Priority filter'
         required: true
