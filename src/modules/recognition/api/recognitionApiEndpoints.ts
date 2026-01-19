@@ -13,6 +13,10 @@ export const RECOGNITION_API_ENDPOINTS = {
   admin: {
     login: '/v2/identity/admin/login',
   },
+  awards: {
+    create: '/recognition/admin/awards',
+    delete: '/recognition/admin/awards/',
+  },
   hub: {
     deleteAward: '/recognition/recognition/',
   },

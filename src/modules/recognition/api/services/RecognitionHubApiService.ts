@@ -14,7 +14,7 @@ export class RecognitionHubApiService {
    * @param awardName Optional name of the award to delete
    * @param awardId Award identifier to delete
    */
-  async deleteAwardViaApi(page: Page, awardType: string, awardId: any): Promise<void> {
+  async deleteRecognitionAwardPostViaApi(page: Page, awardType: string, awardId: any): Promise<void> {
     const { apiContext } = await this.commonApiHelper.createApiContext(page, { 'content-type': 'application/json' });
     try {
       const httpClient = new HttpClient(apiContext, this.commonApiHelper.baseUrl);
