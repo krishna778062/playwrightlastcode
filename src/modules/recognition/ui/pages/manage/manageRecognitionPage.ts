@@ -143,4 +143,17 @@ export class ManageRecognitionPage extends BasePage {
       await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
     });
   }
+
+  /**
+   * Select tab (Active, Draft, Scheduled, Inactive) for spot awards or recurring awards
+   */
+  async selectTab(tabName: 'Active' | 'Draft' | 'Scheduled' | 'Inactive'): Promise<void> {
+    await test.step(`Select the ${tabName} tab`, async () => {
+      const tab = this.subTabIndicator.getTab(tabName);
+      await expect(tab, `expecting ${tabName} tab to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await tab.click();
+    });
+  }
 }
