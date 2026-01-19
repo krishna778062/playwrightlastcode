@@ -52,6 +52,9 @@ export class SideNavBarComponent extends BaseComponent {
   readonly homeNavMenu: Locator;
   readonly manageNavMenu: Locator;
 
+  //manage feature section
+  readonly clickOnSocialCampaignsUnderManageFeature: Locator;
+
   //content moderation section
   readonly clickOnContentModeration: Locator;
 
@@ -97,6 +100,11 @@ export class SideNavBarComponent extends BaseComponent {
     //recognition section
     this.recognitionLink = page.locator('[data-testid="main-nav"] a[href="/recognition"]');
     this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
+
+    //manage feature section
+    this.clickOnSocialCampaignsUnderManageFeature = page
+      .getByTestId('main-nav')
+      .getByRole('link', { name: 'Social campaigns' });
     this.homeNavMenu = page.locator('[data-testid="main-nav"] a[href="/home"]');
     this.manageNavMenu = page.locator('[class*="primary-nav"] [aria-label="Manage"]');
   }

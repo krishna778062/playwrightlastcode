@@ -141,6 +141,12 @@ export class FeedPage extends BasePage {
       await this.verifyThePageIsLoaded();
     });
   }
+  async reloadPageWithTimelineMode(): Promise<void> {
+    await test.step('Reload page with timeline mode', async () => {
+      await this.page.reload();
+      await this.feedList.verifyThePageIsLoadedWithTimelineMode();
+    });
+  }
 
   async reloadFeedDetailPage(postText: string): Promise<void> {
     await test.step('Reload feed detail page', async () => {
@@ -151,6 +157,18 @@ export class FeedPage extends BasePage {
 
   async getPostContainerLocator(postText: string): Promise<Locator> {
     return this.feedPostContainer.filter({ hasText: postText }).first();
+  }
+
+  async createAndPostWithLimitVisibility(options: FeedPostOptions): Promise<FeedPostResult> {
+    return await this.postEditor.createAndPostWithLimitVisibility(options);
+  }
+
+  async editPostAndRemoveLimitVisibility(currentText: string, newText: string): Promise<void> {
+    await this.postEditor.editPostAndRemoveLimitVisibility(currentText, newText);
+  }
+
+  async toggleLimitVisibility(): Promise<void> {
+    await this.postEditor.toggleLimitVisibility();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
