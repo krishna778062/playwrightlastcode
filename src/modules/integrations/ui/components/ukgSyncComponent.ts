@@ -14,6 +14,7 @@ export class UkgSyncComponents extends BaseComponent {
   readonly optionValue: (name: string) => Locator;
   readonly syncDetailsCheckBox: (option: string) => Locator;
   readonly syncDropdown: (option: string) => Locator;
+  readonly saveButton: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -36,6 +37,7 @@ export class UkgSyncComponents extends BaseComponent {
     this.syncDropdown = (option: string) => this.rootLocator.getByRole('option', { name: option });
     this.syncCheckBox = (name: string) =>
       this.rootLocator.locator(`span:has-text('${name}')`).locator('xpath=ancestor::div//input[@type="checkbox"]');
+    this.saveButton = this.spanText('Save').first();
   }
 
   /**
@@ -46,14 +48,21 @@ export class UkgSyncComponents extends BaseComponent {
   async verifyScheduledSourcesCheckBox(name: string): Promise<void> {
     await test.step(`Verify Scheduled Sources Checkbox: ${name}`, async () => {
       const checkbox = this.scheduledSourcesCheckbox(name).first();
+      await checkbox.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(checkbox).toBeEnabled({ timeout: 10_000 });
+
       const status = await checkbox.isChecked();
       if (status) {
+        // If checked, uncheck and save, then check again
         await checkbox.click();
-        await this.spanText('Save').click();
+        await this.saveButton.waitFor({ state: 'visible', timeout: 10_000 });
+        await expect(this.saveButton).toBeEnabled({ timeout: 10_000 });
+        await this.saveButton.click();
+        await this.page.waitForLoadState('networkidle', { timeout: 5_000 }).catch(() => {});
+        await checkbox.waitFor({ state: 'visible', timeout: 10_000 });
         await checkbox.click();
       } else {
         await checkbox.click();
-        console.log('Checkbox is already unchecked');
       }
     });
   }
@@ -77,7 +86,11 @@ export class UkgSyncComponents extends BaseComponent {
 
   async clickOnButton(text: string): Promise<void> {
     await test.step(`Click on span text button: ${text}`, async () => {
-      await this.spanText(text).click();
+      const button = this.spanText(text).first();
+      // Wait for button to be visible and enabled
+      await button.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(button).toBeEnabled({ timeout: 10_000 });
+      await button.click();
     });
   }
 
@@ -124,7 +137,10 @@ export class UkgSyncComponents extends BaseComponent {
 
       for (const field of fields) {
         const inputElement = this.inputField(source, field.value);
+        await inputElement.waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {});
+        await expect(inputElement).toBeEnabled({ timeout: 10_000 });
         await inputElement.fill(field.name);
+        await expect(inputElement).toHaveValue(field.name, { timeout: 5_000 });
       }
     });
   }
@@ -163,6 +179,31 @@ export class UkgSyncComponents extends BaseComponent {
     await test.step(`Check Sync CheckBox: ${name}`, async () => {
       const checkbox = this.syncCheckBox(name);
       await checkbox.nth(1).click();
+    });
+  }
+
+  /**
+   * Wait for Save button to be enabled and click it
+   */
+  async waitForSaveButtonAndClick(): Promise<void> {
+    await test.step('Wait for Save button to be enabled and click', async () => {
+      await this.saveButton.waitFor({ state: 'visible', timeout: 15_000 });
+
+      // Wait for button to become enabled
+      let isEnabled = false;
+      const startTime = Date.now();
+      const timeout = 10_000;
+      while (!isEnabled && Date.now() - startTime < timeout) {
+        isEnabled = !(await this.saveButton.isDisabled().catch(() => true));
+        if (!isEnabled) {
+          await this.page.waitForLoadState('domcontentloaded', { timeout: 500 }).catch(() => {
+            // Continue polling
+          });
+        }
+      }
+
+      await expect(this.saveButton).toBeEnabled({ timeout: 10_000 });
+      await this.saveButton.click();
     });
   }
 }
