@@ -27,6 +27,7 @@ export class PeopleTabComponent extends BaseComponent {
   readonly integrationSelectionDialog: () => Locator;
   readonly integrationSearchInput: () => Locator;
   readonly noResultsFoundMessage: () => Locator;
+  readonly toastContainer: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -57,6 +58,7 @@ export class PeopleTabComponent extends BaseComponent {
     this.integrationSelectionDialog = () => this.page.getByRole('dialog').filter({ hasText: 'Select an integration' });
     this.integrationSearchInput = () => this.page.getByRole('textbox', { name: 'Search Integration' });
     this.noResultsFoundMessage = () => this.page.getByRole('heading', { name: 'No results found' });
+    this.toastContainer = this.page.locator('[class*="Toast-module"]');
   }
 
   private getFieldCheckbox(
@@ -140,15 +142,19 @@ export class PeopleTabComponent extends BaseComponent {
   async deselectWorkdayIfChecked(): Promise<void> {
     await test.step('Deselect Workday checkbox if checked and click Save', async () => {
       const checkbox = this.workdayCheckbox();
-      await checkbox.waitFor({ state: 'attached', timeout: 10000 });
+      await checkbox.waitFor({ state: 'attached', timeout: 10_000 });
       if (!(await checkbox.isVisible().catch(() => false))) {
         await checkbox.scrollIntoViewIfNeeded().catch(() => {});
       }
-      await expect(checkbox, 'expecting Workday checkbox to be visible').toBeVisible();
-      const isChecked = await checkbox.isChecked();
-      if (isChecked) {
+      await expect(checkbox).toBeVisible();
+      if (await checkbox.isChecked()) {
         await checkbox.uncheck();
+        await this.waitForSaveButtonEnabled();
         await this.saveButton().click();
+        await Promise.race([
+          this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+          this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+        ]);
       }
     });
   }
@@ -293,6 +299,29 @@ export class PeopleTabComponent extends BaseComponent {
     });
   }
 
+  private async fillInputField(locator: Locator, value: string, verifyValue = true): Promise<void> {
+    await locator.waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(locator).toBeEnabled({ timeout: 10_000 });
+    await locator.fill(value);
+    if (verifyValue) {
+      await expect(locator).toHaveValue(value, { timeout: 5_000 });
+    }
+  }
+
+  private async waitForSaveButtonEnabled(): Promise<void> {
+    const saveBtn = this.saveButton();
+    await saveBtn.waitFor({ state: 'visible', timeout: 15_000 });
+    let isEnabled = false;
+    const startTime = Date.now();
+    while (!isEnabled && Date.now() - startTime < 10_000) {
+      isEnabled = !(await saveBtn.isDisabled().catch(() => true));
+      if (!isEnabled) {
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 500 }).catch(() => {});
+      }
+    }
+    await expect(saveBtn).toBeEnabled({ timeout: 10_000 });
+  }
+
   async configureWorkdayCredentials(params: {
     username: string;
     password: string;
@@ -303,17 +332,36 @@ export class PeopleTabComponent extends BaseComponent {
     refreshToken: string;
   }): Promise<void> {
     await test.step('Select Workday and enter credentials, then save', async () => {
+      await this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+
       const workdayCheckbox = this.workdayCheckbox();
+      await workdayCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(workdayCheckbox).toBeEnabled({ timeout: 10_000 });
       await workdayCheckbox.check();
-      await this.workdayUsernameInput().fill(params.username);
-      await this.workdayPasswordInput().fill(params.password);
-      await this.wsdlUrlInput().fill(params.wsdlUrl);
-      await this.tenantIdInput().fill(params.tenantId);
-      await this.apiClientToggle().click();
-      await this.clientIdInput().fill(params.clientId);
-      await this.clientSecretInput().fill(params.clientSecret);
-      await this.refreshTokenInput().fill(params.refreshToken);
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 10_000 }).catch(() => {});
+
+      await this.fillInputField(this.workdayUsernameInput(), params.username);
+      await this.fillInputField(this.workdayPasswordInput(), params.password, false);
+      await this.fillInputField(this.wsdlUrlInput(), params.wsdlUrl);
+      await this.fillInputField(this.tenantIdInput(), params.tenantId);
+
+      const apiClientToggle = this.apiClientToggle();
+      await apiClientToggle.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(apiClientToggle).toBeEnabled({ timeout: 10_000 });
+      await apiClientToggle.click();
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 5_000 }).catch(() => {});
+
+      await this.fillInputField(this.clientIdInput(), params.clientId);
+      await this.fillInputField(this.clientSecretInput(), params.clientSecret, false);
+      await this.fillInputField(this.refreshTokenInput(), params.refreshToken);
+
+      await this.waitForSaveButtonEnabled();
       await this.saveButton().click();
+
+      await Promise.race([
+        this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+        this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+      ]);
     });
   }
 
