@@ -7,6 +7,7 @@ export class ManageFeatureComponent extends BaseComponent {
   readonly sitesCard: Locator;
   readonly manageFeatureHeading: Locator;
   readonly insideSiteCard: Locator;
+  readonly socialCampaignCard: Locator;
 
   constructor(readonly page: Page) {
     super(page);
@@ -14,5 +15,6 @@ export class ManageFeatureComponent extends BaseComponent {
     this.sitesCard = this.page.getByRole('menuitem', { name: 'Sites' });
     this.manageFeatureHeading = page.getByRole('heading', { name: 'Manage features' });
     this.insideSiteCard = this.page.locator('#page-content').getByRole('link', { name: 'Sites' });
+    this.socialCampaignCard = this.page.locator('#page-content').getByRole('link', { name: 'Social campaigns' });
   }
 }

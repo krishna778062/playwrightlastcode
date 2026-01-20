@@ -72,7 +72,7 @@ permissions:
 jobs:
   integrations-test:
     timeout-minutes: 300
-    runs-on: [kubernetes-pvc]
+    runs-on: [kubernetes-fe]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       MODULE_NAME: ${{ inputs.module }}
@@ -183,6 +183,7 @@ jobs:
           aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} --recursive
           aws s3 cp playwright-report s3://${S3_BUCKET}/${MODULE_NAME}/latest --recursive
           echo "REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+          echo "TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/tag-report.html" >> $GITHUB_ENV
 
       - name: Parse and Send Slack Notification
         if: always()
@@ -194,7 +195,7 @@ jobs:
             SKIPPED=$(jq -r '.stats.skipped' test-results/test-results.json)
             FLAKY=$(jq -r '.stats.flaky' test-results/test-results.json)
             
-            MESSAGE="🧪 *Integrations BrowserStack* - \`${{ inputs.module }}\` on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`): ${TOTAL} tests (${PASSED} ✅ ${FAILED} ❌ ${SKIPPED} ⏭️ ${FLAKY} ⚠️) | <${{ env.REPORT_URL }}|📊 Report>"
+            MESSAGE="🧪 *Integrations BrowserStack* - \`${{ inputs.module }}\` on \`${{ inputs.environment }}\` (\`${{ inputs.git_ref }}\`): ${TOTAL} tests (${PASSED} ✅ ${FAILED} ❌ ${SKIPPED} ⏭️ ${FLAKY} ⚠️) | <${{ env.REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags>"
           else
             MESSAGE="🚨 *Integrations BrowserStack Failed* - \`${{ inputs.module }}\` on \`${{ inputs.environment }}\` | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
           fi

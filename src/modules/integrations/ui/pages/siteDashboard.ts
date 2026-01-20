@@ -23,6 +23,8 @@ export class SiteDashboard {
   private readonly outlookCalendarSecondDropdown: Locator;
   private readonly reactSelectListboxMenu: Locator;
   private readonly reactSelectFirstOption: Locator;
+  private readonly dialog: Locator;
+  private readonly createButton: Locator;
 
   constructor(page: Page, appManagerApiClient?: any) {
     this.page = page;
@@ -38,6 +40,15 @@ export class SiteDashboard {
       .first()
       .locator('.ReactSelectInput-option')
       .first();
+    this.dialog = page.getByRole('dialog');
+    this.createButton = this.dialog.getByRole('button', { name: 'Create', exact: true }).first();
+  }
+
+  /**
+   * Get Create ticket button locator within a tile container
+   */
+  private getCreateTicketButton(tileContainer: Locator): Locator {
+    return tileContainer.getByRole('button', { name: 'Create ticket', exact: true }).first();
   }
 
   /**
@@ -1033,13 +1044,25 @@ export class SiteDashboard {
     textFieldName?: string,
     textValue?: string
   ): Promise<void> {
-    await this.appTileComponent.clickButton('Create ticket');
-    await this.selectDropdownValue(category, categoryValue);
-    await this.selectDropdownValue(subcategory, subcategoryValue);
-    if (textFieldName !== undefined && textValue !== undefined) {
-      await this.appTileComponent.inputFieldByName(textFieldName, textValue);
-    }
-    await this.appTileComponent.clickButton('Create');
+    await test.step(`Create ticket from tile: ${tileTitle}`, async () => {
+      // Get the specific tile container to scope button clicks
+      const tileContainer = await this.appTileComponent.findTilesByTitle(tileTitle);
+
+      // Click Create ticket button within the specific tile
+      await this.appTileComponent.clickOnElement(this.getCreateTicketButton(tileContainer));
+
+      // Wait for dialog to appear
+      await this.dialog.waitFor({ state: 'visible', timeout: 15_000 });
+
+      await this.selectDropdownValue(category, categoryValue);
+      await this.selectDropdownValue(subcategory, subcategoryValue);
+      if (textFieldName !== undefined && textValue !== undefined) {
+        await this.appTileComponent.inputFieldByName(textFieldName, textValue);
+      }
+
+      // Click Create button within the dialog
+      await this.appTileComponent.clickOnElement(this.createButton);
+    });
   }
   /**
    * Verify Service Now Created Ticket tile content structure
