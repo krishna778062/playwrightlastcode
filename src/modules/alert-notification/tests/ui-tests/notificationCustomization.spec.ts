@@ -4340,7 +4340,7 @@ test.describe(
         // Verify the "Last modified" field shows "in a few seconds" (or similar relative time)
         await notificationCustomizationPage.verifyLastModifiedTimestamp(
           TEMPLATE_DATA.MUST_READ.BUTTON_NAME,
-          TIMESTAMP_TEXT.IN_A_FEW_SECONDS
+          TIMESTAMP_TEXT.A_FEW_SECONDS_AGO
         );
 
         // Step 3: Edit the customization
