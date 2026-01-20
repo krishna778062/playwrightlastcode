@@ -13,6 +13,8 @@ export class CommonActionsComponent extends BaseComponent {
 
   constructor(page: Page) {
     super(page);
+    this.profileNotificationSettingsButton = this.page.getByLabel('Profile settings');
+    this.mySettingsButton = this.page.getByText('My settings', { exact: true });
   }
 
   // ==================== BUTTON ACTIONS ====================
@@ -270,6 +272,17 @@ export class CommonActionsComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Navigates to the Profile Notification Settings page
+   */
+  async navigateToProfileNotificationSettingsPage(): Promise<void> {
+    await this.clickOnElement(this.profileNotificationSettingsButton, {
+      stepInfo: 'Click on Profile Notification Settings button',
+    });
+    await this.clickOnElement(this.mySettingsButton, {
+      stepInfo: 'Click on My Settings button',
+    });
+  }
   /**
    * Verifies that text is NOT visible on the page
    * @param text - The text that should not be visible
