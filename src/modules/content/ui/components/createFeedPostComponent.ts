@@ -3,12 +3,22 @@ import { expect, Locator, Page, Response, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { SitePermission } from '@core/types/siteManagement.types';
 
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export interface LimitVisibilityOptions {
   enabled: boolean;
   audience?: string;
+}
+
+export interface RestrictedViewersOptions {
+  text: string;
+  targetUsers: SitePermission[];
+  attachments?: {
+    files: string[];
+  };
+  embedUrl?: string;
 }
 
 export interface FeedPostOptions {
@@ -121,6 +131,16 @@ export class CreateFeedPostComponent extends BaseComponent {
   readonly audienceConfirmButton: Locator;
   readonly getAudienceOption: (audienceName: string) => Locator;
 
+  // Role-based restricted viewers locators
+  readonly siteDropdown: Locator;
+  readonly siteSecondDropdown: Locator;
+  readonly memberDropdown: Locator;
+  readonly ownerAndManagerDropdown: Locator;
+  readonly memberCheckbox: Locator;
+  readonly ownerCheckbox: Locator;
+  readonly managerCheckbox: Locator;
+  readonly contentManagerCheckbox: Locator;
+
   /**
    * Gets a locator for a file checkbox in the file library by finding the row containing the file name
    * @param fileName - The name of the file to select
@@ -209,6 +229,16 @@ export class CreateFeedPostComponent extends BaseComponent {
     this.audienceConfirmButton = this.page.getByRole('button', { name: 'Confirm' });
     this.getAudienceOption = (audienceName: string) =>
       this.page.getByLabel(audienceName, { exact: true }).getByRole('checkbox').first();
+
+    // Role-based restricted viewers locators
+    this.siteDropdown = this.page.getByLabel('Site', { exact: true }).getByRole('button');
+    this.siteSecondDropdown = this.page.locator('[data-testid="i-arrowRight"]').first();
+    this.memberDropdown = this.page.getByLabel('Members').getByRole('button');
+    this.ownerAndManagerDropdown = this.page.getByLabel('Owners & managers').getByRole('button');
+    this.memberCheckbox = this.page.getByLabel('Non-managing members').getByRole('checkbox');
+    this.ownerCheckbox = this.page.getByText('Owner', { exact: true }).last();
+    this.managerCheckbox = this.page.getByText('Managers', { exact: true });
+    this.contentManagerCheckbox = this.page.getByLabel('Content managers').getByRole('checkbox');
 
     // File upload section
     this.fileItemNameSelector = "div[class='FileItem-name']";
@@ -1389,6 +1419,84 @@ export class CreateFeedPostComponent extends BaseComponent {
       const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
       const postId = feedResponseBody.result.feedId;
       console.log('Created post with limit visibility, postId:', postId);
+
+      const attachmentCount = options.attachments ? options.attachments.files.length : 0;
+
+      return {
+        postText: options.text,
+        attachmentCount,
+        postId,
+      };
+    });
+  }
+
+  /**
+   * Selects target users (roles) for restricted viewers when creating a feed post
+   * @param targetUsers - Array of SitePermission roles to select
+   */
+  async selectTargetUsers(targetUsers: SitePermission[]): Promise<void> {
+    await test.step(`Select target users: ${targetUsers.join(', ')}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audiencePickerDialog, {
+        assertionMessage: 'Audience picker modal should be visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      await this.clickOnElement(this.audiencePickerButton);
+
+      await this.clickOnElement(this.siteDropdown.first());
+
+      await this.clickOnElement(this.siteSecondDropdown);
+
+      await this.clickOnElement(this.memberDropdown);
+
+      await this.clickOnElement(this.ownerAndManagerDropdown);
+
+      if (targetUsers.includes(SitePermission.MANAGER)) {
+        await this.clickOnElement(this.managerCheckbox);
+      }
+
+      if (targetUsers.includes(SitePermission.OWNER)) {
+        await this.clickOnElement(this.ownerCheckbox);
+      }
+
+      if (targetUsers.includes(SitePermission.MEMBER)) {
+        await this.clickOnElement(this.memberCheckbox);
+      }
+
+      if (targetUsers.includes(SitePermission.CONTENT_MANAGER)) {
+        await this.clickOnElement(this.contentManagerCheckbox);
+      }
+
+      await this.clickOnElement(this.audienceDoneButton);
+      await this.clickOnElement(this.audienceConfirmButton);
+    });
+  }
+
+  /**
+   * Creates and publishes a new feed post with role-based restricted viewers
+   * @param options - Options for creating the post including text and target user roles
+   * @returns Result containing post text, attachment count and post ID
+   */
+  async createAndPostWithRestrictedViewers(options: RestrictedViewersOptions): Promise<FeedPostResult> {
+    return await test.step(`Creating feed post with restricted viewers: ${options.text}`, async () => {
+      await this.createPost(options.text);
+
+      if (options.embedUrl) {
+        await this.addEmbedUrl(options.embedUrl);
+      }
+
+      if (options.attachments) {
+        await this.uploadFiles(options.attachments.files);
+      }
+
+      // Enable limit visibility and select target users (roles)
+      await this.toggleLimitVisibility();
+      await this.selectTargetUsers(options.targetUsers);
+
+      const postResponse = await this.createFeedPost();
+
+      const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
+      const postId = feedResponseBody.result.feedId;
 
       const attachmentCount = options.attachments ? options.attachments.files.length : 0;
 

@@ -1986,6 +1986,222 @@ test.describe(
     );
 
     test(
+      'verify FO can share restricted (Owner & Manager) Private Site Feed post to Home Feed without restrictions',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42208', '@FO-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+        test.setTimeout(1000000);
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify FO can share a Private Site Feed post (restricted to Owner & Manager) to Home Feed WITHOUT restrictions. Home Feed post should be visible to ALL users, while Site Feed post remains visible only to Owner & Manager.',
+          zephyrTestId: 'CONT-42208',
+          storyId: 'CONT-42208',
+        });
+
+        let siteFeedPostText: string;
+        let sharePostText: string;
+        let privateSiteId: string = '';
+        let standardUserUserId: string = '';
+        let appManagerUserId: string = '';
+        let socialCampaignManagerUserId: string = '';
+        let siteDashboardPage: SiteDashboardPage;
+        let siteFeedPage: FeedPage;
+
+        // ==================== Get User info ====================
+        await test.step('Get Users info', async () => {
+          const standardUserUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+          const appManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.appManager.email
+          );
+          const socialCampaignManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.socialCampaignManager.email
+          );
+          standardUserUserId = standardUserUserInfo.userId;
+          appManagerUserId = appManagerUserInfo.userId;
+          socialCampaignManagerUserId = socialCampaignManagerUserInfo.userId;
+        });
+
+        // ==================== Get or create Private Site with FO as owner ====================
+        await test.step('Get or create a Private Site with FO as owner', async () => {
+          const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteWithUserAsOwner(
+            appManagerUserId,
+            SITE_TYPES.PRIVATE
+          );
+          privateSiteId = privateSite.siteId;
+
+          // Add socialCampaignManager as MANAGER of Private Site
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerUserId,
+            SitePermission.MANAGER,
+            SiteMembershipAction.SET_PERMISSION
+          );
+
+          // Add standardUser as regular MEMBER of Private Site
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+        });
+
+        // ==================== FO creates Private Site Feed post WITH restricted viewers (Owner & Manager) ====================
+        await test.step('FO creates Private Site Feed post WITH Restricted Viewers (Owner & Manager)', async () => {
+          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, privateSiteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickOnFeedLink();
+
+          siteFeedPage = new FeedPage(appManagerFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          siteFeedPostText = TestDataGenerator.generateRandomText(
+            'ABAC Restricted Private Site Feed to Home Share Test',
+            3,
+            true
+          );
+          await siteFeedPage.clickShareThoughtsButton();
+
+          const postResult = await siteFeedPage.createAndPostWithRestrictedViewers({
+            text: siteFeedPostText,
+            targetUsers: [SitePermission.OWNER, SitePermission.MANAGER],
+          });
+
+          createdPostId = postResult.postId || '';
+          await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+          // Verify post HAS limit visibility (restricted to Owner & Manager)
+          await siteFeedPage.postEditor.verifyPostHasLimitVisibility(siteFeedPostText);
+        });
+
+        // ==================== Owner (appManager) CAN see restricted post on Private Site Feed ====================
+        await test.step('Owner (FO) verifies restricted Site Feed post IS visible', async () => {
+          // FO created the post and is Owner, so they can see it
+          await siteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+        });
+
+        // ==================== Manager (socialCampaignManager) CAN see restricted post on Private Site Feed ====================
+        await test.step('Social Campaign Manager (Manager of Private Site) navigates to Site Feed and verifies post IS visible', async () => {
+          const scmSiteDashboard = new SiteDashboardPage(socialCampaignManagerFixture.page, privateSiteId);
+          await scmSiteDashboard.loadPage();
+          await scmSiteDashboard.verifyThePageIsLoaded();
+
+          await scmSiteDashboard.clickOnFeedLink();
+
+          const scmSiteFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmSiteFeedPage.verifyThePageIsLoaded();
+
+          // Verify the restricted post IS visible to Manager
+          await scmSiteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+        });
+
+        // ==================== Regular Member (standardUser) CANNOT see restricted post on Private Site Feed ====================
+        await test.step('Standard User (regular Member of Private Site) navigates to Site Feed and verifies post is NOT visible', async () => {
+          const suSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
+          await suSiteDashboard.loadPage();
+          await suSiteDashboard.verifyThePageIsLoaded();
+
+          await suSiteDashboard.clickOnFeedLink();
+
+          const suSiteFeedPage = new FeedPage(standardUserFixture.page);
+          await suSiteFeedPage.verifyThePageIsLoaded();
+
+          // Verify the restricted post is NOT visible to regular Member
+          await suSiteFeedPage.feedList.verifyPostIsNotVisible(siteFeedPostText);
+        });
+
+        // ==================== FO shares Private Site Feed post to Home Feed WITHOUT restrictions ====================
+        await test.step('FO shares restricted Private Site Feed post to Home Feed WITHOUT Restricted Viewers', async () => {
+          await siteFeedPage.feedList.waitForPostToBeVisible(siteFeedPostText);
+          await siteFeedPage.feedList.clickShareIcon(siteFeedPostText);
+          await siteFeedPage.verifyShareModalIsOpen();
+
+          const shareComponent = new ShareComponent(appManagerFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText(
+            'Shared restricted Private Site post to Home without restriction',
+            2,
+            true
+          );
+
+          // Share to Home Feed (default option) WITHOUT limit visibility
+          await shareComponent.enterShareDescription(sharePostText);
+
+          await shareComponent.clickShareButtonAndGetPostId();
+
+          // Verify share was successful
+          await siteFeedPage.feedList.verifyShareModalIsClosed();
+        });
+
+        // ==================== Owner & Manager CAN see shared post on Home Feed ====================
+        await test.step('Owner (FO) navigates to Home Feed and verifies shared post IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPage.reloadPageWithTimelineMode();
+          await appManagerFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to Owner
+          await appManagerFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        await test.step('Manager (Social Campaign Manager) navigates to Home Feed and verifies shared post IS visible', async () => {
+          await socialCampaignManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const scmHomeFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmHomeFeedPage.reloadPageWithTimelineMode();
+          await scmHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to Manager on Home Feed (unrestricted)
+          await scmHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== Standard User CAN see shared post on Home Feed (unrestricted) ====================
+        await test.step('Standard User (regular Member) navigates to Home Feed and verifies shared post IS visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const suHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await suHomeFeedPage.reloadPageWithTimelineMode();
+          await suHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to regular Member on Home Feed (unrestricted)
+          await suHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+
+          // Verify the original post shows "This post has been deleted" message
+          await suHomeFeedPage.feedList.verifyDeletedPostMessage(sharePostText);
+        });
+
+        // ==================== Cleanup: Remove users from Private Site ====================
+        await test.step('Cleanup: Remove users from Private Site', async () => {
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
+
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            socialCampaignManagerUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
+        });
+      }
+    );
+
+    test(
       'Verify FO can share a comment made on a Non-Restricted Content (Private Site) to Home Feed with No Restrictions',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42210', '@FO-feed', '@share-restriction'],
