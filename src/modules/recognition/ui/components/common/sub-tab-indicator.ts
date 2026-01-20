@@ -35,10 +35,10 @@ export class SubTabIndicator extends BasePage {
   /**
    * This method returns a locator for indicator tab by name.
    * @param {string} tabName - name of the tab
-   * @returns {Locator} - The locator for the redeem button
+   * @returns {Locator} - The locator for the tab
    */
   getTab(tabName: string): Locator {
-    return this.page.getByRole('checkbox', { name: `${tabName}`, exact: true });
+    return this.page.getByRole('tab', { name: `${tabName}`, exact: true });
   }
 
   /**
@@ -119,8 +119,8 @@ export class SubTabIndicator extends BasePage {
     await this.verifier.verifyElementHasText(awardNameCell, expectedawardName);
   }
 
-  async checkRecentlyCreatedAwardStatus(expectedawardStatus: string): Promise<void> {
-    const awardStatusCell = this.getTableCell(0, 4);
+  async checkRecentlyCreatedAwardStatus(expectedawardStatus: string, columnIndex?: number): Promise<void> {
+    const awardStatusCell = this.getTableCell(0, columnIndex || 4);
     await this.verifier.verifyTheElementIsVisible(awardStatusCell);
     await this.verifier.verifyElementHasText(awardStatusCell, expectedawardStatus);
   }
