@@ -204,7 +204,7 @@ jobs:
   #   - skip_reason: Reason if should_run is false
 
   determine-config:
-    runs-on: [kubernetes]
+    runs-on: [kubernetes-fe]
     outputs:
       should_run: ${{ steps.config.outputs.should_run }}
       checkout_ref: ${{ steps.config.outputs.checkout_ref }}
@@ -692,11 +692,9 @@ jobs:
           # ────────────────────────────────────────────────────────────
           ALL_TAGS=()
 
-          # Production healthcheck: always filter by @healthcheck
-          if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
-            ALL_TAGS+=("@healthcheck")
-            echo "🏥 Production Healthcheck: Adding @healthcheck filter"
-          fi
+          # Note: For prod_healthcheck, the caller (prod-healthcheck.yml) 
+          # already passes feature_tags='@healthcheck', so no explicit 
+          # handling needed here.
 
           # Add priority filter (skip if "all" or empty)
           if [ "$PRIORITY" != "all" ] && [ -n "$PRIORITY" ]; then
@@ -720,13 +718,28 @@ jobs:
             echo "🏷️ Feature tags: $FEATURE_TAGS"
           fi
 
+          # Deduplicate tags (preserves order, removes duplicates)
+          UNIQUE_TAGS=()
+          for tag in "${ALL_TAGS[@]}"; do
+            if [[ ! " ${UNIQUE_TAGS[*]} " =~ " ${tag} " ]]; then
+              UNIQUE_TAGS+=("$tag")
+            fi
+          done
+          ALL_TAGS=("${UNIQUE_TAGS[@]}")
+
           # Build grep filter string
           GREP_FILTER=""
           if [ ${#ALL_TAGS[@]} -gt 0 ]; then
-            # Join tags with | for OR matching
-            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+            # Use AND logic: tests must match ALL tags
+            # Pattern: (@tag1).*(@tag2) - requires both tags in test name
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+              echo "🔍 Combined grep filter (AND): $GREP_REGEX"
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+              echo "🔍 Single tag filter: $GREP_REGEX"
+            fi
             GREP_FILTER="--grep=\"$GREP_REGEX\""
-            echo "🔍 Combined grep filter: $GREP_REGEX"
           fi
 
           echo "=========================================="
@@ -1087,7 +1100,6 @@ jobs:
         run: |
           # Only send notification if tests actually ran
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Build rich multi-line Slack message
             PRIORITY="${{ inputs.priority_filter }}"
             TEST_TYPE="${{ inputs.test_type }}"
             FEATURE_TAGS="${{ inputs.feature_tags }}"
@@ -1096,14 +1108,20 @@ jobs:
             ENV="${{ inputs.environment }}"
             TRIGGERED_BY="${{ github.actor }}"
             
+            # Build filters string only if not all defaults
+            FILTERS=""
+            if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
+              FILTERS=" | 🎯 Filters: \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
+            fi
+            
             # Build known failures suffix if any
             KNOWN_SUFFIX=""
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
               KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
             fi
             
-            # Rich multi-line message format (using \n for newlines, with separators)
-            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            # Compact 2-line format
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`${FILTERS}\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
@@ -1124,19 +1142,25 @@ jobs:
           MODULE="${{ matrix.module }}"
           ENV="${{ inputs.environment }}"
 
+          # Build filters string only if not all defaults
+          FILTERS=""
+          if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
+            FILTERS=" | 🎯 \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
+          fi
+
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
             
             if [ "$TOTAL_TESTS" -eq 0 ]; then
-              # No tests found matching criteria
-              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      🎯 Filters: Priority: \`${PRIORITY}\` | Type: \`${TEST_TYPE}\` | Tags: \`${FEATURE_TAGS}\`\n      💡 No tests matched the filter criteria.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              # No tests found matching criteria - compact format
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\`${FILTERS} | 💡 No tests matched filters\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$MESSAGE\"}" \
                 $SLACK_WEBHOOK_URL
             fi
           else
-            # Pipeline failed before tests could run
-            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📦 Module: \`${MODULE}\` | Env: \`${ENV}\` | Branch: \`${BRANCH}\`\n      ❌ Pipeline could not execute. Check job logs for errors.\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            # Pipeline failed before tests could run - compact format
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | ❌ Check job logs for errors\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1156,7 +1180,7 @@ jobs:
     steps:
       - name: Notify Slack about skip
         run: |
-          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      📌 Environment: \`${{ inputs.environment }}\` | Trigger: \`${{ inputs.trigger_type }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped* - \`${{ inputs.environment }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }} | 🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL

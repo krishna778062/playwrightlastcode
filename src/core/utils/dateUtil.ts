@@ -255,3 +255,34 @@ export function formatCreatedAtDateForManageContent(createdAt: string): string {
     return formattedDate;
   }
 }
+
+/**
+ * Formats a date for display (e.g., "Mon Sep 16 2025")
+ * @param {number} days - Number of days to add to the base date (default: 0)
+ * @param {Date} baseDate - The base date to start from (default: today)
+ * @param {string} locale - The locale to use for formatting (default: 'en-US')
+ * @param {Intl.DateTimeFormatOptions} options - Options for date formatting (default: { weekday: 'short', month: 'short', day: '2-digit' })
+ * @returns {string} Formatted date string for display
+ */
+export function getFormattedDate({
+  days = 0,
+  baseDate = new Date(),
+  locale = 'en-US',
+  options,
+}: {
+  days?: number;
+  baseDate?: Date;
+  locale?: string;
+  options?: Intl.DateTimeFormatOptions;
+} = {}): string {
+  const date = new Date(baseDate);
+  date.setDate(date.getDate() + days);
+  const formatOptions =
+    options ||
+    ({
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
+    } as Intl.DateTimeFormatOptions);
+  return date.toLocaleDateString(locale, formatOptions);
+}

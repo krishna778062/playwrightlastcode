@@ -128,7 +128,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Replies in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-26107',
+          zephyrTestId: 'DE-26017',
           storyId: 'DE-25754',
         });
 
@@ -214,7 +214,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Social campaign shares in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-26016',
+          zephyrTestId: 'DE-26021',
           storyId: 'DE-25757',
         });
 
@@ -247,8 +247,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Least engaged by Department in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-26024',
+          storyId: 'DE-25760',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -280,8 +280,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-26058',
+          storyId: 'DE-25768',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -313,8 +313,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Most engaged by Department in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-26022',
+          storyId: 'DE-25759',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -346,8 +346,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-26124',
+          storyId: 'DE-25767',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -379,8 +379,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Participant engagement activity in Social Interaction dashboard with default filter',
-          zephyrTestId: 'DE-XXXXX',
-          storyId: 'DE-XXXXX',
+          zephyrTestId: 'DE-26123',
+          storyId: 'DE-25758',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
