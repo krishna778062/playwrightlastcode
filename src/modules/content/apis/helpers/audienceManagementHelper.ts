@@ -41,7 +41,7 @@ export class AudienceManagementHelper {
    * @returns Promise<string> - Audience ID
    * @throws Error if audience not found
    */
-  async getAudienceIdByName(audienceName: string, size: number = 100): Promise<string> {
+  async getAudienceIdByName(audienceName: string, size: number = 200): Promise<string> {
     return await this.audienceManagementService.getAudienceIdByName(audienceName, size);
   }
 
