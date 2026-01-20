@@ -204,7 +204,7 @@ jobs:
   #   - skip_reason: Reason if should_run is false
 
   determine-config:
-    runs-on: [kubernetes]
+    runs-on: [kubernetes-fe]
     outputs:
       should_run: ${{ steps.config.outputs.should_run }}
       checkout_ref: ${{ steps.config.outputs.checkout_ref }}
@@ -692,11 +692,9 @@ jobs:
           # ────────────────────────────────────────────────────────────
           ALL_TAGS=()
 
-          # Production healthcheck: always filter by @healthcheck
-          if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
-            ALL_TAGS+=("@healthcheck")
-            echo "🏥 Production Healthcheck: Adding @healthcheck filter"
-          fi
+          # Note: For prod_healthcheck, the caller (prod-healthcheck.yml) 
+          # already passes feature_tags='@healthcheck', so no explicit 
+          # handling needed here.
 
           # Add priority filter (skip if "all" or empty)
           if [ "$PRIORITY" != "all" ] && [ -n "$PRIORITY" ]; then
@@ -720,13 +718,28 @@ jobs:
             echo "🏷️ Feature tags: $FEATURE_TAGS"
           fi
 
+          # Deduplicate tags (preserves order, removes duplicates)
+          UNIQUE_TAGS=()
+          for tag in "${ALL_TAGS[@]}"; do
+            if [[ ! " ${UNIQUE_TAGS[*]} " =~ " ${tag} " ]]; then
+              UNIQUE_TAGS+=("$tag")
+            fi
+          done
+          ALL_TAGS=("${UNIQUE_TAGS[@]}")
+
           # Build grep filter string
           GREP_FILTER=""
           if [ ${#ALL_TAGS[@]} -gt 0 ]; then
-            # Join tags with | for OR matching
-            GREP_REGEX=$(IFS='|'; echo "${ALL_TAGS[*]}")
+            # Use AND logic: tests must match ALL tags
+            # Pattern: (@tag1).*(@tag2) - requires both tags in test name
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+              echo "🔍 Combined grep filter (AND): $GREP_REGEX"
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+              echo "🔍 Single tag filter: $GREP_REGEX"
+            fi
             GREP_FILTER="--grep=\"$GREP_REGEX\""
-            echo "🔍 Combined grep filter: $GREP_REGEX"
           fi
 
           echo "=========================================="
