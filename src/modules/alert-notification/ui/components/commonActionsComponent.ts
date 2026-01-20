@@ -272,6 +272,17 @@ export class CommonActionsComponent extends BaseComponent {
     });
   }
 
+  // ==================== NAVIGATION/UTILITY ACTIONS ====================
+
+  /**
+   * Reloads the current page
+   */
+  async reloadPage(): Promise<void> {
+    await test.step('Refresh the current page', async () => {
+      await this.page.reload();
+    });
+  }
+
   /**
    * Navigates to the Profile Notification Settings page
    */
