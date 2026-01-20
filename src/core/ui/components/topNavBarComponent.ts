@@ -51,8 +51,8 @@ export class TopNavBarComponent extends BaseComponent {
       .or(this.page.getByRole('menuitem', { name: 'Messaging' }));
 
     //search section
-    this.globalSearchInputBox = this.page.locator('input[aria-label*=Search]').first();
-    this.globalSearchButton = this.page.locator('button[type="button"][aria-label="Search"]');
+    this.globalSearchInputBox = this.page.locator('input[data-slot*=search]').first();
+    this.globalSearchButton = this.page.locator('button[type="button"][data-slot="search-submit"]');
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');

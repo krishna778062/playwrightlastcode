@@ -127,6 +127,9 @@ export class FeedManagementHelper {
         textHtml = baseTextHtml;
       }
 
+      // Determine uploadContext based on scope
+      const uploadContext = params.scope === 'public' ? 'home-feed' : 'site-feed';
+
       // Use Playwright's polling mechanism for retry
       const response = await this.createFeedWithRetry(async () => {
         if (params.withAttachment) {
@@ -135,6 +138,7 @@ export class FeedManagementHelper {
             params.fileSize,
             params.mimeType,
             params.filePath,
+            uploadContext,
             {
               textJson,
               textHtml,
@@ -335,6 +339,17 @@ export class FeedManagementHelper {
   async getAppConfig() {
     return await test.step('Getting app configuration', async () => {
       const response = await this.feedManagementService.getAppConfig();
+      return response;
+    });
+  }
+
+  /**
+   * Gets the Recognition tenant configuration
+   * @returns Promise with the recognition configuration response
+   */
+  async getRecognitionConfig() {
+    return await test.step('Getting recognition configuration', async () => {
+      const response = await this.feedManagementService.getRecognitionConfig();
       return response;
     });
   }
@@ -892,15 +907,17 @@ export class FeedManagementHelper {
     fileName: string,
     size: number,
     mimeType: string,
+    uploadContext: string,
     options?: {
       altText?: string | null;
       fileId?: string;
       siteId?: string | null;
       contentId?: string | null;
+      type?: string;
     }
   ): Promise<any> {
     return await test.step(`Uploading image "${fileName}" via helper`, async () => {
-      return await this.feedManagementService.uploadImage(fileName, size, mimeType, options);
+      return await this.feedManagementService.uploadImage(fileName, size, mimeType, uploadContext, options);
     });
   }
 
@@ -973,6 +990,21 @@ export class FeedManagementHelper {
           access: selectedSiteForMustRead.access,
         },
       };
+    });
+  }
+
+  /**
+   * Changes the dashboard layout
+   * @param layout - The layout value to set (e.g., 'a', 'b', 'c', etc.)
+   * @param type - The type of dashboard ('home' for home dashboard, 'site' for site dashboard)
+   * @param siteId - Optional site ID (required for site dashboard, null for home dashboard)
+   * @returns Promise with the API response
+   */
+  async layoutChange(layout: string, type: string = 'home', siteId: string | null = null): Promise<any> {
+    return await test.step(`Changing dashboard layout to "${layout}"`, async () => {
+      const response = await this.feedManagementService.updateDashboardLayout(type, layout, siteId);
+      log.debug('Layout change completed', { layout, type, siteId, response });
+      return response;
     });
   }
 }

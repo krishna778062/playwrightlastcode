@@ -10,16 +10,17 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
+import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 
 test.describe(
   '@FeedPost - Restrict feed posting permission on Content Detail Page to managers only',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction-content-detail'],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction-content-detail', ContentTestSuite.FEED],
   },
   () => {
     test(
-      'verify Site Owner and Site Manager can comment on Content Detail Page of a Public Site when feed permission is set to "Only site owners and site managers can make feed posts"',
+      'verify Site Owner and Site Manager can comment on Content Detail Page of a Public Site when feed permission is set to "Only site owners and site managers can make feed posts" CONT-37171',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@Public_Site_Permission_Restriction'],
       },
@@ -76,18 +77,18 @@ test.describe(
         await siteOwnerContentPreviewPage.loadPage();
 
         // Verify that comment option is visible on content detail page feed form
-        await siteOwnerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await siteOwnerContentPreviewPage.verifyCommentOptionIsVisible();
 
         // Click "Share your thoughts" button to open comment editor
-        await siteOwnerContentPreviewPage.actions.clickShareThoughtsButton();
+        await siteOwnerContentPreviewPage.clickShareThoughtsButton();
 
         // Create CreateFeedPostComponent instance to post the comment
         const siteOwnerCreateFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-        await siteOwnerCreateFeedPostComponent.actions.createPost(siteOwnerCommentText);
-        await siteOwnerCreateFeedPostComponent.actions.clickPostButton();
+        await siteOwnerCreateFeedPostComponent.createPost(siteOwnerCommentText);
+        await siteOwnerCreateFeedPostComponent.clickPostButton();
 
         // Verify Site Owner comment
-        await siteOwnerContentPreviewPage.assertions.waitForPostToBeVisible(siteOwnerCommentText);
+        await siteOwnerContentPreviewPage.waitForPostToBeVisible(siteOwnerCommentText);
 
         // Test as Site Manager - Post comment
         const siteManagerContentPreviewPage = new ContentPreviewPage(
@@ -99,18 +100,103 @@ test.describe(
         await siteManagerContentPreviewPage.loadPage();
 
         // Verify that comment option is visible on content detail page feed form
-        await siteManagerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
+        await siteManagerContentPreviewPage.verifyCommentOptionIsVisible();
 
         // Click "Share your thoughts" button to open comment editor
-        await siteManagerContentPreviewPage.actions.clickShareThoughtsButton();
+        await siteManagerContentPreviewPage.clickShareThoughtsButton();
 
         // Create CreateFeedPostComponent instance to post the comment
         const siteManagerCreateFeedPostComponent = new CreateFeedPostComponent(siteManagerFixture.page);
-        await siteManagerCreateFeedPostComponent.actions.createPost(siteManagerCommentText);
-        await siteManagerCreateFeedPostComponent.actions.clickPostButton();
+        await siteManagerCreateFeedPostComponent.createPost(siteManagerCommentText);
+        await siteManagerCreateFeedPostComponent.clickPostButton();
 
         // Verify Site Manager comment
-        await siteManagerContentPreviewPage.assertions.waitForPostToBeVisible(siteManagerCommentText);
+        await siteManagerContentPreviewPage.waitForPostToBeVisible(siteManagerCommentText);
+      }
+    );
+
+    test(
+      'verify Site Content Manager can post and Site Member cannot post on Content Detail Page of a Public Site when feed permission is set to "Only site owners and site managers can make feed posts"',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-37173', '@Public_Site_Permission_Restriction'],
+      },
+      async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify Site Content Manager can comment on Content Detail Page but Site Member cannot when feed permission is restricted to managers only',
+          zephyrTestId: 'CONT-37173',
+          storyId: 'CONT-37173',
+        });
+
+        // Create Page content
+        const pageContent = await appManagerApiFixture.contentManagementHelper.getContentId({
+          status: 'published',
+        });
+
+        const siteId = pageContent.siteId;
+
+        // Set feed posting permission to managers only using UI automation
+        const manageSitePage = new ManageSitePage(appManagerFixture.page, siteId);
+        await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
+        await manageSitePage.clickDashboardAndFeedTab();
+        await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
+
+        // Get end user info for role assignment
+        const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+
+        // ==================== SCENARIO 1: Site Content Manager CAN post ====================
+        // Assign user as Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId,
+          userId,
+          role: SitePermission.CONTENT_MANAGER,
+        });
+
+        // Navigate to Content Detail Page as Site Content Manager
+        const scmContentPreviewPage = new ContentPreviewPage(
+          standardUserFixture.page,
+          siteId,
+          pageContent.contentId,
+          'page'
+        );
+        await scmContentPreviewPage.loadPage();
+
+        // Verify that comment option is visible on content detail page feed form
+        await scmContentPreviewPage.verifyCommentOptionIsVisible();
+
+        // Click "Share your thoughts" button to open comment editor
+        await scmContentPreviewPage.clickShareThoughtsButton();
+
+        // Generate unique comment text for Site Content Manager
+        const scmCommentText = TestDataGenerator.generateRandomText('Site Content Manager Comment', 3, true);
+
+        // Create comment as Site Content Manager
+        const scmCreateFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
+        await scmCreateFeedPostComponent.createPost(scmCommentText);
+        await scmCreateFeedPostComponent.clickPostButton();
+
+        // Verify Site Content Manager comment is successfully posted
+        await scmContentPreviewPage.listFeedComponent.waitForPostToBeVisible(scmCommentText);
+
+        // ==================== SCENARIO 2: Site Member CANNOT post ====================
+        // Change user role from Site Content Manager to Site Member
+        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+          siteId,
+          userId,
+          role: SitePermission.MEMBER,
+        });
+
+        // Reload the Content Detail Page as Site Member
+        const memberContentPreviewPage = new ContentPreviewPage(
+          standardUserFixture.page,
+          siteId,
+          pageContent.contentId,
+          'page'
+        );
+        await memberContentPreviewPage.loadPage();
+
+        // Verify that Site Member sees the restriction message and cannot post
+        await memberContentPreviewPage.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
       }
     );
   }

@@ -11,19 +11,20 @@ import { ContentManagementHelper } from '@/src/modules/content/apis/helpers/cont
 
 export type UserType = 'appManager' | 'standardUser';
 
-// Cache environment configuration to avoid repeated calls
-const envConfig = getEnvConfig();
-
-export const users = {
-  appManager: {
-    email: envConfig.appManagerEmail,
-    password: envConfig.appManagerPassword,
-  },
-  standardUser: {
-    email: envConfig.endUserEmail || '',
-    password: envConfig.endUserPassword || '',
-  },
-};
+// Dynamic users to reflect latest env without process restart
+export function getUsers() {
+  const envConfig = getEnvConfig();
+  return {
+    appManager: {
+      email: envConfig.appManagerEmail,
+      password: envConfig.appManagerPassword,
+    },
+    standardUser: {
+      email: envConfig.endUserEmail || '',
+      password: envConfig.endUserPassword || '',
+    },
+  };
+}
 
 // API-only fixture type for API helpers and services
 export interface FormApiFixture {
@@ -64,17 +65,14 @@ async function createFormUiFixture(browser: any, _apiContext: APIRequestContext)
   try {
     // Allow reading/writing clipboard for copy link flows
     await context.grantPermissions(['clipboard-read', 'clipboard-write'], {
-      origin: new URL(envConfig.frontendBaseUrl).origin,
+      origin: new URL(getEnvConfig().frontendBaseUrl).origin,
     });
   } catch (e) {
     // Some browsers may not support clipboard permissions; proceed best-effort
   }
   const page = await context.newPage();
 
-  await LoginHelper.loginWithPassword(page, {
-    email: getEnvConfig().appManagerEmail,
-    password: getEnvConfig().appManagerPassword,
-  });
+  await LoginHelper.loginWithPassword(page, getUsers().appManager);
 
   const homePage = new NewHomePage(page);
   await homePage.verifyThePageIsLoaded();
@@ -188,7 +186,7 @@ export const formTestFixture = base.extend<
       const context = await browser.newContext();
       const page = await context.newPage();
 
-      await LoginHelper.loginWithPassword(page, users.standardUser);
+      await LoginHelper.loginWithPassword(page, getUsers().standardUser);
 
       const homePage = new NewHomePage(page);
       await homePage.verifyThePageIsLoaded();

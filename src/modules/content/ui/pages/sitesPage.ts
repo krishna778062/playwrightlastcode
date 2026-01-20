@@ -1,37 +1,30 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface ISitesActions {
-  clickOnFollowingTab: () => Promise<void>;
-  openSiteFromFollowingTab: () => Promise<void>;
-  openSiteFromMemberTab: () => Promise<void>;
-  clickOnMemberTab: () => Promise<void>;
-  clickOnMySitesTab: () => Promise<void>;
-  openSiteFromMySitesTab: () => Promise<void>;
-  clickOnCategoryTab: () => Promise<void>;
-  selectCategoryDropDown: () => Promise<void>;
-  selectCategoryDropDownOption: (category: string) => Promise<void>;
-  clickOnSiteName: (siteName: string) => Promise<void>;
-}
-
-export interface ISitesAssertions {
-  verifySiteNameInSitesPage: (siteName: string) => Promise<void>;
-}
-
-export class SitesPage extends BasePage implements ISitesActions, ISitesAssertions {
-  readonly followingTab = this.page.getByRole('tab', { name: 'Following' });
-  readonly memberTab = this.page.getByRole('tab', { name: 'Member' });
-  readonly mySitesTab = this.page.getByRole('tab', { name: 'My sites' });
-  readonly siteHeading = this.page.getByRole('heading', { name: 'Sites', exact: true });
-  readonly categoryTab = this.page.getByRole('tab', { name: 'Categories' });
-  readonly categoryDropDwon = this.page.getByRole('combobox', { name: 'Select category' });
-  readonly siteNameLocator = (siteName: string) => this.page.getByRole('link', { name: siteName });
-  readonly selectCategoryDropDownOptionLocator = (category: string) => this.page.getByText(category, { exact: true });
+export class SitesPage extends BasePage {
+  readonly followingTab: Locator;
+  readonly memberTab: Locator;
+  readonly mySitesTab: Locator;
+  readonly siteHeading: Locator;
+  readonly categoryTab: Locator;
+  readonly categoryDropDwon: Locator;
+  readonly siteNameLocator: (siteName: string) => Locator;
+  readonly selectCategoryDropDownOptionLocator: (category: string) => Locator;
 
   constructor(page: Page, siteId: string) {
     super(page, PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
+
+    // Initialize locators
+    this.followingTab = this.page.getByRole('tab', { name: 'Following' });
+    this.memberTab = this.page.getByRole('tab', { name: 'Member' });
+    this.mySitesTab = this.page.getByRole('tab', { name: 'My sites' });
+    this.siteHeading = this.page.getByRole('heading', { name: 'Sites', exact: true });
+    this.categoryTab = this.page.getByRole('tab', { name: 'Categories' });
+    this.categoryDropDwon = this.page.getByRole('combobox', { name: 'Select category' });
+    this.siteNameLocator = (siteName: string) => this.page.getByRole('link', { name: siteName });
+    this.selectCategoryDropDownOptionLocator = (category: string) => this.page.getByText(category, { exact: true });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -39,15 +32,6 @@ export class SitesPage extends BasePage implements ISitesActions, ISitesAssertio
       assertionMessage: 'Content tab should be visible on manage site page',
     });
   }
-
-  get actions(): ISitesActions {
-    return this;
-  }
-
-  get assertions(): ISitesAssertions {
-    return this;
-  }
-
   async clickOnFollowingTab(): Promise<void> {
     await test.step('Clicking on following tab', async () => {
       await this.clickOnElement(this.followingTab);

@@ -110,6 +110,7 @@ export const API_ENDPOINTS = {
     onboarding: '/onboarding',
     createTemplate: '/content-template/v2/templates',
     b2bContentList: '/v1/content/b2b/content/list',
+    dashboardLayout: '/v1/content/dashboard/layout',
   },
 
   fileUpload: {
@@ -163,6 +164,7 @@ export const API_ENDPOINTS = {
   search: {
     intranetFile: '/v1/search/intranet-file',
     enterprise: '/search-ai/v1/enterprise/search',
+    sites: '/v1/search/sites',
   },
   externalSearch: {
     config: '/v1/account/appConfig/app.integrations.enterprise.search',
@@ -183,6 +185,16 @@ export const API_ENDPOINTS = {
     createTileInstance: (tileId: string) => `/v1/tiles/${tileId}/instances`,
     calendarIntegration: '/v1/account/appConfig/app.integrations.calendar.integration',
     integrationDomains: '/v1/account/integration-domains',
+    connectors: {
+      list: '/v1/account/connectors/configured',
+      create: '/v1/account/connectors',
+      get: (connectorId: string) => `/v1/account/connectors/${connectorId}`,
+      update: (connectorId: string) => `/v1/account/connectors/${connectorId}`,
+      delete: (connectorId: string) => `/v1/account/connectors/${connectorId}`,
+      updateStatus: (connectorId: string) => `/v1/account/connectors/${connectorId}`,
+      getConnections: (connectorId: string, type?: string) =>
+        `/v1/account/connectors/${connectorId}/connections${type ? `?type=${type}` : ''}`,
+    },
   },
 } as const;
 

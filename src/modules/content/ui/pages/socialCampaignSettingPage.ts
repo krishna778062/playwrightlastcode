@@ -3,23 +3,7 @@ import { Locator, Page, test } from '@playwright/test';
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/ui/pages/basePage';
 
-export interface ISocialCampaignSettingPageActions {
-  uncheckSocialCampaignCheckOutbox: () => Promise<void>;
-  checkSocialCampaignCheckOutbox: () => Promise<void>;
-  clickOnFacebookCheckbox: () => Promise<void>;
-  clickOnTwitterCheckbox: () => Promise<void>;
-  clickOnLinkedinCheckbox: () => Promise<void>;
-  clickOnConfirmButton: () => Promise<void>;
-}
-
-export interface ISocialCampaignSettingPageAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-}
-
-export class SocialCampaignSettingPage
-  extends BasePage
-  implements ISocialCampaignSettingPageActions, ISocialCampaignSettingPageAssertions
-{
+export class SocialCampaignSettingPage extends BasePage {
   readonly pageHeading: Locator;
   readonly socialCampaignCheckOutbox: Locator;
   readonly facebookCheckbox: Locator;
@@ -38,15 +22,6 @@ export class SocialCampaignSettingPage
     this.confirmButton = page.getByRole('button', { name: 'Confirm' });
     this.saveButton = page.getByRole('button', { name: 'Save' });
   }
-
-  get actions(): ISocialCampaignSettingPageActions {
-    return this;
-  }
-
-  get assertions(): ISocialCampaignSettingPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify social campaign setting page is loaded', async () => {
       await this.verifier.verifyTheElementIsVisible(this.pageHeading, {

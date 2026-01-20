@@ -61,7 +61,7 @@ test.describe(
     });
 
     test(
-      'verify admin is able to publish a new page created with cover image from home page',
+      'verify admin is able to publish a new page created with cover image from home page CONT-11635',
       {
         tag: [
           TestPriority.P0,
@@ -88,7 +88,7 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath);
 
         // Use the new wrapper method to create and publish the page
-        const { pageId, siteId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId, siteId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store IDs for cleanup
         publishedPageId = pageId;
@@ -96,21 +96,27 @@ test.describe(
         manualCleanupNeeded = true;
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
 
         // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
 
         console.log(`Created page: ${pageCreationOptions.title} with ID: ${pageId} in site: ${siteId}`);
       }
     );
     test(
-      'verify admin is able to publish a new page created with cover image from site dashboard',
+      'verify admin is able to publish a new page created with cover image from site dashboard CONT-39089',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.COVER_IMAGE, ContentSuiteTags.PAGE_CREATION],
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          ContentFeatureTags.COVER_IMAGE,
+          ContentSuiteTags.PAGE_CREATION,
+          '@CONT-39089',
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -141,19 +147,19 @@ test.describe(
         const pageCreationOptions = TestDataGenerator.generatePage(PageContentType.NEWS, imagePath, 'uncategorized');
 
         // Use the new wrapper method to create and publish the page
-        const { pageId } = await pageCreationPage.actions.createAndPublishPage(pageCreationOptions);
+        const { pageId } = await pageCreationPage.createAndPublishPage(pageCreationOptions);
 
         // Store page ID for cleanup (siteIdToPublishPage is already set above)
         publishedPageId = pageId;
 
         // Verify content was published successfully via UI
-        await contentPreviewPage.assertions.verifyContentPublishedSuccessfully(
+        await contentPreviewPage.verifyContentPublishedSuccessfully(
           pageCreationOptions.title,
           "Created page successfully - it's published"
         );
 
         // Initialize preview page and handle the promotion
-        await contentPreviewPage.actions.handlePromotionPageStep();
+        await contentPreviewPage.handlePromotionPageStep();
       }
     );
   }

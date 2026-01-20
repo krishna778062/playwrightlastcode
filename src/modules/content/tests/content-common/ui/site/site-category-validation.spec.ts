@@ -36,7 +36,7 @@ test.describe('site Category Validation', { tag: ['@content-management', '@site-
   });
 
   test(
-    'verify category name field validation and successful creation with maximum characters',
+    'verify category name field validation and successful creation with maximum characters CONT-26590',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -49,28 +49,28 @@ test.describe('site Category Validation', { tag: ['@content-management', '@site-
       });
 
       // Step 1: Open modal and verify field rejects characters beyond 100 limit
-      await siteCategoriesPage.actions.clickAddCategoryButton();
-      await siteCategoriesPage.assertions.verifyCategoryNameFieldRejectsExcessCharacters(1);
+      await siteCategoriesPage.clickAddCategoryButton();
+      await siteCategoriesPage.verifyCategoryNameFieldRejectsExcessCharacters(1);
 
       // Step 2: Generate unique category name and fill it
       const maxLengthCategoryName = TestDataGenerator.generateUniqueCategoryName(
         CATEGORY_NAME_LIMITS.MAX_LENGTH,
         CATEGORY_NAME_LIMITS.STARTING_ALPHABET_COUNT
       );
-      await siteCategoriesPage.actions.fillCategoryName(maxLengthCategoryName);
+      await siteCategoriesPage.fillCategoryName(maxLengthCategoryName);
 
       // Step 3: Click Add button to save the category
-      await siteCategoriesPage.actions.clickAddButton();
+      await siteCategoriesPage.clickAddButton();
 
       // Store for cleanup
       createdCategoryName = maxLengthCategoryName;
 
       // Step 4: Verify category is created successfully
-      await siteCategoriesPage.assertions.verifyCategoryCreatedSuccessfully(maxLengthCategoryName);
+      await siteCategoriesPage.verifyCategoryCreatedSuccessfully(maxLengthCategoryName);
 
       // Step 5: Verify partial text is visible in listing
       const partialText = maxLengthCategoryName.substring(0, CATEGORY_NAME_LIMITS.PARTIAL_TEXT_LENGTH);
-      await siteCategoriesPage.assertions.verifyPartialTextVisibleInListing(partialText);
+      await siteCategoriesPage.verifyPartialTextVisibleInListing(partialText);
     }
   );
 });

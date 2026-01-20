@@ -1,0 +1,166 @@
+import { FrameLocator, Page } from '@playwright/test';
+
+import { BaseOnSiteTabularMetricsComponent } from './baseOnSiteTabularMetricsComponent';
+
+import { ON_SITE_METRICS } from '@/src/modules/data-engineering/constants/onSiteMetrics';
+import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
+import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engineering/utils/csvValidationUtil';
+
+export enum FeedPostsAndContentCommentsColumns {
+  NAME = 'Name',
+  INTERACTIONS_COUNT = 'Interactions Count',
+}
+
+export class FeedPostsAndContentComments extends BaseOnSiteTabularMetricsComponent {
+  constructor(page: Page, iframe: FrameLocator) {
+    super(
+      page,
+      iframe,
+      ON_SITE_METRICS.FEED_POSTS_AND_CONTENT_COMMENTS.title,
+      ON_SITE_METRICS.FEED_POSTS_AND_CONTENT_COMMENTS.subtitle
+    );
+
+    // Override container selection to use 2nd visible locator instead of first
+    const exactMatchContainer = iframe
+      .locator('[class*="answer-content-module__answerVizContainer"]')
+      .filter({
+        has: iframe.getByRole('heading', { name: ON_SITE_METRICS.FEED_POSTS_AND_CONTENT_COMMENTS.title, exact: true }),
+      })
+      .nth(1); // Use nth(1) to get the 2nd visible locator (0-indexed)
+
+    // Replace rootLocator with the 2nd container
+    (this as any).rootLocator = exactMatchContainer;
+
+    // Re-initialize properties that depend on rootLocator
+    (this as any).headerRow = exactMatchContainer
+      .getByRole('row')
+      .filter({ has: exactMatchContainer.locator('[class*="ag-header-row"]') });
+
+    (this as any).dataRow = exactMatchContainer
+      .getByRole('row')
+      .filter({ hasNot: exactMatchContainer.locator('[class*="ag-header-row"]') });
+
+    (this as any).downloadCSVButton = exactMatchContainer.getByRole('button', { name: 'Download CSV' });
+  }
+
+  async verifyUIDataMatchesWithSnowflakeData(
+    snowflakeDataArray: Array<{
+      'Full name': string;
+      'Interaction count': number;
+    }>
+  ): Promise<void> {
+    const dataMapper = (item: any) => ({
+      [FeedPostsAndContentCommentsColumns.NAME]: item['Full name'],
+      [FeedPostsAndContentCommentsColumns.INTERACTIONS_COUNT]: item['Interaction count'].toString(),
+    });
+
+    await this.compareUIDataWithDBRecords(snowflakeDataArray, dataMapper, FeedPostsAndContentCommentsColumns.NAME);
+  }
+
+  async verifyDataIsLoaded(): Promise<void> {
+    await this.verifyTabluarDataIsLoaded();
+  }
+
+  // Downloads CSV and validates it against Snowflake data
+  async downloadAndValidateFeedPostsAndContentCommentsCSV(
+    snowflakeData: Array<{
+      'Full name': string;
+      'Interacted by user code': string;
+      'Audience role': string | null;
+      'Site name': string;
+      'Site role': string | null;
+      City: string | null;
+      Department: string | null;
+      Email: string | null;
+      'Phone number': string | null;
+      State: string | null;
+      'Job title': string | null;
+      Country: string | null;
+      'Interaction count': number;
+    }>,
+    selectedPeriod: PeriodFilterTimeRange,
+    customDates?: { customStartDate: string; customEndDate: string }
+  ): Promise<{ filePath: string; fileName: string }> {
+    const { filePath, fileName } = await this.downloadDataAsCSV();
+
+    try {
+      const normalizeValue = (value: string | null | undefined): string => {
+        if (value === null || value === undefined || value === 'Undefined' || value === '') {
+          return '';
+        }
+        return value;
+      };
+
+      const normalizedDBData = snowflakeData.map(record => ({
+        ...record,
+        'Phone number': normalizeValue(record['Phone number']),
+        'Audience role': normalizeValue(record['Audience role']),
+        'Site role': normalizeValue(record['Site role']),
+        City: normalizeValue(record.City),
+        Department: normalizeValue(record.Department),
+        Email: normalizeValue(record.Email),
+        State: normalizeValue(record.State),
+        'Job title': normalizeValue(record['Job title']),
+        Country: normalizeValue(record.Country),
+      }));
+
+      const expectedCsvHeaders = [
+        'Name',
+        'Interacted By User Code',
+        'Audience role',
+        'Site name',
+        'Site role',
+        'City',
+        'Department',
+        'Email',
+        'Phone number',
+        'State',
+        'Job title',
+        'Country',
+        'Count',
+      ];
+
+      const validationConfig: CSVValidationConfig = {
+        csvPath: filePath,
+        expectedDBData: normalizedDBData as any,
+        metricName: ON_SITE_METRICS.FEED_POSTS_AND_CONTENT_COMMENTS.title,
+        selectedPeriod,
+        ...(customDates || {}),
+        expectedHeaders: expectedCsvHeaders,
+        transformations: {
+          headerMapping: {
+            Name: 'Full name',
+            'Interacted By User Code': 'Interacted by user code',
+            'Audience role': 'Audience role',
+            'Site name': 'Site name',
+            'Site role': 'Site role',
+            City: 'City',
+            Department: 'Department',
+            Email: 'Email',
+            'Phone number': 'Phone number',
+            State: 'State',
+            'Job title': 'Job title',
+            Country: 'Country',
+            Count: 'Interaction count',
+          },
+          keyFields: ['Full name'],
+          valueMappings: {
+            City: { Undefined: '' },
+            Country: { Undefined: '' },
+            Department: { Undefined: '' },
+            State: { Undefined: '' },
+            'Job title': { Undefined: '' },
+            'Audience role': { Undefined: '' },
+            'Site role': { Undefined: '' },
+            'Phone number': { null: '', '': '' },
+          },
+        },
+      };
+
+      await CSVValidationUtil.validateAndAssert(validationConfig);
+      return { filePath, fileName };
+    } finally {
+      CSVValidationUtil.cleanup(filePath);
+    }
+  }
+}

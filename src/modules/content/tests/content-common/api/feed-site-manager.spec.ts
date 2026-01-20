@@ -18,12 +18,12 @@ import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-
 test.describe(
   '@FeedAPI - Site Manager',
   {
-    tag: [ContentTestSuite.API, ContentTestSuite.FEED_APP_MANAGER],
+    tag: [ContentTestSuite.API, ContentTestSuite.FEED_SITE_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let feedApiHelper: FeedApiHelper;
 
-    test.beforeEach(async ({ appManagerApiFixture, siteManagerApiFixture }) => {
+    test.beforeEach(async ({ appManagerApiFixture }) => {
       //Initialize feedApiHelper
       feedApiHelper = new FeedApiHelper();
       //Enable feed mode
@@ -49,7 +49,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Text Feed on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-15552'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-15552'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -60,7 +60,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -109,7 +109,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Text Feed on Private Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-14902'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-14902'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -163,7 +163,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Text Feed on Unlisted Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-15553'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-15553'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -217,7 +217,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with Special Characters on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-19539'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-19539'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -228,7 +228,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -275,7 +275,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with Special Characters on Private Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-19542'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-19542'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -332,7 +332,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with Special Characters on Unlisted Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-19543'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-19543'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -389,7 +389,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with Emojis on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-19545'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-19545'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -400,7 +400,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -443,7 +443,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with Emojis on Private Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-20585'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-20585'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -496,7 +496,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with Emojis on Unlisted Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-20882'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-20882'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -549,7 +549,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with File Attachment on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-21603'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-21603'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -560,7 +560,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -571,7 +571,9 @@ test.describe(
           const uploadResponse = await siteManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: publicSiteId, type: 'site' }
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -609,7 +611,9 @@ test.describe(
           const uploadResponse = await siteManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: publicSiteId, type: 'site' }
           );
           updatedFileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -641,7 +645,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with File Attachment on Private Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-21604'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-21604'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -662,7 +666,9 @@ test.describe(
           const uploadResponse = await siteManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: privateSite.siteId, type: 'site' }
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -716,7 +722,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Feed with File Attachment on Unlisted Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-22139'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-22139'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -737,7 +743,9 @@ test.describe(
           const uploadResponse = await siteManagerApiFixture.feedManagementHelper.uploadImage(
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileName,
             FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.fileSize,
-            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType
+            FEED_TEST_DATA.DEFAULT_FEED_CONTENT_JPEG.mimeType,
+            'site-feed',
+            { siteId: unlistedSite.siteId, type: 'site' }
           );
           fileId = uploadResponse.responseFileId || uploadResponse.result?.file_id;
         } catch (error) {
@@ -791,7 +799,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Combination Feed on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-22405'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-22405'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -802,7 +810,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -871,7 +879,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Combination Feed on Private Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-24648'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-24648'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -950,7 +958,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Combination Feed on Unlisted Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-35811'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-35811'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1029,7 +1037,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Public Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-43152'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-43152'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1040,7 +1048,7 @@ test.describe(
 
         // Get or create a public site
         const publicSiteId =
-          await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
         if (!publicSiteId) {
           throw new Error('No public site available');
         }
@@ -1096,7 +1104,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Private Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-43151'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-43151'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -1162,7 +1170,7 @@ test.describe(
     test(
       'site Manager Add Edit Delete Editor - Bold, Italic, Underline, Strike, bullets, Emojies, Link Feed Post on Unlisted Site Dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_APP_MANAGER, '@CONT-43153'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, ContentTestSuite.FEED_SITE_MANAGER, '@CONT-43153'],
       },
       async ({ appManagerApiFixture, siteManagerApiFixture }) => {
         tagTest(test.info(), {

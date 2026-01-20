@@ -1,6 +1,8 @@
 import { faker } from '@faker-js/faker';
 
 import { FeedMode } from '@core/types/feedManagement.types';
+import { time } from 'console';
+import { TestDataGenerator } from '@/src/core';
 
 export const FEED_TEST_DATA = {
   TOAST_MESSAGES: {
@@ -9,9 +11,12 @@ export const FEED_TEST_DATA = {
     CONTENT_UNPUBLISHED: 'Unpublished content successfully',
     ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY: 'Added tile to dashboard successfully',
     REPORT_POST_SUCCESS: 'This post has been reported and will be reviewed shortly',
+    PUBLISHED_CONTENT: "Published page successfully - it's published",
     COPY_LINK_TO_POST_SUCCESSFULLY: 'Copied link to post successfully',
     ADDED_NEW_VERSION: 'Added new version successfully',
     DELETED_FILE_SUCCESSFULLY: 'Deleted file successfully',
+    SET_SITE_IMAGE_SUCCESSFULLY: 'Set site image successfully',
+    DELETED_POST_SUCCESSFULLY: 'Deleted post successfully',
   },
   ATTACHMENTS: {
     IMAGE: 'image1.jpg',
@@ -31,10 +36,13 @@ export const FEED_TEST_DATA = {
     SHARE_MESSAGE: `Automated Test Share Message ${faker.company.name()} - ${faker.commerce.productName()}`,
     TOPIC: `Automated Test Topic ${faker.company.name()} - ${faker.commerce.productName()}`,
     UPDATED_REPLY: `Updated Test Reply ${faker.company.name()} - ${faker.commerce.productName()}`,
-    INAPPROPRIATE_POST_TEXT: `This is a test post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
-    EDITED_POST_TEXT: `This is a test post with appropriate content`,
+    //add random timestamp string to the post text
+    INAPPROPRIATE_POST_TEXT: `This is a stupid test ${Date.now()} post with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
+    INAPPROPRIATE_COMMENT_TEXT: `This is a stupid test ${Date.now()} comment with stupid and idiot content ${faker.company.name()} - ${faker.commerce.productName()}`,
+    EDITED_POST_TEXT: `${Date.now()} - This is a test post with appropriate content ${faker.company.name()} - ${faker.commerce.productName()}`,
     INITIAL_WITH_ATTACHMENT: `Automated Test Post with Attachment ${faker.company.name()} - ${faker.commerce.productName()}`,
     REPORT_REASON: 'This content violates community guidelines',
+    REPLY_WITH_IMAGE: `Automated Test Reply with Image ${faker.company.name()} - ${faker.commerce.productName()}`,
   },
   TIMEOUTS: {
     DEFAULT: 30_000,
@@ -50,6 +58,8 @@ export const FEED_TEST_DATA = {
 
   DEFAULT_FEED_MODE: FeedMode.TIMELINE_COMMENT_POST,
 
+  DEFAULT_TOPIC_NAME: 'Simpplr',
+
   DEFAULT_FEED_CONTENT_JPEG: {
     fileName: 'image1.jpg',
     fileSize: 15518,
@@ -62,6 +72,7 @@ export const FEED_TEST_DATA = {
   },
   URLS: {
     EMBED_YOUTUBE_URL: 'https://www.youtube.com/watch?v=F_77M3ZZ1z8',
+    EMBED_VIMEO_URL: 'https://vimeo.com/76979871',
   },
   MAX_FILE_UPLOAD_LIMIT: 10,
   FILE_UPLOAD_WARNING_MESSAGE: "It's not possible to add more than 10 photos/files",

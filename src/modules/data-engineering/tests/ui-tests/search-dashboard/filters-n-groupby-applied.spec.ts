@@ -60,9 +60,10 @@ test.describe(
           timePeriod: PeriodFilterTimeRange.CUSTOM,
           customStartDate: startDate.toISOString().split('T')[0], // YYYY-MM-DD format
           customEndDate: endDate.toISOString().split('T')[0], // YYYY-MM-DD format
+          segments: [...TEST_FILTER_VALUES.SEARCH.SEGMENTS],
           departments: [...TEST_FILTER_VALUES.SEARCH.DEPARTMENTS],
           locations: [...TEST_FILTER_VALUES.SEARCH.LOCATIONS],
-          groupBy: GroupByOnUserParameter.DEPARTMENT,
+          groupBy: GroupByOnUserParameter.LOCATION,
         };
 
         const { analyticsFiltersComponent } = testEnvironment.searchDashboard;
@@ -77,17 +78,18 @@ test.describe(
       await cleanupDashboardTesting(testEnvironment);
     });
 
+    // 1. Total search volume
     test(
-      'verify Total search volume metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the answer of Total search volume in Search Dashboard with group by filters applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@total-search-volume'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Total search volume in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Total search volume in Search Dashboard with group by filters applied',
+          zephyrTestId: 'DE-27747',
+          storyId: 'DE-25920',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -103,17 +105,18 @@ test.describe(
       }
     );
 
+    // 2. Search click through rate
     test(
-      'verify Search click through rate metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the answer of Search click through rate in Search Dashboard with group by filters applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@search-click-through-rate'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Search click through rate in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Search click through rate in Search Dashboard with group by filters applied',
+          zephyrTestId: 'DE-27763',
+          storyId: 'DE-25921',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -129,17 +132,17 @@ test.describe(
       }
     );
 
+    // 3. No results search
     test(
-      'verify No results search metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the answer of No results search in Search Dashboard with group by filter applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@no-results-search'],
       },
       async () => {
         tagTest(test.info(), {
-          description:
-            'To verify the answer of No results search in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the answer of No results search in Search Dashboard with group by filter applied',
+          zephyrTestId: 'DE-27766',
+          storyId: 'DE-25922',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -155,52 +158,129 @@ test.describe(
       }
     );
 
-    test.fixme(
-      'verify Most searches performed by Department metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+    // 4. Average searches per logged-in user
+    test(
+      'TS To verify the answer of Average searches per logged-in user in Search Dashboard with group by filter applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@average-searches-per-logged-in-user'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer of Average searches per logged-in user in Search Dashboard with group by filter applied',
+          zephyrTestId: 'DE-27769',
+          storyId: 'DE-25923',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getAverageSearchesPerLoggedInUserFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log('Expected Average Searches Per Logged In User Value:', expectedMetricValue);
+
+        // UI validation
+        const averageSearchesPerLoggedInUserMetric = testEnvironment.searchDashboard.averageSearchesPerLoggedInUser;
+        await averageSearchesPerLoggedInUserMetric.verifyMetricUIDataPoints();
+        await averageSearchesPerLoggedInUserMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    // 5. Search usage volume and click through rate metric
+    test(
+      'TS To verify the answer of Search usage volume and click through rate in Search Dashboard with group by filters applied',
       {
         tag: [
           TestPriority.P0,
           TestGroupType.SMOKE,
-          TestCaseType.TABULAR_METRIC,
-          '@most-searches-performed-by-department',
+          TestCaseType.LINE_CHART,
+          '@search-usage-volume-and-click-through-rate',
         ],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Most searches performed by Department in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Search usage volume and click through rate in Search Dashboard with group by filters applied',
+          zephyrTestId: 'DE-27772',
+          storyId: 'DE-25924',
         });
 
         // Get expected metric value from snowflake with all filters applied
         // Query helper now returns properly transformed data
         const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByDepartmentFromDBWithFilters({
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
             filterBy: testFiltersConfig,
           });
 
-        console.log('Expected Most Searches Performed By Department Data:', expectedMetricValue);
+        console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
 
         // UI validation - component handles transformation internally
-        const mostSearchesPerformedByDepartmentMetric =
-          testEnvironment.searchDashboard.mostSearchesPerformedByDepartment;
-        await mostSearchesPerformedByDepartmentMetric.verifyDataIsLoaded();
-        await mostSearchesPerformedByDepartmentMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+        const searchUsageVolumeAndClickThroughRateMetric =
+          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
+        await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
+
+        // Verify axis labels (dual Y-axis chart)
+        // Note: horizontal axis label may or may not include year suffix depending on UI rendering
+        await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
+          leftVerticalAxisLabel: 'Total searches',
+          rightVerticalAxisLabel: 'Total clickthrough',
+          horizontalAxisLabel: 'Search performed date',
+        });
+
+        // Verify line chart points with tooltips
+        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
       }
     );
 
+    // 6. Search usage volume and click through rate CSV
     test(
-      'verify Top search queries metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard with group by filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@search-usage-volume-and-click-through-rate-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard with group by filters applied',
+          zephyrTestId: 'DE-27776',
+          storyId: 'DE-25924',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        const dbData =
+          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Component handles CSV validation internally
+        const searchUsageVolumeAndClickThroughRateMetric =
+          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
+        await searchUsageVolumeAndClickThroughRateMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 7. Top search queries metric
+    test(
+      'TS To verify the answer of Top search queries in Search Dashboard group by filter applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-search-queries'],
       },
       async () => {
         tagTest(test.info(), {
-          description:
-            'To verify the answer of Top search queries in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the answer of Top search queries in Search Dashboard group by filter applied',
+          zephyrTestId: 'DE-27884',
+          storyId: 'DE-25926',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -219,8 +299,172 @@ test.describe(
       }
     );
 
+    // 8. Top search queries CSV
     test(
-      'verify Top search queries with no clickthrough metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the CSV of answer top search queries in Search Dashboard group by filters applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@top-search-queries-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the CSV of answer top search queries in Search Dashboard group by filters applied',
+          zephyrTestId: 'DE-27887',
+          storyId: 'DE-25933',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        const dbData = await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const topSearchQueriesMetric = testEnvironment.searchDashboard.topSearchQueries;
+        await topSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 9. Most searches performed by Location metric
+    test(
+      'TS To verify the answer of Most searches performed by User Parameter in Search Dashboard with Group By filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.TABULAR_METRIC,
+          '@most-searches-performed-by-location',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer of Most searches performed by User Parameter in Search Dashboard with Group By filters applied',
+          zephyrTestId: 'DE-27891',
+          storyId: 'DE-25925',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByLocationFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log('Expected Most Searches Performed By Location Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const mostSearchesPerformedByLocationMetric = testEnvironment.searchDashboard.mostSearchesPerformedByLocation;
+        await mostSearchesPerformedByLocationMetric.verifyDataIsLoaded();
+        await mostSearchesPerformedByLocationMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 10. Most searches performed by Location CSV
+    test(
+      'TS To verify the CSV of answer most searches performed by department in Search Dashboard Group By filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@most-searches-performed-by-location-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the CSV of answer most searches performed by department in Search Dashboard Group By filters applied',
+          zephyrTestId: 'DE-27894',
+          storyId: 'DE-25933',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getMostSearchesPerformedByLocationFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Component handles CSV validation internally
+        const mostSearchesPerformedByLocationMetric = testEnvironment.searchDashboard.mostSearchesPerformedByLocation;
+        await mostSearchesPerformedByLocationMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 11. No result search queries metric
+    test(
+      'TS To verify the answer of No result search queries in Search Dashboard with Group By filters applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer of No result search queries in Search Dashboard with Group By filters applied',
+          zephyrTestId: 'DE-27897',
+          storyId: 'DE-25927',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        // Query helper now returns properly transformed data
+        const expectedMetricValue =
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        console.log('Expected No Result Search Queries Data:', expectedMetricValue);
+
+        // UI validation - component handles transformation internally
+        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
+        await noResultSearchQueriesMetric.verifyDataIsLoaded();
+        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    // 12. No result search queries CSV
+    test(
+      'TS To verify the CSV of answer No result search queries in Search Dashboard with Group By filters applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@no-result-search-queries-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the CSV of answer No result search queries in Search Dashboard with Group By filters applied',
+          zephyrTestId: 'DE-27900',
+          storyId: 'DE-25933',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        // Pass forCSVValidation=true to convert failure_percentage to decimal format to match CSV format
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
+            filterBy: testFiltersConfig,
+            forCSVValidation: true, // converts failure_percentage to decimal
+          });
+
+        // Component handles CSV validation internally
+        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
+        await noResultSearchQueriesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 13. Top search queries with no clickthrough metric
+    test(
+      'TS To verify the answer of Top search queries with no clickthrough in Search Dashboard Group By Filters Applied',
       {
         tag: [
           TestPriority.P0,
@@ -232,9 +476,9 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of Top search queries with no clickthrough in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the answer of Top search queries with no clickthrough in Search Dashboard Group By Filters Applied',
+          zephyrTestId: 'DE-27909',
+          storyId: 'DE-25928',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -254,17 +498,56 @@ test.describe(
       }
     );
 
+    // 14. Top search queries with no clickthrough CSV
     test(
-      'verify Top clickthrough types metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the CSV of answer top search queries with no clickthrough in Search Dashboard Group By Filters Applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@top-search-queries-with-no-clickthrough-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the CSV of answer top search queries with no clickthrough in Search Dashboard Group By Filters Applied',
+          zephyrTestId: 'DE-27915',
+          storyId: 'DE-25933',
+        });
+
+        // Get expected metric value from snowflake with all filters applied
+        // Pass forCSVValidation=true to convert percentage to decimal format to match CSV format
+        const transformedData =
+          await testEnvironment.searchDashboardQueryHelper.getTopSearchQueriesWithNoClickthroughFromDBWithFilters({
+            filterBy: testFiltersConfig,
+            forCSVValidation: true, // converts no_click_rate from percentage to decimal
+          });
+
+        // Component handles CSV validation internally
+        const topSearchQueriesWithNoClickthroughMetric =
+          testEnvironment.searchDashboard.topSearchQueriesWithNoClickthrough;
+        await topSearchQueriesWithNoClickthroughMetric.verifyCSVDataMatchesWithSnowflakeData(
+          transformedData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    // 15. Top clickthrough types metric
+    test(
+      'TS To verify the answer of Top clickthrough types in Search Dashboard Group By Filters Applied',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@top-clickthrough-types'],
       },
       async () => {
         tagTest(test.info(), {
-          description:
-            'To verify the answer of Top clickthrough types in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+          description: 'TS To verify the answer of Top clickthrough types in Search Dashboard Group By Filters Applied',
+          zephyrTestId: 'DE-27951',
+          storyId: 'DE-25929',
         });
 
         // Get expected metric value from snowflake with all filters applied
@@ -283,76 +566,35 @@ test.describe(
       }
     );
 
+    // 16. Top clickthrough types CSV
     test(
-      'verify No result search queries metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
+      'TS To verify the CSV of answer top clickthrough types in Search Dashboard Group By filters Applied',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@no-result-search-queries'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@top-clickthrough-types-csv'],
       },
       async () => {
         tagTest(test.info(), {
           description:
-            'To verify the answer of No result search queries in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+            'TS To verify the CSV of answer top clickthrough types in Search Dashboard Group By filters Applied',
+          zephyrTestId: 'DE-27954',
+          storyId: 'DE-25933',
         });
 
         // Get expected metric value from snowflake with all filters applied
-        // Query helper now returns properly transformed data
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getNoResultSearchQueriesFromDBWithFilters({
-            filterBy: testFiltersConfig,
-          });
-
-        console.log('Expected No Result Search Queries Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const noResultSearchQueriesMetric = testEnvironment.searchDashboard.noResultSearchQueries;
-        await noResultSearchQueriesMetric.verifyDataIsLoaded();
-        await noResultSearchQueriesMetric.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
-      }
-    );
-
-    test(
-      'verify Search usage volume and click through rate metric data validation with all filters and group by applied (Last 60 days, Departments: Undefined, Locations: Gurugram Haryana India, India, Group by: Department)',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestCaseType.LINE_CHART,
-          '@search-usage-volume-and-click-through-rate',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description:
-            'To verify the answer of Search usage volume and click through rate in Search dashboard with all filters and group by applied',
-          zephyrTestId: '',
-          storyId: '',
+        // Pass forCSVValidation=true to convert percentage to decimal format to match CSV format
+        const dbData = await testEnvironment.searchDashboardQueryHelper.getTopClickthroughTypesFromDBWithFilters({
+          filterBy: testFiltersConfig,
+          forCSVValidation: true, // converts percentage to decimal
         });
 
-        // Get expected metric value from snowflake with all filters applied
-        // Query helper now returns properly transformed data
-        const expectedMetricValue =
-          await testEnvironment.searchDashboardQueryHelper.getSearchUsageVolumeAndClickThroughRateFromDBWithFilters({
-            filterBy: testFiltersConfig,
-          });
-
-        console.log('Expected Search Usage Volume and Click Through Rate Data:', expectedMetricValue);
-
-        // UI validation - component handles transformation internally
-        const searchUsageVolumeAndClickThroughRateMetric =
-          testEnvironment.searchDashboard.searchUsageVolumeAndClickThroughRate;
-        await searchUsageVolumeAndClickThroughRateMetric.verifyDataIsLoaded();
-
-        // Verify axis labels (dual Y-axis chart)
-        await searchUsageVolumeAndClickThroughRateMetric.verifyAxisLabelsAreAsExpected({
-          leftVerticalAxisLabel: 'Total searches',
-          rightVerticalAxisLabel: 'Total clickthrough',
-          horizontalAxisLabel: 'Search performed date (for 2025)',
-        });
-
-        // Verify line chart points with tooltips
-        await searchUsageVolumeAndClickThroughRateMetric.verifyLinePointsWithTooltips(expectedMetricValue);
+        // Component handles CSV validation internally
+        const topClickthroughTypesMetric = testEnvironment.searchDashboard.topClickthroughTypes;
+        await topClickthroughTypesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
       }
     );
   }

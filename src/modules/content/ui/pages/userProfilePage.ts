@@ -4,15 +4,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
-export interface IUserProfilePageActions {
-  clickOnFollowersTab: () => Promise<void>;
-}
-
-export interface IUserProfilePageAssertions {
-  verifyContactInformation: () => Promise<void>;
-}
-
-export class UserProfilePage extends BasePage implements IUserProfilePageActions, IUserProfilePageAssertions {
+export class UserProfilePage extends BasePage {
   //COMPONENTS
 
   //LOCATORS
@@ -35,14 +27,6 @@ export class UserProfilePage extends BasePage implements IUserProfilePageActions
       });
       // TODO: Implement page load verification
     });
-  }
-
-  get actions(): IUserProfilePageActions {
-    return this;
-  }
-
-  get assertions(): IUserProfilePageAssertions {
-    return this;
   }
   async clickOnFollowersTab(): Promise<void> {
     await test.step('Clicking on followers tab', async () => {

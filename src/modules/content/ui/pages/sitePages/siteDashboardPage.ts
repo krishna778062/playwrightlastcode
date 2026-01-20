@@ -8,102 +8,36 @@ import { CreateQuestionComponent, QuestionOptions, QuestionResult } from '../../
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { CarouselComponent } from '@/src/modules/content/ui/components/carouselComponent';
+import { ChangeLayoutComponent } from '@/src/modules/content/ui/components/changeLayoutComponent';
 import { EditBarComponent } from '@/src/modules/content/ui/components/editBarComponent';
 import { ListFeedComponent } from '@/src/modules/content/ui/components/listFeedComponent';
-
-export interface ISiteDashboardActions {
-  navigateToManageSite: () => Promise<void>;
-  clickOnFeedLink: () => Promise<void>;
-  clickOnOptionsMenu: (commentText: string) => Promise<void>;
-  editPost: (currentText: string, newText: string) => Promise<void>;
-  deletePost: (postText: string) => Promise<void>;
-  clickOnEditCarousel: () => Promise<void>;
-  clickOnAddTile: () => Promise<void>;
-  clickOnEditDashboard: () => Promise<void>;
-  enterSearchCarouselInput: (text: string) => Promise<void>;
-  selectCarouselItem: (text: string) => Promise<void>;
-  clickDoneButton: () => Promise<void>;
-  clickOnSocialCampaignTile: () => Promise<void>;
-  clickOnCustomSCTile: () => Promise<void>;
-  enterTileTitle: (tileTitle: string) => Promise<void>;
-  setCustomSCTitle: (title: string) => Promise<void>;
-  clickAddToHomeButton: () => Promise<string>;
-  clickAddToSiteButton: (siteId: string) => Promise<string>;
-  clickShareThoughtsButton: () => Promise<void>;
-  clickQuestionButton: () => Promise<void>;
-  createAndPostQuestion: (options: QuestionOptions) => Promise<QuestionResult>;
-  editQuestion: (questionTitle: string, newTitle: string) => Promise<void>;
-  verifyPostCreationCancelButtonVisible: () => Promise<void>;
-  clickPostCreationCancelButton: () => Promise<void>;
-  verifyPostCreationEditorClosed: () => Promise<void>;
-  clickOnDismissButton: () => Promise<void>;
-}
-
-export interface ISiteDashboardAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyDashboardUrl: (siteId: string) => Promise<void>;
-  verifySiteCreatedSuccessfully: (siteName: string) => Promise<void>;
-  verifyCategoryCreatedSuccessfully: (categoryName: string) => Promise<void>;
-  verifyCampaignLinkDisplayed: (linkText: string, description: string) => Promise<void>;
-  verifyAddContentButtonIsNotVisible: () => Promise<void>;
-  verifyAddContentButtonIsVisible: () => Promise<void>;
-  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
-  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
-  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
-  verifySocialCampaignShareButtonIsNotVisible: (description: string) => Promise<void>;
-  verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
-  verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
-  verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
-  verifyQuestionCreatedSuccessfully: (questionTitle: string) => Promise<void>;
-  verifyFeedSectionIsVisible: () => Promise<void>;
-  verifyFeedSectionIsNotVisible: () => Promise<void>;
-  verifyEditAndDeleteOptionsVisible: (commentText: string) => Promise<void>;
-  validatePostText: (postText: string) => Promise<void>;
-  validatePostNotVisible: (postText: string) => Promise<void>;
-  verifyFeedRestrictionMessageVisible: (expectedText: string) => Promise<void>;
-  verifyShareButtonIsNotVisible: () => Promise<void>;
-  verifyThePageIsLoadedWithTimelineMode(): Promise<void>;
-  verifyFeedPlaceholderText: (expectedPlaceholder: string) => Promise<void>;
-  verifySitesNamesAreDisplayed: (siteNames: string[]) => Promise<void>;
-  verifyTimestampFormat: (postText: string) => Promise<void>;
-  verifySiteNameIsDisplayed: (siteName: string) => Promise<void>;
-  verifySmartFeedBlockIsVisible: (blockName: string) => Promise<void>;
-  verifyCommentIconIsNotVisible: () => Promise<void>;
-  verifyTopPicksBlockIsVisible: () => Promise<void>;
-  verifyPopularContentBlockIsVisible: () => Promise<void>;
-  verifyUpcomingEventsBlockIsVisible: () => Promise<void>;
-  verifyRecentlyPublishedBlockIsVisible: () => Promise<void>;
-  verifyCelebrationBlockIsVisible: () => Promise<void>;
-}
-
-export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAssertions {
+export class SiteDashboardPage extends BaseSitePage {
   // Locators for site and category verification
   readonly categoryLink: (categoryName: string) => Locator;
   readonly categoryHeading: (categoryName: string) => Locator;
   readonly siteLink: (siteName: string) => Locator;
+  readonly siteLinkAfterSearch: (siteName: string) => Locator;
   readonly dashboardFeedLink: Locator;
   readonly feedLink: Locator;
-  readonly editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
-  readonly carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
-  readonly tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
-  readonly socialCampaignNameInTileList = (socialCampaignName: string) =>
-    this.page.getByRole('button', { name: socialCampaignName }).first();
-  readonly addContentButton = this.page.getByRole('button', { name: 'Add content' });
+  readonly editDashboardButton: Locator;
+  readonly carouselItemText: (text: string) => Locator;
+  readonly tileListComponent: (tileTitle: string) => Locator;
+  readonly socialCampaignNameInTileList: (socialCampaignName: string) => Locator;
+  readonly addContentButton: Locator;
+  readonly fileUploadInput: Locator;
+  readonly cropImageDialog: Locator;
+  readonly cropButton: Locator;
   readonly shareThoughtsButton: Locator;
   readonly dismissButton: Locator;
 
   // Components
   readonly listFeedComponent: ListFeedComponent;
+  readonly createFeedPostComponent: CreateFeedPostComponent;
+  readonly createQuestionComponent: CreateQuestionComponent;
   private carouselComponent: CarouselComponent;
   private editbarComponent: EditBarComponent;
+  private changeLayoutComponent: ChangeLayoutComponent;
   private addTileComponent: AddTileComponent;
-  private createQuestionComponent: CreateQuestionComponent;
-  private createFeedPostComponent: CreateFeedPostComponent;
-  // Actions
-  get actions(): ISiteDashboardActions {
-    return this;
-  }
-
   constructor(page: Page, siteId: string) {
     super(page, siteId);
     this.listFeedComponent = new ListFeedComponent(page);
@@ -112,14 +46,30 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     this.addTileComponent = new AddTileComponent(page);
     this.createFeedPostComponent = new CreateFeedPostComponent(page);
     this.createQuestionComponent = new CreateQuestionComponent(page);
+    this.changeLayoutComponent = new ChangeLayoutComponent(page);
     this.feedLink = this.page.getByRole('tab', { name: 'Feed' });
     this.categoryLink = (categoryName: string) => this.page.getByRole('link', { name: categoryName });
     this.categoryHeading = (categoryName: string) => this.page.getByRole('heading', { name: categoryName });
-    this.siteLink = (siteName: string) => this.page.getByRole('link', { name: siteName });
+    this.siteLink = (siteName: string) =>
+      this.page.getByLabel('Categories').getByRole('link', { name: siteName, exact: true });
     this.shareThoughtsButton = this.page.locator('span', { hasText: 'Share your thought' });
     this.dashboardFeedLink = this.page.getByRole('tab', { name: 'Dashboard & feed' });
     this.dismissButton = this.page.getByRole('button', { name: 'Dismiss' });
+    this.siteLinkAfterSearch = (siteName: string) =>
+      this.page.locator('#page-content').getByRole('link', { name: siteName });
+
+    // Initialize locators defined outside constructor
+    this.editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
+    this.carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
+    this.tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
+    this.socialCampaignNameInTileList = (socialCampaignName: string) =>
+      this.page.getByRole('button', { name: socialCampaignName }).first();
+    this.addContentButton = this.page.getByRole('button', { name: 'Add content' });
+    this.fileUploadInput = this.page.locator("input[type='file']");
+    this.cropImageDialog = this.page.getByRole('dialog', { name: 'Crop image' });
+    this.cropButton = this.page.getByRole('button', { name: 'Crop' });
   }
+
   /**
    * Verifies that site was created successfully by checking if site link is visible
    * @param siteName - The site name to verify
@@ -157,14 +107,6 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
-  // Assertions
-  get assertions(): ISiteDashboardAssertions {
-    return this;
-  }
-
-  /**
-   * Verifies that the site dashboard page is loaded
-   */
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify site dashboard page is loaded', async () => {
       await this.page.waitForLoadState('domcontentloaded');
@@ -216,6 +158,26 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step('Click on edit dashboard', async () => {
       await this.clickOnElement(this.editDashboardButton);
     });
+  }
+
+  async clickOnChangeLayout(): Promise<void> {
+    return this.editbarComponent.clickChangeLayout();
+  }
+
+  async clickIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickIncludeFeed();
+  }
+
+  async checkIncludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.checkIncludeFeed();
+  }
+
+  async selectTileLayout(layoutSign: string): Promise<void> {
+    return this.changeLayoutComponent.selectTileLayout(layoutSign);
+  }
+
+  async clickExcludeFeed(): Promise<void> {
+    return this.changeLayoutComponent.clickExcludeFeed();
   }
 
   async clickOnAddTile(): Promise<void> {
@@ -307,6 +269,21 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     await test.step('Click on Share your thoughts button', async () => {
       await this.clickOnElement(this.shareThoughtsButton);
     });
+  }
+  async uploadSiteImage(imagePath: string): Promise<void> {
+    await test.step('Upload site image', async () => {
+      await this.fileUploadInput.setInputFiles([imagePath]);
+
+      const cropImageDialog = this.cropImageDialog;
+      await this.verifier.verifyTheElementIsVisible(cropImageDialog, {
+        assertionMessage: 'Crop image dialog should be visible',
+      });
+      await this.clickOnElement(this.cropButton);
+    });
+  }
+
+  async verifyToastMessage(message: string): Promise<void> {
+    await this.listFeedComponent.verifyToastMessageIsVisibleWithText(message);
   }
 
   async clickQuestionButton(): Promise<void> {
@@ -411,6 +388,14 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
     });
   }
 
+  async verifySiteNameIsDisplayedAfterSearch(siteName: string): Promise<void> {
+    await test.step(`Verify site name "${siteName}" is displayed`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.siteLinkAfterSearch(siteName), {
+        assertionMessage: `Site link "${siteName}" should be visible`,
+      });
+    });
+  }
+
   async verifyTimestampFormat(postText: string): Promise<void> {
     await this.listFeedComponent.verifyTimestampFormat(postText);
   }
@@ -482,5 +467,13 @@ export class SiteDashboardPage extends BaseSitePage implements ISiteDashboardAss
 
   async verifyCommentIconIsNotVisible(): Promise<void> {
     await this.listFeedComponent.verifyCommentIconIsNotVisible();
+  }
+
+  async verifyAllReactionEmojisVisible(postText: string): Promise<void> {
+    await this.listFeedComponent.verifyAllReactionEmojisVisible(postText);
+  }
+
+  async hoverOnReactionButton(postText: string): Promise<void> {
+    await this.listFeedComponent.hoverOnReactionButton(postText);
   }
 }

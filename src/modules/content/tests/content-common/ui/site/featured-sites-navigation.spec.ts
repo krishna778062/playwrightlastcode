@@ -30,7 +30,7 @@ test.describe(
     });
 
     test(
-      'verify user can navigate to featured sites page from side nav bar and add site to featured',
+      'verify user can navigate to featured sites page from side nav bar and add site to featured CONT-20911',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20911'],
       },
@@ -49,35 +49,35 @@ test.describe(
 
         await appManagerFixture.homePage.verifyThePageIsLoaded();
         const featuredSitePage = await appManagerFixture.navigationHelper.clickOnFeaturedSitesTab();
-        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
+        await featuredSitePage.clickOnAddUpdateFeaturedSiteButton();
 
         // Step 1: Search and add the created site to featured
-        await featuredSitePage.actions.addSiteToFeatured(siteName);
+        await featuredSitePage.addSiteToFeatured(siteName);
         featureSites.push({ siteId: siteId, name: siteName });
-        await featuredSitePage.actions.clickDoneButton();
+        await featuredSitePage.clickDoneButton();
 
         // Step 2.1: Verify success toast message appears
-        await featuredSitePage.assertions.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
+        await featuredSitePage.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
 
         // Step 3: Verify sites are visible in featured dropdown
-        await featuredSitePage.assertions.verifyFeaturedSitesVisible([siteName]);
+        await featuredSitePage.verifyFeaturedSitesVisible([siteName]);
 
         // Step 4: Reload the page after adding site to featured
         await featuredSitePage.loadPage();
 
         // Step 5: Verify sites are visible in featured dropdown
-        await featuredSitePage.assertions.verifyFeaturedSitesVisible(siteName);
+        await featuredSitePage.verifyFeaturedSitesVisible(siteName);
 
         // Step 6: Click on the featured site and verify navigation to site dashboard
-        await featuredSitePage.actions.navigateToSiteDashboard(siteName);
+        await featuredSitePage.navigateToSiteDashboard(siteName);
 
         // Step 7: Verify user is navigated to the site dashboard
-        await featuredSitePage.assertions.verifySiteDashboardLoaded(siteName);
+        await featuredSitePage.verifySiteDashboardLoaded(siteName);
       }
     );
 
     test(
-      'shuffling sites from feature modal list',
+      'shuffling sites from feature modal list CONT-27919',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-27919'],
       },
@@ -94,21 +94,22 @@ test.describe(
 
         const unFeaturedSites: { siteId: string; name: string }[] =
           await appManagerFixture.siteManagementHelper.getUnFeaturedSites();
-        await featuredSitePage.actions.clickOnAddUpdateFeaturedSiteButton();
+        await featuredSitePage.clickOnAddUpdateFeaturedSiteButton();
 
         for (const site of unFeaturedSites) {
-          await featuredSitePage.actions.addSiteToFeatured(site.name);
+          await featuredSitePage.addSiteToFeatured(site.name);
           featureSites.push(site); // Add the entire site object to the array
-          await featuredSitePage.assertions.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
-          await featuredSitePage.assertions.verifyFeaturedSitesVisibleInModal(site.name);
+          await featuredSitePage.verifyToastMessage(SITE_TOAST_MESSAGES.TOAST_MESSAGES.ADDED_FEATURED_SITE);
+          await featuredSitePage.verifyFeaturedSitesVisibleInModal(site.name);
+          await featuredSitePage.page.waitForTimeout(5000);
         }
-        await featuredSitePage.assertions.verifyFeaturedSitesIndex(unFeaturedSites);
+        await featuredSitePage.verifyFeaturedSitesIndex(unFeaturedSites);
 
-        await featuredSitePage.actions.shuffleSites();
+        await featuredSitePage.shuffleSites();
         // Reorder sites to match expected UI order: [second added, first added]
         const reorderedSites = [unFeaturedSites[1], unFeaturedSites[0]].filter(Boolean);
         // After shuffling, verify the new order
-        await featuredSitePage.assertions.verifyFeaturedSitesIndex(reorderedSites);
+        await featuredSitePage.verifyFeaturedSitesIndex(reorderedSites);
       }
     );
   }

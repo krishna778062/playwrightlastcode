@@ -6,6 +6,22 @@ import { ContributorsAndParticipantsMetrics } from '../app-adoption/metrics/cont
 import { LoggedInUserMetrics } from '../app-adoption/metrics/loggedInUserMetrics';
 import { TotalUsersMetrics } from '../app-adoption/metrics/totalUsersMetrics';
 import { UserEngagementBreakdownMetric } from '../app-adoption/metrics/userEngagementBreakdown';
+// Import reusable metrics from content dashboard
+import {
+  ContentPublishedMetrics,
+  TotalContentPublishedMetrics,
+  UsersWhoViewedContentMetrics,
+} from '../content-dashboard/metrics';
+import {
+  FeaturedSitesMetrics,
+  MostPopularSitesMetrics,
+  TotalManagersMetrics,
+  TotalSitesDistributionMetrics,
+  TotalSitesMetrics,
+} from '../sites/metrics';
+// Import reusable metrics from sites dashboard
+// Import reusable metrics from social-interaction dashboard
+import { ParticipantEngagementActivity } from '../social-interaction/metrics/participantEngagementActivity';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BaseAnalyticsDashboardPage } from '@/src/modules/data-engineering/ui/pages/baseAnalyticsDashboardPage';
@@ -18,6 +34,21 @@ export class OverviewDashboard extends BaseAnalyticsDashboardPage {
   readonly adoptionRateUserLoginMetrics: AdoptionRateUserLoginMetrics;
   readonly userEngagementBreakdownMetric: UserEngagementBreakdownMetric;
 
+  // Reuse metric components from sites dashboard
+  readonly totalSitesMetrics: TotalSitesMetrics;
+  readonly featuredSitesMetrics: FeaturedSitesMetrics;
+  readonly totalManagersMetrics: TotalManagersMetrics;
+  readonly totalSitesDistributionMetrics: TotalSitesDistributionMetrics;
+  readonly mostPopularSitesMetrics: MostPopularSitesMetrics;
+
+  // Reuse metric components from content dashboard
+  readonly totalContentPublishedMetric: TotalContentPublishedMetrics;
+  readonly usersWhoViewedContentMetric: UsersWhoViewedContentMetrics;
+  readonly contentPublishedMetric: ContentPublishedMetrics;
+
+  // Reuse metric components from social-interaction dashboard
+  readonly participantEngagementActivity: ParticipantEngagementActivity;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.APP_ANALYTICS_OVERVIEW_DASHBOARD);
     this.totalUsersMetrics = new TotalUsersMetrics(page, this.thoughtSpotIframe);
@@ -25,6 +56,21 @@ export class OverviewDashboard extends BaseAnalyticsDashboardPage {
     this.contributorsAndParticipantsMetrics = new ContributorsAndParticipantsMetrics(page, this.thoughtSpotIframe);
     this.adoptionRateUserLoginMetrics = new AdoptionRateUserLoginMetrics(page, this.thoughtSpotIframe);
     this.userEngagementBreakdownMetric = new UserEngagementBreakdownMetric(page, this.thoughtSpotIframe);
+
+    // Initialize sites metrics
+    this.totalSitesMetrics = new TotalSitesMetrics(page, this.thoughtSpotIframe);
+    this.featuredSitesMetrics = new FeaturedSitesMetrics(page, this.thoughtSpotIframe);
+    this.totalManagersMetrics = new TotalManagersMetrics(page, this.thoughtSpotIframe);
+    this.totalSitesDistributionMetrics = new TotalSitesDistributionMetrics(page, this.thoughtSpotIframe);
+    this.mostPopularSitesMetrics = new MostPopularSitesMetrics(page, this.thoughtSpotIframe);
+
+    // Initialize content metrics
+    this.totalContentPublishedMetric = new TotalContentPublishedMetrics(page, this.thoughtSpotIframe);
+    this.usersWhoViewedContentMetric = new UsersWhoViewedContentMetrics(page, this.thoughtSpotIframe);
+    this.contentPublishedMetric = new ContentPublishedMetrics(page, this.thoughtSpotIframe);
+
+    // Initialize social-interaction metrics
+    this.participantEngagementActivity = new ParticipantEngagementActivity(page, this.thoughtSpotIframe);
   }
 
   /**

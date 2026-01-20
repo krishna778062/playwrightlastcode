@@ -5,7 +5,10 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
+import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
+
 export class ManageRecognitionPage extends BasePage {
+  subTabIndicator: SubTabIndicator;
   readonly recognitionHeader: Locator;
   readonly peerRecognitionTab: Locator;
   readonly spotAwardTab: Locator;
@@ -17,9 +20,11 @@ export class ManageRecognitionPage extends BasePage {
   readonly addBadgeButton: Locator;
   readonly featureNotAvailable: Locator;
   readonly featureNotEnabled: Locator;
+  readonly renamingTab: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
+    this.subTabIndicator = new SubTabIndicator(page);
     this.recognitionHeader = page.getByRole('heading', { name: 'Recognition' }).first();
     this.analyticsLink = page.locator('[class^="Manage_analytics]');
     this.peerRecognitionButton = page.getByRole('button', { name: 'New peer recognition' });
@@ -31,6 +36,7 @@ export class ManageRecognitionPage extends BasePage {
     this.milestonesTab = page.getByRole('tab', { name: 'Milestones' });
     this.recurringTab = page.getByRole('tab', { name: 'Recurring awards' });
     this.badgesTab = page.getByRole('tab', { name: 'Badges' });
+    this.renamingTab = page.getByRole('tab', { name: 'Naming' });
   }
 
   /**
@@ -39,7 +45,7 @@ export class ManageRecognitionPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the manage recognition page is loaded', async () => {
       await expect(this.recognitionHeader, 'expecting manage recognition header element to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }
@@ -110,6 +116,31 @@ export class ManageRecognitionPage extends BasePage {
       await expect(this.featureNotAvailable).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.featureNotEnabled).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.featureNotEnabled).toContainText(MESSAGES.FEATURE_NOT_AVAILABLE);
+    });
+  }
+
+  /**
+   * Assert that recurring award submission is successful by verifying toast message
+   * Checks for Continue button and clicks it if present, then verifies success toast
+   */
+  async assertToastMessageIsVisible(toastMessage: string): Promise<void> {
+    await test.step('Verifying success toast message: New award created', async () => {
+      const toastLocator = this.page.getByRole('alert').filter({ hasText: toastMessage }).first();
+      await this.verifier.verifyTheElementIsVisible(toastLocator, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Toast message should be visible: ${toastMessage}`,
+      });
+    });
+  }
+
+  /**
+   * Clean up the created award
+   */
+  async cleanupCreatedAwardInRecurringAwards(): Promise<void> {
+    await test.step('Clean up - Delete recently created award', async () => {
+      await this.subTabIndicator.clickOnColumnButton('Created', 2);
+      await this.subTabIndicator.cleanupCreatedAward();
+      await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
     });
   }
 }

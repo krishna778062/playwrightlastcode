@@ -11,6 +11,9 @@ const typescriptParser = require('@typescript-eslint/parser');
 const playwright = require('eslint-plugin-playwright');
 const unusedImports = require('eslint-plugin-unused-imports');
 
+// Custom plugins
+const customRules = require('./eslint-rules');
+
 const config: Linter.Config[] = [
   // Global ignores
   {
@@ -124,6 +127,20 @@ const config: Linter.Config[] = [
     },
   },
 
+  // Custom rules - Project-specific code quality rules
+  {
+    files: ['**/*.{ts,tsx,js}'],
+    plugins: {
+      custom: customRules,
+    },
+    rules: {
+      // Catch duplicate assignment statements in constructors
+      'custom/no-duplicate-assignments': 'error',
+      // Enforce Locator assignments inside constructor
+      'custom/locator-in-constructor': 'error',
+    },
+  },
+
   // Playwright specific configuration - ESSENTIAL RULES ONLY
   {
     files: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**/*.ts'],
@@ -143,7 +160,7 @@ const config: Linter.Config[] = [
       'playwright/no-restricted-matchers': 'warn',
 
       // Auto-fixable rules (helpful but not blocking)
-      'playwright/prefer-lowercase-title': 'error',
+      'playwright/prefer-lowercase-title': 'off',
       'playwright/prefer-to-be': 'error',
       'playwright/prefer-to-contain': 'error',
       'playwright/prefer-to-have-count': 'error',

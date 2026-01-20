@@ -21,6 +21,9 @@ export const getZephyrTestCaseUrl = (testId: string | string[]): string => {
   }
   return `${TEST_INFRA_CONFIG.ZEPHYR.BASE_URL}${testId}`;
 };
-export const getStoryUrl = (testId: string): string => {
+export const getStoryUrl = (testId: string | string[]): string => {
+  if (Array.isArray(testId)) {
+    return testId.map(id => `${TEST_INFRA_CONFIG.STORY_BASE_URL}${id}`).join(', ');
+  }
   return `${TEST_INFRA_CONFIG.STORY_BASE_URL}${testId}`;
 };

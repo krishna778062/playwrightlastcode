@@ -14,6 +14,7 @@ import {
   ACG_EDIT_ASSETS_SUMMARY_SCREEN,
   ACG_FEATURE_FOR_API,
   ACG_STATUS,
+  ACG_TOAST_MESSAGES,
   ACG_TOOLTIPS,
 } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
@@ -315,7 +316,7 @@ test.describe(
       },
       async ({ userManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-33248', 'PS-33250'],
+          zephyrTestId: ['PS-33248', 'PS-33250', 'PS-33249'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(userManagerFixture.page);
         // Test Scenario
@@ -324,9 +325,32 @@ test.describe(
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(targetAudienceToCreate[0]));
         await appManagerApiFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
         );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.ADMIN);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchAndSelectUserWithEnter(adminsAudienceUser[0].username);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS,
+        });
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
@@ -725,7 +749,7 @@ test.describe(
     test(
       `verify the state of different edit buttons when Admin is editing an Active Custom ACG`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture, browser }) => {
         tagTest(test.info(), {
@@ -799,6 +823,70 @@ test.describe(
         await accessControlGroupsPage.editACGModal.clickCloseButton();
         while (acgName.length > 0) {
           await accessControlGroupsPageAM.deleteACG(acgName.pop() as string);
+        }
+      }
+    );
+
+    test(
+      `Verify that single ACG can be updated without any issue`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-29971'],
+        });
+
+        const ACGCreationParams: ACGCreationParams = {
+          targetAudience: [targetAudienceToCreate[0]],
+          managerUser: [],
+          managerAudience: [],
+          adminUser: [adminsAudienceUser[0].username],
+          adminAudience: [],
+          acgStatus: ACG_STATUS.ACTIVE,
+          acgFeature: ACGFeature.ALERTS,
+        };
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
+        await accessControlGroupsPage.loadPage();
+        acgName.push(await accessControlGroupsPage.createACGWithAllParams(ACGCreationParams));
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        // Test Scenario
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        // Verify the initial assets count
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.TARGET_AUDIENCE, 1);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 0);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 1);
+        // Edit the ACG and remove the admin
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.ADMIN);
+        await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForUser(adminsAudienceUser[0].username);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS,
+        });
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        // Verify the updated assets count after removing the admin
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.TARGET_AUDIENCE, 1);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 0);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 0);
+        // Clean up: Delete the above created ACG
+        while (acgName.length > 0) {
+          await accessControlGroupsPage.deleteACG(acgName.pop() as string);
         }
       }
     );

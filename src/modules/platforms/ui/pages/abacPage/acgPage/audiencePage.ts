@@ -73,7 +73,7 @@ export class AudiencePage extends BasePage {
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
     this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
-    this.nameAlreadyUsedError = page.getByText('The name is already used');
+    this.nameAlreadyUsedError = page.getByText('Category name already exists');
     this.deleteCategoryOption = page.getByText('Delete category');
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
     this.editCategoryOption = page.getByText('Edit category');
@@ -205,9 +205,9 @@ export class AudiencePage extends BasePage {
 
   // ========== ERROR VERIFICATION METHODS ==========
 
-  // Verify 'The name is already used' error message is displayed
+  // Verify 'Category name already exists' error message is displayed
   async verifyNameAlreadyUsedError(): Promise<void> {
-    await test.step('Verify "Name is already used" error message', async () => {
+    await test.step('Verify "Category name already exists" error message is displayed', async () => {
       await this.verifier.verifyTheElementIsVisible(this.nameAlreadyUsedError, {
         assertionMessage: 'Verify name already used error is visible',
         timeout: TIMEOUTS.MEDIUM,
@@ -333,11 +333,18 @@ export class AudiencePage extends BasePage {
     }
   }
 
-  // Close any open dropdown by clicking elsewhere on the page
+  // Close any open dropdown by pressing Escape key
   async closeOpenDropdown(): Promise<void> {
     await test.step('Close any open dropdown', async () => {
-      await this.page.click('body');
-      await this.page.waitForTimeout(1000);
+      // Check if menu is open before attempting to close
+      const menu = this.page.locator('[role="menu"]');
+      const isMenuVisible = await menu.isVisible({ timeout: 1000 }).catch(() => false);
+
+      if (isMenuVisible) {
+        await this.page.keyboard.press('Escape');
+        // Wait for menu to close
+        await menu.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+      }
     });
   }
 
@@ -615,7 +622,22 @@ export class AudiencePage extends BasePage {
         }
       }
 
+      // Wait for Create button to be enabled before clicking
+      await expect(this.createAudienceBtn).toBeEnabled({ timeout: TIMEOUTS.MEDIUM });
+
       await this.createAudienceBtn.click();
+
+      // Wait for the dialog to close (audience created successfully)
+      // Use retry mechanism to handle slow API responses
+      await expect(async () => {
+        const isDialogVisible = await this.createAudienceDialog.isVisible({ timeout: 2000 }).catch(() => false);
+        if (isDialogVisible) {
+          throw new Error('Dialog still visible, audience creation may not be complete');
+        }
+      }).toPass({ timeout: TIMEOUTS.MEDIUM, intervals: [500, 1000, 2000] });
+
+      // Additional wait to ensure page state is stable before next operation
+      await this.page.waitForTimeout(1000);
     });
   }
 
@@ -690,8 +712,15 @@ export class AudiencePage extends BasePage {
         return false;
       }
 
-      // Select operator by value (IS, IS_NOT, ALL)
+      // Wait for operator field to be enabled
+      await expect(this.operatorSelectInput).toBeEnabled({ timeout: TIMEOUTS.SHORT });
+
+      // Select operator by value (IS, IS_NOT, ALL, ON_OR_BEFORE, etc.)
       await this.operatorSelectInput.selectOption(operator);
+
+      // Wait for UI to update after operator selection (important for date fields to appear)
+      await this.page.waitForTimeout(500);
+
       console.log(`✅ Successfully selected operator: ${operator}`);
       return true;
     });
@@ -745,12 +774,47 @@ export class AudiencePage extends BasePage {
   }
 
   /**
-   * Fill date operator value - values are auto-populated, no action needed
+   * Fill date operator value - values are auto-populated, wait and verify they are populated
    */
   async fillDateOperatorValue(): Promise<void> {
     await test.step('Fill Date Operator Value', async () => {
-      // Date operator values are auto-populated, no manual filling required
-      console.log('✅ Date operator values are auto-populated, skipping manual value selection');
+      // Get the current operator to determine which date fields to wait for
+      const currentOperator = await this.operatorSelectInput.inputValue();
+
+      // Wait for UI to update after operator selection
+      await this.page.waitForTimeout(1000);
+
+      if (currentOperator === 'BETWEEN') {
+        // BETWEEN operator requires both start and end date fields
+        await expect(this.startDateButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+        await expect(this.endDateButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+        // Wait for date fields to be populated (button text should not be placeholder)
+        // Retry mechanism to handle slow auto-population
+        await expect(async () => {
+          const startDateText = await this.startDateButton.textContent();
+          const endDateText = await this.endDateButton.textContent();
+          const hasStartDate = startDateText && !startDateText.match(/Date\*|Select|Start date\*/i);
+          const hasEndDate = endDateText && !endDateText.match(/Date\*|Select|End date\*/i);
+          if (!hasStartDate || !hasEndDate) {
+            throw new Error('Date fields not yet populated');
+          }
+        }).toPass({ timeout: TIMEOUTS.MEDIUM, intervals: [500, 1000, 2000] });
+      } else {
+        // Other operators (ON_OR_BEFORE, ON_OR_AFTER, BEFORE, AFTER, ON) use single date field
+        await expect(this.dateButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+        // Wait for date field to be populated with retry mechanism
+        await expect(async () => {
+          const dateText = await this.dateButton.textContent();
+          const hasDate = dateText && !dateText.match(/Date\*|Select/i);
+          if (!hasDate) {
+            throw new Error('Date field not yet populated');
+          }
+        }).toPass({ timeout: TIMEOUTS.MEDIUM, intervals: [500, 1000, 2000] });
+      }
+
+      console.log('✅ Date operator values are auto-populated and verified');
     });
   }
 
