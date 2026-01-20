@@ -14,7 +14,7 @@ import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 test.describe(
   'celebration Smart Feed Block Tests',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     /**

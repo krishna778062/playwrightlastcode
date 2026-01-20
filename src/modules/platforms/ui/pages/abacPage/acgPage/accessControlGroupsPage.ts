@@ -22,8 +22,25 @@ export enum ACGFeature {
   SURVEYS = 'Surveys',
 }
 
+export interface IAccessControlGroupsActions {
+  searchForACG(acgName: string): Promise<void>;
+  editACG(acgName: string): Promise<void>;
+}
+
+export interface IAccessControlGroupsAssertions {
+  verifyThePageIsLoaded(): Promise<void>;
+}
+
 export class AccessControlGroupsPage extends BasePage {
   private acgDefaultStatus: string = 'Active';
+
+  get actions(): IAccessControlGroupsActions {
+    return this;
+  }
+
+  get assertions(): IAccessControlGroupsAssertions {
+    return this;
+  }
 
   readonly acgDropdownButton: Locator;
   readonly acgCreateButtonSingle: Locator;
@@ -964,6 +981,24 @@ export class AccessControlGroupsPage extends BasePage {
         actualCount,
         `Expected ${assetName} count for ${acgName} to be ${expectedCount}, but found ${actualCount}`
       ).toBe(expectedCount);
+    });
+  }
+
+  /**
+   * Compares ACG assets count with the expected count.
+   * @param acgName - Name of the ACG for which assets count needs to be compared.
+   * @param assetName - Name of the asset for which count needs to be compared.
+   * @param expectedCount - Expected count of the assets.
+   */
+  /**
+   * Verifies that at least one ACG has the specified feature.
+   * @param featureName - The feature name to look for in the ACG list.
+   */
+  async verifyAtleastOneACGHasFeature(featureName: string): Promise<void> {
+    await test.step(`Verify that at least one ACG has ${featureName} feature`, async () => {
+      await this.searchForACG(featureName);
+      const featureCell = this.acgRecords.locator('td').nth(1).filter({ hasText: featureName });
+      await expect(featureCell.first(), `Expected at least one ACG to have feature "${featureName}"`).toBeVisible();
     });
   }
 }

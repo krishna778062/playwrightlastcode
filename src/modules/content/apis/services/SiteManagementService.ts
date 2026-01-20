@@ -400,7 +400,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       // Prepare the approval payload with all required fields from the existing content
       const approvalPayload = {
         authoredBy: content.authoredBy?.id || content.authoredBy?.peopleId || content.authoredBy?.email,
-        contentSubType: content.contentSubType || content.type || 'general',
+        contentSubType: content.contentSubType || content.type || 'news',
         contentType: content.type || 'page',
         listOfFiles: content.listOfFiles || [],
         publishAt: content.publishAt || content.expiresAt || new Date().toISOString(),

@@ -116,7 +116,7 @@ export class ContentManagementHelper {
       siteId,
       contentInfo: {
         contentType: 'page',
-        contentSubType: 'general',
+        contentSubType: 'news',
       },
       options: {
         waitForSearchIndex: false,
@@ -233,7 +233,7 @@ export class ContentManagementHelper {
         siteId,
         contentInfo: {
           contentType: 'page',
-          contentSubType: 'general',
+          contentSubType: 'news',
         },
         options: {
           waitForSearchIndex: false,
@@ -1265,5 +1265,25 @@ export class ContentManagementHelper {
         `No page category found with at least ${minPageCount} pages after checking ${sitesResponse.result.listOfItems.length} sites.`
       );
     });
+  }
+
+  /**
+   * Uploads an intranet file to a site
+   * This method handles the complete file upload flow: getting signed URL, uploading file, and getting file details
+   * @param siteId - The site ID to upload the file to
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file (e.g., 'image/jpeg')
+   * @returns Promise with file details including fileInfo
+   */
+  async uploadIntranetFile(
+    siteId: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<{
+    fileInfo: any;
+  }> {
+    return await this.imageUploaderService.uploadIntranetFile(siteId, fileName, filePath, mimeType);
   }
 }

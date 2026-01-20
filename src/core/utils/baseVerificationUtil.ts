@@ -52,6 +52,19 @@ export class BaseVerificationUtil {
       return false;
     }
   }
+  async isTheElementEnabled(
+    locator: Locator,
+    options?: { timeout?: number; assertionMessage?: string }
+  ): Promise<boolean> {
+    try {
+      await expect(locator, options?.assertionMessage ?? `expecting ${locator} to be enabled`).toBeEnabled({
+        timeout: options?.timeout || TIMEOUTS.SHORT,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   async isTheElementVisibleWithLessTimeout(
     locator: Locator,

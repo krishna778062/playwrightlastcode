@@ -134,8 +134,10 @@ const config: Linter.Config[] = [
       custom: customRules,
     },
     rules: {
-      // Catch consecutive duplicate assignment statements
+      // Catch duplicate assignment statements in constructors
       'custom/no-duplicate-assignments': 'error',
+      // Enforce Locator assignments inside constructor
+      'custom/locator-in-constructor': 'error',
     },
   },
 
