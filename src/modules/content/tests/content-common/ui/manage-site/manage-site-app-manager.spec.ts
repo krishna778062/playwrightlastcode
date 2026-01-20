@@ -797,6 +797,52 @@ test.describe(
         }
       }
     );
+
+    test(
+      'to verify the search in manage site people tab',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-23718'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'to verify the search in manage site people tab',
+          zephyrTestId: 'CONT-23718',
+          storyId: 'CONT-23718',
+          isKnownFailure: true,
+        });
+        const siteInfoForPeopleTab = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName('all Employees');
+        const newSiteDashboard = new ManageSiteSetUpPage(appManagerFixture.page, siteInfoForPeopleTab);
+        await newSiteDashboard.loadPage();
+        const manageSitesComponentForAppManager = new ManageSitesComponent(appManagerFixture.page);
+        await manageSitesComponentForAppManager.clickOnThePeopleTabAction();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        const nonMemberNames = await appManagerApiFixture.siteManagementHelper.getNonMemberUserNames(
+          siteInfoForPeopleTab,
+          {
+            minimumCount: 2,
+          }
+        );
+        const selectedUserName = nonMemberNames[0];
+        const anotherUserName = nonMemberNames[1];
+        const addPeopleInSiteComponent = new AddPeopleInSiteComponent(appManagerFixture.page);
+        await addPeopleInSiteComponent.fillAddPeopleInput(selectedUserName);
+        await addPeopleInSiteComponent.clickOnAddButton(siteInfoForPeopleTab);
+        await appManagerFixture.page.reload();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        await manageSitesComponentForAppManager.selectMemberTabAction();
+        await addPeopleInSiteComponent.fillAddPeopleInput(anotherUserName);
+        await addPeopleInSiteComponent.clickOnAddButton(siteInfoForPeopleTab);
+        await appManagerFixture.page.reload();
+        await manageSitesComponentForAppManager.clickOnAddAnotherButtonAction();
+        const firstFollowerName = await appManagerApiFixture.siteManagementHelper.getFollowerNameExcluding(
+          siteInfoForPeopleTab,
+          [selectedUserName, anotherUserName]
+        );
+        await addPeopleInSiteComponent.fillAddPeopleInput(firstFollowerName);
+        await addPeopleInSiteComponent.verifyAlreadyMemberOrFollowerTagShouldBeVisible(firstFollowerName);
+      }
+    );
+
     test(
       'to verify the site ownership change in manage site people tab CONT-23662',
       {

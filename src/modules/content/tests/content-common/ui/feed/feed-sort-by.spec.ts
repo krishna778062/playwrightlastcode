@@ -16,7 +16,7 @@ import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 test.describe(
   '@FeedMultiUser - Verify Sort by Recent Activity shows shared posts accordingly',
   {
-    tag: [ContentTestSuite.FEED_MULTI_USER],
+    tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],
   },
   () => {
     let siteManagerFeedPage: FeedPage;

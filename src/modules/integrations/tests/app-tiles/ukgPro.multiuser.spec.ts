@@ -54,18 +54,15 @@ test.describe(
         await ukgSyncPage.loadPage();
         await ukgSyncPage.verifyThePageIsLoaded();
 
-        // Check UKG Pro checkbox and fill connection details
-        await ukgSyncPage.verifyScheduledSourcesCheckBox(SYNCING.UKG_PRO);
-        await ukgSyncPage.addUkgConnectionDetails(
+        await ukgSyncPage.connectUkgPro(
           SYNCING.UKG_PRO,
           UKG_CREDS.USERNAME,
           UKG_CREDS.PASSWORD,
           UKG_CREDS.BASE_URL,
           UKG_CREDS.KEY
         );
-        // Save the connection
-        await ukgSyncPage.clickOnButton(UI_ACTIONS.SAVE);
-        await ukgSyncPage.verifyToastMessageIsVisibleWithText(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
+
+        await ukgSyncPage.verifyToastMessage(MESSAGES.INTEGRATION_UPDATE_SUCCESS);
       }
     );
 

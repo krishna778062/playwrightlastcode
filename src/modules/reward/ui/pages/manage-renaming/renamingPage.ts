@@ -4,7 +4,7 @@ import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-m
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { TestDataGenerator } from '@/src/core';
+import { PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
 
 export class RenamingPage extends BasePage {
   readonly container: Locator;
@@ -38,7 +38,7 @@ export class RenamingPage extends BasePage {
   private rewardsStoreDefaultName: Locator;
 
   constructor(page: Page) {
-    super(page);
+    super(page, PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
     this.container = page.locator('[data-testid*="pageContainer"]');
     this.pageHeading = page.getByRole('heading', { name: 'Make recognition truly yours' });
     this.searchInput = page.getByPlaceholder('Search Recognition custom label...');
@@ -47,25 +47,13 @@ export class RenamingPage extends BasePage {
     this.pointsEditButton = page.getByRole('button', { name: 'Edit name for points' });
     this.rewardsStoreEditButton = page.getByRole('button', { name: 'Edit name for rewardsStore' });
 
-    this.recognitionCustomName = this.recognitionEditButton
-      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
-      .locator('h2[data-testid^="naming-card-name-"]');
-    this.pointsCustomName = this.pointsEditButton
-      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
-      .locator('h2[data-testid^="naming-card-name-"]');
-    this.rewardsStoreCustomName = this.rewardsStoreEditButton
-      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
-      .locator('h2[data-testid^="naming-card-name-"]');
+    this.recognitionCustomName = this.page.locator('[data-testid="naming-card-name-recognition"]');
+    this.pointsCustomName = this.page.locator('[data-testid="naming-card-name-points"]');
+    this.rewardsStoreCustomName = this.page.locator('[data-testid="naming-card-name-rewardsStore"]');
 
-    this.recognitionDefaultName = this.recognitionEditButton
-      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
-      .locator('p[data-testid^="naming-card-default-name-"]');
-    this.pointsDefaultName = this.pointsEditButton
-      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
-      .locator('p[data-testid^="naming-card-default-name-"]');
-    this.rewardsStoreDefaultName = this.rewardsStoreEditButton
-      .locator('xpath=ancestor::div[starts-with(@data-testid,"naming-card-")]')
-      .locator('p[data-testid^="naming-card-default-name-"]');
+    this.recognitionDefaultName = this.page.locator('[data-testid="naming-card-default-name-recognition"]');
+    this.pointsDefaultName = this.page.locator('[data-testid="naming-card-default-name-points"]');
+    this.rewardsStoreDefaultName = this.page.locator('[data-testid="naming-card-default-name-rewardsStore"]');
 
     this.recognitionCustomNameLabel = this.recognitionEditButton.locator('xpath=//parent::div//parent::div//span');
     this.pointsCustomNameLabel = this.pointsEditButton.locator('xpath=//parent::div//parent::div//span');
@@ -92,6 +80,13 @@ export class RenamingPage extends BasePage {
     this.dialogErrorMessage = this.dialogContainer
       .locator('[class*="error"], [class*="Error"]')
       .or(this.dialogContainer.getByText(/error|required|invalid/i));
+  }
+
+  async visit() {
+    await test.step('Visit to Manage Renaming page', async () => {
+      await this.page.goto(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
+      await this.verifyThePageIsLoaded();
+    });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -214,6 +209,8 @@ export class RenamingPage extends BasePage {
     await test.step(`Clicking Edit button for ${cardType}`, async () => {
       const editButton = this.getEditButtonByCardType(cardType);
       await this.clickOnElement(editButton, { stepInfo: `Clicking Edit button for ${cardType}` });
+      const dialog = new EditLabelModal(this.page);
+      await this.verifier.waitUntilElementIsVisible(dialog.getSaveButton(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
     });
   }
 
@@ -480,7 +477,7 @@ export class RenamingPage extends BasePage {
     await this.page.reload({ waitUntil: 'domcontentloaded' });
   }
 
-  async getTheNewCustomizedValue(cardType: string): Promise<string | null> {
+  async getTheNewCustomizedValue(cardType: 'recognition' | 'points' | 'rewardsStore'): Promise<string | null> {
     let locator: Locator;
     switch (cardType) {
       case 'rewardsStore':
@@ -497,5 +494,111 @@ export class RenamingPage extends BasePage {
     }
     await this.verifier.waitUntilElementIsVisible(locator);
     return await locator.textContent();
+  }
+
+  async enableTheLanguageInTenantIfNotEnabled(languages: string[]) {
+    await test.step('Enable tenant languages from General Settings if only default language is enabled', async () => {
+      const appConfigResponse = await this.performActionAndWaitForResponse(
+        async () => {
+          await this.page.goto(PAGE_ENDPOINTS.APPLICATION_GENERAL_SETTINGS_PAGE);
+          const locator = this.page.locator('legend').getByRole('heading', { name: 'Languages' });
+          await this.verifier.waitUntilElementIsVisible(locator, { timeout: TIMEOUTS.MEDIUM });
+        },
+        resp => resp.url().includes('/v1/account/appConfig') && resp.status() === 200,
+        { timeout: TIMEOUTS.MEDIUM, stepInfo: 'Navigate to General Settings and capture appConfig response' }
+      );
+
+      await appConfigResponse.json();
+      const count = languages.length;
+      let changes: boolean = false;
+      for (let i = 0; i < count; i++) {
+        const checkbox = this.page.getByRole('checkbox', { name: `${languages[i]}`, exact: true });
+        const isChecked = await checkbox.isChecked();
+        if (!isChecked) {
+          await checkbox.check();
+          changes = true;
+        } else {
+        }
+      }
+      if (changes) {
+        const saveButton = this.page.getByRole('button', { name: 'Save' }).first();
+        await saveButton.scrollIntoViewIfNeeded();
+        await this.clickOnElement(saveButton, { stepInfo: 'Click Save button on General Settings page' });
+        await this.verifyToastMessageIsVisibleWithText('Saved changes successfully', {
+          timeout: TIMEOUTS.SHORT,
+        });
+      }
+      await this.visit();
+    });
+  }
+
+  async unCheckAndCheckTheCustomLanguageForAll(status: 'checked' | 'unchecked', cardType: string): Promise<void> {
+    const editModal = new EditLabelModal(this.page);
+    if (status === 'checked') {
+      await this.checkElement(editModal.getCustomLabelForAllLanguageCheckbox(cardType));
+    } else {
+      await this.unCheckElement(editModal.getCustomLabelForAllLanguageCheckbox(cardType));
+    }
+  }
+
+  async enableTheOtherLanguageAndEnterCustomValue(cardType: 'recognition' | 'points' | 'rewardsStore') {
+    const editModal = new EditLabelModal(this.page);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    const otherLanguageCustomValueInputBox = editModal.getOtherLanguageCustomInputBox();
+    for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
+      await manualTranslationSwitches.nth(i).check();
+      await otherLanguageCustomValueInputBox
+        .nth(i)
+        .fill(`${cardType}_${i + 1}_Custom_Language_${TestDataGenerator.getRandomNo(0, 200)}`);
+    }
+    await this.clickOnSaveButton();
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+  }
+
+  async clickOnResetButton() {
+    const editModal = new EditLabelModal(this.page);
+    await this.clickOnElement(editModal.getResetAllTranslationToAutomatic());
+  }
+
+  async getTheDefaultTranslationValues(): Promise<string[]> {
+    const editModal = new EditLabelModal(this.page);
+
+    const stringArray: string[] = [];
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
+      await expect(
+        editModal.getOtherLanguageCustomInputBox(i),
+        'expecting other language input to have a non-empty value'
+      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_VERY_SHORT });
+      await expect(
+        editModal.getOtherLanguageCustomInputBox(i),
+        'expecting other language input to have a non-empty value'
+      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_VERY_SHORT });
+      stringArray.push(await editModal.getOtherLanguageCustomInputBox(i).inputValue());
+    }
+    return stringArray;
+  }
+
+  async validateTheLanguageDataRested(defaultOtherLanguageTranslationValue: string[]) {
+    const editModal = new EditLabelModal(this.page);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
+      await expect(
+        editModal.getOtherLanguageCustomInputBox(i),
+        'expecting other language input to have a non-empty value'
+      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_SHORT });
+      await expect(
+        editModal.getOtherLanguageCustomInputBox(i),
+        'expecting other language input to have a non-empty value'
+      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_SHORT });
+      expect(defaultOtherLanguageTranslationValue).toContain(
+        await editModal.getOtherLanguageCustomInputBox(i).inputValue()
+      );
+    }
+  }
+
+  async clickOnSaveButton() {
+    const editModal = new EditLabelModal(this.page);
+    await editModal.getSaveButton().click();
   }
 }

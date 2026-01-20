@@ -35,6 +35,7 @@ export class NewsletterEditorPage extends BasePage {
 
   // Additional locators for methods
   readonly backArrowLink: Locator;
+  readonly previewButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_NEWSLETTER_PAGE);
@@ -54,6 +55,9 @@ export class NewsletterEditorPage extends BasePage {
 
     // Additional locators for methods
     this.backArrowLink = this.page.getByTestId('i-arrowLeft');
+
+    // Preview button
+    this.previewButton = this.page.getByRole('button', { name: /preview/i });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -61,13 +65,16 @@ export class NewsletterEditorPage extends BasePage {
       // Wait for URL to confirm navigation completed
       await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
 
+      // Wait for network idle to ensure content is loaded
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+
       // Dismiss any blocking dialogs (e.g., survey prompts)
       await this.dismissSurveyPromptIfVisible();
 
       // Use the Create button as the primary verification element (more reliable than heading)
       // This matches the pattern used in NewsletterHomePagePage which uses searchInput
       await this.verifier.verifyTheElementIsVisible(this.createButton, {
-        timeout: TIMEOUTS.SHORT,
+        timeout: TIMEOUTS.MEDIUM,
         assertionMessage: 'Newsletter listing page should be loaded - Create button not visible',
       });
     });
@@ -183,6 +190,17 @@ export class NewsletterEditorPage extends BasePage {
       });
       // Wait for navigation to complete
       await this.page.waitForURL(/employee-newsletter/, { timeout: TIMEOUTS.SHORT });
+    });
+  }
+
+  /**
+   * Clicks the Preview button to open the newsletter preview
+   */
+  async clickPreviewButton(): Promise<void> {
+    await test.step('Click Preview button', async () => {
+      await this.clickOnElement(this.previewButton, {
+        stepInfo: 'Click Preview button',
+      });
     });
   }
 }

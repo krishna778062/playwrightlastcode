@@ -18,7 +18,7 @@ import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 test.describe(
   'feed Layout Tests',
   {
-    tag: [ContentTestSuite.FEED_LAYOUT],
+    tag: [ContentTestSuite.FEED_LAYOUT, ContentTestSuite.FEED],
   },
   () => {
     let homePage: NewHomePage;
