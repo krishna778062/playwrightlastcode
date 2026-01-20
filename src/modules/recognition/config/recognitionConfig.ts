@@ -276,8 +276,8 @@ export const config = {
     },
     qa: {
       tenantName: 'Recognition P2P Primary',
-      frontendBaseUrl: 'https://p2p-only-testing.qa.simpplr.xyz/',
-      apiBaseUrl: 'https://p2p-only-testing-api.qa.simpplr.xyz/',
+      frontendBaseUrl: 'https://p2p-only-testing.qa.simpplr.xyz',
+      apiBaseUrl: 'https://p2p-only-testing-api.qa.simpplr.xyz',
       appManagerEmail: 'charan.b@simpplr.com',
       appManagerName: 'Simpplr@1234',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',

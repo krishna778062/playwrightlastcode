@@ -109,7 +109,7 @@ export class UserProfilePage extends BasePage {
 
   async navigateToAnotherUserProfileViaUrl(userId: string, userName?: string): Promise<void> {
     await test.step(`Navigate to another user profile "${userName}"`, async () => {
-      const url = getRecognitionTenantConfigFromCache().frontendBaseUrl + 'people/' + userId;
+      const url = getRecognitionTenantConfigFromCache().frontendBaseUrl + '/people/' + userId;
       await this.page.goto(url);
       await this.verifyThePageIsLoaded();
       await this.recognizeButton.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_LONG });

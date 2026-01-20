@@ -39,7 +39,7 @@ export const PAGE_ENDPOINTS = {
   IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
   // Recognition pages
-  FEED: 'feed',
+  FEED: '/feed',
   SEARCH_SITE_FEED: 'sites/search?term=',
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
