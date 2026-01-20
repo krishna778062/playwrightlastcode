@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
@@ -7,16 +7,28 @@ import { CustomApiActionsComponent } from '@/src/modules/integrations/ui/compone
 
 export class CustomApiActionsPage extends BasePage {
   readonly customApiActionsComponent: CustomApiActionsComponent;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.API_ACTIONS_PAGE);
     this.customApiActionsComponent = new CustomApiActionsComponent(page);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.resultListApiActionsItemCountLocator, {
-      timeout: TIMEOUTS.MEDIUM,
-      assertionMessage:
-        'Verifying that the custom api actions page is loaded by asserting result list item count presence',
+    await test.step('Verify the page is loaded', async () => {
+      // Wait for network to be idle to ensure page is fully loaded
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+
+      // Use the paragraph with API actions count as it's more reliable
+      await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.apiActionCountText, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage:
+          'Verifying that the custom api actions page is loaded by asserting API action count text presence',
+      });
+      // Also verify the Create API action button is visible to ensure page is fully loaded
+      await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.createApiActionButton, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: 'Verifying that the Create API action button is visible',
+      });
     });
   }
 
@@ -85,5 +97,41 @@ export class CustomApiActionsPage extends BasePage {
    */
   async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
     return this.customApiActionsComponent.selectStatusFilter(status);
+  }
+
+  async selectSortBy(sortBy: 'Last updated' | 'Date created' | 'Name'): Promise<void> {
+    return this.customApiActionsComponent.selectSortBy(sortBy);
+  }
+
+  async selectSortOrder(order: 'Newest first' | 'Oldest first'): Promise<void> {
+    return this.customApiActionsComponent.selectSortOrder(order);
+  }
+
+  async verifySortDropdownLabel(expectedLabel: string): Promise<void> {
+    return this.customApiActionsComponent.verifySortDropdownLabel(expectedLabel);
+  }
+
+  async verifyApiActionsSortedAlphabeticallyAZ(): Promise<void> {
+    return this.customApiActionsComponent.verifyApiActionsSortedAlphabeticallyAZ();
+  }
+
+  async verifyApiActionsSortedAlphabeticallyZA(): Promise<void> {
+    return this.customApiActionsComponent.verifyApiActionsSortedAlphabeticallyZA();
+  }
+
+  async verifyApiActionCountDisplayed(): Promise<void> {
+    return this.customApiActionsComponent.verifyApiActionCountDisplayed();
+  }
+
+  async getApiActionCount(): Promise<number> {
+    return this.customApiActionsComponent.getApiActionCount();
+  }
+
+  async verifyApiActionCountIsGreaterThanZero(): Promise<void> {
+    return this.customApiActionsComponent.verifyApiActionCountIsGreaterThanZero();
+  }
+
+  async verifyCreateApiActionButtonNavigation(): Promise<void> {
+    return this.customApiActionsComponent.verifyCreateApiActionButtonNavigation();
   }
 }
