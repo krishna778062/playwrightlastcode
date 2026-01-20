@@ -65,25 +65,25 @@ test.describe(
         );
         await appManagerContentPreviewPage.loadPage();
         await appManagerContentPreviewPage.verifyThePageIsLoaded();
-        await appManagerContentPreviewPage.assertions.verifyCommentOptionIsVisible();
-        await appManagerContentPreviewPage.actions.clickShareThoughtsButton();
+        await appManagerContentPreviewPage.verifyCommentOptionIsVisible();
+        await appManagerContentPreviewPage.clickShareThoughtsButton();
 
         const testComment = 'Test comment from automation';
         const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
-        const commentResponse = await createFeedPostComponent.actions.createAndPost({ text: testComment });
+        const commentResponse = await createFeedPostComponent.createAndPost({ text: testComment });
 
         // Verify comment is visible
-        await appManagerContentPreviewPage.assertions.waitForPostToBeVisible(commentResponse.postText);
+        await appManagerContentPreviewPage.waitForPostToBeVisible(commentResponse.postText);
         await standardUserFixture.navigationHelper.clickOnBellIcon({
           stepInfo: 'Standard User clicking on bell icon to view notifications',
         });
         const notificationComponent = new NotificationComponent(standardUserFixture.page);
-        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+        const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
         const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
           users.appManager.email
         );
         const notificationMessage = `${appManagerInfo.fullName} commented on your page "${pageInfo.pageName}"`;
-        await activityNotificationPage.assertions.verifyNotificationExists(notificationMessage);
+        await activityNotificationPage.verifyNotificationExists(notificationMessage);
 
         // TODO: Verify that standardUser receives notification about the comment
       }
