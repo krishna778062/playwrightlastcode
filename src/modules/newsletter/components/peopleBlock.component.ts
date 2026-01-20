@@ -188,16 +188,12 @@ export class PeopleBlockComponent extends BaseActionUtil {
 
   /**
    * Clears the sidebar search field and types a new person name
-   * @param currentPersonName - The current person name displayed (not used, for compatibility)
    * @param newPersonName - The new person name to search for
    */
-  async sideBarSearchFieldClearAndTypeAgain(currentPersonName: string, newPersonName: string): Promise<void> {
+  async sideBarSearchFieldClearAndTypeAgain(newPersonName: string): Promise<void> {
     await test.step(`Clear search and type: ${newPersonName}`, async () => {
-      // Clear the input field
       await this.sidebarPersonSearchCombobox.clear();
-      // Type the new person name
       await this.sidebarPersonSearchCombobox.fill(newPersonName);
-      // Wait for dropdown to populate
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     });
   }
@@ -224,14 +220,11 @@ export class PeopleBlockComponent extends BaseActionUtil {
    */
   async selectAndVerifyPeopleNames(personNames: string[]): Promise<void> {
     await test.step(`Verify ${personNames.length} people are displayed as cards`, async () => {
-      await expect(this.cardListing, `Should have at least ${personNames.length} cards`).toHaveCount(
-        await this.cardListing.count().then(count => {
-          expect(count, `Expected at least ${personNames.length} cards, found ${count}`).toBeGreaterThanOrEqual(
-            personNames.length
-          );
-          return count;
-        })
-      );
+      const actualCount = await this.cardListing.count();
+      expect(
+        actualCount,
+        `Should have at least ${personNames.length} cards, found ${actualCount}`
+      ).toBeGreaterThanOrEqual(personNames.length);
 
       for (const personName of personNames) {
         const boldParagraph = this.cardListing

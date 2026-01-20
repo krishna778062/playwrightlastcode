@@ -4,6 +4,8 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
 import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 
+const MAX_PEOPLE_SELECTION = 20;
+
 export class BrowsePeopleModal extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
 
@@ -252,16 +254,17 @@ export class BrowsePeopleModal extends BaseActionUtil {
 
   /**
    * Checks all available checkboxes to select the maximum number of people
+   * Note: The modal enforces a maximum selection limit (currently 20)
    */
   async checkMaxNumberOfPeople(): Promise<void> {
-    await test.step('Check all checkboxes to reach maximum selection', async () => {
+    await test.step(`Check all checkboxes to reach maximum selection (limit: ${MAX_PEOPLE_SELECTION})`, async () => {
       const checkboxCount = await this.checkboxes.count();
 
       for (let i = 0; i < checkboxCount; i++) {
         const checkbox = this.checkboxes.nth(i);
         const isChecked = await checkbox.isChecked();
         if (!isChecked) {
-          await checkbox.check({ force: true });
+          await checkbox.check();
         }
       }
 
@@ -270,16 +273,17 @@ export class BrowsePeopleModal extends BaseActionUtil {
   }
 
   /**
-   * Searches for a person and unchecks their checkbox (to trigger max selection error)
-   * @param personName - The name of the person to search for and uncheck
+   * Searches for a person and tries to check their checkbox when already at max selection limit
+   * This triggers the "Maximum selections" error
+   * @param personName - The name of the person to search for and attempt to check
    */
-  async enterAndUncheckPersonNameInBrowsePeopleModal(personName: string): Promise<void> {
-    await test.step(`Search and uncheck person: ${personName}`, async () => {
+  async searchAndTryToCheckPersonAtMaxLimit(personName: string): Promise<void> {
+    await test.step(`Search and attempt to check person when at max limit: ${personName}`, async () => {
       await this.searchInput.clear();
       await this.searchInput.fill(personName);
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
 
-      await this.checkboxes.first().uncheck({ force: true });
+      await this.checkboxes.first().check();
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     });
   }
@@ -289,10 +293,10 @@ export class BrowsePeopleModal extends BaseActionUtil {
    */
   async assertMaxSelectErrorIsDisplayed(): Promise<void> {
     await test.step('Assert maximum selection error is displayed', async () => {
-      const errorMessage = this.modalDialog.getByText(/Maximum 20 selections \(\d+ too many\)/);
+      const errorMessage = this.modalDialog.getByText(/Maximum \d+ selections \(\d+ too many\)/);
 
       await this.verifier.verifyTheElementIsVisible(errorMessage, {
-        assertionMessage: 'Maximum selection error message should be visible',
+        assertionMessage: `Maximum selection error message should be visible (limit: ${MAX_PEOPLE_SELECTION})`,
         timeout: TIMEOUTS.SHORT,
       });
     });

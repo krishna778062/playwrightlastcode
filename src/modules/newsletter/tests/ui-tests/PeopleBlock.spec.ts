@@ -97,21 +97,13 @@ test.describe('Newsletter People Block - Smart Blocks', { tag: [NEWSLETTER_SUITE
       });
 
       await peopleBlockComponent.clickPeopleBlock();
-
       await peopleBlockComponent.assertPeopleBlockIsDisplayed();
-
       await peopleBlockComponent.clickBrowse();
-
       await peopleBlockComponent.assertPeopleModalIsDisplayed();
-
       await browsePeopleModal.selectUserCategory('Test Analysts');
-
       await browsePeopleModal.handleNoResultsAndSelectFirstPerson();
-
       await browsePeopleModal.clickAdd();
-
       await newsletterEditorPage.clickOntoStagingOuterArea();
-
       await peopleBlockComponent.assertFirstPersonCardIsDisplayed();
     }
   );
@@ -160,9 +152,9 @@ test.describe('Newsletter People Block - Smart Blocks', { tag: [NEWSLETTER_SUITE
       await peopleBlockComponent.assertPeopleBlockIsDisplayed();
       await peopleBlockComponent.enterPersonNameInSidebarSearchField('Dev Test');
       await peopleBlockComponent.selectPersonName('Dev Test');
-      await peopleBlockComponent.sideBarSearchFieldClearAndTypeAgain('Dev Test', 'Tarl');
+      await peopleBlockComponent.sideBarSearchFieldClearAndTypeAgain('Tarl');
       await peopleBlockComponent.selectPersonName('Tarl Jackson');
-      await peopleBlockComponent.sideBarSearchFieldClearAndTypeAgain('Tarl Jackson', 'Ankit');
+      await peopleBlockComponent.sideBarSearchFieldClearAndTypeAgain('Ankit');
       await peopleBlockComponent.selectPersonName('Ankit Gupta');
       await peopleBlockComponent.checkCards();
       await peopleBlockComponent.selectAndVerifyPeopleNames(PERSON_NAMES);
@@ -215,7 +207,7 @@ test.describe('Newsletter People Block - Smart Blocks', { tag: [NEWSLETTER_SUITE
   );
 
   test(
-    'People Picker Modal - When max number of people selected, users can still select people',
+    'Add people block then verify max selection limit error',
     {
       tag: [NEWSLETTER_FEATURE_TAGS.NEWSLETTER_HOME_PAGE, TestPriority.P1, TestGroupType.REGRESSION],
     },
@@ -234,7 +226,7 @@ test.describe('Newsletter People Block - Smart Blocks', { tag: [NEWSLETTER_SUITE
       await browsePeopleModal.assertPeopleListAreDisplayedOnModal();
       await browsePeopleModal.clickOnShowMoreButton();
       await browsePeopleModal.checkMaxNumberOfPeople();
-      await browsePeopleModal.enterAndUncheckPersonNameInBrowsePeopleModal(PERSON_NAMES[0]);
+      await browsePeopleModal.searchAndTryToCheckPersonAtMaxLimit(PERSON_NAMES[0]);
       await browsePeopleModal.assertMaxSelectErrorIsDisplayed();
     }
   );
