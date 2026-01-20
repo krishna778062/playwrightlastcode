@@ -131,7 +131,12 @@ export class PercentageMetric extends BaseComponent {
       if (totalSourcesCount > 0) {
         percentage = (metricCount / totalSourcesCount) * 100;
       }
-      const formattedPercentage = percentage.toFixed(1); // Round to 1 decimal place
+      // Round to 1 decimal place, but show whole number if decimal is 0
+      const roundedPercentage = Math.round(percentage * 10) / 10;
+      const formattedPercentage =
+        roundedPercentage % 1 === 0
+          ? roundedPercentage.toFixed(0) // Whole number: "33"
+          : roundedPercentage.toFixed(1); // With decimal: "33.5"
 
       const expectedKpiLabel = formatKpiLabel(this.config.kpiLabelTemplate, `${formattedPercentage}%`);
 
