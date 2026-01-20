@@ -236,7 +236,7 @@ export class CreateFeedPostComponent extends BaseComponent {
     this.memberDropdown = this.page.getByLabel('Members').getByRole('button');
     this.ownerAndManagerDropdown = this.page.getByLabel('Owners & managers').getByRole('button');
     this.memberCheckbox = this.page.getByLabel('Non-managing members').getByRole('checkbox');
-    this.ownerCheckbox = this.page.getByText('Owner', { exact: true }).last();
+    this.ownerCheckbox = this.page.getByLabel('Owner', { exact: true }).getByText('Owner', { exact: true });
     this.managerCheckbox = this.page.getByText('Managers', { exact: true });
     this.contentManagerCheckbox = this.page.getByLabel('Content managers').getByRole('checkbox');
 
