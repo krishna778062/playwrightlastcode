@@ -220,7 +220,7 @@ export class CreateFeedPostComponent extends BaseComponent {
     this.limitVisibilityToggle = this.page.getByRole('switch').first();
     this.limitVisibilityLabel = this.page.getByRole('button', { name: 'Limited visibility' });
     this.audiencePickerDialog = this.page.getByRole('dialog', { name: 'Audiences' });
-    this.audiencePickerButton = this.page.getByRole('button', { name: 'Browse' });
+    this.audiencePickerButton = this.page.getByRole('button', { name: 'Browse', exact: true });
     this.removeAudienceButton = this.page.getByRole('button', { name: 'Remove audience' });
     this.audienceSearchInput = this.page.getByRole('textbox', { name: 'Search…' });
     this.audienceSearchButton = this.page.getByRole('button', { name: 'Search' });
@@ -233,8 +233,8 @@ export class CreateFeedPostComponent extends BaseComponent {
     // Role-based restricted viewers locators
     this.siteDropdown = this.page.getByLabel('Site', { exact: true }).getByRole('button');
     this.siteSecondDropdown = this.page.locator('[data-testid="i-arrowRight"]').first();
-    this.memberDropdown = this.page.getByLabel('Members').getByRole('button');
-    this.ownerAndManagerDropdown = this.page.getByLabel('Owners & managers').getByRole('button');
+    this.memberDropdown = this.page.getByLabel('Members').getByRole('button').first();
+    this.ownerAndManagerDropdown = this.page.getByLabel('Owners & managers').getByRole('button').first();
     this.memberCheckbox = this.page.getByLabel('Non-managing members').getByRole('checkbox');
     this.ownerCheckbox = this.page.getByLabel('Owner', { exact: true }).getByText('Owner', { exact: true });
     this.managerCheckbox = this.page.getByText('Managers', { exact: true });
