@@ -178,6 +178,7 @@ export class GiveRecognitionDialogBox extends DialogBox {
    */
   async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<string> {
     if (typeof awardName === 'string') {
+      await this.selectPeerRecognitionInput.isEnabled();
       await this.selectPeerRecognitionInput.click();
       await this.selectPeerRecognitionInput.fill(awardName);
       await this.suggesterContainer.waitFor({ state: 'visible' });
@@ -195,6 +196,8 @@ export class GiveRecognitionDialogBox extends DialogBox {
    * Enter the recognition message
    */
   async enterTheRecognitionMessage(message: string): Promise<string | void> {
+    await this.descriptionTextArea.waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
+    await this.descriptionTextArea.isEnabled();
     await this.descriptionTextArea.fill(message);
     return message;
   }

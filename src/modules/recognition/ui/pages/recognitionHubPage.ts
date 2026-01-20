@@ -223,7 +223,10 @@ export class RecognitionHubPage extends BasePage {
         }
         await this.shareButton.click();
       } else {
-        await this.skipButton.click();
+        if ((await this.skipButton.count()) > 0) {
+          await this.skipButton.waitFor({ state: 'attached' });
+          await this.skipButton.click();
+        }
       }
     });
   }
