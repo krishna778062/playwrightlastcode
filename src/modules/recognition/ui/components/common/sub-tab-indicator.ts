@@ -42,6 +42,15 @@ export class SubTabIndicator extends BasePage {
   }
 
   /**
+   * This method returns a locator for indicator tab by role.
+   * @param {string} tabName - name of the tab
+   * @returns {Locator} - The locator for the redeem button
+   */
+  getTabByRole(tabName: string): Locator {
+    return this.page.getByRole('tab', { name: `${tabName}`, exact: true });
+  }
+
+  /**
    * This method returns a locator for table cell.
    * @param {string} cellValue - inner text of cell
    * @returns {Locator} - The locator for the redeem button
@@ -134,9 +143,7 @@ export class SubTabIndicator extends BasePage {
       return;
     }
     await this.getThreeDotsButton(0).click();
-    // await expect(this.deleteMenuItem).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     await this.deleteMenuItem.click();
-    // await expect(this.deleteButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     await this.deleteButton.click();
   }
 }

@@ -1,4 +1,5 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { getRecognitionTenantConfigFromCache } from '@recognition/config/recognitionConfig';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -10,6 +11,8 @@ export class UserProfilePage extends BasePage {
   readonly viewRecognitionLink: Locator;
   readonly viewProfileLink: Locator;
   readonly profileAvatarButton: Locator;
+  readonly recognizeButton: Locator;
+  readonly viewAllRecognitionButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.HOME_PAGE) {
     super(page, pageUrl);
@@ -18,6 +21,8 @@ export class UserProfilePage extends BasePage {
     this.recognitionAwardsHeader = page.getByRole('heading', { name: 'Recognition & awards' });
     this.awardTitleCards = page.locator('[class*="Utils_contentWrapper"] a h4');
     this.viewRecognitionLink = page.getByRole('link', { name: /View recognition/i }).first();
+    this.recognizeButton = page.getByRole('button', { name: 'Recognize' }).first();
+    this.viewAllRecognitionButton = page.getByText(/view all recognition/i);
   }
 
   /**
@@ -37,6 +42,12 @@ export class UserProfilePage extends BasePage {
   async navigateToReceivedAwardFromUserProfile(awardName: string, awardType?: string): Promise<void> {
     await test.step(`Open received award "${awardName}" of type "${awardType}" from user profile`, async () => {
       await this.verifyThePageIsLoaded();
+      if (await this.viewAllRecognitionButton.isVisible()) {
+        await this.viewAllRecognitionButton.scrollIntoViewIfNeeded();
+        await this.clickOnElement(this.viewAllRecognitionButton, {
+          stepInfo: 'Clicking on View all recognition button',
+        });
+      }
       await expect
         .poll(async () => this.awardTitleCards.count(), {
           message: 'Award cards should be visible on user profile',
@@ -93,6 +104,18 @@ export class UserProfilePage extends BasePage {
         stepInfo: 'Clicking on view profile link',
       });
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  async navigateToAnotherUserProfileViaUrl(userId: string, userName?: string): Promise<void> {
+    await test.step(`Navigate to another user profile "${userName}"`, async () => {
+      const url = getRecognitionTenantConfigFromCache().frontendBaseUrl + 'people/' + userId;
+      await this.page.goto(url);
+      await this.verifyThePageIsLoaded();
+      await this.recognizeButton.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_LONG });
+      await expect(this.recognizeButton, 'Recognize button in user profile should be visible').toBeVisible({
+        timeout: TIMEOUTS.VERY_LONG,
+      });
     });
   }
 }
