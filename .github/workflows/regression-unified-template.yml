@@ -871,6 +871,54 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
+
+            # ──────────────────────────────────────────────────────────
+            # INTEGRATIONS MODULES
+            # All integrations configs are in src/modules/integrations/
+            # Maps module names to their specific config files
+            # Note: MODULE_NAME must be set to 'integrations' for envLoader
+            # to find env files in src/modules/integrations/env/
+            # Export it before eval so it's available when config loads
+            # ──────────────────────────────────────────────────────────
+            "integrations-primary")
+              echo "📦 Running Integrations Primary tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-workday")
+              echo "📦 Running Integrations Workday tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-workday.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-azuresso")
+              echo "📦 Running Integrations Azure SSO tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-azuresso.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-okta")
+              echo "📦 Running Integrations Okta tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-okta.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-api")
+              echo "📦 Running Integrations API tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-api.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
             
             # ──────────────────────────────────────────────────────────
             # STANDARD MODULES
