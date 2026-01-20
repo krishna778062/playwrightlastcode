@@ -282,7 +282,7 @@ test.describe(
         await customAppsPage.verifyAppsSortedAlphabeticallyZA();
         await customAppsPage.selectSortBy('Date created');
         await customAppsPage.verifyThePageIsLoaded();
-        await customAppsPage.selectSortBy('Last used');
+        await customAppsPage.selectSortBy('Last updated');
         await customAppsPage.verifyThePageIsLoaded();
       }
     );
@@ -2575,6 +2575,7 @@ test.describe(
 
         // Verify duplicate name error message is displayed
         await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CUSTOM_APP_NAME_ALREADY_EXISTS);
+        await customAppsPage.verifyToastMessageIsVisibleWithText(MESSAGES.CUSTOM_APP_NAME_ALREADY_EXISTS_MESSAGE);
       }
     );
 

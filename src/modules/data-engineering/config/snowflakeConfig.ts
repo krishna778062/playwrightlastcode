@@ -5,7 +5,7 @@
  * Usage: getSnowflakeConfig() returns config for current TEST_ENV
  */
 
-export type SnowflakeEnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU' | 'prodUS' | 'dev';
+export type SnowflakeEnvironmentKey = 'qa' | 'test' | 'uat' | 'uatCA' | 'uatAU' | 'uatEU' | 'prodUS' | 'dev';
 
 export interface SnowflakeEnvironmentConfig {
   account: string;
@@ -54,6 +54,24 @@ const snowflakeConfig: Record<SnowflakeEnvironmentKey, SnowflakeEnvironmentConfi
     database: 'SIMPPLR_COMMON_TENANT',
     warehouse: 'WH_SIMPPLR_COMMON_TENANT_REPORTING',
   },
+  uatCA: {
+    account: 'yh65600.ca-central-1.privatelink',
+    username: 'USER_DE_QA_AUTOMATION_READ',
+    passphrase: 'c25vd2ZsYWtl',
+    privateKey:
+      'LS0tLS1CRUdJTiBFTkNSWVBURUQgUFJJVkFURSBLRVktLS0tLQpNSUlGSkRCV0Jna3Foa2lHOXcwQkJRMHdTVEF4QmdrcWhraUc5dzBCQlF3d0pBUVFIUzBmY2JnTHZESmRCc3RkCmtjcm5CQUlDQ0FBd0RBWUlLb1pJaHZjTkFna0ZBREFVQmdncWhraUc5dzBEQndRSTRSRk40aTRpaTVFRWdnVEkKalZDUDgzOE4zSCs5S1pnY0xFU2tIcXpTdWxmRjl3bWNacW5VNFRHWUZOUUhmRHVmS1FiemtMc2IwbGl1cTlUdwplQUpYMjluSEhIalpDeFE1NCsvbS9FWkJNd2VEUS9CNnY0UDZwOEFQbGI2eTlDaXZWTDR0Y2I0Qk82eTNqa1RJCm9OaUsxQlNLNVpDZkhPZEsya1Z6ZFROOGlvbFZIV0JkQ1ZwWXE1amQ2Wit5emVwSjlYTHpSemJpaHc0K1NUMTEKSFh5S2F2L1VoM0g3TllwRE5BbERuai82bzNXeEtOMjJFVU5nNlVaa05aeDhLemlRai9wYkR6Rk1xdG1EdC9RVgpCUzY1Z3VCd1BabWt2dmJHL2ZoamhxMHRqcVNYakJSS1NTL3dld3dtZUtueGpKcnFuUWN6WkVQeFowaFByVXRKCkRaenZxYU1xUGxUc3ROeU02RUErYm95M2pWRWwwK1djUkFVMG9lVXBkMWEzenVFdVBDamFqaGJmbjlUOHlZc20KV1NjRGN6bVZjbXhBeDNpYllQYVJoZkl6QkFXOThqSHgvam9tN3ZHYS95WDAxSmtNRG4remU0ZStIU1p0NVlLSApPZllZZGQ3Smt1UG5xU29FQzhoZGVlSXUwbkpXajBsUkxzVkJGZ3ZyT3BXdUFQZFdLZDJKQ3ZCUGtLeUplY2pTCmQvdTFhRXNKL2tURVpNNDUzQ0JCamlUSm5wY2pVdDlPYldVNklFeWFOMmN3ZFBxalVPN2NiZHgveHNNR2NHSjgKcExxdUVKanJhaEh2WVZDbHo4djhScjMyTS80QW5kNCtzYzIrZ0ljOC8xdWVBTk80UVVNR1FLdlVHdDdqakhwNwpjRTBlMDZ3aUsvZDQvRkZiR3JhNkRDVVNIV011VXhvK25NanVqbG4yQ3F2cFRMNVoyNE9iN2dmK2UyUEE1SXlCCjBFdnliWVNDQVdad1EzM2t5Sm1YSy8rbW9pSDMxQTkwd3ZueHkyQnRJb2xDYlRycGpYZzBwb1l6UldpWUpSWDgKdUlpSGFlL0p3UXArVDJqZUVXT04wRjVrSTRUc0lMa0trVEQyTTBnSFFGeWNhd3RoVkk1QlVWSUxtSEVWVkZEcQpjNVVTYW80T1kzWlNYWmhRRElQMFVxYitEZllWQWptcjMrYmlKVllIc3dWTWUvcTVtREM4ZWtUQmFydUVvMldsCm5LMEpJTFFBSGhmbm9lMXQyOGpya01xU1dubi9VSHlHdDY1ZlFxMEJpWU9RUGNveUt5VCtGem5URFQvcG9LcWwKTFlVYXVJblhPSlNqZTkxWjllYVN2dWJEN0FhcGwrZGpHSEJzM1RjMjFVVzREODd3cXgzV2xlcUFxb0tnQzI4Ygo5SWdoSDRMZEVTMFltRzFCS3lyaDU5Nlp5L0ZhOGRycjM0MzVSUFBjNHBEcTEzelpCOTJQM0s1dVhuTTRGRE1OCmFCaUxWZnNkS3hDalJrYmRuaGIvdkROUytjZWNoNVArZjZac2NmZCtESUJEdWx6RHdkR05Mb2tybWxPQyttTUEKZDFaelVibGJIZENhOFYwYVlOUFB0d0dXV1lkMWh6dWd0bXhXdUVLZnhTOHNSTU05a1FsZGYzMFZ2WHo5aVJpTwozZ05uakxTaDJTbzRzTDlMbHFEL1hrU01KZFJBaE03OTh0SFVTdjFUWkpHVmEvcVMzbCtNbEFwWUh3dksvc1JyCjVOU2VTV0JtK2ppTG5vZmhQSm5TeXdnRk0wbXV0Zi9RNWFXYjBkK25TcGFqRlc2VkNBZ2EyNUgwSTNVRzFFVlAKV2ZFRHh4RVdsMTdrRkNITGJaQk85bjIydU05SEFnemJiNlEwRmpoWEVzbktPRjlvVWZBNTRTL0QrNnpsYTBMZwpVZWFWTjFXV0JOa3h3bC9JRmt5VjRHdzkyd2pUQkoxRTdYdmNLTzZUbGlyTnF0U0tiWGhjQWE1emlBcjJyT2tGClh3aW5lQXA2SUVJUFlsU0Q1MnpOakN3Vm02Uy9lZ1VjYnZ1RlRlYStSekhQYlA2OUVrVDM0dHhHc3NYdkpWMGMKczdMeW1JQVBFY1dBUFhMRjh5SXdTUGo2NzhCajNhSmFHOTNYUzFTMDdmYTVjZDUvL1RkeTVZSllCcVAydkg2SApvelhJY3Qza3VQTFhXd1V0NnBWZlRUMzJxaHJaNXJnRgotLS0tLUVORCBFTkNSWVBURUQgUFJJVkFURSBLRVktLS0tLQo=',
+    database: 'COMMON_TENANT_UAT_CA',
+    warehouse: 'WH_REPORTING',
+  },
+  uatAU: {
+    account: 'jz88625.ap-southeast-2.privatelink',
+    username: 'USER_DE_QA_AUTOMATION_READ',
+    passphrase: 'c25vd2ZsYWtl',
+    privateKey:
+      'LS0tLS1CRUdJTiBFTkNSWVBURUQgUFJJVkFURSBLRVktLS0tLQpNSUlGSkRCV0Jna3Foa2lHOXcwQkJRMHdTVEF4QmdrcWhraUc5dzBCQlF3d0pBUVFIUzBmY2JnTHZESmRCc3RkCmtjcm5CQUlDQ0FBd0RBWUlLb1pJaHZjTkFna0ZBREFVQmdncWhraUc5dzBEQndRSTRSRk40aTRpaTVFRWdnVEkKalZDUDgzOE4zSCs5S1pnY0xFU2tIcXpTdWxmRjl3bWNacW5VNFRHWUZOUUhmRHVmS1FiemtMc2IwbGl1cTlUdwplQUpYMjluSEhIalpDeFE1NCsvbS9FWkJNd2VEUS9CNnY0UDZwOEFQbGI2eTlDaXZWTDR0Y2I0Qk82eTNqa1RJCm9OaUsxQlNLNVpDZkhPZEsya1Z6ZFROOGlvbFZIV0JkQ1ZwWXE1amQ2Wit5emVwSjlYTHpSemJpaHc0K1NUMTEKSFh5S2F2L1VoM0g3TllwRE5BbERuai82bzNXeEtOMjJFVU5nNlVaa05aeDhLemlRai9wYkR6Rk1xdG1EdC9RVgpCUzY1Z3VCd1BabWt2dmJHL2ZoamhxMHRqcVNYakJSS1NTL3dld3dtZUtueGpKcnFuUWN6WkVQeFowaFByVXRKCkRaenZxYU1xUGxUc3ROeU02RUErYm95M2pWRWwwK1djUkFVMG9lVXBkMWEzenVFdVBDamFqaGJmbjlUOHlZc20KV1NjRGN6bVZjbXhBeDNpYllQYVJoZkl6QkFXOThqSHgvam9tN3ZHYS95WDAxSmtNRG4remU0ZStIU1p0NVlLSApPZllZZGQ3Smt1UG5xU29FQzhoZGVlSXUwbkpXajBsUkxzVkJGZ3ZyT3BXdUFQZFdLZDJKQ3ZCUGtLeUplY2pTCmQvdTFhRXNKL2tURVpNNDUzQ0JCamlUSm5wY2pVdDlPYldVNklFeWFOMmN3ZFBxalVPN2NiZHgveHNNR2NHSjgKcExxdUVKanJhaEh2WVZDbHo4djhScjMyTS80QW5kNCtzYzIrZ0ljOC8xdWVBTk80UVVNR1FLdlVHdDdqakhwNwpjRTBlMDZ3aUsvZDQvRkZiR3JhNkRDVVNIV011VXhvK25NanVqbG4yQ3F2cFRMNVoyNE9iN2dmK2UyUEE1SXlCCjBFdnliWVNDQVdad1EzM2t5Sm1YSy8rbW9pSDMxQTkwd3ZueHkyQnRJb2xDYlRycGpYZzBwb1l6UldpWUpSWDgKdUlpSGFlL0p3UXArVDJqZUVXT04wRjVrSTRUc0lMa0trVEQyTTBnSFFGeWNhd3RoVkk1QlVWSUxtSEVWVkZEcQpjNVVTYW80T1kzWlNYWmhRRElQMFVxYitEZllWQWptcjMrYmlKVllIc3dWTWUvcTVtREM4ZWtUQmFydUVvMldsCm5LMEpJTFFBSGhmbm9lMXQyOGpya01xU1dubi9VSHlHdDY1ZlFxMEJpWU9RUGNveUt5VCtGem5URFQvcG9LcWwKTFlVYXVJblhPSlNqZTkxWjllYVN2dWJEN0FhcGwrZGpHSEJzM1RjMjFVVzREODd3cXgzV2xlcUFxb0tnQzI4Ygo5SWdoSDRMZEVTMFltRzFCS3lyaDU5Nlp5L0ZhOGRycjM0MzVSUFBjNHBEcTEzelpCOTJQM0s1dVhuTTRGRE1OCmFCaUxWZnNkS3hDalJrYmRuaGIvdkROUytjZWNoNVArZjZac2NmZCtESUJEdWx6RHdkR05Mb2tybWxPQyttTUEKZDFaelVibGJIZENhOFYwYVlOUFB0d0dXV1lkMWh6dWd0bXhXdUVLZnhTOHNSTU05a1FsZGYzMFZ2WHo5aVJpTwozZ05uakxTaDJTbzRzTDlMbHFEL1hrU01KZFJBaE03OTh0SFVTdjFUWkpHVmEvcVMzbCtNbEFwWUh3dksvc1JyCjVOU2VTV0JtK2ppTG5vZmhQSm5TeXdnRk0wbXV0Zi9RNWFXYjBkK25TcGFqRlc2VkNBZ2EyNUgwSTNVRzFFVlAKV2ZFRHh4RVdsMTdrRkNITGJaQk85bjIydU05SEFnemJiNlEwRmpoWEVzbktPRjlvVWZBNTRTL0QrNnpsYTBMZwpVZWFWTjFXV0JOa3h3bC9JRmt5VjRHdzkyd2pUQkoxRTdYdmNLTzZUbGlyTnF0U0tiWGhjQWE1emlBcjJyT2tGClh3aW5lQXA2SUVJUFlsU0Q1MnpOakN3Vm02Uy9lZ1VjYnZ1RlRlYStSekhQYlA2OUVrVDM0dHhHc3NYdkpWMGMKczdMeW1JQVBFY1dBUFhMRjh5SXdTUGo2NzhCajNhSmFHOTNYUzFTMDdmYTVjZDUvL1RkeTVZSllCcVAydkg2SApvelhJY3Qza3VQTFhXd1V0NnBWZlRUMzJxaHJaNXJnRgotLS0tLUVORCBFTkNSWVBURUQgUFJJVkFURSBLRVktLS0tLQo=',
+    database: 'COMMON_TENANT_UAT_AU',
+    warehouse: 'WH_REPORTING',
+  },
   uatEU: {
     account: 'du23719.eu-west-1.privatelink',
     username: 'USER_DE_QA_AUTOMATION_READ',
@@ -74,7 +92,7 @@ const snowflakeConfig: Record<SnowflakeEnvironmentKey, SnowflakeEnvironmentConfi
   },
 };
 
-const VALID_ENVS: SnowflakeEnvironmentKey[] = ['qa', 'test', 'uat', 'uatEU', 'prodUS', 'dev'];
+const VALID_ENVS: SnowflakeEnvironmentKey[] = ['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS', 'dev'];
 
 /**
  * Get Snowflake configuration for the current environment (based on TEST_ENV)
@@ -87,4 +105,44 @@ export function getSnowflakeConfig(): SnowflakeEnvironmentConfig {
   }
 
   return snowflakeConfig[testEnv];
+}
+
+/**
+ * The default/placeholder database name used in SQL query templates.
+ * This will be replaced at runtime with the actual database name for the current environment.
+ */
+export const DEFAULT_DATABASE_PLACEHOLDER = 'SIMPPLR_COMMON_TENANT';
+
+/**
+ * Get the database name for the current environment.
+ * Returns the database from config, or the default placeholder if not specified.
+ */
+export function getSnowflakeDatabaseName(): string {
+  const config = getSnowflakeConfig();
+  return config.database || DEFAULT_DATABASE_PLACEHOLDER;
+}
+
+/**
+ * Replaces the hardcoded database placeholder in SQL queries with the
+ * environment-specific database name.
+ *
+ * This allows SQL templates to use 'SIMPPLR_COMMON_TENANT' as a placeholder,
+ * which gets replaced at runtime with the correct database for the current
+ * environment (e.g., 'COMMON_TENANT_UAT_AU' for uatAU).
+ *
+ * @param sql - The SQL query string with hardcoded database placeholder
+ * @returns The SQL query with the correct database name for the current environment
+ */
+export function replaceDatabase(sql: string): string {
+  const targetDatabase = getSnowflakeDatabaseName();
+
+  // If the target database is the same as the placeholder, no replacement needed
+  if (targetDatabase === DEFAULT_DATABASE_PLACEHOLDER) {
+    return sql;
+  }
+
+  // Replace all case variations of the placeholder with the target database
+  // Patterns: SIMPPLR_COMMON_TENANT, simpplr_common_tenant, Simpplr_Common_Tenant, etc.
+  const pattern = new RegExp(DEFAULT_DATABASE_PLACEHOLDER, 'gi');
+  return sql.replace(pattern, targetDatabase);
 }

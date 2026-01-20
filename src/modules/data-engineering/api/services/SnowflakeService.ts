@@ -1,4 +1,8 @@
-import { getSnowflakeConfig, SnowflakeEnvironmentConfig } from '@data-engineering/config/snowflakeConfig';
+import {
+  getSnowflakeConfig,
+  replaceDatabase,
+  SnowflakeEnvironmentConfig,
+} from '@data-engineering/config/snowflakeConfig';
 import { decodeBase64 } from '@data-engineering/helpers/base64Helper';
 import crypto from 'crypto';
 import snowflake, { Connection, RowStatement } from 'snowflake-sdk';
@@ -130,19 +134,23 @@ export class SnowflakeService {
   /**
    * Executes a SQL query on Snowflake
    * Validates connection state before executing
+   * Automatically replaces database placeholder with environment-specific database
    */
   execute<T = any>(sqlText: string, binds?: any[]): Promise<T[]> {
     if (!this.isConnected) {
       throw new Error('Snowflake connection is not established. Call connect() first.');
     }
 
+    // Replace hardcoded database placeholder with environment-specific database
+    const processedSql = replaceDatabase(sqlText);
+
     return new Promise((resolve, reject) => {
       this.connection.execute({
-        sqlText,
+        sqlText: processedSql,
         binds,
         complete: (err: Error | undefined, stmt: RowStatement, rows: T[] | undefined) => {
           if (err) {
-            reject(new Error(`Query execution failed: ${err.message}\nSQL: ${sqlText}`));
+            reject(new Error(`Query execution failed: ${err.message}\nSQL: ${processedSql}`));
           } else {
             resolve(rows || []);
           }
@@ -155,21 +163,25 @@ export class SnowflakeService {
    * Executes a SQL query with prepared statement parameters on Snowflake
    * Uses Snowflake's built-in parameter binding for better security and performance
    * Validates connection state before executing
+   * Automatically replaces database placeholder with environment-specific database
    */
   executeWithParams<T = any>(sqlText: string, params: SnowflakeParamValue[]): Promise<T[]> {
     if (!this.isConnected) {
       throw new Error('Snowflake connection is not established. Call connect() first.');
     }
 
+    // Replace hardcoded database placeholder with environment-specific database
+    const processedSql = replaceDatabase(sqlText);
+
     return new Promise((resolve, reject) => {
       this.connection.execute({
-        sqlText,
+        sqlText: processedSql,
         binds: params as any[], // Type assertion needed due to SDK type limitations
         complete: (err: Error | undefined, stmt: RowStatement, rows: T[] | undefined) => {
           if (err) {
             reject(
               new Error(
-                `Query execution with params failed: ${err.message}\nSQL: ${sqlText}\nParams: ${JSON.stringify(params)}`
+                `Query execution with params failed: ${err.message}\nSQL: ${processedSql}\nParams: ${JSON.stringify(params)}`
               )
             );
           } else {
