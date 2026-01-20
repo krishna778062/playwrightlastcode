@@ -21,7 +21,7 @@ test.describe(
     test(
       'verify User is able to Create Recognition from HUB',
       {
-        tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28585'],
+        tag: [TestGroupType.REGRESSION, TestPriority.P0, '@CONT-28585', ContentTestSuite.FEED],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

@@ -1,4 +1,4 @@
-import { Page, test } from '@playwright/test';
+import { Locator, Page, test } from '@playwright/test';
 
 import { BasePage } from '@core/ui/pages/basePage';
 
@@ -8,12 +8,16 @@ import { HomeFeedComponent } from '@/src/modules/content/ui/components/homeFeedC
 
 export class HomeFeedPage extends BasePage {
   private homeFeedComponent: HomeFeedComponent;
-  readonly homeFeedHeading = this.page.getByRole('heading', { name: 'Home feed' });
-  readonly saveButton = this.page.getByRole('button', { name: 'Save' });
+  readonly homeFeedHeading: Locator;
+  readonly saveButton: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.DEFAULT_SCREEN);
     this.homeFeedComponent = new HomeFeedComponent(page);
+
+    // Initialize locators
+    this.homeFeedHeading = this.page.getByRole('heading', { name: 'Home feed' });
+    this.saveButton = this.page.getByRole('button', { name: 'Save' });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify email notifications page is visible', async () => {

@@ -11,7 +11,7 @@ import { SITE_ACCESS_TYPES, SITE_TYPES } from '@/src/modules/content/constants/s
 test.describe(
   '@SiteAPI',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.SITE],
   },
   () => {
     test.afterEach(async ({ appManagerApiFixture }) => {
@@ -66,7 +66,7 @@ test.describe(
 
           // Create a site using API (category will be resolved automatically if not provided)
           const createdSite = await appManagerApiFixture.siteManagementHelper.createSiteWithCompleteResponse({
-            siteName: siteData.siteName,
+            siteName: siteData.name,
             accessType: testData.accessType,
             waitForSearchIndex: false,
           });
@@ -80,7 +80,7 @@ test.describe(
                 ? SITE_ACCESS_TYPES.PRIVATE
                 : SITE_ACCESS_TYPES.UNLISTED;
 
-          await siteApiHelper.validateSiteResponse(createdSite, expectedAccessType, siteData.siteName);
+          await siteApiHelper.validateSiteResponse(createdSite, expectedAccessType, siteData.name);
 
           // Get site details to validate the full response
           const siteDetailsResponse =
