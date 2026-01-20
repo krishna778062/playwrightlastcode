@@ -13,17 +13,7 @@ export class ActivityNotificationPage extends BasePage {
     this.notificationItems = (notificationText: string) =>
       page.locator('div.Notification-body').getByText(notificationText, { exact: true });
     this.notificationItemsList = page.locator('div.Notification-body');
-    // Target the notification link element within the activity tab that contains the text
-    // Use CSS class selector to match elements with both classes (even if they have additional classes like 'is-read')
-    // Use hasText for partial matching to handle truncated or formatted text
     this.notificationByText = (notificationText: string) =>
-      page
-        .locator('#activity-tab')
-        .locator('a.Notification.u-inset-focus-visible')
-        .filter({ hasText: notificationText })
-        .first();
-    this.notificationByMention = (notificationText: string) =>
-      this.page.getByRole('link', { name: `Notification: MENTIONS_ME_IN_POST - ${notificationText}` });
       this.page.locator("a[class*='Notification']").filter({ hasText: notificationText });
   }
   async verifyThePageIsLoaded(): Promise<void> {
@@ -41,13 +31,12 @@ export class ActivityNotificationPage extends BasePage {
 
   /**
    * Verifies that a specific notification exists by checking all notification elements
-   * @param notificationText - The text content of the notification to verify (partial match supported)
+   * @param notificationText - The text content of the notification to verify
    */
   async verifyNotificationExists(notificationText: string): Promise<void> {
     await test.step(`Verify notification exists: ${notificationText}`, async () => {
-      const notificationLocator = this.notificationByText(notificationText);
-      await this.verifier.verifyTheElementIsVisible(notificationLocator, {
-        assertionMessage: `Notification containing text "${notificationText}" should be visible`,
+      await this.verifier.verifyTheElementIsVisible(this.notificationByText(notificationText).last(), {
+        assertionMessage: `Notification with text "${notificationText}" should be visible`,
       });
     });
   }
