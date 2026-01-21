@@ -30,6 +30,11 @@ export class CommonActionsComponent extends BaseComponent {
     await test.step(stepName, async () => {
       const button = this.page.getByRole('button', { name: buttonName });
       await this.clickOnElement(button, { timeout });
+      if (await button.isEnabled()) {
+        await this.clickOnElement(button, { timeout });
+      } else {
+        console.log(`${buttonName} button is disabled, skipping click`);
+      }
     });
   }
 
