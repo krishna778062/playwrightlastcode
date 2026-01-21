@@ -6,6 +6,7 @@ import {
   FeedPostApiResponse,
   FeedPostOptions,
   FeedPostResult,
+  RestrictedViewersOptions,
 } from '@content/ui/components/createFeedPostComponent';
 import {
   CreateQuestionComponent,
@@ -161,6 +162,10 @@ export class FeedPage extends BasePage {
 
   async createAndPostWithLimitVisibility(options: FeedPostOptions): Promise<FeedPostResult> {
     return await this.postEditor.createAndPostWithLimitVisibility(options);
+  }
+
+  async createAndPostWithRestrictedViewers(options: RestrictedViewersOptions): Promise<FeedPostResult> {
+    return await this.postEditor.createAndPostWithRestrictedViewers(options);
   }
 
   async editPostAndRemoveLimitVisibility(currentText: string, newText: string): Promise<void> {
