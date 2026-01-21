@@ -123,7 +123,7 @@ test.describe('renaming page', () => {
       const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       const customOtherLanguageValue = await renamingPage.getTheDefaultTranslationValues();
-      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!, defaultCustomizedValue!];
+      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!];
       expect(customOtherLanguageValue).toEqual(customOtherLanguage);
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
       const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();

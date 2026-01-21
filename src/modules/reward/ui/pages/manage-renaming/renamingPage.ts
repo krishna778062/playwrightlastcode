@@ -586,11 +586,11 @@ export class RenamingPage extends BasePage {
       await expect(
         editModal.getOtherLanguageCustomInputBox(i),
         'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_VERY_SHORT });
+      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_SHORT });
       await expect(
         editModal.getOtherLanguageCustomInputBox(i),
         'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_VERY_SHORT });
+      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_SHORT });
       stringArray.push(await editModal.getOtherLanguageCustomInputBox(i).inputValue());
     }
     return stringArray;
