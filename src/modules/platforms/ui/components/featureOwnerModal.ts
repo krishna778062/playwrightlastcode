@@ -97,6 +97,7 @@ export class FeatureOwnerModalComponent extends BaseComponent {
    */
   async verifyTheCheckBoxIsCheckedForUsername(userName: string): Promise<boolean> {
     return await test.step(`Verify that the checkbox for ${userName} is checked`, async () => {
+      await this.searchForUser(userName);
       return await this.verifier.verifyCheckboxIsChecked(this.selectedUserCheckBoxForUsersTab(userName));
     });
   }
@@ -169,6 +170,18 @@ export class FeatureOwnerModalComponent extends BaseComponent {
       await expect(this.appManagerTagForUsersTab(userName)).toBeVisible();
     });
   }
+
+    /**
+   * Verifies whether the given feature onwers are displayed with app manager tag.
+   * @param userName - Username of user who need to be checked for app manager tag.
+   */
+    async verifyUserIsDisplayedWithOutAppManagerTag(userName: string): Promise<void> {
+      await test.step(`Verifying ${userName} is displayed with app manager tag`, async () => {
+        await this.searchForUser(userName);
+        //verify this record has app manager tag
+        await expect(this.appManagerTagForUsersTab(userName)).toHaveCount(0);
+      });
+    }
 
   /**
    * Verifies whether the given no user found screen is displayed.

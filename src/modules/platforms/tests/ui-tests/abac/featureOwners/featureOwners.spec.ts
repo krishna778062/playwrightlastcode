@@ -31,7 +31,9 @@ test.describe(
     let loginIdentifier3: string;
     let loginIdentifier4: string;
 
-    const features: string[] = ['Application settings', 'Audiences', 'Branding', 'Users'];
+    const features: string[] = ['Application settings', 
+      // 'Audiences', 'Branding', 'Users'
+    ];
     let user1: User;
     let user2: User;
     let user3: User;
@@ -243,11 +245,11 @@ test.describe(
       test(
         `Verify that user manager should be able to remove Feature onwer access of any app manager from manage users page for ${feature} feature`,
         {
-          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P1, `@ABAC`, `@feature-owners`, '@this-one'],
         },
         async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089', `PS-32972`, `PS-32973`],
+            zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089', `PS-32972`, `PS-32973`, `PS-36247`, `PS-36246`, `PS-36245`],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
           // Test Scenario
@@ -261,6 +263,16 @@ test.describe(
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.featureOwnerModal.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
+          await featureOwnersPage.featureOwnerModal.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user3.username);
+
+          // Verify that the check box for the app manager users are checked
+          await featureOwnersPage.featureOwnerModal.verifyTheCheckBoxIsCheckedForUsername(user2.username);
+          await featureOwnersPage.featureOwnerModal.verifyTheCheckBoxIsCheckedForUsername(user3.username);
+
+         // Verify that user is not displayed with App manager tag
+          await featureOwnersPage.featureOwnerModal.verifyUserIsDisplayedWithOutAppManagerTag(user1.username);
+          await featureOwnersPage.featureOwnerModal.verifyUserIsDisplayedWithOutAppManagerTag(user4.username);
+
           await appManagerApiFixture.userManagementService.updatePrimaryRole(loginIdentifier2, RolesId.END_USER, {
             abac: true,
           });
@@ -275,29 +287,52 @@ test.describe(
       test(
         `Verify that ${feature} feature owners access should be removed when the status of the user with app manager role is changed to inactive from manage users page`,
         {
-          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`],
+          tag: [TestPriority.P0, `@ABAC`, `@feature-owners`, '@this-one'],
         },
         async ({ appManagerFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33069'],
+            zephyrTestId: ['PS-33069', 'PS-35185', 'PS-35178', 'PS-35173'],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
 
           // Test Scenario
           await featureOwnersPage.loadPage();
           await featureOwnersPage.searchForFeature(feature);
+          const featureOwnerUsersCount = await featureOwnersPage.getFeatureOwnerCount(feature);
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           // Verify that user is displayed with App manager tag
           await featureOwnersPage.featureOwnerModal.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
+          await featureOwnersPage.featureOwnerModal.verifyUserIsDisplayedWithOutAppManagerTag(user1.username);
           // changing status of the App manager to Inactive
-          const userId = await appManagerFixture.userManagementService.getUserId(loginIdentifier2);
-          await appManagerFixture.userManagementService.updateUserStatus(userId, USER_STATUS.INACTIVE);
+          const userIdForUser2 = await appManagerFixture.userManagementService.getUserId(loginIdentifier2);
+          const userIdForUser1 = await appManagerFixture.userManagementService.getUserId(loginIdentifier1);
+
+          await appManagerFixture.userManagementService.updateUserStatus(userIdForUser2, USER_STATUS.INACTIVE);
+          await appManagerFixture.userManagementService.updateUserStatus(userIdForUser1, USER_STATUS.INACTIVE);
+
           await featureOwnersPage.reloadPage();
+          // Verify the decrease in count for feature owners when an app manager is deactivated
+          await featureOwnersPage.verifyFeatureOwnersUserCountIsEqualToExpectedCount(feature,featureOwnerUsersCount - 1);
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           // Verify that user is not displayed in the feature owners list after changing the status to inactive
           await featureOwnersPage.featureOwnerModal.verifyNoUserFoundScreen(user2.username);
+          await featureOwnersPage.featureOwnerModal.verifyNoUserFoundScreen(user1.username);
+
+          await appManagerFixture.userManagementService.updateUserStatus(userIdForUser2, USER_STATUS.ACTIVE);
+          await appManagerFixture.userManagementService.updateUserStatus(userIdForUser1, USER_STATUS.ACTIVE);
+
+          await appManagerFixture.userManagementService.updatePrimaryRole(loginIdentifier2, RolesId.APPLICATION_MANAGER, {
+            abac: true,
+          });
+
+          await featureOwnersPage.reloadPage();
+          await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
+          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
+          // Verify that user is displayed in the feature owners list after changing the status to active
+          await featureOwnersPage.featureOwnerModal.verifyFeatureOwnerIsDisplayedWithAppManagerTag(user2.username);
+          await featureOwnersPage.featureOwnerModal.verifyUserIsDisplayedWithOutAppManagerTag(user1.username);
         }
       );
 

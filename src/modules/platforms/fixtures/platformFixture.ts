@@ -14,6 +14,7 @@ import { QuickTaskService } from '../apis/services/QuickTaskService';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
+import { IdentityService } from '../apis/services/IdentityService';
 
 // Local service desk login function - keeps service desk functionality within platform module
 async function loginToServiceDesk(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
@@ -109,6 +110,7 @@ export interface PlatformApiFixture {
   audienceTestDataHelper: AudienceTestDataHelper;
   identityManagementHelper: IdentityManagementHelper;
   userManagementService: UserManagementService;
+  identityService: IdentityService;
 }
 
 // UI-only fixture type for browser and page components
@@ -148,6 +150,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
   const audienceTestDataHelper = new AudienceTestDataHelper(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const identityService = new IdentityService(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
@@ -155,6 +158,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
     audienceTestDataHelper,
     identityManagementHelper,
     userManagementService,
+    identityService,
   };
 }
 
