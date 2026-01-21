@@ -639,7 +639,8 @@ export class CSVValidationUtil {
       const keyValues = transformations.keyFields
         .map(field => {
           const value = record[field];
-          return value !== undefined && value !== null ? String(value) : '';
+          // Trim string values to handle whitespace differences in source data
+          return value !== undefined && value !== null ? String(value).trim() : '';
         })
         .filter(val => val !== '');
       return keyValues.length > 0 ? keyValues.join('|') : 'unknown';
@@ -647,7 +648,8 @@ export class CSVValidationUtil {
 
     // Fallback to first field (backward compatible behavior)
     const fields = Object.keys(record);
-    return fields.length > 0 ? String(record[fields[0]]) : 'unknown';
+    // Trim string values to handle whitespace differences in source data
+    return fields.length > 0 ? String(record[fields[0]]).trim() : 'unknown';
   }
 
   /**
@@ -720,8 +722,15 @@ export class CSVValidationUtil {
         errors.push(`${field}: Field not found in transformed CSV`);
       } else {
         // Convert DB epoch timestamps to readable dates for comparison with CSV
+        // Also trim string values to handle whitespace differences (data quality issues in source data)
         let dbValueToCompare: string | number | null | undefined = dbValue;
-        const csvValueToCompare = csvValue;
+        if (typeof dbValueToCompare === 'string') {
+          dbValueToCompare = dbValueToCompare.trim();
+        }
+        let csvValueToCompare = csvValue;
+        if (typeof csvValueToCompare === 'string') {
+          csvValueToCompare = csvValueToCompare.trim();
+        }
 
         if (field.includes('Datetime)')) {
           // DB has epoch timestamp, CSV has readable date - convert DB to readable for comparison
