@@ -460,6 +460,7 @@ test.describe(
         });
 
         const onOrAfterAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: onOrAfterAudienceName,
@@ -492,6 +493,7 @@ test.describe(
         });
 
         const onAudienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
         await audiencePage.createAudienceWithDetails({
           name: onAudienceName,

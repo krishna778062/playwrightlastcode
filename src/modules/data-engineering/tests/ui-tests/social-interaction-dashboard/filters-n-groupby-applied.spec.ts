@@ -72,8 +72,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify Most engaged by Department metric in Social Interaction dashboard with group by Location',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27877',
+          storyId: 'DE-25759',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -103,8 +103,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify Least engaged by Department metric in Social Interaction dashboard with group by Location',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27878',
+          storyId: 'DE-25760',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -139,8 +139,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify Most engaged by Department CSV download and validation in Social Interaction dashboard with group by Location',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27879',
+          storyId: 'DE-25767',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -173,8 +173,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify Least engaged by Department CSV download and validation in Social Interaction dashboard with group by Location',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27880',
+          storyId: 'DE-25768',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;

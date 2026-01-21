@@ -18,7 +18,7 @@
 #   ┌─────────────────────────────────────────────────────────────────────┐
 #   │  Trigger Type       │ Environment │ CURRENT_STAGE │ Git Ref        │
 #   ├─────────────────────┼─────────────┼───────────────┼────────────────┤
-#   │  daily_cron         │ test        │ any           │ develop        │
+#   │  test_env_regression         │ test        │ any           │ develop        │
 #   │  qa_release         │ qa          │ production    │ main           │
 #   │  qa_release         │ qa          │ qa            │ release        │
 #   │  qa_release         │ qa          │ uat           │ SKIP           │
@@ -73,7 +73,7 @@ on:
           Type of trigger that initiated this workflow.
           Used to determine branch selection and module list.
           Values:
-            - daily_cron: Daily regression on test environment
+            - test_env_regression: Daily regression on test environment
             - qa_release: QA release regression
             - uat_release: UAT release regression  
             - prod_healthcheck: Production health check
@@ -143,6 +143,37 @@ on:
         type: string
         default: ''
 
+      # ========================================================================
+      # FILTERING INPUTS (for manual/targeted runs)
+      # ========================================================================
+
+      priority_filter:
+        description: |
+          Filter tests by priority tag.
+          Values: @P0, @P1, @P2, all (no filter)
+          Example: '@P0' runs only P0 priority tests
+        required: false
+        type: string
+        default: 'all'
+
+      test_type:
+        description: |
+          Filter tests by test type tag.
+          Values: @smoke, @regression, all (no filter)
+          Example: '@smoke' runs only smoke tests
+        required: false
+        type: string
+        default: 'all'
+
+      feature_tags:
+        description: |
+          Comma-separated list of feature tags to filter tests.
+          Example: '@chat-attachment,@chat-mentions'
+          Use 'all' for no filter.
+        required: false
+        type: string
+        default: 'all'
+
 # ============================================================================
 # PERMISSIONS
 # ============================================================================
@@ -173,7 +204,7 @@ jobs:
   #   - skip_reason: Reason if should_run is false
 
   determine-config:
-    runs-on: [kubernetes]
+    runs-on: [kubernetes-fe]
     outputs:
       should_run: ${{ steps.config.outputs.should_run }}
       checkout_ref: ${{ steps.config.outputs.checkout_ref }}
@@ -230,7 +261,7 @@ jobs:
               # ────────────────────────────────────────────────────────────
               # DAILY CRON: Test environment always uses develop branch
               # ────────────────────────────────────────────────────────────
-              "daily_cron")
+              "test_env_regression")
                 if [ "$ENVIRONMENT" = "test" ]; then
                   CHECKOUT_REF="develop"
                   echo "✅ Daily cron on test → develop branch"
@@ -347,7 +378,7 @@ jobs:
               # DAILY CRON: Full UI regression suite
               # Runs daily on test environment
               # ──────────────────────────────────────────────────────────
-              "daily_cron")
+              "test_env_regression")
                 MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
                 echo "✅ Daily cron: Full UI regression (all modules including content)"
                 ;;
@@ -585,7 +616,7 @@ jobs:
 
           # Generate build name based on trigger type
           case "$TRIGGER" in
-            "daily_cron")
+            "test_env_regression")
               # Daily regression: Daily-{branch}-{Module}-{env}
               BUILD_NAME="Daily-${BRANCH}-${MODULE_CAP}-${ENV}"
               ;;
@@ -640,26 +671,75 @@ jobs:
           # ================================================================
           # TEST EXECUTION SCRIPT
           # ================================================================
-          # - Full regression: Runs ALL tests for the module
+          # - Full regression: Runs ALL tests for the module (no filters)
           # - Prod healthcheck: Runs only @healthcheck tagged tests
-          # - For other filtered runs, use manual-regression-v2.yml
+          # - Filtered runs: Use priority_filter, test_type, feature_tags
           # ================================================================
 
           MODULE="${{ matrix.module }}"
           WORKERS="${{ inputs.workers }}"
           IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
           TRIGGER_TYPE="${{ inputs.trigger_type }}"
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
 
           # Set TLS config for test environments (some use self-signed certs)
           export NODE_TLS_REJECT_UNAUTHORIZED=0
 
           # ────────────────────────────────────────────────────────────
-          # Determine grep filter based on trigger type
+          # Build grep filter from inputs
           # ────────────────────────────────────────────────────────────
+          ALL_TAGS=()
+
+          # Note: For prod_healthcheck, the caller (prod-healthcheck.yml) 
+          # already passes feature_tags='@healthcheck', so no explicit 
+          # handling needed here.
+
+          # Add priority filter (skip if "all" or empty)
+          if [ "$PRIORITY" != "all" ] && [ -n "$PRIORITY" ]; then
+            ALL_TAGS+=("$PRIORITY")
+            echo "🎯 Priority filter: $PRIORITY"
+          fi
+
+          # Add test type filter (skip if "all" or empty)
+          if [ "$TEST_TYPE" != "all" ] && [ -n "$TEST_TYPE" ]; then
+            ALL_TAGS+=("$TEST_TYPE")
+            echo "🧪 Test type filter: $TEST_TYPE"
+          fi
+
+          # Add feature tags (skip if "all" or empty)
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              tag=$(echo "$tag" | xargs)  # Trim whitespace
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+            echo "🏷️ Feature tags: $FEATURE_TAGS"
+          fi
+
+          # Deduplicate tags (preserves order, removes duplicates)
+          UNIQUE_TAGS=()
+          for tag in "${ALL_TAGS[@]}"; do
+            if [[ ! " ${UNIQUE_TAGS[*]} " =~ " ${tag} " ]]; then
+              UNIQUE_TAGS+=("$tag")
+            fi
+          done
+          ALL_TAGS=("${UNIQUE_TAGS[@]}")
+
+          # Build grep filter string
           GREP_FILTER=""
-          if [ "$TRIGGER_TYPE" = "prod_healthcheck" ]; then
-            GREP_FILTER='--grep="@healthcheck"'
-            echo "🏥 Production Healthcheck: Filtering by @healthcheck tag"
+          if [ ${#ALL_TAGS[@]} -gt 0 ]; then
+            # Use AND logic: tests must match ALL tags
+            # Pattern: (@tag1).*(@tag2) - requires both tags in test name
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+              echo "🔍 Combined grep filter (AND): $GREP_REGEX"
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+              echo "🔍 Single tag filter: $GREP_REGEX"
+            fi
+            GREP_FILTER="--grep=\"$GREP_REGEX\""
           fi
 
           echo "=========================================="
@@ -669,6 +749,9 @@ jobs:
           echo "Workers: $WORKERS"
           echo "BrowserStack: $IS_BROWSERSTACK"
           echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Priority: ${PRIORITY:-'all'}"
+          echo "Test Type: ${TEST_TYPE:-'all'}"
+          echo "Feature Tags: ${FEATURE_TAGS:-'all'}"
           echo "Grep Filter: ${GREP_FILTER:-'(none - full regression)'}"
           echo ""
 
@@ -785,6 +868,54 @@ jobs:
             "privateRecognition")
               echo "📦 Running Private Recognition tests..."
               eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
+            # ──────────────────────────────────────────────────────────
+            # INTEGRATIONS MODULES
+            # All integrations configs are in src/modules/integrations/
+            # Maps module names to their specific config files
+            # Note: MODULE_NAME must be set to 'integrations' for envLoader
+            # to find env files in src/modules/integrations/env/
+            # Export it before eval so it's available when config loads
+            # ──────────────────────────────────────────────────────────
+            "integrations-primary")
+              echo "📦 Running Integrations Primary tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-workday")
+              echo "📦 Running Integrations Workday tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-workday.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-azuresso")
+              echo "📦 Running Integrations Azure SSO tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-azuresso.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-okta")
+              echo "📦 Running Integrations Okta tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-okta.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-api")
+              echo "📦 Running Integrations API tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-api.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
@@ -1010,19 +1141,35 @@ jobs:
       # ────────────────────────────────────────────────────────────────────
       # STEP 17: SEND SLACK NOTIFICATION
       # Purpose: Notify team of test results
-      # Format: Includes emojis, counts, and links to reports
+      # Format: Rich multi-line format with filters, branch, and stats
       # ────────────────────────────────────────────────────────────────────
       - name: Send Slack Notification
         if: always()
         run: |
           # Only send notification if tests actually ran
           if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
-            # Build message with or without known failures info
-            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` (\`${{ needs.determine-config.outputs.checkout_ref }}\`) completed: ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) ↪ Known: ${{ env.KNOWN_FAILED }} | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
-            else
-              MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` (\`${{ needs.determine-config.outputs.checkout_ref }}\`) completed: ${{ env.TOTAL_TESTS }} tests (${{ env.PASSED_TESTS }} ✅ ${{ env.ACTUAL_FAILED }} ❌ ${{ env.SKIPPED_TESTS }} ⏭️ ${{ env.FLAKY_TESTS }} ⚠️) | <${{ env.TIMESTAMPED_REPORT_URL }}|📊 Report> | <${{ env.TAG_REPORT_URL }}|🏷️ Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            PRIORITY="${{ inputs.priority_filter }}"
+            TEST_TYPE="${{ inputs.test_type }}"
+            FEATURE_TAGS="${{ inputs.feature_tags }}"
+            BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+            MODULE="${{ matrix.module }}"
+            ENV="${{ inputs.environment }}"
+            TRIGGERED_BY="${{ github.actor }}"
+            
+            # Build filters string only if not all defaults
+            FILTERS=""
+            if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
+              FILTERS=" | 🎯 Filters: \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
             fi
+            
+            # Build known failures suffix if any
+            KNOWN_SUFFIX=""
+            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
+              KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
+            fi
+            
+            # Compact 2-line format
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`${FILTERS}\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
@@ -1036,19 +1183,32 @@ jobs:
       - name: Send Failure Notification
         if: always()
         run: |
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
+          BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+          MODULE="${{ matrix.module }}"
+          ENV="${{ inputs.environment }}"
+
+          # Build filters string only if not all defaults
+          FILTERS=""
+          if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
+            FILTERS=" | 🎯 \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
+          fi
+
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
             
             if [ "$TOTAL_TESTS" -eq 0 ]; then
-              # No tests found matching criteria
-              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` found no tests. Check filters. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+              # No tests found matching criteria - compact format
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\`${FILTERS} | 💡 No tests matched filters\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
               curl -X POST -H 'Content-type: application/json' \
                 --data "{\"text\":\"$MESSAGE\"}" \
                 $SLACK_WEBHOOK_URL
             fi
           else
-            # Pipeline failed before tests could run
-            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${{ matrix.module }}\` on \`${{ inputs.environment }}\` could not execute. | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+            # Pipeline failed before tests could run - compact format
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | ❌ Check job logs for errors\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1068,7 +1228,7 @@ jobs:
     steps:
       - name: Notify Slack about skip
         run: |
-          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped* - ${{ needs.determine-config.outputs.skip_reason }} | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|🔍 Details>"
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped* - \`${{ inputs.environment }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }} | 🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"$MESSAGE\"}" \
             $SLACK_WEBHOOK_URL

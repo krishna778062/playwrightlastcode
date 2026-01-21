@@ -18,6 +18,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
@@ -1402,6 +1403,39 @@ test.describe(
             publicSiteName
           );
         });
+      }
+    );
+  }
+);
+
+test.describe(
+  'Social Campaign Navigation Redirect',
+  {
+    tag: [ContentTestSuite.SOCIAL_CAMPAIGN],
+  },
+  () => {
+    test(
+      'Verify Social Campaign navigation when redirected via Manage feature CONT-44413',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-44413', '@Social_Campaign_Navigation'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Social Campaign navigation via side nav redirects to /campaigns/latest',
+          zephyrTestId: 'CONT-44413',
+          storyId: 'CONT-44413',
+          isKnownFailure: true,
+          bugTicket: 'UIUX-1691',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.clickOnSocialCampaignsUnderManageFeature();
+
+        const manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+        await manageFeaturesPage.verifyUrlContains('campaigns/latest');
+
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.clickOnSocialCampaignCard();
+        await manageFeaturesPage.verifyUrlContains('campaigns/latest');
       }
     );
   }

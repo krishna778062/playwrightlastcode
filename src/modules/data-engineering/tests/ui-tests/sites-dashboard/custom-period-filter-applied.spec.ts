@@ -187,20 +187,41 @@ test.describe(
     );
 
     test(
+      'verify Total sites distribution CSV data validation with custom period filter applied (Custom Date Range)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-total-sites-distribution-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the CSV Total sites distribution in Sites dashboard with custom period filter applied',
+          zephyrTestId: 'DE-XXXXX',
+          storyId: 'DE-26235',
+        });
+
+        // Get expected CSV data from snowflake (detailed site records matching CSV export format)
+        const dbData =
+          await testEnvironment.sitesDashboardQueryHelper.getTotalSitesDistributionCSVDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Component handles CSV validation internally
+        const totalSitesDistributionMetrics = testEnvironment.sitesDashboard.totalSitesDistributionMetrics;
+        await totalSitesDistributionMetrics.verifyCSVDataMatchesWithSnowflakeData(dbData);
+      }
+    );
+
+    test(
       'verify Most Popular sites metric data validation with custom period filter applied (Custom Date Range)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.TABULAR_METRIC, '@sites-most-popular-metric'],
       },
       async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
         tagTest(test.info(), {
           description:
             'To verify the answer of Most Popular sites in Sites dashboard with custom period filter applied',
           zephyrTestId: 'DE-26383',
           storyId: 'DE-26250',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
@@ -220,6 +241,34 @@ test.describe(
 
         // Verify UI data matches DB data
         await mostPopularSitesMetrics.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Most Popular sites CSV data validation with custom period filter applied (Custom Date Range)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-most-popular-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the CSV Most Popular sites in Sites dashboard with custom period filter applied',
+          zephyrTestId: 'DE-26738',
+          storyId: 'DE-26250',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getMostPopularSitesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const mostPopularSitesMetric = testEnvironment.sitesDashboard.mostPopularSitesMetrics;
+        await mostPopularSitesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
       }
     );
 
@@ -253,6 +302,34 @@ test.describe(
 
         // Verify UI data matches DB data
         await leastPopularSitesMetrics.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Least Popular sites CSV data validation with custom period filter applied (Custom Date Range)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-least-popular-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the CSV Least Popular sites in Sites dashboard with custom period filter applied',
+          zephyrTestId: 'DE-26739',
+          storyId: 'DE-26237',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getLeastPopularSitesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const leastPopularSitesMetric = testEnvironment.sitesDashboard.leastPopularSitesMetrics;
+        await leastPopularSitesMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
       }
     );
 
@@ -295,6 +372,34 @@ test.describe(
     );
 
     test(
+      'verify Most published content CSV data validation with custom period filter applied (Custom Date Range)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-most-published-content-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the CSV Most published content in Sites dashboard with custom period filter applied',
+          zephyrTestId: 'DE-26740',
+          storyId: 'DE-26238',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getMostPublishedContentDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const mostPublishedContentMetric = testEnvironment.sitesDashboard.mostPublishedContentMetrics;
+        await mostPublishedContentMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
+      }
+    );
+
+    test(
       'verify Least published content metric data validation with custom period filter applied (Custom Date Range)',
       {
         tag: [
@@ -329,6 +434,34 @@ test.describe(
 
         // Verify UI data matches DB data
         await leastPublishedContentMetrics.verifyUIDataMatchesWithSnowflakeData(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Least published content CSV data validation with custom period filter applied (Custom Date Range)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.CSV_VALIDATION, '@sites-least-published-content-csv'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the CSV Least published content in Sites dashboard with custom period filter applied',
+          zephyrTestId: 'DE-26741',
+          storyId: 'DE-26239',
+        });
+
+        // Get expected metric value from snowflake with custom period filter applied
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getLeastPublishedContentDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const leastPublishedContentMetric = testEnvironment.sitesDashboard.leastPublishedContentMetrics;
+        await leastPublishedContentMetric.verifyCSVDataMatchesWithSnowflakeData(
+          dbData,
+          testFiltersConfig.timePeriod,
+          testFiltersConfig.customStartDate,
+          testFiltersConfig.customEndDate
+        );
       }
     );
   }

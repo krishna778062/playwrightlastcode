@@ -52,7 +52,7 @@ async function navigateToContentFeedAsRole(
 test.describe(
   'feed Post Like/Unlike Multi-User Tests - Content Feed',
   {
-    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let siteOwnerFeedPage: FeedPage;
@@ -302,7 +302,7 @@ test.describe(
 test.describe(
   'feed Post Like/Unlike Multi-User Tests - Site Feed',
   {
-    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER],
+    tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
   },
   () => {
     let siteFeedPostText: string;
@@ -494,7 +494,7 @@ test.describe(
 test.describe(
   'feed Post Like/Unlike Tests - Home Feed',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
@@ -582,7 +582,7 @@ test.describe(
 test.describe(
   'feed Post Reaction Emoji Replacement Test',
   {
-    tag: [ContentTestSuite.FEED_STANDARD_USER],
+    tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
     let feedPage: FeedPage;
@@ -652,7 +652,76 @@ test.describe(
     );
 
     test(
-      'verify that clicking on reaction count opens modal with users grouped by emoji CONT-31819',
+      'verify all six reaction emojis appear when clicking Add Reaction icon',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-32301'],
+      },
+      async ({ appManagerApiFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify all six reaction emojis appear when clicking Add Reaction icon on Feed, Site Dashboard, and Content pages',
+          zephyrTestId: 'CONT-32301',
+          storyId: 'CONT-32301',
+        });
+
+        // Verify on Home/Global Feed
+        await test.step('Verify all six reaction emojis on Home/Global Feed', async () => {
+          await feedPage.feedList.hoverOnReactionButton(createdPostText);
+          await feedPage.feedList.verifyAllReactionEmojisVisible(createdPostText);
+        });
+
+        // Verify on Site Dashboard
+        await test.step('Verify all six reaction emojis on Site Dashboard', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+            waitForSearchIndex: false,
+          });
+          const siteId = publicSite.siteId;
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+          await siteDashboardPage.loadPage();
+          await siteDashboardPage.verifyThePageIsLoaded();
+
+          // Create a post on site dashboard
+          await siteDashboardPage.clickShareThoughtsButton();
+          const sitePostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          await siteDashboardPage.createFeedPostComponent.createAndPost({ text: sitePostText });
+          await siteDashboardPage.listFeedComponent.waitForPostToBeVisible(sitePostText);
+
+          // Verify reaction emojis on site dashboard
+          await siteDashboardPage.listFeedComponent.hoverOnReactionButton(sitePostText);
+          await siteDashboardPage.listFeedComponent.verifyAllReactionEmojisVisible(sitePostText);
+        });
+
+        // Verify on Content Preview Page
+        await test.step('Verify all six reaction emojis on Content Preview Page', async () => {
+          const pageContent = await appManagerApiFixture.contentManagementHelper.getContentId({
+            accessType: SITE_TYPES.PUBLIC,
+          });
+          const siteId = pageContent.siteId;
+
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            siteId,
+            pageContent.contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Create a comment on content page
+          await contentPreviewPage.clickShareThoughtsButton();
+          const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+          await contentPreviewPage.createFeedPostComponent.createAndPost({ text: commentText });
+          await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(commentText);
+
+          // Verify reaction emojis on content page
+          await contentPreviewPage.listFeedComponent.hoverOnReactionButton(commentText);
+          await contentPreviewPage.listFeedComponent.verifyAllReactionEmojisVisible(commentText);
+        });
+      }
+    );
+
+    test(
+      'verify that clicking on reaction count opens modal with users grouped by emoji',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31819'],
       },

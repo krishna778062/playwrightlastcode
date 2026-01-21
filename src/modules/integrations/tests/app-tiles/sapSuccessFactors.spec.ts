@@ -23,6 +23,7 @@ test.describe(
     const AppName = 'SAPSuccessFactors';
     const DisplayTimeOffBalance = 'Display Time Off Balance';
     const sickLeave = 'INDIA SICK LEAVE';
+    const vacation = 'Vacation';
     const compTime = 'Comp Time';
 
     let createdTileTitle: string | undefined = undefined;
@@ -186,7 +187,7 @@ test.describe(
 
         // Select leave dates starting tomorrow for the specified working days
         await leaveForm.selectLeaveDates(workingDays);
-        await leaveForm.selectTimeOffCategory(sickLeave);
+        await leaveForm.selectTimeOffCategory(vacation);
         await leaveForm.verifyTotalDays(workingDays);
 
         // Verify individual day amounts and total calculation (weekends will be 0)

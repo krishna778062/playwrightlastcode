@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -16,7 +17,7 @@ import { SiteDashboardPage, SiteFeedPage } from '@/src/modules/content/ui/pages/
 test.describe(
   'feed Comments/Replies Visibility - Verify User can view 10 comments or replies on Feed detail page',
   {
-    tag: [ContentTestSuite.FEED_COMMENTS_REPLIES_VISIBILITY],
+    tag: [ContentTestSuite.FEED_COMMENTS_REPLIES_VISIBILITY, ContentTestSuite.FEED],
   },
   () => {
     let homeFeedPage: FeedPage;
@@ -137,6 +138,8 @@ test.describe(
         // Click "Show more replies"
         await homeFeedPage.feedList.clickLoadMoreRepliesButton();
 
+        await homeFeedPage.feedList.waitForPostToBeVisible(replyTexts[0]);
+
         // Verify all 11 replies are visible
         await homeFeedPage.feedList.verifyReplyCount(createdPostText, 11);
       }
@@ -210,6 +213,7 @@ test.describe(
         // Click "Show more replies"
         await siteFeedPage.feedList.clickLoadMoreRepliesButton();
 
+        await siteFeedPage.feedList.waitForPostToBeVisible(replyTexts[0]);
         // Verify all replies visible
         await siteFeedPage.feedList.verifyReplyCount(createdPostText, 11);
 
@@ -458,6 +462,144 @@ test.describe(
         await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed after unpublish' });
         await siteFeedPageForAssertions.feedList.verifyPostIsNotVisible(firstCommentText);
         await siteFeedPageForAssertions.feedList.verifyPostIsNotVisible(secondCommentText);
+      }
+    );
+
+    test(
+      'content Comments and Replies with Deletion - Verify comments and replies disappear after content deletion',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19567'],
+      },
+      async ({ standardUserFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can create comments with inline images and replies on content, validate visibility in feeds, and verify comments and replies disappear after content deletion',
+          zephyrTestId: 'CONT-19567',
+          storyId: 'CONT-19567',
+        });
+
+        let testSiteId: string = '';
+        let testContentId: string = '';
+        let testContentType: string = '';
+        let commentText: string = '';
+        let replyWithImageText: string = '';
+        let replyWithTextOnlyText: string = '';
+        let commentPostId: string = '';
+        const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+
+        await test.step('Setup: Get site and content', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+          testSiteId = publicSite.siteId;
+
+          const pageResponse = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: testSiteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          });
+
+          testContentId = pageResponse.contentId;
+          testContentType = 'page';
+        });
+
+        // ==================== COMMENT CREATION WITH INLINE IMAGE ====================
+        await test.step('Create comment with inline image on content detail page', async () => {
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          await contentPreviewPage.clickShareThoughtsButton();
+          const feedTestData = TestDataGenerator.generateFeed({
+            scope: 'site',
+            siteId: testSiteId,
+            contentId: testContentId,
+            withAttachment: false,
+            waitForSearchIndex: false,
+          });
+          commentText = feedTestData.text;
+
+          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
+          const commentResult = await createFeedPostComponent.createAndPost({
+            text: commentText,
+            attachments: {
+              files: [image1Path],
+            },
+          });
+          commentPostId = commentResult.postId || '';
+
+          // Verify comment is visible on content detail page
+          await contentPreviewPage.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== VERIFY COMMENT IN FEEDS ====================
+        await test.step('Verify comment appears in and Site Feed', async () => {
+          // Verify comment on Site Feed
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Load site feed page' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.feedList.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== REPLY CREATION ====================
+        await test.step('Add replies to comment (one with image, one text-only)', async () => {
+          // Navigate back to content detail page
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page to add replies' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+          await contentPreviewPage.waitForPostToBeVisible(commentText);
+
+          // Generate reply texts
+          replyWithImageText = FEED_TEST_DATA.POST_TEXT.REPLY_WITH_IMAGE;
+          replyWithTextOnlyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+          // Add first reply with image
+          await contentPreviewPage.addReplyToCommentWithFile(replyWithImageText, commentPostId, image1Path);
+
+          // Verify first reply is visible
+          await contentPreviewPage.verifyReplyIsVisible(replyWithImageText);
+
+          // Add second reply with text only
+          await contentPreviewPage.clickReplyEditorForPost(commentText);
+          await contentPreviewPage.addReplyToContentComment(replyWithTextOnlyText);
+
+          // Verify second reply is visible
+          await contentPreviewPage.verifyReplyIsVisible(replyWithTextOnlyText);
+        });
+
+        // ==================== VERIFY REPLIES IN FEEDS ====================
+        await test.step('Verify replies appear in Site Feed, Home Feed, and content detail page', async () => {
+          // First verify replies on content detail page (where they were created)
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Navigate to content detail page to verify replies' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+          await contentPreviewPage.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.clickLoadMoreRepliesButton();
+          await contentPreviewPage.verifyReplyIsVisible(replyWithImageText);
+          await contentPreviewPage.verifyReplyIsVisible(replyWithTextOnlyText);
+
+          // Verify replies on Site Feed
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed to verify replies' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.reloadPage();
+          await siteFeedPageForAssertions.feedList.waitForPostToBeVisible(commentText);
+        });
       }
     );
   }

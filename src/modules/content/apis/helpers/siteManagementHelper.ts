@@ -273,6 +273,16 @@ export class SiteManagementHelper {
     return await this.membershipHelper.getNonMemberUserNames(siteId, options);
   }
 
+  /**
+   * Gets a follower name from the site, excluding specified names
+   * @param siteId - The site ID
+   * @param excludeNames - Array of names to exclude from the followers list
+   * @returns Promise with the follower name
+   */
+  async getFollowerNameExcluding(siteId: string, excludeNames: string[]): Promise<string> {
+    return await this.membershipHelper.getFollowerNameExcluding(siteId, excludeNames);
+  }
+
   async acceptMembershipRequest(siteId: string, requestId: string): Promise<void> {
     return await this.membershipHelper.acceptMembershipRequest(siteId, requestId);
   }
@@ -503,7 +513,17 @@ export class SiteManagementHelper {
   async approveContent(siteId: string, contentId: string): Promise<any> {
     return await this.siteManagementService.approveContent(siteId, contentId);
   }
-
+  async getSiteList(options?: {
+    size?: number;
+    filter?: string;
+    sortBy?: string;
+  }): Promise<{ siteId: string; siteName: string }[]> {
+    const siteListResponse = await this.getListOfSites(options);
+    return siteListResponse.result.listOfItems.map((site: any) => ({
+      siteId: site.siteId,
+      siteName: site.name || site.siteName,
+    }));
+  }
   async rejectContent(siteId: string, contentId: string, rejectionComment?: string): Promise<any> {
     return await this.siteManagementService.rejectContent(siteId, contentId, rejectionComment);
   }

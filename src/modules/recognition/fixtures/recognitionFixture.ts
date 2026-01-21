@@ -1,4 +1,7 @@
 import { BrowserContext, Page, test } from '@playwright/test';
+import { ManageAwardsApiService } from '@recognition/api/services/ManageAwardsApiService';
+import { RecognitionHubApiService } from '@recognition/api/services/RecognitionHubApiService';
+import { RecurringAwardsApiService } from '@recognition/api/services/RecurringAwardsApiService';
 import { getRecognitionTenantConfigFromCache } from '@recognition/config/recognitionConfig';
 
 import { LoginHelper } from '@core/helpers/loginHelper';
@@ -59,6 +62,10 @@ export const recognitionTestFixture = test.extend<{
   appManagerFixture: RecognitionUiFixture;
   recoManagerFixture: RecognitionUiFixture;
   standardUserFixture: RecognitionUiFixture;
+  // API helpers
+  recurringAwardsApi: RecurringAwardsApiService;
+  recognitionHubApi: RecognitionHubApiService;
+  manageAwardsApi: ManageAwardsApiService;
 }>({
   // UI-only fixtures - browser and page components
   appManagerFixture: [
@@ -84,6 +91,27 @@ export const recognitionTestFixture = test.extend<{
       const fixture = await createRecognitionUiFixture(browser, 'standardUser');
       await use(fixture);
       await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
+  recurringAwardsApi: [
+    async ({}, use) => {
+      await use(new RecurringAwardsApiService());
+    },
+    { scope: 'test' },
+  ],
+
+  recognitionHubApi: [
+    async ({}, use) => {
+      await use(new RecognitionHubApiService());
+    },
+    { scope: 'test' },
+  ],
+
+  manageAwardsApi: [
+    async ({}, use) => {
+      await use(new ManageAwardsApiService());
     },
     { scope: 'test' },
   ],

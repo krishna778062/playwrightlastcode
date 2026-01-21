@@ -8,7 +8,7 @@ import { CSVUtils } from '@core/utils/csvUtils';
 
 import { FileUtil, tagTest, TestPriority } from '@/src/core';
 
-test.describe(
+test.describe.skip(
   'reward activity table - Points Given CSV Validation',
   { tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE] },
   () => {

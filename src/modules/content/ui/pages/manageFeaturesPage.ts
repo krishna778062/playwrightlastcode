@@ -39,4 +39,10 @@ export class ManageFeaturesPage extends BasePage {
       await this.clickOnElement(this.manageFeatureComponent.sitesCard);
     });
   }
+
+  async clickOnSocialCampaignCard(): Promise<void> {
+    await test.step('Clicking on Social Campaign card', async () => {
+      await this.clickOnElement(this.manageFeatureComponent.socialCampaignCard);
+    });
+  }
 }

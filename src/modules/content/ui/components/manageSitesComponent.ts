@@ -1,9 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '../../../../core/ui/components/baseComponent';
-
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -55,6 +54,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
+  readonly clickOnMemberTab: Locator;
+  readonly clickOnAddPersonInDialog: Locator;
   readonly SubscriptionButton: Locator;
   readonly pageTemplateTab: Locator;
   readonly editTemplateButton: Locator;
@@ -84,6 +85,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
     this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' }).first();
     this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave', exact: true });
+    this.clickOnMemberTab = page.locator('label').filter({ hasText: 'Member' });
     this.clickOnInsideContentButton = page.getByRole('tab', { name: 'Content' });
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
@@ -111,6 +113,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.clickOnAddPersonInDialog = page.getByRole('dialog', { name: 'Add person to site' });
     this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
   }
   getAuthorNameByLabel(authorName: string): Locator {
@@ -233,6 +236,16 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnThePeopleTabAction(): Promise<void> {
     await test.step('Click on the people tab', async () => {
       await this.clickOnElement(this.clickOnThePeopleTab);
+    });
+  }
+  async clickOnAddAnotherButtonAction(): Promise<void> {
+    await test.step('Click on the add another button', async () => {
+      await this.clickOnElement(this.clickOnAddAnotherButton);
+    });
+  }
+  async selectMemberTabAction(): Promise<void> {
+    await test.step('Select the member tab', async () => {
+      await this.clickOnElement(this.clickOnMemberTab);
     });
   }
 
@@ -409,12 +422,6 @@ export class ManageSitesComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(this.clickOnTheManageSiteButton, {
         assertionMessage: 'Manage site button should be visible',
       });
-    });
-  }
-
-  async clickOnAddAnotherButtonAction(): Promise<void> {
-    await test.step('Click on the add another button', async () => {
-      await this.clickOnElement(this.clickOnAddAnotherButton);
     });
   }
 

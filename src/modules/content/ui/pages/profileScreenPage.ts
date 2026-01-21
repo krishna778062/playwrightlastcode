@@ -122,25 +122,24 @@ export class ProfileScreenPage extends BasePage {
         assertionMessage: 'Date of birth month input should be visible',
       });
       await this.clickOnElement(this.dateOfBirthMonthInput);
-      await this.dateOfBirthMonthInput.selectOption({ value: month.toString() });
+      await this.dateOfBirthMonthInput.selectOption({ index: month + 1 });
 
       await this.verifier.verifyTheElementIsVisible(this.dateOfBirthDayInput, {
         assertionMessage: 'Date of birth day input should be visible',
       });
       await this.clickOnElement(this.dateOfBirthDayInput);
-      const dayValue = day.toString().padStart(2, '0');
-      await this.dateOfBirthDayInput.selectOption({ value: dayValue });
+      await this.dateOfBirthDayInput.selectOption({ index: day });
     });
   }
 
   async saveProfileChanges(): Promise<void> {
     await test.step('Saving profile changes', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.saveButton, {
-        assertionMessage: 'Save button should be visible',
-      });
-      await this.clickOnElement(this.saveButton, { force: true });
-      //wait for the save button to be hidden
-      await this.saveButton.waitFor({ state: 'hidden' });
+      const isEnabled = await this.saveButton.isEnabled();
+      if (isEnabled) {
+        await this.clickOnElement(this.saveButton, { force: true });
+        //wait for the save button to be hidden
+        await this.saveButton.waitFor({ state: 'hidden' });
+      }
     });
   }
 

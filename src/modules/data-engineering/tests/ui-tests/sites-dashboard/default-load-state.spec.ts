@@ -244,6 +244,36 @@ test.describe(
     );
 
     test(
+      'tS To verify the CSV Total sites distribution in Sites Dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-total-sites-distribution-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the CSV Total sites distribution in Sites Dashboard',
+          zephyrTestId: 'DE-XXXXX',
+          storyId: 'DE-26235',
+        });
+
+        // Get expected CSV data from snowflake (detailed site records matching CSV export format)
+        const dbData =
+          await testEnvironment.sitesDashboardQueryHelper.getTotalSitesDistributionCSVDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Component handles CSV validation internally
+        const totalSitesDistributionMetrics = testEnvironment.sitesDashboard.totalSitesDistributionMetrics;
+        await totalSitesDistributionMetrics.verifyCSVDataMatchesWithSnowflakeData(dbData);
+      }
+    );
+
+    test(
       'tS To verify the answer Total sites distribution (last 90 days) in Sites Dashboard',
       {
         tag: [
@@ -299,14 +329,10 @@ test.describe(
         ],
       },
       async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
         tagTest(test.info(), {
           description: 'TS To verify the answer Most Popular in Sites Dashboard',
           zephyrTestId: 'DE-26383',
           storyId: 'DE-26250',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
         });
 
         const { sitesDashboardQueryHelper, sitesDashboard } = testEnvironment;
@@ -325,6 +351,35 @@ test.describe(
 
         // Verify UI data matches DB data
         await mostPopularSitesMetrics.verifyUIDataMatchesWithSnowflakeData(dbResults);
+      }
+    );
+
+    test(
+      'tS To verify the CSV Most Popular in Sites Dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-most-popular-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the CSV Most Popular in Sites Dashboard',
+          zephyrTestId: 'DE-26738',
+          storyId: 'DE-26250',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getMostPopularSitesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const mostPopularSitesMetric = testEnvironment.sitesDashboard.mostPopularSitesMetrics;
+        await mostPopularSitesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, testFiltersConfig.timePeriod);
       }
     );
 
@@ -366,6 +421,35 @@ test.describe(
     );
 
     test(
+      'tS To verify the CSV Least Popular in Sites Dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-least-popular-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the CSV Least Popular in Sites Dashboard',
+          zephyrTestId: 'DE-26739',
+          storyId: 'DE-26237',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getLeastPopularSitesDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const leastPopularSitesMetric = testEnvironment.sitesDashboard.leastPopularSitesMetrics;
+        await leastPopularSitesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, testFiltersConfig.timePeriod);
+      }
+    );
+
+    test(
       'tS To verify the answer Most published content in Sites Dashboard',
       {
         tag: [
@@ -403,6 +487,35 @@ test.describe(
     );
 
     test(
+      'tS To verify the CSV Most published content in Sites Dashboard',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@sites-most-published-content-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'TS To verify the CSV Most published content in Sites Dashboard',
+          zephyrTestId: 'DE-26740',
+          storyId: 'DE-26238',
+        });
+
+        // Get expected metric value from snowflake with default period (Last 30 days)
+        const dbData = await testEnvironment.sitesDashboardQueryHelper.getMostPublishedContentDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        // Component handles CSV validation internally
+        const mostPublishedContentMetric = testEnvironment.sitesDashboard.mostPublishedContentMetrics;
+        await mostPublishedContentMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, testFiltersConfig.timePeriod);
+      }
+    );
+
+    test(
       'tS To verify the answer Least published content in Sites Dashboard',
       {
         tag: [
@@ -436,101 +549,6 @@ test.describe(
 
         // Verify UI data matches DB data
         await leastPublishedContentMetrics.verifyUIDataMatchesWithSnowflakeData(dbResults);
-      }
-    );
-
-    test(
-      'tS To verify the CSV Most Popular in Sites Dashboard',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.CSV_VALIDATION,
-          '@sites-most-popular-csv',
-        ],
-      },
-      async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
-        tagTest(test.info(), {
-          description: 'TS To verify the CSV Most Popular in Sites Dashboard',
-          zephyrTestId: 'DE-26738',
-          storyId: 'DE-26250',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        const dbData = await testEnvironment.sitesDashboardQueryHelper.getMostPopularSitesDataFromDBWithFilters({
-          filterBy: testFiltersConfig,
-        });
-
-        // Component handles CSV validation internally
-        const mostPopularSitesMetric = testEnvironment.sitesDashboard.mostPopularSitesMetrics;
-        await mostPopularSitesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, testFiltersConfig.timePeriod);
-      }
-    );
-
-    test(
-      'tS To verify the CSV Least Popular in Sites Dashboard',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.CSV_VALIDATION,
-          '@sites-least-popular-csv',
-        ],
-      },
-      async () => {
-        // Known failure - marking test as expected to fail
-        test.fail();
-        tagTest(test.info(), {
-          description: 'TS To verify the CSV Least Popular in Sites Dashboard',
-          zephyrTestId: 'DE-26739',
-          storyId: 'DE-26237',
-          isKnownFailure: true,
-          bugTicket: 'DE-27649',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        const dbData = await testEnvironment.sitesDashboardQueryHelper.getLeastPopularSitesDataFromDBWithFilters({
-          filterBy: testFiltersConfig,
-        });
-
-        // Component handles CSV validation internally
-        const leastPopularSitesMetric = testEnvironment.sitesDashboard.leastPopularSitesMetrics;
-        await leastPopularSitesMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, testFiltersConfig.timePeriod);
-      }
-    );
-
-    test(
-      'tS To verify the CSV Most published content in Sites Dashboard',
-      {
-        tag: [
-          TestPriority.P0,
-          TestGroupType.SMOKE,
-          TestGroupType.HEALTHCHECK,
-          TestCaseType.CSV_VALIDATION,
-          '@sites-most-published-content-csv',
-        ],
-      },
-      async () => {
-        tagTest(test.info(), {
-          description: 'TS To verify the CSV Most published content in Sites Dashboard',
-          zephyrTestId: 'DE-26740',
-          storyId: 'DE-26238',
-        });
-
-        // Get expected metric value from snowflake with default period (Last 30 days)
-        const dbData = await testEnvironment.sitesDashboardQueryHelper.getMostPublishedContentDataFromDBWithFilters({
-          filterBy: testFiltersConfig,
-        });
-
-        // Component handles CSV validation internally
-        const mostPublishedContentMetric = testEnvironment.sitesDashboard.mostPublishedContentMetrics;
-        await mostPublishedContentMetric.verifyCSVDataMatchesWithSnowflakeData(dbData, testFiltersConfig.timePeriod);
       }
     );
 
