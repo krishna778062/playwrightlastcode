@@ -10,6 +10,9 @@ import { BasePage } from '@core/pages/basePage';
 import { MESSAGES } from '@/src/modules/recognition/constants/messages';
 
 export class RecognitionHubPage extends BasePage {
+  private lastAbacConfig?: { canCreateHomeFeedPost?: boolean };
+  private abacConfigPromise?: Promise<{ canCreateHomeFeedPost?: boolean }>;
+  private resolveAbacConfig?: (config: { canCreateHomeFeedPost?: boolean }) => void;
   readonly recognitionHeader: Locator;
   readonly giveRecognitionButton: Locator;
   readonly recognizeButton: Locator;
@@ -40,6 +43,7 @@ export class RecognitionHubPage extends BasePage {
   readonly giveAwardButton: Locator;
   readonly spotAwardPromotionTile: Locator;
   readonly receiverNameLink: Locator;
+  readonly sharePostButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
@@ -67,6 +71,7 @@ export class RecognitionHubPage extends BasePage {
     this.feedPostMoreButton = page.getByTestId('recognition_popover_launcher');
     this.copyLinkMenuItem = page.getByRole('menuitem', { name: /copy link/i }).first();
     this.badgeIcon = page.locator('[data-testid="award-icon"]');
+    this.sharePostButton = page.getByRole('button', { name: /share this recognition/i }).first();
 
     // Commenting locators
     this.commentIcon = page.getByRole('button', { name: /comment on this recognition/i }).first();
@@ -500,6 +505,9 @@ export class RecognitionHubPage extends BasePage {
         timeout: TIMEOUTS.SHORT,
       });
 
+      if ((await this.shareToFeedCheckbox.count()) > 0) {
+        await this.ensureChecked(this.shareToFeedCheckbox);
+      }
       // Ensure share to feed is enabled
       if (feedType === 'site feed') {
         await this.siteFeedOption.click({ timeout: TIMEOUTS.MEDIUM });
@@ -540,5 +548,53 @@ export class RecognitionHubPage extends BasePage {
       stepInfo: 'Clicking on cheer button',
     });
     await expect.poll(async () => await cheerIcon.getAttribute('data-testid')).not.toBe(before);
+  }
+
+  /**
+   * Register a one-time mock for the ABAC config call and capture the response.
+   * Call this BEFORE the action that triggers the request.
+   */
+  async setupCanCreateHomeFeedPostMock(canCreateHomeFeedPost: boolean): Promise<void> {
+    this.lastAbacConfig = undefined;
+    this.abacConfigPromise = new Promise(resolve => {
+      this.resolveAbacConfig = resolve;
+    });
+    await test.step(`Mock canCreateHomeFeedPost=${canCreateHomeFeedPost}`, async () => {
+      const pattern = '**/v1/rfeed/users/**/config';
+      await this.page.unroute(pattern).catch(() => {});
+      console.log('Registering ABAC config mock for pattern:', pattern);
+      await this.page.route(
+        pattern,
+        async route => {
+          const upstream = await route.fetch();
+          const json = await upstream.json();
+          this.lastAbacConfig = { ...json, canCreateHomeFeedPost };
+          await route.fulfill({
+            status: upstream.status(),
+            headers: upstream.headers(),
+            body: JSON.stringify(this.lastAbacConfig),
+          });
+          this.resolveAbacConfig?.(this.lastAbacConfig!);
+          this.resolveAbacConfig = undefined;
+        },
+        { times: 1 }
+      );
+    });
+  }
+
+  /**
+   * Validate the mocked ABAC flag was applied after the request completes.
+   * Call this AFTER the action that triggers the request (e.g., givePeerRecognition).
+   */
+  async validateCanCreateHomeFeedPostMock(expected: boolean): Promise<void> {
+    await test.step('Validate canCreateHomeFeedPost flag from mocked ABAC config', async () => {
+      const config = (await Promise.race([
+        this.abacConfigPromise ?? Promise.reject(new Error('ABAC mock was not initialized before validation')),
+        this.page.waitForTimeout(TIMEOUTS.MEDIUM).then(() => {
+          throw new Error('ABAC config request did not fire within expected time');
+        }),
+      ])) as { canCreateHomeFeedPost?: boolean };
+      expect(config.canCreateHomeFeedPost, 'canCreateHomeFeedPost should match requested value').toBe(expected);
+    });
   }
 }
