@@ -15,8 +15,18 @@ export class CustomApiActionsPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify the page is loaded', async () => {
+      // Check if page is still open before proceeding
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed before verification could complete');
+      }
+
       // Wait for network to be idle to ensure page is fully loaded
       await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+
+      // Verify page is still open after network idle
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed during network idle wait');
+      }
 
       // Use the paragraph with API actions count as it's more reliable
       await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.apiActionCountText, {
@@ -24,6 +34,12 @@ export class CustomApiActionsPage extends BasePage {
         assertionMessage:
           'Verifying that the custom api actions page is loaded by asserting API action count text presence',
       });
+
+      // Verify page is still open before checking button
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed after API action count text verification');
+      }
+
       // Also verify the Create API action button is visible to ensure page is fully loaded
       await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.createApiActionButton, {
         timeout: TIMEOUTS.MEDIUM,

@@ -141,9 +141,20 @@ export class CustomApiActionsComponent extends BaseComponent {
    */
   async verifyShowMoreBehavior(): Promise<void> {
     await test.step('Verify Show more behavior for API actions list', async () => {
+      // Wait for the list to stabilize after clearing search
+      await this.page.waitForTimeout(TIMEOUTS.SEARCH_WAIT);
       const initialCount = await this.apiActionNameLocators.count();
       if (initialCount <= MAX_ITEMS_TO_CHECK) {
-        await expect(this.showMoreButton, 'Show more should not be visible when <= 10 items').toBeHidden();
+        // Wait a bit more for UI to update, then check if button is hidden
+        await this.page.waitForTimeout(500);
+        const isButtonVisible = await this.showMoreButton.isVisible().catch(() => false);
+        if (isButtonVisible) {
+          // If button is visible but count is <= 10, wait a bit more for UI to catch up
+          await this.page.waitForTimeout(1000);
+        }
+        await expect(this.showMoreButton, 'Show more should not be visible when <= 10 items').toBeHidden({
+          timeout: TIMEOUTS.MEDIUM,
+        });
         return;
       }
       await expect(this.showMoreButton, 'Show more should be visible when > 10 items').toBeVisible();

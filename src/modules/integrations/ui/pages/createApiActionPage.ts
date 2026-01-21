@@ -61,4 +61,12 @@ export class CreateApiActionPage extends BasePage {
   async verifyStepIndicatorsDisabled(): Promise<void> {
     return this.createApiActionComponent.verifyStepIndicatorsDisabled();
   }
+
+  async verifyNavigationToApiActionsList(): Promise<void> {
+    return this.createApiActionComponent.verifyNavigationToApiActionsList();
+  }
+
+  async verifyApiConfigurationStepIsVisible(): Promise<void> {
+    return this.createApiActionComponent.verifyApiConfigurationStepIsVisible();
+  }
 }

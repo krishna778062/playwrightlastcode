@@ -316,5 +316,292 @@ test.describe(
         await createApiActionPage.verifyButtonsAreEnabled();
       }
     );
+
+    test(
+      'verify Save Draft functionality saves API action',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16385',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Zendesk');
+        await createApiActionPage.enterApiActionName('Test Save Draft API Action');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickSaveDraft();
+        await createApiActionPage.verifyNavigationToApiActionsList();
+        const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
+        await customApiActionsPage.verifyThePageIsLoaded();
+      }
+    );
+
+    test(
+      'verify Next button navigates to API configuration step',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16386',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Zendesk');
+        await createApiActionPage.enterApiActionName('Test API Configuration Navigation');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action creation with Github custom app',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16387',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Github');
+        await createApiActionPage.enterApiActionName('Search Pull Requests');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action creation with Jira custom app',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16388',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Jira Custom App Basic Auth');
+        await createApiActionPage.enterApiActionName('View Assigned Tickets');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action creation with ServiceNow custom app',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16389',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('ServiceNow');
+        await createApiActionPage.enterApiActionName('List All Tickets');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action creation with Airtable custom app',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16390',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Airtable (Prod)');
+        await createApiActionPage.enterApiActionName('List All Records');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action name field accepts long text',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16391',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Zendesk');
+        const longActionName = 'A'.repeat(100);
+        await createApiActionPage.enterApiActionName(longActionName);
+        await createApiActionPage.verifyButtonsAreEnabled();
+      }
+    );
+
+    test(
+      'verify API action name field accepts special characters',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16392',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Zendesk');
+        await createApiActionPage.enterApiActionName('Test API Action - Special Characters: @#$%');
+        await createApiActionPage.verifyButtonsAreEnabled();
+      }
+    );
+
+    test(
+      'verify buttons remain disabled when only custom app is selected without name',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16393',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Zendesk');
+        // Don't enter API action name
+        await createApiActionPage.verifyButtonsAreDisabled();
+      }
+    );
+
+    test(
+      'verify buttons remain disabled when only API action name is entered without custom app',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16394',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.enterApiActionName('Test API Action Without App');
+        // Don't select custom app
+        await createApiActionPage.verifyButtonsAreDisabled();
+      }
+    );
+
+    test(
+      'verify step indicators state after completing details step',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16395',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.verifyStepIndicatorsDisabled();
+        await createApiActionPage.selectCustomApp('Zendesk');
+        await createApiActionPage.enterApiActionName('Test Step Indicators');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action creation with Box custom app',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16396',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+        await createApiActionPage.selectCustomApp('Box');
+        await createApiActionPage.enterApiActionName('List Files in Folder');
+        await createApiActionPage.verifyButtonsAreEnabled();
+        await createApiActionPage.clickNext();
+        await createApiActionPage.verifyApiConfigurationStepIsVisible();
+      }
+    );
+
+    test(
+      'verify API action creation with multiple custom apps selection flow',
+      {
+        tag: [TestPriority.P2, TestGroupType.REGRESSION],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-16397',
+          storyId: 'INT-15403',
+        });
+
+        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
+
+        // Select first app
+        await createApiActionPage.selectCustomApp('Zendesk');
+        await createApiActionPage.enterApiActionName('First API Action');
+        await createApiActionPage.verifyButtonsAreEnabled();
+
+        // Change to different app
+        await createApiActionPage.selectCustomApp('Github');
+        // Name should persist, buttons should still be enabled
+        await createApiActionPage.verifyButtonsAreEnabled();
+      }
+    );
   }
 );

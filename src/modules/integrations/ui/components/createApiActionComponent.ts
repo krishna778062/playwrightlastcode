@@ -72,7 +72,8 @@ export class CreateApiActionComponent extends BaseComponent {
       await this.typeInElement(this.customAppCombobox, appName, { timeout: TIMEOUTS.MEDIUM });
       await this.page.waitForTimeout(1000);
 
-      const option = this.customAppOption(appName);
+      // Use first() to handle cases where multiple apps match (e.g., "Box" matches multiple Box apps)
+      const option = this.customAppOption(appName).first();
       await option.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(option, { timeout: TIMEOUTS.SHORT });
       await this.page.waitForTimeout(1000);
@@ -94,12 +95,28 @@ export class CreateApiActionComponent extends BaseComponent {
    */
   async verifyPageIsLoaded(): Promise<void> {
     await test.step('Verify Create API action page is loaded', async () => {
+      // Check if page is still open before proceeding
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed before verification could complete');
+      }
+
       // Wait for network to be idle to ensure page is fully loaded
       await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.LONG }).catch(() => {});
+
+      // Verify page is still open after network idle
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed during network idle wait');
+      }
 
       await expect(this.pageHeading, 'Expected Create API action heading to be visible').toBeVisible({
         timeout: TIMEOUTS.LONG,
       });
+
+      // Verify page is still open before checking other elements
+      if (this.page.isClosed()) {
+        throw new Error('Page was closed after heading verification');
+      }
+
       await expect(this.customAppCombobox, 'Expected Custom app combobox to be visible').toBeVisible({
         timeout: TIMEOUTS.LONG,
       });
@@ -220,6 +237,26 @@ export class CreateApiActionComponent extends BaseComponent {
       await expect(this.detailsStepButton, 'Expected Details step to be disabled').toBeDisabled();
       await expect(this.apiConfigurationStepButton, 'Expected API configuration step to be disabled').toBeDisabled();
       await expect(this.previewConfirmStepButton, 'Expected Preview & confirm step to be disabled').toBeDisabled();
+    });
+  }
+
+  /**
+   * Verify navigation to API actions list after saving draft
+   */
+  async verifyNavigationToApiActionsList(): Promise<void> {
+    await test.step('Verify navigation to API actions list', async () => {
+      await this.page.waitForURL('**/api-actions**', { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Verify API configuration step is visible/active
+   */
+  async verifyApiConfigurationStepIsVisible(): Promise<void> {
+    await test.step('Verify API configuration step is visible', async () => {
+      await expect(this.apiConfigurationStepButton, 'Expected API configuration step to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 }
