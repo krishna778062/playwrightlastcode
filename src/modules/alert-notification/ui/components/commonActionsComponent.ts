@@ -29,6 +29,21 @@ export class CommonActionsComponent extends BaseComponent {
     const stepName = step || `Click ${buttonName}`;
     await test.step(stepName, async () => {
       const button = this.page.getByRole('button', { name: buttonName });
+      await this.clickOnElement(button, { timeout });
+    });
+  }
+
+  /**
+   * Clicks a button only if it is enabled. Useful for flows where a disabled state is expected
+   * and we do not want to throw on click.
+   * @param buttonName - The accessible name of the button
+   * @param step - Optional custom step name for reporting
+   * @param timeout - Timeout for the click action (default: 30s)
+   */
+  async clickButtonIfEnabled(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
+    const stepName = step || `Click ${buttonName} if enabled`;
+    await test.step(stepName, async () => {
+      const button = this.page.getByRole('button', { name: buttonName });
       if (await button.isEnabled()) {
         await this.clickOnElement(button, { timeout });
       } else {

@@ -43,12 +43,12 @@ test.describe(
         zephyrTestId: '',
       });
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.unCheckSMSNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsUnhecked();
 
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.checkSMSNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsChecked();
     });
@@ -58,12 +58,12 @@ test.describe(
         zephyrTestId: 'INT-29352',
       });
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.unCheckPushNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsUnhecked();
 
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.checkPushNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsChecked();
     });

@@ -208,7 +208,7 @@ test.describe(
         zephyrTestId: 'INT-22148',
       });
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
         ['Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
@@ -225,7 +225,7 @@ test.describe(
       });
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnTab('Browser');
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
         ['Org communications', 'Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
@@ -242,7 +242,7 @@ test.describe(
       });
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnTab('Mobile');
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
         ['Org communications', 'Profile & expertise', 'Feed', 'Content', 'Events', 'Site management']
@@ -259,7 +259,7 @@ test.describe(
       });
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnTab('SMS');
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreUnchecked(
         ['All', 'Org communications', 'Content']
@@ -276,13 +276,13 @@ test.describe(
       });
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.checkMultipleCheckboxes([
         'Profile & expertise',
         'Content',
       ]);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
@@ -305,13 +305,13 @@ test.describe(
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnTab('Browser');
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.checkMultipleCheckboxes([
         'Org communications',
         'Events',
       ]);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
@@ -329,14 +329,14 @@ test.describe(
       });
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.checkMultipleCheckboxes([
         'Org communications',
         'Feed',
       ]);
 
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
@@ -358,13 +358,13 @@ test.describe(
       });
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.uncheckMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.checkMultipleCheckboxes([
         'Org communications',
         'Content',
       ]);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.verifyMultipleCheckboxesAreChecked(
@@ -386,10 +386,10 @@ test.describe(
       });
 
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.checkMultipleCheckboxes(['All']);
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
       await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
       await applicationNotificationSettingsPage.defaultNotificationSettingsComponent.clickOnOverwriteButton();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Confirm');
+      await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Confirm');
       await applicationNotificationSettingsPage.commonActionsComponent.verifyToastMessage('Saved changes successfully');
 
       await applicationNotificationSettingsPage.commonActionsComponent.navigateToProfileNotificationSettingsPage();
