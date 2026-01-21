@@ -815,103 +815,118 @@ export class IdentityService implements IIdentityAdminOperations {
     });
   }
 
-    /**
+  /**
    * Gets total users for target audience of an ACG
    * @param acgName - Name of the ACG
    * @returns The total users for target audience of the ACG
    */
-    async getTotalUsersForTargetAudienceOfACG(acgName: string): Promise<number> {
-      return await test.step(`Getting total users for target audience of ACG with name: ${acgName}`, async () => {
-  
-        const acgId = await this.getACGId(acgName);
-        const response = await this.httpClient.get(API_ENDPOINTS.appManagement.identity.v2IdentityAccessControlGroupsSubjectStatsACGId(acgId));
-        expect(response.status(), 'Total users for target audience of ACG fetched successfully').toBe(200);
-        const json: ACGSubjectStatsResponse = await this.httpClient.parseResponse<ACGSubjectStatsResponse>(response);
-        const totalUsers = parseInt(json.result.acgs[acgId].targets.totalUsers as string, 10);
-        console.log(`Total users for target audience of ACG ${acgName} is ${totalUsers}`);
-        return totalUsers;
-      });
-    }
+  async getTotalUsersForTargetAudienceOfACG(acgName: string): Promise<number> {
+    return await test.step(`Getting total users for target audience of ACG with name: ${acgName}`, async () => {
+      const acgId = await this.getACGId(acgName);
+      const response = await this.httpClient.get(
+        API_ENDPOINTS.appManagement.identity.v2IdentityAccessControlGroupsSubjectStatsACGId(acgId)
+      );
+      expect(response.status(), 'Total users for target audience of ACG fetched successfully').toBe(200);
+      const json: ACGSubjectStatsResponse = await this.httpClient.parseResponse<ACGSubjectStatsResponse>(response);
+      const totalUsers = parseInt(json.result.acgs[acgId].targets.totalUsers as string, 10);
+      console.log(`Total users for target audience of ACG ${acgName} is ${totalUsers}`);
+      return totalUsers;
+    });
+  }
 
-    /**
+  /**
    * Waits for target audience change to take effect in an ACG
    * @param acgName - Name of the ACG
    * @param expectedTotalUsers - Expected total users for target audience of the ACG
    */
-        async waitForTargetAudienceChangeToTakeEffectInACG(acgName: string, expectedTotalUsers: number): Promise<void> {
-          await test.step(`Waiting for target audience change to take effect in ACG with name: ${acgName}`, async () => {
-            await expect(async () => {
-              const totalUsersForTargetAudience = await this.getTotalUsersForTargetAudienceOfACG(acgName);
-              console.log(`Current users count: ${totalUsersForTargetAudience}`);
-              expect(totalUsersForTargetAudience, 'Total users for target audience of ACG should be equal to expected total users').toBe(expectedTotalUsers);
-            }, `Polling get total users for target audience of ACG API for ACG ${acgName} until we get expected total users`).toPass({ timeout: TIMEOUTS.MEDIUM });
-          });
-        }
+  async waitForTargetAudienceChangeToTakeEffectInACG(acgName: string, expectedTotalUsers: number): Promise<void> {
+    await test.step(`Waiting for target audience change to take effect in ACG with name: ${acgName}`, async () => {
+      await expect(async () => {
+        const totalUsersForTargetAudience = await this.getTotalUsersForTargetAudienceOfACG(acgName);
+        console.log(`Current users count: ${totalUsersForTargetAudience}`);
+        expect(
+          totalUsersForTargetAudience,
+          'Total users for target audience of ACG should be equal to expected total users'
+        ).toBe(expectedTotalUsers);
+      }, `Polling get total users for target audience of ACG API for ACG ${acgName} until we get expected total users`).toPass(
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+    });
+  }
 
-    /**
+  /**
    * Gets total admins of an ACG
    * @param acgName - Name of the ACG
    * @returns The total users for target audience of the ACG
    */
-    async getTotalUsersForAdminsOfACG(acgName: string): Promise<number> {
-      return await test.step(`Getting total users for admins of ACG with name: ${acgName}`, async () => {
-      
-        const acgId = await this.getACGId(acgName);
-        const response = await this.httpClient.get(API_ENDPOINTS.appManagement.identity.v2IdentityAccessControlGroupsSubjectStatsACGId(acgId));
-        expect(response.status(), 'Total users for admins of ACG fetched successfully').toBe(200);
-        const json: ACGSubjectStatsResponse = await this.httpClient.parseResponse<ACGSubjectStatsResponse>(response);
-        const totalUsers = parseInt(json.result.acgs[acgId].admins.totalUsers as string, 10);
-        console.log(`Total users for admins of ACG ${acgName} is ${totalUsers}`);
-        return totalUsers;
-      });
-    }
+  async getTotalUsersForAdminsOfACG(acgName: string): Promise<number> {
+    return await test.step(`Getting total users for admins of ACG with name: ${acgName}`, async () => {
+      const acgId = await this.getACGId(acgName);
+      const response = await this.httpClient.get(
+        API_ENDPOINTS.appManagement.identity.v2IdentityAccessControlGroupsSubjectStatsACGId(acgId)
+      );
+      expect(response.status(), 'Total users for admins of ACG fetched successfully').toBe(200);
+      const json: ACGSubjectStatsResponse = await this.httpClient.parseResponse<ACGSubjectStatsResponse>(response);
+      const totalUsers = parseInt(json.result.acgs[acgId].admins.totalUsers as string, 10);
+      console.log(`Total users for admins of ACG ${acgName} is ${totalUsers}`);
+      return totalUsers;
+    });
+  }
 
-    /**
+  /**
    * Waits for admins change to take effect in an ACG
    * @param acgName - Name of the ACG
    * @param expectedTotalAdmins - Expected total admins of the ACG
    */
-        async waitForAdminsChangeToTakeEffectInACG(acgName: string, expectedTotalUsers: number): Promise<void> {
-          await test.step(`Waiting for admins change to take effect in ACG with name: ${acgName}`, async () => {
-            await expect(async () => {
-              const totalUsersForAdmins = await this.getTotalUsersForAdminsOfACG(acgName);
-              console.log(`Current admins count: ${totalUsersForAdmins}`);
-              expect(totalUsersForAdmins, 'Total admins of ACG should be equal to expected total admins').toBe(expectedTotalUsers);
-            }, `Polling get total admins of ACG API for ACG ${acgName} until we get expected total admins`).toPass({ timeout: TIMEOUTS.MEDIUM });
-          });
-        }
+  async waitForAdminsChangeToTakeEffectInACG(acgName: string, expectedTotalUsers: number): Promise<void> {
+    await test.step(`Waiting for admins change to take effect in ACG with name: ${acgName}`, async () => {
+      await expect(async () => {
+        const totalUsersForAdmins = await this.getTotalUsersForAdminsOfACG(acgName);
+        console.log(`Current admins count: ${totalUsersForAdmins}`);
+        expect(totalUsersForAdmins, 'Total admins of ACG should be equal to expected total admins').toBe(
+          expectedTotalUsers
+        );
+      }, `Polling get total admins of ACG API for ACG ${acgName} until we get expected total admins`).toPass({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
 
-            /**
+  /**
    * Gets total admins of an ACG
    * @param acgName - Name of the ACG
    * @returns The total users for target audience of the ACG
    */
-    async getTotalUsersForManagersOfACG(acgName: string): Promise<number> {
-      return await test.step(`Getting total users for managers of ACG with name: ${acgName}`, async () => {
-      
-        const acgId = await this.getACGId(acgName);
-        const response = await this.httpClient.get(API_ENDPOINTS.appManagement.identity.v2IdentityAccessControlGroupsSubjectStatsACGId(acgId));
-        expect(response.status(), 'Total users for managers of ACG fetched successfully').toBe(200);
-        const json: ACGSubjectStatsResponse = await this.httpClient.parseResponse<ACGSubjectStatsResponse>(response);
-        const totalUsers = parseInt(json.result.acgs[acgId].managers.totalUsers as string, 10);
-        console.log(`Total users for managers of ACG ${acgName} is ${totalUsers}`);
-        return totalUsers;
-      });
-    }
+  async getTotalUsersForManagersOfACG(acgName: string): Promise<number> {
+    return await test.step(`Getting total users for managers of ACG with name: ${acgName}`, async () => {
+      const acgId = await this.getACGId(acgName);
+      const response = await this.httpClient.get(
+        API_ENDPOINTS.appManagement.identity.v2IdentityAccessControlGroupsSubjectStatsACGId(acgId)
+      );
+      expect(response.status(), 'Total users for managers of ACG fetched successfully').toBe(200);
+      const json: ACGSubjectStatsResponse = await this.httpClient.parseResponse<ACGSubjectStatsResponse>(response);
+      const totalUsers = parseInt(json.result.acgs[acgId].managers.totalUsers as string, 10);
+      console.log(`Total users for managers of ACG ${acgName} is ${totalUsers}`);
+      return totalUsers;
+    });
+  }
 
-    /**
+  /**
    * Waits for admins change to take effect in an ACG
    * @param acgName - Name of the ACG
    * @param expectedTotalAdmins - Expected total admins of the ACG
    */
-        async waitForManagersChangeToTakeEffectInACG(acgName: string, expectedTotalUsers: number): Promise<void> {
-          await test.step(`Waiting for managers change to take effect in ACG with name: ${acgName}`, async () => {
-            await expect(async () => {
-              const totalUsersForManagers = await this.getTotalUsersForManagersOfACG(acgName);
-              console.log(`Current managers count: ${totalUsersForManagers}`);
-              expect(totalUsersForManagers, 'Total managers of ACG should be equal to expected total managers').toBe(expectedTotalUsers);
-            }, `Polling get total managers of ACG API for ACG ${acgName} until we get expected total managers`).toPass({ timeout: TIMEOUTS.MEDIUM });
-          });
-        }
-
+  async waitForManagersChangeToTakeEffectInACG(acgName: string, expectedTotalUsers: number): Promise<void> {
+    await test.step(`Waiting for managers change to take effect in ACG with name: ${acgName}`, async () => {
+      await expect(async () => {
+        const totalUsersForManagers = await this.getTotalUsersForManagersOfACG(acgName);
+        console.log(`Current managers count: ${totalUsersForManagers}`);
+        expect(totalUsersForManagers, 'Total managers of ACG should be equal to expected total managers').toBe(
+          expectedTotalUsers
+        );
+      }, `Polling get total managers of ACG API for ACG ${acgName} until we get expected total managers`).toPass({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
 }

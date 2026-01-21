@@ -31,7 +31,7 @@ test.describe(
     let loginIdentifier3: string;
     let loginIdentifier4: string;
 
-    const features: string[] = [ 'Application settings', 'Audiences', 'Branding', 'Users' ];
+    const features: string[] = ['Application settings', 'Audiences', 'Branding', 'Users'];
     let user1: User;
     let user2: User;
     let user3: User;
@@ -247,7 +247,16 @@ test.describe(
         },
         async ({ userManagerFixture, appManagerApiFixture }) => {
           tagTest(test.info(), {
-            zephyrTestId: ['PS-33255', 'PS-33090', 'PS-33089', `PS-32972`, `PS-32973`, `PS-36247`, `PS-36246`, `PS-36245`],
+            zephyrTestId: [
+              'PS-33255',
+              'PS-33090',
+              'PS-33089',
+              `PS-32972`,
+              `PS-32973`,
+              `PS-36247`,
+              `PS-36246`,
+              `PS-36245`,
+            ],
           });
           const featureOwnersPage: FeatureOwnersPage = new FeatureOwnersPage(userManagerFixture.page);
           // Test Scenario
@@ -267,7 +276,7 @@ test.describe(
           await featureOwnersPage.featureOwnerModal.verifyTheCheckBoxIsCheckedForUsername(user2.username);
           await featureOwnersPage.featureOwnerModal.verifyTheCheckBoxIsCheckedForUsername(user3.username);
 
-         // Verify that user is not displayed with App manager tag
+          // Verify that user is not displayed with App manager tag
           await featureOwnersPage.featureOwnerModal.verifyUserIsDisplayedWithOutAppManagerTag(user1.username);
           await featureOwnersPage.featureOwnerModal.verifyUserIsDisplayedWithOutAppManagerTag(user4.username);
 
@@ -311,7 +320,10 @@ test.describe(
 
           await featureOwnersPage.reloadPage();
           // Verify the decrease in count for feature owners when an app manager is deactivated
-          await featureOwnersPage.verifyFeatureOwnersUserCountIsEqualToExpectedCount(feature,featureOwnerUsersCount - 1);
+          await featureOwnersPage.verifyFeatureOwnersUserCountIsEqualToExpectedCount(
+            feature,
+            featureOwnerUsersCount - 1
+          );
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);
           await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
           // Verify that user is not displayed in the feature owners list after changing the status to inactive
@@ -321,9 +333,13 @@ test.describe(
           await appManagerFixture.userManagementService.updateUserStatus(userIdForUser2, USER_STATUS.ACTIVE);
           await appManagerFixture.userManagementService.updateUserStatus(userIdForUser1, USER_STATUS.ACTIVE);
 
-          await appManagerFixture.userManagementService.updatePrimaryRole(loginIdentifier2, RolesId.APPLICATION_MANAGER, {
-            abac: true,
-          });
+          await appManagerFixture.userManagementService.updatePrimaryRole(
+            loginIdentifier2,
+            RolesId.APPLICATION_MANAGER,
+            {
+              abac: true,
+            }
+          );
 
           await featureOwnersPage.reloadPage();
           await featureOwnersPage.clickOnButtonForFeature(feature, FEATURE_OWNERS_MENU_OPTIONS.EDIT);

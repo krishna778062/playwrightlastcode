@@ -77,7 +77,8 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
     this.noResultsFoundHeading = page.getByText('No results found');
     this.noResultsFoundDescription = page.getByText('Try adjusting search terms or filters');
     this.featureOwnerRecords = page.locator('[data-testid*="dataGridRow"]');
-    this.featureOwnersUsersCount = (featureName: string) => this.featureOwnerRecords.filter({ hasText: featureName }).locator('[class*="Cell-module"] button p');
+    this.featureOwnersUsersCount = (featureName: string) =>
+      this.featureOwnerRecords.filter({ hasText: featureName }).locator('[class*="Cell-module"] button p');
 
     // Initialize component
     this.userCountPopup = new UserCountPopupComponent(page);
@@ -266,26 +267,29 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
     });
   }
 
-    /**
+  /**
    * Verifies that the user count popup is opened with correct count using dedicated component (to be used in the future)
    * @param featureName - Feature name for which the feature owner count needs to be fetched.
    */
-    async getFeatureOwnerCount(featureName: string): Promise<number> {
-      return await test.step(`Get the count of feature owners for ${featureName} feature`, async () => {
-        const featureOwnerUsersCount = await this.featureOwnersUsersCount(featureName).textContent();
-        return parseInt (featureOwnerUsersCount || '0', 10);
-      });
-    }
+  async getFeatureOwnerCount(featureName: string): Promise<number> {
+    return await test.step(`Get the count of feature owners for ${featureName} feature`, async () => {
+      const featureOwnerUsersCount = await this.featureOwnersUsersCount(featureName).textContent();
+      return parseInt(featureOwnerUsersCount || '0', 10);
+    });
+  }
 
-        /**
+  /**
    * Verifies that the user count for the given feature
    * @param featureName - Feature name for which the feature owner count needs to be fetched.
    * @param expectedCount - Expected feature owner count.
    */
-    async verifyFeatureOwnersUserCountIsEqualToExpectedCount(featureName: string, expectedCount: number): Promise<void> {
-      await test.step(`Verify that the feature owner count is equal to expected count for ${featureName} feature`, async () => {
-        const actualCount = await this.getFeatureOwnerCount(featureName);
-        expect(actualCount, `Feature owner count should be equal to expected count ${expectedCount} but found ${actualCount}`).toBe(expectedCount);
-        });
-      }
+  async verifyFeatureOwnersUserCountIsEqualToExpectedCount(featureName: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify that the feature owner count is equal to expected count for ${featureName} feature`, async () => {
+      const actualCount = await this.getFeatureOwnerCount(featureName);
+      expect(
+        actualCount,
+        `Feature owner count should be equal to expected count ${expectedCount} but found ${actualCount}`
+      ).toBe(expectedCount);
+    });
+  }
 }

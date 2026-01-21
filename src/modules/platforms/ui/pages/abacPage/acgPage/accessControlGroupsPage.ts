@@ -181,7 +181,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async searchForAudiencesOnAudiencePickerPopup(searchValue: string): Promise<void> {
     await test.step(`Search for ${searchValue}`, async () => {
-      await this.acgAudiencesSearchField.waitFor({timeout: TIMEOUTS.VERY_SHORT });
+      await this.acgAudiencesSearchField.waitFor({ timeout: TIMEOUTS.VERY_SHORT });
       await this.fillInElement(this.acgAudiencesSearchField, searchValue);
       await this.clickOnButtonWithName('Search');
       await this.acgCheckBoxes.nth(0).waitFor({ timeout: TIMEOUTS.SHORT });
@@ -194,7 +194,7 @@ export class AccessControlGroupsPage extends BasePage {
    */
   async searchAndSelectForUsersOnUserPickerPopup(searchValue: string): Promise<void> {
     await test.step(`Search for ${searchValue}`, async () => {
-      await this.acgUsersSearchField.waitFor({timeout: TIMEOUTS.VERY_SHORT });
+      await this.acgUsersSearchField.waitFor({ timeout: TIMEOUTS.VERY_SHORT });
       await this.typeInElement(this.acgUsersSearchField, searchValue);
       await this.acgUserSearchResult(searchValue).waitFor({ timeout: TIMEOUTS.SHORT });
       await this.page.keyboard.press('Enter');

@@ -127,10 +127,7 @@ test.describe(
       );
       await userManagementService.waitForUserToBeAddedInIdentity(managersAudienceUser[0].emp);
 
-      managersUserUserId[0] = await userManagementService.addUserIfNotAddedAlready(
-        managersUser[0],
-        Roles.END_USER
-      );
+      managersUserUserId[0] = await userManagementService.addUserIfNotAddedAlready(managersUser[0], Roles.END_USER);
       await userManagementService.waitForUserToBeAddedInIdentity(managersUser[0].emp);
 
       adminsAudienceUserId[0] = await userManagementService.addUserIfNotAddedAlready(
@@ -139,10 +136,7 @@ test.describe(
       );
       await userManagementService.waitForUserToBeAddedInIdentity(adminsAudienceUser[0].emp);
 
-      adminsUserUserId[0] = await userManagementService.addUserIfNotAddedAlready(
-        adminsUser[0],
-        Roles.END_USER
-      );
+      adminsUserUserId[0] = await userManagementService.addUserIfNotAddedAlready(adminsUser[0], Roles.END_USER);
       await userManagementService.waitForUserToBeAddedInIdentity(adminsUser[0].emp);
 
       categoryId.push(await identityManagementHelper.identityService.createCategory(categoryToCreate));
@@ -887,7 +881,9 @@ test.describe(
           toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
         });
         // Test Scenario
-        const targetAudienceUserId = await appManagerFixture.userManagementService.getUserId(targetAudienceUser[0].username);
+        const targetAudienceUserId = await appManagerFixture.userManagementService.getUserId(
+          targetAudienceUser[0].username
+        );
         await appManagerFixture.userManagementService.updateUserStatus(targetAudienceUserId, USER_STATUS.INACTIVE);
         await accessControlGroupsPage.searchForACG(acgName[0]);
         // Verify the initial assets count
@@ -945,7 +941,7 @@ test.describe(
           acgStatus: ACG_STATUS.ACTIVE,
           acgFeature: ACGFeature.ALERTS,
         };
-        
+
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
         await accessControlGroupsPage.loadPage();
         acgName.push(await accessControlGroupsPage.createACGWithAllParams(ACGCreationParams));
@@ -982,7 +978,7 @@ test.describe(
         await accessControlGroupsPage.reloadPage();
         await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 0);
         await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 0);
-          // Clean up: Reactivate all the users who were deactivated during the test
+        // Clean up: Reactivate all the users who were deactivated during the test
         await appManagerFixture.userManagementService.updateUserStatus(adminsAudienceUserId[0], USER_STATUS.ACTIVE);
         await appManagerFixture.userManagementService.updateUserStatus(adminsUserUserId[0], USER_STATUS.ACTIVE);
         await appManagerFixture.userManagementService.updateUserStatus(managersAudienceUserId[0], USER_STATUS.ACTIVE);
