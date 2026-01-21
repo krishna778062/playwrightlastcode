@@ -17,7 +17,17 @@
  */
 
 export type TenantKey = 'primary' | 'secondary';
-export type EnvironmentKey = 'qa' | 'uat' | 'test' | 'uatEU' | 'prodUS';
+export type EnvironmentKey =
+  | 'qa'
+  | 'uat'
+  | 'test'
+  | 'uatEU'
+  | 'prodUS'
+  | 'prodAU'
+  | 'prodCA'
+  | 'prodEU'
+  | 'uatAU'
+  | 'uatCA';
 
 export const mailosaurValues: {
   mailosaurApiKey: string;
@@ -110,7 +120,7 @@ export const config = {
       endUserEmail: 'meenakshi.joshi+2@simpplr.com',
       endUserPassword: 'Test@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
-      promotionManagerPassword: 'Simp@123',
+      promotionManagerPassword: 'Test@123',
       newUxEnabled: false,
       orgId: 'd0ca1b4e-1b83-4223-8f5d-fa78fa75b01a',
     },
@@ -129,25 +139,25 @@ export const config = {
     },
     uatEU: {
       tenantName: 'Frontline Primary UAT EU',
-      frontendBaseUrl: 'https://demon-slayer-1.uat-eu.simpplr.xyz',
-      apiBaseUrl: 'https://demon-slayer-1-api.uat-eu.simpplr.xyz',
-      appManagerEmail: 'meenakshi.joshi@simpplr.com',
-      appManagerPassword: 'Simp@123',
+      frontendBaseUrl: 'https://chatmod.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://chatmod-api.uat-eu.simpplr.xyz',
+      appManagerEmail: 'arvind.singh@simpplr.com',
+      appManagerPassword: '_Simp_1234',
       endUserEmail: 'meenakshi.joshi+2@simpplr.com',
       endUserPassword: 'Simp@123',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
       newUxEnabled: false,
-      orgId: '43742c24-f120-4f3a-9982-a1e7dabc3dbe',
+      orgId: '38f7c5e8-0e37-4e72-b170-064564d01e9d',
     },
     uatAU: {
       tenantName: 'Frontline Primary UAT AU',
-      frontendBaseUrl: 'https://messaging.uat-ca.simpplr.com',
-      apiBaseUrl: 'https://messaging-api.uat-ca.simpplr.com',
+      frontendBaseUrl: 'https://messaging.uat-au.simpplr.com',
+      apiBaseUrl: 'https://messaging-api.uat-au.simpplr.com',
       appManagerEmail: 'rakesh.yadav@simpplr.com',
       appManagerPassword: 'Test@123',
-      endUserEmail: 'meenakshi.joshi+2@simpplr.com',
-      endUserPassword: 'Test@123',
+      endUserEmail: 'arvind.singh@simpplr.com',
+      endUserPassword: '_Simp_1234',
       promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
       promotionManagerPassword: 'Simp@123',
       newUxEnabled: false,
@@ -155,7 +165,7 @@ export const config = {
     },
     uatCA: {
       tenantName: 'Frontline Primary UAT CA',
-      frontendBaseUrl: 'https://messaging.uat-au.simpplr.com',
+      frontendBaseUrl: 'https://messaging.uat-ca.simpplr.com',
       apiBaseUrl: 'https://messaging-api.uat-ca.simpplr.com',
       appManagerEmail: 'rakesh.yadav@simpplr.com',
       appManagerPassword: 'Test@123',
@@ -168,16 +178,55 @@ export const config = {
     },
     prodUS: {
       tenantName: 'Frontline Primary PROD US',
-      frontendBaseUrl: 'https://ping-automation.app.simpplr.com/',
-      apiBaseUrl: 'https://ping-automation-api.app.simpplr.com/',
-      appManagerEmail: 'rakesh.yadav@simpplr.com',
-      appManagerPassword: 'Test@123',
+      frontendBaseUrl: 'https://ping-automation.app.simpplr.com',
+      apiBaseUrl: 'https://ping-automation-api.app.simpplr.com',
+      appManagerEmail: 'arvind.singh@simpplr.com',
+      appManagerPassword: '_Simp_1234',
       endUserEmail: 'meenakshi.joshi+1@simpplr.com',
       endUserPassword: 'Simp@123',
       promotionManagerEmail: 'meenakshi.joshi@simpplr.com',
       promotionManagerPassword: 'Simp@123',
-      newUxEnabled: true,
+      newUxEnabled: false,
       orgId: '020cb3c0-14b6-4a6e-9bae-ade3b0e30f79',
+    },
+    prodAU: {
+      tenantName: 'Frontline Primary PROD AU',
+      frontendBaseUrl: 'https://messaging.au.simpplr.com',
+      apiBaseUrl: 'https://messaging-api.au.simpplr.com',
+      appManagerEmail: 'rakesh.yadav@simpplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'arvind.singh@simpplr.com',
+      endUserPassword: '_Simp_1234',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Test@123',
+      newUxEnabled: false,
+      orgId: '60a6a9b1-95fa-4950-a187-49d6bf294f66',
+    },
+    prodCA: {
+      tenantName: 'Frontline Primary PROD CA',
+      frontendBaseUrl: 'https://messaging.ca.simpplr.com',
+      apiBaseUrl: 'https://messaging-api.ca.simpplr.com',
+      appManagerEmail: 'rakesh.yadav@simpplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'arvind.singh@simpplr.com',
+      endUserPassword: '_Simp_1234',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Test@123',
+      newUxEnabled: false,
+      orgId: 'f859cfd2-0039-46d5-bc4c-9c389dd97564',
+    },
+    prodEU: {
+      tenantName: 'Frontline Primary PROD EU',
+      frontendBaseUrl: 'https://messaging.eu.simpplr.com',
+      apiBaseUrl: 'https://messaging-api.eu.simpplr.com',
+      appManagerEmail: 'rakesh.yadav@simpplr.com',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'arvind.singh@simpplr.com',
+      endUserPassword: '_Simp_1234',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Test@123',
+      newUxEnabled: false,
+      orgId: '86eedaf3-0feb-445b-9001-6be71d42c33a',
     },
   },
   secondary: {
@@ -288,6 +337,51 @@ export const config = {
       mailosaurApiKey: mailosaurValues.mailosaurApiKey,
       mailosaurServerId: mailosaurValues.mailosaurServerId,
     },
+    prodAU: {
+      tenantName: 'Frontline Secondary PROD AU',
+      frontendBaseUrl: 'https://frontline.au.simpplr.com',
+      apiBaseUrl: 'https://frontline-api.au.simpplr.com',
+      appManagerEmail: '1473',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi+2@simpplr.com',
+      endUserPassword: 'Test@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '60a6a9b1-95fa-4950-a187-49d6bf294f66',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
+    prodCA: {
+      tenantName: 'Frontline Secondary PROD CA',
+      frontendBaseUrl: 'https://frontline.ca.simpplr.com',
+      apiBaseUrl: 'https://frontline-api.ca.simpplr.com',
+      appManagerEmail: '1473',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi+2@simpplr.com',
+      endUserPassword: 'Test@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '6fcd4de3-1cea-4bc4-92dd-49d05295669f',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
+    prodEU: {
+      tenantName: 'Frontline Secondary PROD EU',
+      frontendBaseUrl: 'https://frontline.eu.simpplr.com',
+      apiBaseUrl: 'https://frontline-api.eu.simpplr.com',
+      appManagerEmail: '1473',
+      appManagerPassword: 'Test@123',
+      endUserEmail: 'meenakshi.joshi+2@simpplr.com',
+      endUserPassword: 'Test@123',
+      promotionManagerEmail: 'meenakshi.joshi+1@simpplr.com',
+      promotionManagerPassword: 'Simp@123',
+      newUxEnabled: false,
+      orgId: '86eedaf3-0feb-445b-9001-6be71d42c33a',
+      mailosaurApiKey: mailosaurValues.mailosaurApiKey,
+      mailosaurServerId: mailosaurValues.mailosaurServerId,
+    },
   },
   appConfig: {
     staticFolderPath: '',
@@ -300,15 +394,20 @@ export const config = {
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!['qa', 'uat', 'test', 'uatEU', 'prodUS'].includes(testEnv)) {
+  if (!['qa', 'uat', 'test', 'uatEU', 'uatAU', 'uatCA', 'prodUS', 'prodAU', 'prodCA', 'prodEU'].includes(testEnv)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, uatEU, prodUS\n` +
+        `Valid values are: qa, uat, test, uatEU, uatAU, uatCA, prodUS, prodAU, prodCA, prodEU\n` +
         `Example: TEST_ENV=qa npm run test:module frontline\n` +
         `Example: TEST_ENV=uat npm run test:module frontline\n` +
         `Example: TEST_ENV=test npm run test:module frontline\n` +
         `Example: TEST_ENV=uatEU npm run test:module frontline\n` +
-        `Example: TEST_ENV=prodUS npm run test:module frontline\n`
+        `Example: TEST_ENV=uatAU npm run test:module frontline\n` +
+        `Example: TEST_ENV=uatCA npm run test:module frontline\n` +
+        `Example: TEST_ENV=prodUS npm run test:module frontline\n` +
+        `Example: TEST_ENV=prodAU npm run test:module frontline\n` +
+        `Example: TEST_ENV=prodCA npm run test:module frontline\n` +
+        `Example: TEST_ENV=prodEU npm run test:module frontline\n`
     );
   }
 

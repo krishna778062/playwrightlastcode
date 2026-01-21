@@ -12,12 +12,20 @@ export class ManageAppRecognitionSettingPage extends BasePage {
   readonly saveButton: Locator;
   readonly disableCommentsModal: Locator;
   readonly disableCommentsConfirmButton: Locator;
-  disableCommentsModalHeading: Locator;
-  disableCommentsCancelButton: Locator;
+  readonly disableCommentsModalHeading: Locator;
+  readonly disableCommentsCancelButton: Locator;
+  readonly privateRecognitionHeader: Locator;
+  readonly companyValuesHeader: Locator;
+  readonly expertiseHeader: Locator;
+  readonly expertiseCheckbox: Locator;
+  readonly companyValuesCheckbox: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_APP_RECOGNITION_SETTING) {
     super(page, pageUrl);
     this.enableDisableHeader = page.getByRole('heading', { name: /enable\/disable recognition/i }).first();
+    this.privateRecognitionHeader = page.getByRole('heading', { name: /Private recognition/i }).first();
+    this.companyValuesHeader = page.getByRole('heading', { name: /company values/i }).first();
+    this.expertiseHeader = page.getByRole('heading', { name: /expertise/i }).first();
     this.commentsRecognitionPostsHeader = page.getByRole('heading', { name: /comments on recognition posts/i }).first();
     this.commentEnableDisableToggle = page.getByRole('checkbox', { name: 'commentsEnabled' });
     this.saveButton = page.getByRole('button', { name: /save/i }).first();
@@ -29,6 +37,8 @@ export class ManageAppRecognitionSettingPage extends BasePage {
     this.disableCommentsConfirmButton = this.disableCommentsModal
       .getByRole('button', { name: /disable comments/i })
       .first();
+    this.expertiseCheckbox = page.locator('#expertiseEnabledCheckbox');
+    this.companyValuesCheckbox = page.locator('#companyValuesEnabledCheckbox');
   }
 
   /**
@@ -80,6 +90,48 @@ export class ManageAppRecognitionSettingPage extends BasePage {
         this.page.getByText(MANAGE_APP_SETTING_MESSAGES.COMMENTS_DISABLED_MESSAGE),
         'Comments disabled message should be visible'
       ).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Verify all Manage Recognition setting related UI elements are present and actionable.
+   */
+  async verifyManageRecognitionSettingsHeaderElements(): Promise<void> {
+    await test.step('Verifying comments settings UI elements', async () => {
+      await expect(this.enableDisableHeader, 'Enable/Disable recognition header should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.privateRecognitionHeader, 'Private recognition mode header should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(
+        this.commentsRecognitionPostsHeader,
+        'Private recognition mode header should be visible'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.companyValuesHeader, 'Company values header should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(this.expertiseHeader, 'Expertise header should be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  async verifyExpertiseHeaderIsVisible(): Promise<void> {
+    await test.step('Verify expertise header is visible', async () => {
+      await expect(this.expertiseHeader).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  async verifyExpertiseCheckboxIsChecked(isChecked?: boolean): Promise<void> {
+    await test.step('Verify expertise checkbox is checked', async () => {
+      const value = await this.expertiseCheckbox.getAttribute('value');
+      await this.expertiseCheckbox.getAttribute('value').then(value => {
+        expect(value).toBe('false');
+        expect(value, 'Expertise checkbox should be unchecked').toBe('false');
+      });
     });
   }
 
