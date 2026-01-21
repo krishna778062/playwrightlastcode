@@ -34,12 +34,13 @@ on:
           - 'prodAU'
 
       module:
-        description: 'Module to test'
-        required: false
+        description: 'Module to test (⚠️ Select carefully - default is chat to avoid running all modules)'
+        required: true
+        default: 'chat'
         type: choice
         options:
-          - 'all'
           - 'chat'
+          - 'all'
           - 'platforms'
           - 'global-search'
           - 'content'
@@ -119,21 +120,7 @@ on:
         type: string
 
 jobs:
-  validate:
-    name: Validate Inputs
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check module selection
-        run: |
-          MODULE="${{ inputs.module }}"
-          if [ -z "$MODULE" ] || [ "$MODULE" = "" ]; then
-            echo "::error::❌ Module selection is required. Please select a module from the dropdown before running the workflow."
-            exit 1
-          fi
-          echo "✅ Module selected: $MODULE"
-
   regression:
-    needs: validate
     uses: ./.github/workflows/regression-unified-template.yml
     with:
       environment: ${{ inputs.environment }}
