@@ -198,8 +198,8 @@ export const config = {
     },
     test: {
       tenantName: 'Primary Tenant',
-      frontendBaseUrl: 'https://integrations-qa-auto.test.simpplr.xyz',
-      apiBaseUrl: 'https://integrations-qa-auto-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://int-absolute-new.test.simpplr.xyz',
+      apiBaseUrl: 'https://int-absolute-new-api.test.simpplr.xyz',
       appManagerEmail: 'srikant.g@simpplr.com',
       appManagerPassword: 'Simpplr@12345',
       endUserEmail: 'srikant.g+enduser@simpplr.com',
@@ -211,7 +211,7 @@ export const config = {
       QA_SYSTEM_END_USER_USERNAME: 'Srikant.g+enduser@simpplr.com',
       QA_SYSTEM_END_USER_PASSWORD: 'Simpplr@12345',
       IGNORE_TLS: 1,
-      TENANT_USER_ROLE_ID: '3c774e6c-02b6-4b61-9d7-03d083540136',
+      TENANT_USER_ROLE_ID: '2b69b1ea-b648-46af-910b-9d7b341510b9',
     },
     uatEU: {
       tenantName: 'Primary Tenant',
