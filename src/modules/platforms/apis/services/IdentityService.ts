@@ -12,12 +12,12 @@ import { PeopleListResponse } from '@core/types/people.type';
 import { IdentityUserSearchResponse } from '@core/types/user.type';
 
 import { HttpClient } from '@/src/core/api/clients/httpClient';
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 // @/src imports
 import { audienceCreationParams } from '@/src/core/types/audience.type';
 import { IIdentityAdminOperations } from '@/src/modules/platforms/apis/interfaces/IIdentityOperations';
 import { PLATFORM_API_ENDPOINTS as API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
 import { ACGCreationAPI, ACGCreationResponse, ACGSubjectStatsResponse } from '@/src/modules/platforms/apis/types/acg';
-import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 interface ListRolesResponse {
   status: number;

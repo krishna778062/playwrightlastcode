@@ -10,11 +10,11 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
 import { QuickTaskTestHelper } from '../apis/helpers/quickTaskTestHelper';
+import { IdentityService } from '../apis/services/IdentityService';
 import { QuickTaskService } from '../apis/services/QuickTaskService';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
-import { IdentityService } from '../apis/services/IdentityService';
 
 // Local service desk login function - keeps service desk functionality within platform module
 async function loginToServiceDesk(page: Page, user: { email: string; password: string }): Promise<NewHomePage> {
