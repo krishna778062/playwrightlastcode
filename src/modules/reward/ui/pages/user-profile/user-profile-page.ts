@@ -204,7 +204,7 @@ export class UserProfilePage extends BasePage {
    * Mock the basic-app-config API and reload the page with new language
    */
   async mockAppConfigLanguage(page: Page, langCode: number): Promise<void> {
-    await page.route('**/v2/account/basic-app-config', async route => {
+    await page.route('**/account/basic-app-config', async route => {
       const originalResponse = await route.fetch();
       const body = await originalResponse.json();
 

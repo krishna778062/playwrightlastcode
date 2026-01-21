@@ -28,7 +28,7 @@ export default defineConfig({
   ...baseConfig,
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'reward', 'tests', 'ui-test-renaming'),
   testIgnore: ['**/tests/ui-setting-tests/**', '**/tests/ui-tests/**'],
-  workers: process.env.CI ? 4 : 3,
+  workers: 1,
   projects: [
     {
       name: 'Renaming',

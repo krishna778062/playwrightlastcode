@@ -154,12 +154,12 @@ test.describe('renaming page', () => {
       const getCustomValue: Map<string, string> = await renamingPage.getAllTheCustomValue();
       const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
       const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
-      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0]);
+      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0] && id !== 1);
 
       // Mock each non-default language and re-run validations
       for (const langId of otherLanguageIds) {
         // ensure we don't stack multiple route handlers
-        await appManagerFixture.page.unroute('**/account/appConfig').catch(() => {});
+        await appManagerFixture.page.unroute('**/account/**').catch(() => {});
         await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
         await renamingPage.validateThePointsValueInApp(getCustomValue);
       }

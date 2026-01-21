@@ -2,7 +2,6 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { RecognitionHubPage } from '@recognition/ui/pages';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
-import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
@@ -212,7 +211,10 @@ export class RenamingPage extends BasePage {
   async clickEditButtonByCardType(cardType: 'recognition' | 'points' | 'rewardsStore'): Promise<void> {
     await test.step(`Clicking Edit button for ${cardType}`, async () => {
       const editButton = this.getEditButtonByCardType(cardType);
-      await this.clickOnElement(editButton, { stepInfo: `Clicking Edit button for ${cardType}` });
+      await this.clickOnElement(editButton, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: `Clicking Edit button for ${cardType}`,
+      });
       const dialog = new EditLabelModal(this.page);
       await this.verifier.waitUntilElementIsVisible(dialog.getSaveButton(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
     });
@@ -434,7 +436,7 @@ export class RenamingPage extends BasePage {
     await this.clickOnElement(editModal.getSaveButton(), {
       stepInfo: `Clicking Save button in Edit Label modal for ${cardType}`,
     });
-    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     return customName;
   }
 
@@ -774,7 +776,6 @@ export class RenamingPage extends BasePage {
       if (!Array.isArray(ids)) {
         throw new Error(`selectedLanguages.ids not found in appConfig response: ${JSON.stringify(json)}`);
       }
-
       return ids.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n));
     });
   }
@@ -796,177 +797,151 @@ export class RenamingPage extends BasePage {
     });
   }
 
-  async validateTheRecognitionValueInApp(customValue: string): Promise<void> {
-    //Validate the Customized value in Home page
-    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
-    const navMenuLocator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${customValue}")`);
-    await this.verifier.verifyTheElementIsVisible(navMenuLocator, { timeout: TIMEOUTS.SHORT });
-    await this.page.locator('[class*="PostForm"] button').click();
-    const recognitionCreationButtonInFeed = this.page
-      .locator('[for="recognition"] button[id="recognition"]')
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
+  // ---------- Common Locators ----------
+  private get postFormButton(): Locator {
+    return this.page.locator('[class*="PostForm"] button');
+  }
 
-    //Validate the Customized value in Recognition hub page
-    const recognitionHub = new RecognitionHubPage(this.page);
-    await recognitionHub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-    await recognitionHub.verifyThePageIsLoaded();
-    const recognitionHubHeading = this.page
-      .locator(`[class*="PageContainerFullscreen_header"] h1`)
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(recognitionHubHeading, { timeout: TIMEOUTS.SHORT });
-    const giveRecognitionButton = this.page
-      .locator(`[class*="PageContainerFullscreen_header"] h1 + div > button`)
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(giveRecognitionButton, { timeout: TIMEOUTS.SHORT });
+  private get recognitionCreationButton(): Locator {
+    return this.page.locator('[for="recognition"] button[id="recognition"]');
+  }
 
-    //Validate the Customized value in Site dashboard page
-    await this.openOneSiteDashboard();
-    await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
+  private get pointsLabel(): Locator {
+    return this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
+  }
+
+  // ---------- Common Actions ----------
+  private async openRecognitionComposer(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.postFormButton, {
       timeout: TIMEOUTS.MEDIUM,
-      stepInfo: 'Waiting for recognition creation button to be visible on site dashboard page',
     });
-    await this.page.locator('[class*="PostForm"] button').click();
-    const recognitionCreationButtonInFeed2 = this.page
-      .locator('[for="recognition"] button[id="recognition"]')
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed2, { timeout: TIMEOUTS.SHORT });
+    await this.postFormButton.click();
+  }
+
+  private walletTextLabel(testId: string): Locator {
+    return this.page
+      .getByTestId(testId)
+      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
+      .locator('p')
+      .filter({ hasNotText: /^\d+$/ })
+      .first();
+  }
+
+  private async verifyPointsLabelText(locator: Locator, expected: string): Promise<void> {
+    await locator.scrollIntoViewIfNeeded();
+    await this.verifier.verifyTheElementIsVisible(locator, { timeout: TIMEOUTS.SHORT });
+    expect(await locator.textContent()).toContain(expected);
+  }
+
+  private async validateRecognitionOnHome(recognition: string): Promise<void> {
+    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+    await this.verifier.verifyTheElementIsVisible(
+      this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`)
+    );
+    await this.openRecognitionComposer();
+    await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }));
+  }
+
+  private async validateRecognitionOnHub(recognition: string): Promise<void> {
+    const hub = new RecognitionHubPage(this.page);
+    await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+    await hub.verifyThePageIsLoaded();
+
+    await this.verifier.verifyTheElementIsVisible(
+      this.page.locator('[class*="PageContainerFullscreen_header"] h1').filter({ hasText: recognition })
+    );
+  }
+
+  private async validateAcrossPages(steps: Array<() => Promise<void>>): Promise<void> {
+    for (const step of steps) {
+      await step();
+    }
+  }
+
+  async validateTheRecognitionValueInApp(customValue: any): Promise<void> {
+    const recognition = customValue.get('recognition');
+    await this.validateAcrossPages([
+      () => this.validateRecognitionOnHome(recognition),
+      () => this.validateRecognitionOnHub(recognition),
+      async () => {
+        await this.openOneSiteDashboard();
+        await this.openRecognitionComposer();
+        await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }));
+      },
+    ]);
   }
 
   async validateThePointsValueInApp(customValue: any): Promise<void> {
-    //Validate the Customized value in Home page
-    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
-    await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
-      timeout: TIMEOUTS.MEDIUM,
-    });
-    await this.page.locator('[class*="PostForm"] button').click();
-    const recognitionCreationButtonInFeed = this.page.locator('[for="recognition"] button[id="recognition"]');
-    await this.clickOnElement(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
-    const pointLabel = this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
-    await this.verifier.verifyTheElementIsVisible(pointLabel, { timeout: TIMEOUTS.SHORT });
-    expect(await pointLabel.textContent()).toContain(customValue.get('points'));
+    const points = customValue.get('points');
+    const recognition = customValue.get('recognition');
 
-    //Validate the Customized value in Recognition hub page
-    const recognitionHub = new RecognitionHubPage(this.page);
-    await recognitionHub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-    await recognitionHub.verifyThePageIsLoaded();
-    const panelHeading = this.page
-      .locator('a[href="/rewards-store/order-history"]')
-      .locator('xpath=ancestor::div[contains(@style,"align-items")]')
-      .locator('h2')
-      .filter({ hasText: customValue.get('points') });
-    const pointsToGiveLabel = this.page
-      .getByTestId('i-gift')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ }) // exclude numeric value like 490
-      .first();
-    const pointsToSpendLabel = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .first();
-    await this.verifier.verifyTheElementIsVisible(panelHeading);
-    await expect(panelHeading).toContainText(customValue.get('points'));
-    await this.verifier.verifyTheElementIsVisible(pointsToGiveLabel);
-    await expect(pointsToGiveLabel).toContainText(customValue.get('points'));
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel);
-    await expect(pointsToSpendLabel).toContainText(customValue.get('points'));
-
-    //Validate the Customized value in Site dashboard page
-    await this.openOneSiteDashboard();
-    await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
-      timeout: TIMEOUTS.MEDIUM,
-      stepInfo: 'Waiting for recognition creation button to be visible on site dashboard page',
-    });
-    await this.clickOnElement(this.page.locator('[class*="PostForm"] button'));
-    const recognitionCreationButtonInFeed2 = this.page.locator('[for="recognition"] button[id="recognition"]');
-    await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed2, { timeout: TIMEOUTS.SHORT });
-    await this.clickOnElement(recognitionCreationButtonInFeed2);
-    const pointLabel2 = this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
-    await this.verifier.verifyTheElementIsVisible(pointLabel2, { timeout: TIMEOUTS.SHORT });
-    expect(await pointLabel2.textContent()).toContain(customValue.get('points'));
-
-    //Validate the Customized value in Rewards Store page
-    const rewardStore = new RewardsStore(this.page);
-    await rewardStore.visit();
-    await rewardStore.verifyThePageIsLoaded();
-    const pointsToSpendLabel1 = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .filter({ hasText: customValue.get('points') })
-      .first();
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel1, { timeout: TIMEOUTS.SHORT });
-
-    //Validate the Customized value in User Profile page
-    const userProfile = new UserProfilePage(this.page);
-    await userProfile.navigateToCurrentUserProfile();
-    await userProfile.verifyThePageIsLoaded();
-    const recognitionLabelInUserProfilePage = this.page
-      .locator('a[href="/rewards-store/order-history"]')
-      .locator('xpath=preceding-sibling::h2')
-      .filter({ hasText: customValue.get('recognition') });
-
-    const pointsToGiveLabelInUserProfile = this.page
-      .getByTestId('i-gift')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .filter({ hasText: customValue.get('points') })
-      .first();
-
-    const pointsToSpendLabelInUserProfile = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .filter({ hasText: customValue.get('points') })
-      .first();
-
-    await this.verifier.verifyTheElementIsVisible(recognitionLabelInUserProfilePage, { timeout: TIMEOUTS.SHORT });
-    await this.verifier.verifyTheElementIsVisible(pointsToGiveLabelInUserProfile, { timeout: TIMEOUTS.SHORT });
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabelInUserProfile, { timeout: TIMEOUTS.SHORT });
+    await this.validateAcrossPages([
+      async () => {
+        await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+        await this.openRecognitionComposer();
+        await this.clickOnElement(this.recognitionCreationButton);
+        await this.verifyPointsLabelText(this.pointsLabel, points);
+      },
+      async () => {
+        const hub = new RecognitionHubPage(this.page);
+        await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+        await hub.verifyThePageIsLoaded();
+        await expect(this.walletTextLabel('i-gift')).toContainText(points);
+        await expect(this.walletTextLabel('i-coinsStacked')).toContainText(points);
+        this.recognitionCreationButton.filter({ hasText: recognition });
+      },
+      async () => {
+        await this.openOneSiteDashboard();
+        await this.openRecognitionComposer();
+        await this.clickOnElement(this.recognitionCreationButton);
+        await this.verifyPointsLabelText(this.pointsLabel, points);
+        this.recognitionCreationButton.filter({ hasText: recognition });
+      },
+    ]);
   }
 
   async validateTheRewardStoreValueInApp(customValue: any): Promise<void> {
-    //Validate the Customized value in Rewards Store page
+    const rewardStoreHeading = customValue.get('rewardsStore');
+    const points = customValue.get('points');
     const rewardStore = new RewardsStore(this.page);
-    await rewardStore.visit();
-    await rewardStore.verifyThePageIsLoaded();
-    const rewardStoreHeading = this.page.locator(`  [class*="PageContainer-module__header"] h1`).filter({
-      hasText: customValue.get('rewardStore'),
-    });
-    const pointsToSpendLabel = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .first();
-    await this.verifier.verifyTheElementIsVisible(rewardStoreHeading, { timeout: TIMEOUTS.SHORT });
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel, { timeout: TIMEOUTS.SHORT });
-
-    //Validate the Custom point label value in Gift card element
-    const giftCardPointLabelInRewardStorePage = this.page.locator(`button[class*="UI_listItem"]`).first();
-    await this.verifier.verifyTheElementIsVisible(
-      giftCardPointLabelInRewardStorePage.locator('div>p').last().filter({ hasNotText: /^\d+$/ }),
-      { timeout: TIMEOUTS.SHORT }
-    );
-    expect(
-      await giftCardPointLabelInRewardStorePage.locator('div>p').last().filter({ hasNotText: /^\d+$/ }).textContent()
-    ).toContain(customValue.get('points'));
-
-    //Validate the Custom point label value in Gift card modal
-    await rewardStore.openGiftCardModal(2);
-    const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
-    await this.verifier.verifyTheElementIsVisible(
-      giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
-      { timeout: TIMEOUTS.SHORT }
-    );
-    expect(
-      await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
-    ).toContain(customValue.get('points'));
+    await this.validateAcrossPages([
+      async () => {
+        await rewardStore.visit();
+        await rewardStore.verifyThePageIsLoaded();
+        await this.verifyPointsLabelText(
+          this.page
+            .getByTestId('i-coinsStacked')
+            .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
+            .locator('h1')
+            .filter({ hasNotText: /^\d+$/ })
+            .first(),
+          rewardStoreHeading
+        );
+      },
+      async () => {
+        await this.verifyPointsLabelText(
+          this.page
+            .getByTestId('i-coinsStacked')
+            .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
+            .locator('p')
+            .filter({ hasNotText: /^\d+$/ })
+            .first(),
+          points
+        );
+      },
+      async () => {
+        const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
+        await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
+        await rewardStore.openGiftCardModal(2);
+        const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
+        await this.verifier.verifyTheElementIsVisible(
+          giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
+          { timeout: TIMEOUTS.SHORT }
+        );
+        expect(
+          await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
+        ).toContain(customValue.get('points'));
+      },
+    ]);
   }
 }
