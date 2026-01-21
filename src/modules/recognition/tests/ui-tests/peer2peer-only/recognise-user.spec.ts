@@ -12,6 +12,7 @@ import { RecognitionHubPage } from '@recognition-pages/recognitionHubPage';
 import { UserProfilePage } from '@recognition-pages/userProfilePage';
 import { FeedPage } from '@recognition/ui/pages/feedPage';
 import { getRecognitionTenantConfigFromCache } from '@recognition/config/recognitionConfig';
+import { DialogContainerForm } from '@recognition/ui/components/common/dialog-container-form';
 
 test.describe('Recognition user from hub - only peer enablement mode', () => {
   test(
@@ -58,7 +59,9 @@ test.describe('Recognition user from hub - only peer enablement mode', () => {
       await feedPage.selectUserForRecognitionFeedPage(0);
       await feedPage.selectAwardForRecognitionFeedPage(createdAwardName);
       await feedPage.enterDescriptionMessageFeedPage(recognitionMessage);
-      await feedPage.recognizeButton.click();
+      await recognitionHubPage.clickOnElement(feedPage.recognizeButton, {
+        stepInfo: 'Clicking on recognize button',
+      });
       await recognitionHubPage.verifyToastMessageIsVisibleWithText('Recognition published');
       await recognitionHubPage.postRecognitionAward({
         shareToHub: false,
@@ -228,6 +231,7 @@ test.describe('Recognition user from hub - only peer enablement mode', () => {
       const recognitionHubPage = new RecognitionHubPage(appManagerPage);
       const userProfilePage = new UserProfilePage(appManagerPage);
       const dialog = new GiveRecognitionDialogBox(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
 
       // Pre-req: create peer recognition award via api
       const awardName = `Auto P2P Profile Award ${Date.now()}`;
@@ -252,7 +256,16 @@ test.describe('Recognition user from hub - only peer enablement mode', () => {
       await dialog.selectThePeerRecognitionAwardForRecognition(createdAwardName);
       await dialog.enterTheRecognitionMessage(recognitionMessage);
       await expect(dialog.recognizeButton).toBeEnabled();
-      await dialog.recognizeButton.click();
+      await recognitionHubPage.clickOnElement(dialog.recognizeButton, {
+        stepInfo: 'Clicking on recognize button',
+      });
+      await dialog.recognizeButton.waitFor({ state: 'hidden' });
+      if ((await dialogContainerForm.crossButton.count()) > 0) {
+        await dialogContainerForm.crossButton.waitFor({ state: 'attached' });
+        await recognitionHubPage.clickOnElement(dialogContainerForm.crossButton, {
+          stepInfo: 'Clicking on cross button',
+        });
+      }
 
       await recognitionHubPage.postRecognitionAward({
         shareToHub: false,

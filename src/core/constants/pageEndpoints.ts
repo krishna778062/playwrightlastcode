@@ -40,7 +40,7 @@ export const PAGE_ENDPOINTS = {
 
   // Recognition pages
   FEED: '/feed',
-  SEARCH_SITE_FEED: 'sites/search?term=',
+  SEARCH_SITE_FEED: '/sites/search?term=',
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
   MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
