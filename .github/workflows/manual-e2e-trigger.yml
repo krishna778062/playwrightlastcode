@@ -34,13 +34,13 @@ on:
           - 'prodAU'
 
       module:
-        description: 'Module to test (⚠️ Select carefully - default is chat to avoid running all modules)'
+        description: 'Module to test'
         required: true
-        default: 'chat'
+        default: 'all'
         type: choice
         options:
-          - 'chat'
           - 'all'
+          - 'chat'
           - 'platforms'
           - 'global-search'
           - 'content'
@@ -55,6 +55,8 @@ on:
           - 'reward-workAnniversary'
           - 'reward-renaming'
           - 'recognition'
+          - 'recognition-abac'
+          - 'recognition-only-p2p'
           - 'privateRecognition'
           - 'frontline'
           - 'newsletter'
