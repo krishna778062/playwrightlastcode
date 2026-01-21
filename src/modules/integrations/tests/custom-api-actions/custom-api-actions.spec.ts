@@ -15,16 +15,9 @@ test.describe(
   },
   () => {
     test.beforeEach(async ({ appManagerFixture }) => {
-      const testTitle = test.info().title.toLowerCase();
-      if (testTitle.includes('create api action')) {
-        const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
-        await createApiActionPage.loadPage();
-        await createApiActionPage.verifyThePageIsLoaded();
-      } else {
-        const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
-        await customApiActionsPage.loadPage();
-        await customApiActionsPage.verifyThePageIsLoaded();
-      }
+      const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
+      await customApiActionsPage.loadPage();
+      await customApiActionsPage.verifyThePageIsLoaded();
     });
 
     test(
@@ -181,6 +174,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.verifyButtonsAreDisabled();
         await createApiActionPage.verifyStepIndicatorsDisabled();
       }
@@ -198,6 +193,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.verifyCancelButtonNavigation();
       }
     );
@@ -214,6 +211,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.verifyAddCustomAppLinkNavigation();
       }
     );
@@ -230,6 +229,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.verifyBackToApiActionsLinkNavigation();
       }
     );
@@ -267,6 +268,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.selectCustomApp('Zendesk');
         await createApiActionPage.enterApiActionName('Test API Action');
         await createApiActionPage.verifyButtonsAreEnabled();
@@ -285,6 +288,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.selectCustomApp('Jira Custom App Basic Auth');
         await createApiActionPage.enterApiActionName('Test API Action');
         await createApiActionPage.verifyButtonsAreEnabled();
@@ -303,6 +308,8 @@ test.describe(
         });
 
         const createApiActionPage = new CreateApiActionPage(appManagerFixture.page);
+        await createApiActionPage.loadPage();
+        await createApiActionPage.verifyThePageIsLoaded();
         await createApiActionPage.verifyButtonsAreDisabled();
         await createApiActionPage.selectCustomApp('Zendesk');
         await createApiActionPage.enterApiActionName('Test API Action');
