@@ -4501,8 +4501,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          zephyrTestId: 'TBD',
-          storyId: 'INT-24252',
+          zephyrTestId: 'INT-27655',
         });
 
         // Setup: Ensure clean state (no existing Must reads customization)
@@ -4617,8 +4616,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          zephyrTestId: 'TBD',
-          storyId: 'TBD',
+          zephyrTestId: 'INT-29914',
         });
 
         // Given I am on the Notification customization page
