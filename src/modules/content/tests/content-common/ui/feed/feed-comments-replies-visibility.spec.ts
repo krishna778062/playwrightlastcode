@@ -138,6 +138,8 @@ test.describe(
         // Click "Show more replies"
         await homeFeedPage.feedList.clickLoadMoreRepliesButton();
 
+        await homeFeedPage.feedList.waitForPostToBeVisible(replyTexts[0]);
+
         // Verify all 11 replies are visible
         await homeFeedPage.feedList.verifyReplyCount(createdPostText, 11);
       }
@@ -211,6 +213,7 @@ test.describe(
         // Click "Show more replies"
         await siteFeedPage.feedList.clickLoadMoreRepliesButton();
 
+        await siteFeedPage.feedList.waitForPostToBeVisible(replyTexts[0]);
         // Verify all replies visible
         await siteFeedPage.feedList.verifyReplyCount(createdPostText, 11);
 
