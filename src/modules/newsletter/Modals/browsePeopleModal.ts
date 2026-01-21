@@ -60,8 +60,12 @@ export class BrowsePeopleModal extends BaseActionUtil {
         timeout: TIMEOUTS.SHORT,
       });
 
-      await this.departmentSelect.click();
-      await this.departmentSelect.fill(department);
+      await this.clickOnElement(this.departmentSelect, {
+        stepInfo: 'Click department select field',
+      });
+      await this.fillInElement(this.departmentSelect, department, {
+        stepInfo: `Enter department: ${department}`,
+      });
       await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
     });
   }
@@ -88,8 +92,12 @@ export class BrowsePeopleModal extends BaseActionUtil {
         timeout: TIMEOUTS.SHORT,
       });
 
-      await this.locationSelect.click();
-      await this.locationSelect.fill(location);
+      await this.clickOnElement(this.locationSelect, {
+        stepInfo: 'Click location select field',
+      });
+      await this.fillInElement(this.locationSelect, location, {
+        stepInfo: `Enter location: ${location}`,
+      });
       await this.page.waitForTimeout(TIMEOUTS.SHORT);
     });
   }
@@ -206,7 +214,9 @@ export class BrowsePeopleModal extends BaseActionUtil {
   async enterAndSelectPersonNameInBrowsePeopleModal(personName: string): Promise<void> {
     await test.step(`Search and select person: ${personName}`, async () => {
       await this.searchInput.clear();
-      await this.searchInput.fill(personName);
+      await this.fillInElement(this.searchInput, personName, {
+        stepInfo: `Search for person: ${personName}`,
+      });
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
 
       await this.clickOnElement(this.checkboxes.first(), {
@@ -280,7 +290,9 @@ export class BrowsePeopleModal extends BaseActionUtil {
   async searchAndTryToCheckPersonAtMaxLimit(personName: string): Promise<void> {
     await test.step(`Search and attempt to check person when at max limit: ${personName}`, async () => {
       await this.searchInput.clear();
-      await this.searchInput.fill(personName);
+      await this.fillInElement(this.searchInput, personName, {
+        stepInfo: `Search for person: ${personName}`,
+      });
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
 
       await this.checkboxes.first().check();

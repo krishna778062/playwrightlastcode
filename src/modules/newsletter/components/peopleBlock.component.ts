@@ -138,9 +138,12 @@ export class PeopleBlockComponent extends BaseActionUtil {
    */
   async enterPersonNameInSidebarSearchField(personName: string): Promise<void> {
     await test.step(`Enter person name in sidebar search: ${personName}`, async () => {
-      await this.sidebarPersonSearchCombobox.click();
-      await this.sidebarPersonSearchCombobox.fill(personName);
-      // Wait for dropdown to populate
+      await this.clickOnElement(this.sidebarPersonSearchCombobox, {
+        stepInfo: 'Click sidebar person search field',
+      });
+      await this.fillInElement(this.sidebarPersonSearchCombobox, personName, {
+        stepInfo: `Enter person name: ${personName}`,
+      });
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     });
   }
@@ -193,7 +196,9 @@ export class PeopleBlockComponent extends BaseActionUtil {
   async sideBarSearchFieldClearAndTypeAgain(newPersonName: string): Promise<void> {
     await test.step(`Clear search and type: ${newPersonName}`, async () => {
       await this.sidebarPersonSearchCombobox.clear();
-      await this.sidebarPersonSearchCombobox.fill(newPersonName);
+      await this.fillInElement(this.sidebarPersonSearchCombobox, newPersonName, {
+        stepInfo: `Enter person name: ${newPersonName}`,
+      });
       await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     });
   }
