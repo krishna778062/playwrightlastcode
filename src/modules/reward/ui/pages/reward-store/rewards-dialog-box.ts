@@ -64,7 +64,10 @@ export class RewardsDialogBox extends BasePage {
     this.confirmOrderCloseButton = this.container.locator('[aria-label="Close"]');
     this.confirmOrderBackButton = this.container.locator('[aria-label="Back"]');
     this.confirmOrderCancelButton = this.container.getByRole('button', { name: 'Cancel' });
-    this.confirmOrderModalRedeemValue = this.container.locator('[class*="imageContainer"]+div > h3+div > div');
+    this.confirmOrderModalRedeemValue = this.container
+      .locator('h3')
+      .locator('xpath=following-sibling::div//div')
+      .first();
     this.successOrderLogo = this.container.locator('div[class^="RedemptionDialog_successIllustration"]');
     this.successOrderHeading = this.container.getByRole('heading', { level: 4 });
     this.successOrderDescription = this.container.locator('p[class*="Typography-module__paragraph"]');
