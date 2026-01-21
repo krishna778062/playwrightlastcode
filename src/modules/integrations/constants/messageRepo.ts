@@ -106,6 +106,6 @@ export const MESSAGES = {
   CATEGORY_BUTTON_LABEL: 'Category',
   IMAGE_UPLOAD_FAILED_MESSAGE: 'Image upload failed',
   FILE_SIZE_SHOULD_NOT_EXCEED_100KB_MESSAGE: 'File size should not exceed 100KB',
-  CUSTOM_APP_NAME_ALREADY_EXISTS: 'Custom app name already exists',
+  CUSTOM_APP_NAME_ALREADY_EXISTS: 'Custom app name',
   CUSTOM_APP_NAME_ALREADY_EXISTS_MESSAGE: 'already exists',
 } as const;

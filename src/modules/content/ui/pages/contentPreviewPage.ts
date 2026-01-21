@@ -10,6 +10,7 @@ import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 
 import { TIMEOUTS } from '@/src/core/constants';
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
+import { SitePermission } from '@/src/core/types/siteManagement.types';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { ContentDetailsComponent } from '@/src/modules/content/ui/components/contentDetailsComponent';
 import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
@@ -23,6 +24,7 @@ export class ContentPreviewPage extends BasePage {
   readonly successMessage: (message: string) => Locator;
   readonly publishButton: Locator;
   // Action locators
+  readonly editPageButton: Locator;
   readonly sendFeedbackTab: Locator;
   readonly closeModalButton: Locator;
   readonly versionHistoryButton: Locator;
@@ -56,6 +58,20 @@ export class ContentPreviewPage extends BasePage {
   readonly promotionEventDialog: (contentType: string) => Locator;
   readonly skipPromotionEventDialogButton: (contentType: string) => Locator;
 
+  // Locators for Page restricted viewers
+  readonly restrictedViewersToggle: Locator;
+  readonly publishChangesButton: Locator;
+  readonly audiencePickerButton: Locator;
+  readonly siteDropdown: Locator;
+  readonly siteSecondDropdown: Locator;
+  readonly memberDropdown: Locator;
+  readonly ownerAndManagerDropdown: Locator;
+  readonly managerCheckbox: Locator;
+  readonly ownerCheckbox: Locator;
+  readonly memberCheckbox: Locator;
+  readonly contentManagerCheckbox: Locator;
+  readonly audienceDoneButton: Locator;
+
   // Page components
   readonly promotePageModal: PromotePageModal;
   readonly mustReadModalComponent: MustReadModalComponent;
@@ -85,6 +101,7 @@ export class ContentPreviewPage extends BasePage {
     this.successMessage = (message: string) => this.page.locator('div[class*="Toast-module"]').getByText(message);
     this.publishButton = this.page.getByRole('button', { name: 'Publish' });
     // Action locators
+    this.editPageButton = this.page.getByRole('button', { name: 'Edit' });
     this.sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
     this.closeModalButton = this.page.getByTestId('close-modal-button');
     this.versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
@@ -128,6 +145,20 @@ export class ContentPreviewPage extends BasePage {
       this.page.getByRole('dialog', { name: `Promote ${contentType}` });
     this.skipPromotionEventDialogButton = (contentType: string) =>
       this.promotionEventDialog(contentType).getByRole('button', { name: 'Skip this step' });
+
+    // Initialize locators for Page restricted viewers
+    this.restrictedViewersToggle = this.page.getByRole('switch').first();
+    this.publishChangesButton = this.page.getByRole('button', { name: 'Publish changes' });
+    this.audiencePickerButton = this.page.getByRole('button', { name: 'Browse', exact: true });
+    this.siteDropdown = this.page.getByLabel('Site', { exact: true }).getByRole('button');
+    this.siteSecondDropdown = this.page.locator('[data-testid="i-arrowRight"]').first();
+    this.memberDropdown = this.page.getByLabel('Members').getByRole('button').first();
+    this.ownerAndManagerDropdown = this.page.getByLabel('Owners & managers').getByRole('button').first();
+    this.memberCheckbox = this.page.getByLabel('Non-managing members').getByRole('checkbox');
+    this.ownerCheckbox = this.page.getByLabel('Owner', { exact: true }).getByText('Owner', { exact: true });
+    this.managerCheckbox = this.page.getByText('Managers', { exact: true });
+    this.contentManagerCheckbox = this.page.getByLabel('Content managers').getByRole('checkbox');
+    this.audienceDoneButton = this.page.getByRole('button', { name: 'Done' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -327,6 +358,9 @@ export class ContentPreviewPage extends BasePage {
    */
   async clickShareThoughtsButton(): Promise<void> {
     await test.step('Click on Share your thoughts button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareThoughtsButton, {
+        assertionMessage: 'Share your thoughts button should be visible',
+      });
       await this.clickOnElement(this.shareThoughtsButton);
     });
   }
@@ -345,6 +379,23 @@ export class ContentPreviewPage extends BasePage {
 
   async verifyQuestionCreatedSuccessfully(questionTitle: string): Promise<void> {
     await this.createQuestionComponent.verifyQuestionCreatedSuccessfully(questionTitle);
+  }
+
+  async getPostTitle(siteName: string): Promise<string> {
+    return await test.step('Get post title', async () => {
+      try {
+        const postTitleContainer = this.page.locator('header').filter({ hasText: siteName });
+        const postTitle = await postTitleContainer.getByRole('heading').first().textContent();
+        console.log(`Post title: ${postTitle}`);
+        if (!postTitle) {
+          throw new Error('Post title not found');
+        }
+        return postTitle.trim();
+      } catch (error) {
+        console.error('Error getting post title:', error);
+        throw error;
+      }
+    });
   }
 
   /**
@@ -640,5 +691,53 @@ export class ContentPreviewPage extends BasePage {
     await test.step('Click Share content button', async () => {
       await this.clickOnElement(this.shareContentButton);
     });
+  }
+
+  /**
+   * Enables restricted viewers on a Page and selects the specified site roles
+   * @param targetUsers - Array of site permissions to restrict the Page to (e.g., OWNER, MANAGER)
+   */
+  async enablePageRestrictedViewers(targetUsers: SitePermission[]): Promise<void> {
+    await test.step(`Enable Page restricted viewers: ${targetUsers.join(', ')}`, async () => {
+      // Click on option menu (ellipsis)
+      await this.clickOnElement(this.editPageButton);
+
+      // Enable restricted viewers toggle
+      await this.clickOnElement(this.restrictedViewersToggle);
+
+      await this.selectTargetUsers(targetUsers);
+
+      // Click on Publish Changes button to apply the restriction
+      await this.clickOnElement(this.publishChangesButton);
+    });
+  }
+  async selectTargetUsers(targetUsers: SitePermission[]): Promise<void> {
+    await this.clickOnElement(this.audiencePickerButton);
+
+    await this.clickOnElement(this.siteDropdown.first());
+
+    await this.clickOnElement(this.siteSecondDropdown);
+
+    await this.clickOnElement(this.memberDropdown);
+
+    await this.clickOnElement(this.ownerAndManagerDropdown);
+
+    if (targetUsers.includes(SitePermission.MANAGER)) {
+      await this.clickOnElement(this.managerCheckbox);
+    }
+
+    if (targetUsers.includes(SitePermission.OWNER)) {
+      await this.clickOnElement(this.ownerCheckbox);
+    }
+
+    if (targetUsers.includes(SitePermission.MEMBER)) {
+      await this.clickOnElement(this.memberCheckbox);
+    }
+
+    if (targetUsers.includes(SitePermission.CONTENT_MANAGER)) {
+      await this.clickOnElement(this.contentManagerCheckbox);
+    }
+
+    await this.clickOnElement(this.audienceDoneButton);
   }
 }

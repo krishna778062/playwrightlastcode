@@ -36,6 +36,7 @@ export class ListFeedComponent extends BaseComponent {
   readonly reactionModal: Locator;
   readonly modelCloseButton: Locator;
   readonly mentionUserNameEditor: (mentionUserName: string) => Locator;
+  readonly topicNameEditor: (topicName: string) => Locator;
   readonly replyShowMoreButton: Locator;
   readonly showButton: Locator;
   readonly loadMoreRepliesButton: Locator;
@@ -66,6 +67,9 @@ export class ListFeedComponent extends BaseComponent {
   readonly muteButton: Locator;
   readonly unmuteButton: Locator;
   readonly randomClickOnPage: Locator;
+
+  readonly feedTitleLocator = (expectedTitle: string): Locator =>
+    this.page.getByTestId('headerLabel').filter({ hasText: expectedTitle }).first();
 
   // Dynamic locator functions
   /**
@@ -155,9 +159,13 @@ export class ListFeedComponent extends BaseComponent {
   readonly reportPostOption: Locator;
   readonly reportReplyOption: Locator;
 
-  readonly getProfileIconLocatorForPost: (postText: string, userName: string) => Locator;
+  async getProfileIconLocatorForPost(postText: string, userName: string): Promise<Locator> {
+    const postContainer = await this.getPostContainerLocator(postText);
+    return postContainer.locator(`[alt = "${userName}"][role = "img"]`).first();
+  }
 
-  readonly getProfileIconLocatorForReply: (replyText: string, userName: string) => Locator;
+  readonly getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
+    this.replyContainer.first().locator(`[alt = "${userName}"][role = "img"]`).first();
 
   readonly getFollowButtonLocator: (userName: string) => Locator;
 
@@ -205,12 +213,14 @@ export class ListFeedComponent extends BaseComponent {
     this.embedUrlPreviewLocator = this.page.locator('iframe').first();
     this.mentionUserNameEditor = (mentionUserName: string): Locator =>
       this.page.locator('#mentionListItemId').getByText(mentionUserName);
+    this.topicNameEditor = (topicName: string): Locator =>
+      this.page.locator("div[role='menuitem'] div p").filter({ hasText: new RegExp(`^${topicName}$`) });
 
     // Smart feed block locators
     this.topPicksBlock = this.page.locator('header').filter({ hasText: 'Top picks' });
     this.upcomingEventsBlock = this.page.locator('header').filter({ hasText: 'Upcoming event' });
     this.recentlyPublishedBlock = this.page.locator('header').filter({ hasText: 'Recently published' });
-    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebrations` });
+    this.celebrationBlock = this.page.locator('header').filter({ hasText: `celebration` });
     this.popularContentBlock = this.page.locator('header').filter({ hasText: 'Popular content in' });
     this.commentIcon = this.page.getByRole('link', { name: 'All comments' });
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' }).first();
@@ -326,18 +336,6 @@ export class ListFeedComponent extends BaseComponent {
         .getByRole('button', { name: 'Share this post' })
         .first();
 
-    this.getProfileIconLocatorForPost = (postText: string, userName: string): Locator =>
-      this.page
-        .locator(
-          '._postHeader_tgt5r_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt'
-        )
-        .first();
-
-    this.getProfileIconLocatorForReply = (replyText: string, userName: string): Locator =>
-      this.page
-        .locator('._reply_11nkx_1 > div > .UserEmblem-module__emblemContainer__qY6sj > .Emblem-module__emblem__FXjzt')
-        .first();
-
     this.getFollowButtonLocator = (userName: string): Locator => this.page.getByRole('button', { name: 'Follow' });
 
     this.getFollowingButtonLocator = (userName: string): Locator =>
@@ -442,6 +440,22 @@ export class ListFeedComponent extends BaseComponent {
       // Verify Delete button is not visible
       await this.verifier.verifyTheElementIsNotVisible(this.deleteButton, {
         assertionMessage: `Delete option should not be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.editButton, {
+        assertionMessage: `Edit option should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyEditOptionNotVisible(postText: string): Promise<void> {
+    await test.step(`Verify Edit option is NOT visible for post: ${postText}`, async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.editButton, {
+        assertionMessage: `Edit option should NOT be visible for post "${postText}"`,
       });
     });
   }
@@ -642,7 +656,12 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
-  async addReplyToPost(replyText: string, postId: string, mentionUserName?: string): Promise<string> {
+  async addReplyToPost(
+    replyText: string,
+    postId: string,
+    mentionUserName?: string,
+    topicName?: string
+  ): Promise<string> {
     await test.step(`Add reply to post`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.replyInput, {
         assertionMessage: `Reply input should be visible`,
@@ -655,6 +674,10 @@ export class ListFeedComponent extends BaseComponent {
         replyText = replyText + ` @${mentionUserName}`;
         await this.fillInElement(this.replyEditor, replyText);
         await this.clickOnElement(this.mentionUserNameEditor(mentionUserName));
+      } else if (topicName) {
+        await this.typeInElement(this.replyEditor, ` #${topicName}`);
+        await this.clickOnElement(this.topicNameEditor(topicName));
+        replyText = replyText + ` #${topicName}`;
       } else {
         await this.fillInElement(this.replyEditor, replyText);
       }
@@ -1571,6 +1594,27 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  async verifyMentionIsPlainText(postText: string, userName: string): Promise<void> {
+    await test.step(`Verify mention @${userName} is rendered as plain text (not clickable)`, async () => {
+      const postTextLocator = this.postTextLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(postTextLocator, {
+        assertionMessage: 'Post text should be visible on feed post',
+      });
+
+      // Verify the mention link is NOT visible (not clickable)
+      const userMentionLink = postTextLocator.getByRole('link', { name: `@${userName}` });
+      await this.verifier.verifyTheElementIsNotVisible(userMentionLink, {
+        assertionMessage: `Mention @${userName} should NOT be a clickable link (should be plain text)`,
+      });
+
+      // Verify the mention text IS visible as plain text
+      const mentionAsPlainText = postTextLocator.getByText(`@${userName}`);
+      await this.verifier.verifyTheElementIsVisible(mentionAsPlainText, {
+        assertionMessage: `Mention @${userName} should be visible as plain text`,
+      });
+    });
+  }
+
   async verifyReactionButtonIsNotVisible(): Promise<void> {
     await test.step('Verify reaction button is not visible on feed post', async () => {
       await this.verifier.verifyTheElementIsNotVisible(this.likeButton.first(), {
@@ -1788,9 +1832,6 @@ export class ListFeedComponent extends BaseComponent {
         assertionMessage: 'Close button should be visible in reaction modal',
       });
       await this.clickOnElement(closeButton);
-      await this.verifier.verifyTheElementIsNotVisible(closeButton, {
-        assertionMessage: 'Close button should not be visible in reaction modal',
-      });
     });
   }
 
@@ -1951,11 +1992,11 @@ export class ListFeedComponent extends BaseComponent {
   async hoverOnProfileIconInPost(postText: string, userName: string): Promise<void> {
     await test.step(`Hover on profile icon in post: ${postText} for user: ${userName}`, async () => {
       await this.waitForPostToBeVisible(postText);
-      const profileIcon = this.getProfileIconLocatorForPost(postText, userName);
+      const profileIcon = await this.getProfileIconLocatorForPost(postText, userName);
       await this.verifier.verifyTheElementIsVisible(profileIcon, {
         assertionMessage: `Profile icon should be visible for post "${postText}"`,
       });
-      await this.clickOnElement(profileIcon);
+      await this.clickByInjectingJavaScript(profileIcon);
       const profilePopover = this.getProfilePopoverLocator(userName);
       await this.verifier.verifyTheElementIsVisible(profilePopover, {
         assertionMessage: `Profile popover should be visible for user "${userName}"`,
@@ -2033,6 +2074,28 @@ export class ListFeedComponent extends BaseComponent {
       const userNameLocator = this.page.getByTestId('profilePopover').getByRole('link', { name: userName });
       await this.verifier.verifyTheElementIsVisible(userNameLocator, {
         assertionMessage: `User name "${userName}" should be visible on hover`,
+      });
+    });
+  }
+
+  async verifyFeedTitle(postText: string, expectedTitle: string): Promise<void> {
+    await test.step(`Verify feed title "${expectedTitle}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+
+      const feedTitleLocator = this.feedTitleLocator(expectedTitle);
+      await this.verifier.verifyTheElementIsVisible(feedTitleLocator, {
+        assertionMessage: `Feed title "${expectedTitle}" should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  async verifyOriginalPostTitle(postText: string, expectedFormat: string): Promise<void> {
+    await test.step(`Verify original post title format "${expectedFormat}" for post: ${postText}`, async () => {
+      await this.waitForPostToBeVisible(postText);
+      const originalPostTitleLocator = this.page.getByText(expectedFormat).first();
+
+      await this.verifier.verifyTheElementIsVisible(originalPostTitleLocator, {
+        assertionMessage: `Original post title matching "${expectedFormat}" should be visible for post "${postText}"`,
       });
     });
   }

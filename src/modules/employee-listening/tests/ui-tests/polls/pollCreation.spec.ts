@@ -89,9 +89,9 @@ test.describe('aI Poll Creation Tests', () => {
       await aiPollCreationPage.enterManualPrompt('I want to ask my team what they want for team lunch');
       await aiPollCreationPage.generateButton.click();
 
+      await aiPollCreationPage.verifyPollQuestionAndOptionsLoadingState();
       await aiPollCreationPage.verifyLoadingStateIsShown();
       await aiPollCreationPage.verifyGenerateButtonLoadingState();
-      await aiPollCreationPage.verifyPollQuestionAndOptionsLoadingState();
       await aiPollCreationPage.verifyGeneratedPollLabelIsDisplayed();
       await aiPollCreationPage.verifyPollQuestionAndOptionsGenerated();
     }
@@ -283,7 +283,8 @@ test.describe('aI Poll Creation Tests', () => {
         storyId: 'EL-UI Automation',
       });
 
-      const futureDate = new Date(2026, 0, 15); // Year, Month (0-indexed), Day
+      // Use current date + 15 days for testing purposes
+      const futureDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000); // Current date + 15 days
 
       await pollsListeningPage.clickCreatePollButton();
       await pollsHelper.addPoll({

@@ -45,7 +45,8 @@ const defaultPageContentPayload = () => {
     publishTo: undefined as string | undefined,
     listOfInlineVideos: undefined as any[] | undefined,
     readTimeInMin: undefined as number | undefined,
-    targetAudience: undefined as any[] | undefined,
+    targetAudience: undefined as string[] | undefined,
+    isRestricted: false as boolean,
   };
 };
 
@@ -268,7 +269,7 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
-        contentSubType: overrides.contentSubType || 'news',
+        contentSubType: overrides.contentSubType || 'News',
         contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,
@@ -299,6 +300,8 @@ export class ContentManagementService implements IContentManagementServices {
             isNewTiptap: payload.isNewTiptap,
             ...(payload.publishAt && { publishAt: payload.publishAt }),
             ...(payload.publishTo && { publishTo: payload.publishTo }),
+            ...(payload.isRestricted !== undefined && { isRestricted: payload.isRestricted }),
+            ...(payload.targetAudience && { targetAudience: payload.targetAudience }),
           },
         }
       );

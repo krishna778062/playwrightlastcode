@@ -354,6 +354,7 @@ export async function setupOverviewDashboardForTest(
   appAdoptionQueryHelper: AppAdoptionDashboardQueryHelper;
   sitesDashboardQueryHelper: SitesDashboardQueryHelper;
   contentDashboardQueryHelper: ContentDashboardQueryHelper;
+  socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
 }> {
   return await test.step('Setup Overview Dashboard', async () => {
     //login user
@@ -371,6 +372,9 @@ export async function setupOverviewDashboardForTest(
     //create content dashboard query helper (reused for overview dashboard)
     const contentDashboardQueryHelper = new ContentDashboardQueryHelper(snowflakeHelper, orgId);
 
+    //create social interaction query helper (reused for overview dashboard)
+    const socialInteractionQueryHelper = new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId);
+
     //create overview dashboard
     const overviewDashboard = new OverviewDashboard(page);
     await overviewDashboard.loadPage();
@@ -384,6 +388,7 @@ export async function setupOverviewDashboardForTest(
       appAdoptionQueryHelper,
       sitesDashboardQueryHelper,
       contentDashboardQueryHelper,
+      socialInteractionQueryHelper,
     };
   });
 }

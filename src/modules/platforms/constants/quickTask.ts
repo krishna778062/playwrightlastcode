@@ -27,6 +27,11 @@ export const MONTH_NAMES = [
 export const DEFAULT_FUTURE_DAYS_OFFSET = 7;
 
 /**
+ * Default tags to use when creating tasks via API
+ */
+export const DEFAULT_TASK_TAGS = ['Bug', 'Feature'];
+
+/**
  * Returns the ordinal suffix (st, nd, rd, th) for a given number
  * @param n - The number to get the ordinal suffix for
  * @returns The ordinal suffix string
