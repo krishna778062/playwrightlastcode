@@ -161,7 +161,6 @@ export class RecognitionHubPage extends BasePage {
         'Recognize button should disappear after submit'
       ).not.toBeVisible();
     });
-
     return recognitionPostMessage;
   }
 
@@ -224,7 +223,10 @@ export class RecognitionHubPage extends BasePage {
         }
         await this.shareButton.click();
       } else {
-        await this.skipButton.click();
+        if ((await this.skipButton.count()) > 0) {
+          await this.skipButton.waitFor({ state: 'attached' });
+          await this.skipButton.click();
+        }
       }
     });
   }
@@ -499,7 +501,6 @@ export class RecognitionHubPage extends BasePage {
       });
 
       // Ensure share to feed is enabled
-      await this.ensureChecked(this.shareToFeedCheckbox);
       if (feedType === 'site feed') {
         await this.siteFeedOption.click({ timeout: TIMEOUTS.MEDIUM });
         await this.siteInputField.waitFor({ state: 'visible' });

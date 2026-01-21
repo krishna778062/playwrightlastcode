@@ -83,7 +83,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -154,7 +154,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -229,7 +229,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -313,7 +313,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -387,7 +387,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 });

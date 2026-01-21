@@ -25,6 +25,8 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly descriptionTextArea: Locator;
   readonly companyValuesInput: Locator;
   readonly expertiseInput: Locator;
+  readonly companyValuesField: Locator;
+  readonly expertiseField: Locator;
   readonly selectedAwardInRecognition: Locator;
   readonly recognizeButton: Locator;
   readonly doneButton: Locator;
@@ -69,8 +71,10 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.recipientsInput = this.container.getByRole('combobox', { name: 'Select a spot award to recognize someone' });
     this.descriptionTextArea = this.container.locator('[class*="tiptap ProseMirror"]');
     this.companyValues = this.container.getByTestId('field-Company values');
-    this.companyValuesInput = this.container.getByTestId('field-Company values').locator('input[type="text"]');
-    this.expertiseInput = this.container.getByTestId('field-Expertise').locator('input[type="text"]');
+    this.companyValuesField = this.container.getByTestId('field-Company values');
+    this.companyValuesInput = this.companyValuesField.locator('input[type="text"]');
+    this.expertiseField = this.container.getByTestId('field-Expertise');
+    this.expertiseInput = this.expertiseField.locator('input[type="text"]');
     this.recognizeButton = this.container.getByRole('button', { name: 'Recognize' });
     this.doneButton = this.container.getByRole('button', { name: 'Done' });
     this.loadingIndicator = page.locator('div[class*="LoadingIndicator-module__wrapper"]');
@@ -105,6 +109,22 @@ export class GiveRecognitionDialogBox extends DialogBox {
       return this.suggesterContainer.getByText(identifier).first();
     } else {
       return this.suggesterContainer.locator('[role="option"]').nth(identifier).first();
+    }
+  }
+
+  /**
+   * Verify visibility of optional fields on give recognition dialog.
+   */
+  async verifyFieldVisibility(field: 'companyValues' | 'expertise', shouldBeVisible: boolean): Promise<void> {
+    const target = field === 'companyValues' ? this.companyValuesField : this.expertiseField;
+    if (shouldBeVisible) {
+      await this.verifier.verifyTheElementIsVisible(target, {
+        assertionMessage: `${field} field should be visible`,
+      });
+    } else {
+      await this.verifier.verifyTheElementIsNotVisible(target, {
+        assertionMessage: `${field} field should not be visible`,
+      });
     }
   }
 
@@ -158,6 +178,7 @@ export class GiveRecognitionDialogBox extends DialogBox {
    */
   async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<string> {
     if (typeof awardName === 'string') {
+      await this.selectPeerRecognitionInput.isEnabled();
       await this.selectPeerRecognitionInput.click();
       await this.selectPeerRecognitionInput.fill(awardName);
       await this.suggesterContainer.waitFor({ state: 'visible' });
@@ -175,6 +196,8 @@ export class GiveRecognitionDialogBox extends DialogBox {
    * Enter the recognition message
    */
   async enterTheRecognitionMessage(message: string): Promise<string | void> {
+    await this.descriptionTextArea.waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
+    await this.descriptionTextArea.isEnabled();
     await this.descriptionTextArea.fill(message);
     return message;
   }

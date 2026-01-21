@@ -68,7 +68,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Reactions / Likes in Social Interaction dashboard',
-          zephyrTestId: 'DE-26105',
+          zephyrTestId: 'DE-27757',
           storyId: 'DE-25753',
         });
 
@@ -94,7 +94,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Feed posts and comments in Social Interaction dashboard',
-          zephyrTestId: 'DE-26020',
+          zephyrTestId: 'DE-27779',
           storyId: 'DE-25754',
         });
 
@@ -121,7 +121,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Replies in Social Interaction dashboard',
-          zephyrTestId: 'DE-26107',
+          zephyrTestId: 'DE-27782',
           storyId: 'DE-25754',
         });
 
@@ -147,7 +147,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Shares in Social Interaction dashboard',
-          zephyrTestId: 'DE-26037',
+          zephyrTestId: 'DE-27785',
           storyId: 'DE-25769',
         });
 
@@ -173,7 +173,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Favorites in Social Interaction dashboard',
-          zephyrTestId: 'DE-26018',
+          zephyrTestId: 'DE-27788',
           storyId: 'DE-25756',
         });
 
@@ -200,7 +200,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Social campaign shares in Social Interaction dashboard',
-          zephyrTestId: 'DE-26016',
+          zephyrTestId: 'DE-27791',
           storyId: 'DE-25757',
         });
 
@@ -226,8 +226,8 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Least engaged by Department in Social Interaction dashboard',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27865',
+          storyId: 'DE-25760',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -258,8 +258,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27875',
+          storyId: 'DE-25768',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -284,8 +284,8 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Most engaged by Department in Social Interaction dashboard',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27862',
+          storyId: 'DE-25759',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -316,8 +316,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27871',
+          storyId: 'DE-25767',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -342,8 +342,8 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Participant engagement activity in Social Interaction dashboard',
-          zephyrTestId: 'DE-XXXXX',
-          storyId: 'DE-XXXXX',
+          zephyrTestId: 'DE-27797',
+          storyId: 'DE-25758',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
