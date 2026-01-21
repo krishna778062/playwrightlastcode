@@ -216,7 +216,6 @@ export class CustomAppsIntegrationPage extends BasePage {
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await test.step(`Verify toast message: "${message}"`, async () => {
       await this.customAppsComponent.verifyToastMessageIsVisibleWithText(message);
-      await this.page.waitForTimeout(500);
     });
   }
 
@@ -792,9 +791,9 @@ export class CustomAppsIntegrationPage extends BasePage {
   }
   /**
    * Select a sort by option
-   * @param sortBy - The sort by option ('Last used', 'Date created', or 'Name')
+   * @param sortBy - The sort by option ('Last updated', 'Date created', or 'Name')
    */
-  async selectSortBy(sortBy: 'Last used' | 'Date created' | 'Name'): Promise<void> {
+  async selectSortBy(sortBy: 'Last updated' | 'Date created' | 'Name'): Promise<void> {
     return this.customAppsComponent.selectSortBy(sortBy);
   }
 
