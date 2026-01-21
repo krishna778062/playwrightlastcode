@@ -81,7 +81,10 @@
     "test:recognition:work-anniversary": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.recognition.config.ts",
     "test:only-peer-to-peer": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts",
     "test:only-peer-to-peer:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts",
-    "test:only-peer-to-peer:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts"
+    "test:only-peer-to-peer:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.only-p2p.config.ts",
+    "test:recognition-abac": "cross-env MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.abacEnabled.ts",
+    "test:recognition-abac:test": "cross-env TEST_ENV=test MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.abacEnabled.ts",
+    "test:recognition-abac:qa": "cross-env TEST_ENV=qa MODULE_NAME=recognition npx playwright test --config=src/modules/recognition/playwright.abacEnabled.ts"
   },
   "keywords": [],
   "author": "",
