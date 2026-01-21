@@ -256,13 +256,13 @@ test.describe(
 
       await mobilePromotionPage.mobilePromotionEmailSMSComponent.verifyEmailInputIsDisplayed();
 
-      await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('mahima.varshney@simpplr.com');
+      await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('ruhi.mirza@simpplr.com');
 
       await mobilePromotionPage.commonActionsComponent.clickButton('Send link');
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage(
-        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_SENT_SUCCESSFULLY + 'mahima.varshney@simpplr.com'
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_SENT_SUCCESSFULLY + 'ruhi.mirza@simpplr.com'
       );
     });
 
@@ -281,13 +281,13 @@ test.describe(
 
       await mobilePromotionPage.mobilePromotionEmailSMSComponent.verifyEmailInputIsDisplayed();
 
-      await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('mahima.varshney@simpplr.com');
+      await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('ruhi.mirza@simpplr.com');
 
       await mobilePromotionPage.commonActionsComponent.clickButton('Send link');
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage(
-        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + 'mahima.varshney@simpplr.com'
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + 'ruhi.mirza@simpplr.com'
       );
     });
 

@@ -71,8 +71,7 @@ test.describe(
         const peopleTab = new PeopleTabPage(appManagerFixture.page);
         await peopleTab.navigateToPeopleDataPage();
         await peopleTab.verifyNavigatedToPeoplePage();
-        await peopleTab.deselectWorkdayIfChecked();
-        await peopleTab.configureWorkdayCredentials({
+        await peopleTab.connectWorkday({
           username: WORKDAY_CREDS.USERNAME,
           password: WORKDAY_CREDS.PASSWORD,
           wsdlUrl: WORKDAY_CREDS.WSURL,

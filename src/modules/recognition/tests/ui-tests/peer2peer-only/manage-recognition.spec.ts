@@ -1,3 +1,4 @@
+import { expect } from '@playwright/test';
 import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { DialogContainerForm } from '@recognition/ui/components';
@@ -9,7 +10,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe('Manage recognition - only peer enablement mode', () => {
+test.describe('Manage recognition p2p - only peer enablement mode', () => {
   test(
     'verify peer enablement when only p2p is enabled and Recognition flag is OFF',
     {
@@ -70,6 +71,66 @@ test.describe('Manage recognition - only peer enablement mode', () => {
         updatedAwardName,
         awardDescription,
       });
+    }
+  );
+});
+
+test.describe('Manage recognition badges - only peer enablement mode', () => {
+  test(
+    'Validate upload badges when when only p2p is enabled',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.MANAGE_RECOGNITION,
+        RecognitionFeatureTags.ONLY_P2P_RECOGNITION,
+        TestPriority.P1,
+        TestGroupType.SANITY,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6176',
+        storyId: 'RC-6090',
+      });
+
+      const { page: appManagerPage } = appManagerFixture;
+      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint('manage', PAGE_ENDPOINTS.MANAGE_RECOGNITION);
+      await manageRecognitionPage.verifyBadgeTabAccessibleInP2POnlyMode();
+      await expect(manageRecognitionPage.addBadgeButton).toBeEnabled();
+      await manageRecognitionPage.addBadgeButton.click();
+    }
+  );
+
+  test(
+    'Validate Activate/Deactivate badges when only p2p is enabled',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.MANAGE_RECOGNITION,
+        RecognitionFeatureTags.ONLY_P2P_RECOGNITION,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-6174',
+        storyId: 'RC-6090',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const { subTabIndicator } = manageRecognitionPage;
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint('manage', PAGE_ENDPOINTS.MANAGE_RECOGNITION);
+      await manageRecognitionPage.verifyBadgeTabAccessibleInP2POnlyMode();
+      await expect(manageRecognitionPage.addBadgeButton).toBeEnabled();
+      await expect(subTabIndicator.getTabByRole('Active')).toHaveAttribute('aria-selected', 'true');
+      await expect(subTabIndicator.getTabByRole('Inactive')).toHaveAttribute('aria-selected', 'false');
+      await subTabIndicator.getTabByRole('Inactive').click();
+      await expect(subTabIndicator.getTabByRole('Inactive')).toHaveAttribute('aria-selected', 'true');
+      await expect(subTabIndicator.getTabByRole('Active')).toHaveAttribute('aria-selected', 'false');
+      await subTabIndicator.getTabByRole('Active').click();
+      await expect(subTabIndicator.getTabByRole('Active')).toHaveAttribute('aria-selected', 'true');
     }
   );
 });

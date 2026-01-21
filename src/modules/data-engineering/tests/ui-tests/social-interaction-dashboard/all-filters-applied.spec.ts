@@ -75,7 +75,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Reactions / Likes in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26105',
+          zephyrTestId: 'DE-27755',
           storyId: 'DE-25753',
         });
 
@@ -102,7 +102,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Feed posts and comments in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26020',
+          zephyrTestId: 'DE-27778',
           storyId: 'DE-25754',
         });
 
@@ -129,7 +129,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Replies in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26107',
+          zephyrTestId: 'DE-27781',
           storyId: 'DE-25754',
         });
 
@@ -155,7 +155,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Shares in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26037',
+          zephyrTestId: 'DE-27784',
           storyId: 'DE-25769',
         });
 
@@ -181,7 +181,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Favorites in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26018',
+          zephyrTestId: 'DE-27787',
           storyId: 'DE-25756',
         });
 
@@ -209,7 +209,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Social campaign shares in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26016',
+          zephyrTestId: 'DE-27790',
           storyId: 'DE-25757',
         });
 
@@ -237,8 +237,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Least engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27864',
+          storyId: 'DE-25760',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -264,8 +264,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27874',
+          storyId: 'DE-25768',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -291,8 +291,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Most engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27861',
+          storyId: 'DE-25759',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -318,8 +318,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27870',
+          storyId: 'DE-25767',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -345,8 +345,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Participant engagement activity in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-XXXXX',
-          storyId: 'DE-XXXXX',
+          zephyrTestId: 'DE-27796',
+          storyId: 'DE-25758',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
