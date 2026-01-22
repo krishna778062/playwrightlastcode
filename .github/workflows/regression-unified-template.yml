@@ -541,16 +541,16 @@ jobs:
           ref: ${{ needs.determine-config.outputs.checkout_ref }}
 
       # ────────────────────────────────────────────────────────────────────
-      # STEP 3: CREATE CALENDAR SECRETS (for Content module)
-      # Purpose: Content module tests require Google/Outlook calendar integration
+      # STEP 3: CREATE CALENDAR SECRETS (for Content and Integrations modules)
+      # Purpose: Content and Integrations module tests require Google/Outlook calendar integration
       # Note: Only creates file if CALENDAR_SECRETS variable exists
       # ────────────────────────────────────────────────────────────────────
       - name: Create Calendar Secrets JSON
-        if: contains(fromJson('["content", "content-settings", "content-studio", "content-abac"]'), matrix.module)
+        if: contains(fromJson('["content", "content-settings", "content-studio", "content-abac", "integrations-primary", "integrations-workday", "integrations-azuresso", "integrations-api"]'), matrix.module)
         run: |
           if [ -n "${{ vars.CALENDAR_SECRETS }}" ]; then
             echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
-            echo "✅ Created githubSecrets.json for content module calendar integration"
+            echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
           else
             echo "⚠️ CALENDAR_SECRETS not set - calendar tests may fail"
           fi
