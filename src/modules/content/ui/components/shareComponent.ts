@@ -44,6 +44,10 @@ export class ShareComponent extends BaseComponent {
   readonly memberCheckbox: Locator;
   readonly contentManagerCheckbox: Locator;
 
+  // Share dialog locators
+  readonly shareDialog: Locator;
+  readonly cancelButton: Locator;
+
   constructor(page: Page) {
     super(page);
     this.shareDescriptionInput = page
@@ -70,6 +74,10 @@ export class ShareComponent extends BaseComponent {
     this.ownerCheckbox = page.getByText('Owner', { exact: true });
     this.managerCheckbox = page.getByText('Managers', { exact: true });
     this.contentManagerCheckbox = page.getByLabel('Content managers').getByRole('checkbox');
+
+    // Share dialog locators
+    this.shareDialog = page.getByRole('dialog').first();
+    this.cancelButton = page.getByRole('button', { name: 'Close', exact: true });
   }
 
   getAudienceOption(audienceName: string): Locator {
@@ -309,6 +317,14 @@ export class ShareComponent extends BaseComponent {
     });
   }
 
+  async verifyShareButtonIsDisabled(): Promise<void> {
+    await test.step('Verify Share button is disabled', async () => {
+      await this.verifier.verifyTheElementIsDisabled(this.shareButton, {
+        assertionMessage: 'Share button should be disabled when no audience is selected',
+      });
+    });
+  }
+
   async selectAudience(audienceName: string): Promise<void> {
     await test.step(`Select audience: ${audienceName}`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.audiencePickerDialog, {
@@ -409,6 +425,61 @@ export class ShareComponent extends BaseComponent {
 
       await this.clickOnElement(this.audienceDoneButton);
       await this.clickOnElement(this.audienceConfirmButton);
+    });
+  }
+
+  // ==================== Share Dialog Verification Methods ====================
+
+  /**
+   * Verifies that the Limit Visibility toggle is visible in the share dialog
+   */
+  async verifyLimitVisibilityToggleIsVisible(): Promise<void> {
+    await test.step('Verify Limit Visibility toggle is visible in share dialog', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.limitVisibilityToggle, {
+        assertionMessage: 'Limit Visibility toggle should be visible in share dialog',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the Limit Visibility toggle is enabled/interactive in the share dialog
+   */
+  async verifyLimitVisibilityToggleIsEnabled(): Promise<void> {
+    await test.step('Verify Limit Visibility toggle is enabled in share dialog', async () => {
+      await this.verifier.verifyTheElementIsEnabled(this.limitVisibilityToggle, {
+        assertionMessage: 'Limit Visibility toggle should be enabled and interactive',
+      });
+    });
+  }
+
+  /**
+   * Clicks the Cancel button in the share dialog
+   */
+  async clickCancelButton(): Promise<void> {
+    await test.step('Click Cancel button in share dialog', async () => {
+      await this.clickOnElement(this.cancelButton);
+    });
+  }
+
+  /**
+   * Verifies that the share dialog is closed
+   */
+  async verifyShareDialogIsClosed(): Promise<void> {
+    await test.step('Verify share dialog is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.shareDialog, {
+        assertionMessage: 'Share dialog should be closed',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the share dialog is open/visible
+   */
+  async verifyShareDialogIsOpen(): Promise<void> {
+    await test.step('Verify share dialog is open', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareDialog, {
+        assertionMessage: 'Share dialog should be visible',
+      });
     });
   }
 }

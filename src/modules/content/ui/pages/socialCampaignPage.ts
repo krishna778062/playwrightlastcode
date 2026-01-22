@@ -13,6 +13,7 @@ export class SocialCampaignPage extends BasePage {
   readonly expiredLink: Locator;
   private listOfSocialCampaignComponent: ListOfSocialCampaignComponent;
   private shareSocialCampaignComponent: ShareComponent;
+  private userOption: (userName: string) => Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SOCIAL_CAMPAIGNS_PAGE);
@@ -23,6 +24,8 @@ export class SocialCampaignPage extends BasePage {
     this.expiredLink = page.locator('a', { hasText: /^Expired$/ });
     this.listOfSocialCampaignComponent = new ListOfSocialCampaignComponent(page);
     this.shareSocialCampaignComponent = new ShareComponent(page);
+    this.userOption = (userName: string) =>
+      page.locator("div[class*='ListingItem-module__details'] div p").filter({ hasText: userName }).first();
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify social campaign page is loaded', async () => {
@@ -123,6 +126,49 @@ export class SocialCampaignPage extends BasePage {
 
   async clickShareButton(): Promise<void> {
     return await this.shareSocialCampaignComponent.clickShareButton();
+  }
+
+  async toggleLimitVisibility(): Promise<void> {
+    return await this.shareSocialCampaignComponent.toggleLimitVisibility();
+  }
+
+  async selectAudience(audienceName: string): Promise<void> {
+    return await this.shareSocialCampaignComponent.selectAudience(audienceName);
+  }
+
+  async verifyShareButtonIsDisabled(): Promise<void> {
+    return await this.shareSocialCampaignComponent.verifyShareButtonIsDisabled();
+  }
+
+  async verifyLimitVisibilityToggleIsVisible(): Promise<void> {
+    return await this.shareSocialCampaignComponent.verifyLimitVisibilityToggleIsVisible();
+  }
+
+  async verifyLimitVisibilityToggleIsEnabled(): Promise<void> {
+    return await this.shareSocialCampaignComponent.verifyLimitVisibilityToggleIsEnabled();
+  }
+
+  async clickCancelShareButton(): Promise<void> {
+    return await this.shareSocialCampaignComponent.clickCancelButton();
+  }
+
+  async verifyShareDialogIsClosed(): Promise<void> {
+    return await this.shareSocialCampaignComponent.verifyShareDialogIsClosed();
+  }
+
+  async verifyShareDialogIsOpen(): Promise<void> {
+    return await this.shareSocialCampaignComponent.verifyShareDialogIsOpen();
+  }
+
+  async addUserNameMentionInShareDialog(userName: string): Promise<void> {
+    await test.step(`Adding user mention in share dialog: @${userName}`, async () => {
+      const shareEditor = this.shareSocialCampaignComponent.shareDescriptionInput;
+      await this.clickOnElement(shareEditor);
+      await this.typeInElement(shareEditor, ` @${userName}`);
+      const userOption = this.userOption(userName);
+      await userOption.waitFor({ state: 'visible' });
+      await this.clickOnElement(userOption);
+    });
   }
 
   async verifyAddCampaignButtonIsNotVisible(): Promise<void> {
