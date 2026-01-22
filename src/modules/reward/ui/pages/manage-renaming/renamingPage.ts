@@ -696,7 +696,7 @@ export class RenamingPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(giveRecognitionButton, { timeout: TIMEOUTS.SHORT });
         break;
       case 'Points':
-        const panel = this.page
+        const panelHeading = this.page
           .locator('a[href="/rewards-store/order-history"]')
           .locator('xpath=ancestor::div[contains(@style,"align-items")]')
           .locator('h2')
@@ -713,6 +713,8 @@ export class RenamingPage extends BasePage {
           .locator('p')
           .filter({ hasNotText: /^\d+$/ })
           .first();
+        await this.verifier.verifyTheElementIsVisible(panelHeading);
+        await expect(panelHeading).toContainText(customValue);
         await this.verifier.verifyTheElementIsVisible(pointsToGiveLabel);
         await expect(pointsToGiveLabel).toContainText(customValue);
         await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel);
