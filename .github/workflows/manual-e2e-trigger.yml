@@ -55,6 +55,8 @@ on:
           - 'reward-workAnniversary'
           - 'reward-renaming'
           - 'recognition'
+          - 'recognition-abac'
+          - 'recognition-only-p2p'
           - 'privateRecognition'
           - 'frontline'
           - 'newsletter'

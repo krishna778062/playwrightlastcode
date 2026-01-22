@@ -48,7 +48,7 @@ export class TopNavBarComponent extends BaseComponent {
     //message section
     this.messageButton = this.page
       .getByRole('button', { name: 'Messaging' })
-      .or(this.page.getByRole('menuitem', { name: 'Messaging' }));
+      .or(this.page.locator("button[aria-label='Messaging']"));
 
     //search section
     this.globalSearchInputBox = this.page.locator('input[data-slot*=search]').first();
@@ -56,7 +56,7 @@ export class TopNavBarComponent extends BaseComponent {
 
     //profile settings section
     this.profileSettingsButton = this.page.getByLabel('Profile settings');
-    this.viewProfileButton = this.page.getByText('View profile');
+    this.viewProfileButton = this.page.locator('a[data-slot="button"][href^="/people/"]');
     this.xButtonToClearGlobalSearchBar = this.page.getByRole('button', { name: 'Clear' });
     this.editTimezoneButton = this.page.getByRole('button', { name: 'Edit contact' });
   }
