@@ -4,6 +4,7 @@ import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
+import { HomeDashboardPage } from '@content/ui/pages/homeDashboardPage';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
@@ -625,7 +626,7 @@ export class RenamingPage extends BasePage {
       await expect(
         editModal.getOtherLanguageCustomInputBox(i),
         'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_SHORT });
+      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.SHORT });
       expect(defaultOtherLanguageTranslationValue).toContain(
         await editModal.getOtherLanguageCustomInputBox(i).inputValue()
       );
@@ -849,13 +850,14 @@ export class RenamingPage extends BasePage {
   }
 
   private async verifyPointsLabelText(locator: Locator, expected: string): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(locator, { timeout: TIMEOUTS.SHORT });
     await locator.scrollIntoViewIfNeeded();
-    await this.verifier.verifyTheElementIsVisible(locator, { timeout: TIMEOUTS.SHORT });
     expect(await locator.textContent()).toContain(expected);
   }
 
   private async validateRecognitionOnHome(recognition: string): Promise<void> {
-    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+    const homePage = new HomeDashboardPage(this.page);
+    await homePage.visit();
     await this.verifier.verifyTheElementIsVisible(
       this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`)
     );
@@ -867,7 +869,6 @@ export class RenamingPage extends BasePage {
     const hub = new RecognitionHubPage(this.page);
     await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
     await hub.verifyThePageIsLoaded();
-
     await this.verifier.verifyTheElementIsVisible(
       this.page.locator('[class*="PageContainerFullscreen_header"] h1').filter({ hasText: recognition })
     );
@@ -1011,12 +1012,9 @@ export class RenamingPage extends BasePage {
    * resolves languageId from the language label, switches language, validates UI, and resets to English(US).
    */
   async validateRewardStoreManualTranslationsAcrossLanguages(
-    rewardStoreTranslationsByLanguage: Map<string, string>,
-    options?: { resetLanguageId?: number }
+    rewardStoreTranslationsByLanguage: Map<string, string>
   ): Promise<void> {
     const languageApi = new LanguageApiService();
-    const resetLanguageId = options?.resetLanguageId ?? 1;
-
     // If modal is open (caller just read translations), close it so we can open other card modals.
     await this.clickDialogCloseButton().catch(() => {});
 
@@ -1047,13 +1045,9 @@ export class RenamingPage extends BasePage {
         this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
           defaultRecognitionLabel
       );
-
-      try {
-        await this.validateTheRewardStoreValueInApp(expectedMap, languageId);
-      } finally {
-        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: resetLanguageId });
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
-      }
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.validateTheRewardStoreValueInApp(expectedMap, languageId);
     }
   }
 
@@ -1062,11 +1056,10 @@ export class RenamingPage extends BasePage {
    * This mirrors the RC-7125 approach (no basic-app-config mocking).
    */
   async validateRecognitionManualTranslationsAcrossLanguages(
-    recognitionTranslationsByLanguage: Map<string, string>,
-    options?: { resetLanguageId?: number }
+    recognitionTranslationsByLanguage: Map<string, string>
   ): Promise<void> {
     const languageApi = new LanguageApiService();
-    const resetLanguageId = options?.resetLanguageId ?? 1;
+    const resetLanguageId = 1;
 
     // If modal is open (caller just read translations), close it so we can safely navigate.
     await this.clickDialogCloseButton().catch(() => {});
@@ -1105,7 +1098,7 @@ export class RenamingPage extends BasePage {
     options?: { resetLanguageId?: number; recognitionLabel?: string }
   ): Promise<void> {
     const languageApi = new LanguageApiService();
-    const resetLanguageId = options?.resetLanguageId ?? 1;
+    const resetLanguageId = 1;
 
     // If modal is open (caller just read translations), close it so we can safely navigate.
     await this.clickDialogCloseButton().catch(() => {});
@@ -1124,18 +1117,13 @@ export class RenamingPage extends BasePage {
         throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
       }
 
-      try {
-        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
 
-        const expectedMap = new Map<string, string>();
-        expectedMap.set('recognition', recognitionLabel);
-        expectedMap.set('points', translatedPointsValue);
-        await this.validateThePointsValueInApp(expectedMap);
-      } finally {
-        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: resetLanguageId });
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
-      }
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', recognitionLabel);
+      expectedMap.set('points', translatedPointsValue);
+      await this.validateThePointsValueInApp(expectedMap);
     }
   }
 }

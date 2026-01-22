@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
 import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
@@ -192,7 +193,13 @@ test.describe('renaming page', () => {
       await renamingPage.clickEditButtonByCardType('recognition');
       const recognitionTranslationsByLanguage: Map<string, string> =
         await renamingPage.getTheDefaultTranslationValuesByLanguages();
-      await renamingPage.validateRecognitionManualTranslationsAcrossLanguages(recognitionTranslationsByLanguage);
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRecognitionManualTranslationsAcrossLanguages(recognitionTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
     }
   );
 });
