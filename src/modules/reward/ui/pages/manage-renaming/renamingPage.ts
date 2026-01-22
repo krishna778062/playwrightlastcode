@@ -1,5 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 import { RecognitionHubPage } from '@recognition/ui/pages';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
@@ -408,7 +409,7 @@ export class RenamingPage extends BasePage {
   async changeSomeDataAndClickOnSave(cardType: 'Recognition' | 'Points' | 'Rewards Store'): Promise<string> {
     const editModal = new EditLabelModal(this.page);
     await editModal.getCustomLabelToggleSwitch().check();
-    const customName = cardType + '_' + TestDataGenerator.getRandomNo(0, 10000);
+    const customName = cardType + '_' + TestDataGenerator.getRandomNo(0, 1000);
     const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelToggleSwitch().isChecked();
     if (!isRecognitionForAllLanguagesChecked) {
       await editModal.getCustomLabelToggleSwitch().check();
@@ -920,14 +921,17 @@ export class RenamingPage extends BasePage {
     ]);
   }
 
-  async validateTheRewardStoreValueInApp(customValue: any): Promise<void> {
+  async validateTheRewardStoreValueInApp(customValue: any, languageId: number): Promise<void> {
     const rewardStoreHeading = customValue.get('rewardsStore');
     const points = customValue.get('points');
     const rewardStore = new RewardsStore(this.page);
+    await rewardStore.loadPage();
+    const languageApi = new LanguageApiService();
+    await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
+    await rewardStore.verifyThePageIsLoaded();
     await this.validateAcrossPages([
       async () => {
-        await rewardStore.visit();
-        await rewardStore.verifyThePageIsLoaded();
         await this.verifyPointsLabelText(
           this.page
             .getByTestId('i-coinsStacked')
@@ -960,8 +964,178 @@ export class RenamingPage extends BasePage {
         );
         expect(
           await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
-        ).toContain(customValue.get('points'));
+        ).toContain(points);
       },
     ]);
+  }
+
+  private parseLanguageCandidates(languageLabel: string): string[] {
+    const parts = languageLabel
+      .split(' - ')
+      .map(s => s.trim())
+      .filter(Boolean);
+    return Array.from(new Set([...parts.reverse(), ...parts, languageLabel].filter(Boolean)));
+  }
+
+  private resolveTranslationByLanguageLabel(
+    translations: Map<string, string>,
+    languageLabel: string
+  ): string | undefined {
+    const direct = translations.get(languageLabel);
+    if (direct) return direct;
+
+    const prefix = languageLabel.split(' - ')[0]?.trim();
+    if (prefix) {
+      for (const [key, value] of translations.entries()) {
+        if (key.startsWith(prefix)) return value;
+      }
+    }
+    return undefined;
+  }
+
+  private async captureTranslationsForCard(cardType: 'recognition' | 'points'): Promise<{
+    defaultLabel: string;
+    translations: Map<string, string>;
+  }> {
+    const defaultLabel =
+      (await this.getTheNewCustomizedValue(cardType))?.trim() || (cardType === 'points' ? 'Points' : 'Recognition');
+    await this.clickEditButtonByCardType(cardType);
+    const translations = await this.getTheDefaultTranslationValuesByLanguages();
+    await this.clickDialogCloseButton();
+    return { defaultLabel, translations };
+  }
+
+  /**
+   * For Reward Store validations we also need translated values for Recognition + Points on some pages.
+   * This helper captures those translations up-front (before any language switching),
+   * resolves languageId from the language label, switches language, validates UI, and resets to English(US).
+   */
+  async validateRewardStoreManualTranslationsAcrossLanguages(
+    rewardStoreTranslationsByLanguage: Map<string, string>,
+    options?: { resetLanguageId?: number }
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    const resetLanguageId = options?.resetLanguageId ?? 1;
+
+    // If modal is open (caller just read translations), close it so we can open other card modals.
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+    const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
+      await this.captureTranslationsForCard('recognition');
+
+    for (const [languageLabel, translatedRewardStoreValue] of rewardStoreTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('rewardsStore', translatedRewardStoreValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      expectedMap.set(
+        'recognition',
+        this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
+          defaultRecognitionLabel
+      );
+
+      try {
+        await this.validateTheRewardStoreValueInApp(expectedMap, languageId);
+      } finally {
+        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: resetLanguageId });
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Recognition label across languages, then resets to default language.
+   * This mirrors the RC-7125 approach (no basic-app-config mocking).
+   */
+  async validateRecognitionManualTranslationsAcrossLanguages(
+    recognitionTranslationsByLanguage: Map<string, string>,
+    options?: { resetLanguageId?: number }
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    const resetLanguageId = options?.resetLanguageId ?? 1;
+
+    // If modal is open (caller just read translations), close it so we can safely navigate.
+    await this.clickDialogCloseButton().catch(() => {});
+
+    for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      try {
+        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+
+        const expectedMap = new Map<string, string>();
+        expectedMap.set('recognition', translatedRecognitionValue);
+        await this.validateTheRecognitionValueInApp(expectedMap);
+      } finally {
+        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: resetLanguageId });
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Points label across languages, then resets to default language.
+   * Keeps Recognition label populated to avoid any locator filters receiving undefined.
+   */
+  async validatePointsManualTranslationsAcrossLanguages(
+    pointsTranslationsByLanguage: Map<string, string>,
+    options?: { resetLanguageId?: number; recognitionLabel?: string }
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    const resetLanguageId = options?.resetLanguageId ?? 1;
+
+    // If modal is open (caller just read translations), close it so we can safely navigate.
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const recognitionLabel =
+      options?.recognitionLabel ?? ((await this.getTheNewCustomizedValue('recognition'))?.trim() || 'Recognition');
+
+    for (const [languageLabel, translatedPointsValue] of pointsTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      try {
+        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+
+        const expectedMap = new Map<string, string>();
+        expectedMap.set('recognition', recognitionLabel);
+        expectedMap.set('points', translatedPointsValue);
+        await this.validateThePointsValueInApp(expectedMap);
+      } finally {
+        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: resetLanguageId });
+        await this.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
   }
 }

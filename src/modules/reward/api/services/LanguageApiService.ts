@@ -13,6 +13,18 @@ export type LanguagesResponse = {
   languages: Language[];
 };
 
+export type ChangeUserLanguageParams = {
+  /**
+   * Language id as expected by identity PATCH API.
+   * (The backend expects it as a string in some deployments; we normalize to string.)
+   */
+  supportedLanguageId: number | string;
+  /**
+   * User id to update. Defaults to the currently configured app manager user id.
+   */
+  userId?: string;
+};
+
 /**
  * Service for "Renaming" tenant APIs related to languages.
  * Uses the currently logged-in browser session (cookies + CSRF token).
@@ -38,7 +50,11 @@ export class LanguageApiService {
     return csrfToken;
   }
 
-  private async withHttpClient<T>(page: Page, fn: (httpClient: HttpClient) => Promise<T>): Promise<T> {
+  private async withHttpClient<T>(
+    page: Page,
+    fn: (httpClient: HttpClient) => Promise<T>,
+    options?: { extraHeaders?: Record<string, string> }
+  ): Promise<T> {
     const csrfToken = await this.getCsrfToken(page);
     const storageState = await page.context().storageState();
 
@@ -57,6 +73,7 @@ export class LanguageApiService {
         'sec-fetch-mode': 'cors',
         'sec-fetch-site': 'same-site',
         'x-smtip-csrfid': csrfToken,
+        ...(options?.extraHeaders ?? {}),
       },
       storageState,
     });
@@ -131,6 +148,37 @@ export class LanguageApiService {
         );
       }
       return id;
+    });
+  }
+
+  /**
+   * Update user's supported language in the Renaming tenant via identity API.
+   * Mirrors the cURL:
+   * PATCH /v1/identity/people/:userId  { supportedLanguageId: "1" }
+   *
+   * Note: This changes the user preference server-side (not just UI mocking).
+   */
+  async languageChangeFunction(page: Page, params: ChangeUserLanguageParams): Promise<void> {
+    return await test.step(`Change user language via API (supportedLanguageId=${params.supportedLanguageId})`, async () => {
+      const userId = params.userId ?? getRewardTenantConfigFromCache().appManagerUserId;
+      if (!userId) {
+        throw new Error('userId is required (could not resolve from tenant config).');
+      }
+
+      await this.withHttpClient(
+        page,
+        async httpClient => {
+          const resp = await httpClient.patch(`/v1/identity/people/${userId}`, {
+            data: {
+              employeeNumber: '',
+              userType: '',
+              supportedLanguageId: String(params.supportedLanguageId),
+            },
+          });
+          await httpClient.validateResponse(resp, { expectedStatusCodes: [200, 204] });
+        },
+        { extraHeaders: { 'content-type': 'application/json' } }
+      );
     });
   }
 }

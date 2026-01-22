@@ -1,9 +1,7 @@
 import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
-import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
-import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -146,7 +144,6 @@ test.describe('renaming page', () => {
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      const userProfile = new UserProfilePage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('rewardsStore');
@@ -161,8 +158,7 @@ test.describe('renaming page', () => {
       for (const langId of otherLanguageIds) {
         // ensure we don't stack multiple route handlers
         await appManagerFixture.page.unroute('**/account/**').catch(() => {});
-        await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
-        await renamingPage.validateTheRewardStoreValueInApp(getCustomValue);
+        await renamingPage.validateTheRewardStoreValueInApp(getCustomValue, langId);
       }
     }
   );
@@ -182,9 +178,6 @@ test.describe('renaming page', () => {
       });
 
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      const userProfile = new UserProfilePage(appManagerFixture.page);
-      const languageApi = new LanguageApiService();
-
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.clickEditButtonByCardType('rewardsStore');
       const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
@@ -193,34 +186,12 @@ test.describe('renaming page', () => {
       // Save a new custom label (manual translations enabled) then capture per-language translation values.
       await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
       await renamingPage.verifyThePageIsLoaded();
-      const currentPointsLabel = (await renamingPage.getTheNewCustomizedValue('points'))?.trim() || 'Points';
-
       await renamingPage.clickEditButtonByCardType('rewardsStore');
-      const labelForOtherLanguages: Map<string, string> =
+      const rewardStoreTranslationsByLanguage: Map<string, string> =
         await renamingPage.getTheDefaultTranslationValuesByLanguages();
 
-      for (const [languageLabel, translatedRewardStoreValue] of labelForOtherLanguages.entries()) {
-        const [englishName, nativeName] = languageLabel.split(' - ').map(s => s.trim());
-        const candidates = [nativeName, englishName, languageLabel].filter(Boolean) as string[];
-
-        let languageId: number | undefined;
-        for (const candidate of candidates) {
-          languageId = await languageApi.getLanguageIdByName(appManagerFixture.page, candidate);
-          if (languageId !== undefined) break;
-        }
-        if (languageId === undefined) {
-          throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
-        }
-
-        await userProfile.mockAppConfigLanguage(appManagerFixture.page, languageId);
-
-        const expectedMap = new Map<string, string>();
-        expectedMap.set('rewardsStore', translatedRewardStoreValue);
-        expectedMap.set('points', currentPointsLabel);
-        await renamingPage.validateTheRewardStoreValueInApp(expectedMap);
-
-        await userProfile.restoreAppConfigMock(appManagerFixture.page);
-      }
+      // Validate Reward Store translations across languages (also validates Points + Recognition labels where present).
+      await renamingPage.validateRewardStoreManualTranslationsAcrossLanguages(rewardStoreTranslationsByLanguage);
     }
   );
 });
