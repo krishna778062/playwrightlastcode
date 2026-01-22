@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
-import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
+import { ContentFeatureTags, ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-site.test-data';
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
@@ -28,7 +28,7 @@ test.describe('Subscription Private Site Creation Test Suite (ABAC)', { tag: [Co
   test(
     'verify subscription member type and non mandatory can be added during private site creation for All org ',
     {
-      tag: [ContentSuiteTags.SITE_CREATION, TestPriority.P0, TestGroupType.SMOKE],
+      tag: [ContentSuiteTags.SITE_CREATION, ContentFeatureTags.ADD_SUBSCRIPTION, TestPriority.P0, TestGroupType.SMOKE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
