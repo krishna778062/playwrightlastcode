@@ -854,17 +854,17 @@ test.describe(
           await uxUserFeedPage.feedList.verifyUserNameMentionIsVisible(shareDescription, uxUserFullName);
         });
 
-        // // ==================== Mentioned User verifies notification received for mention ====================
-        // await test.step('Mentioned User verifies notification received for @mention', async () => {
-        //   const notificationComponent = await socialCampaignManagerFixture.navigationHelper.clickOnBellIcon({
-        //     stepInfo: 'Mentioned User clicking on bell icon to view notifications',
-        //   });
-        //   const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
+        // ==================== Mentioned User verifies notification received for mention ====================
+        await test.step('Mentioned User verifies notification received for @mention', async () => {
+          const notificationComponent = await socialCampaignManagerFixture.navigationHelper.clickOnBellIcon({
+            stepInfo: 'Mentioned User clicking on bell icon to view notifications',
+          });
+          const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
 
-        //   // Verify notification message contains "mentioned you"
-        //   const expectedNotificationMessage = `${standardUserFullName} mentioned you`;
-        //   await activityNotificationPage.verifyNotificationExists(expectedNotificationMessage);
-        // });
+          // Verify notification message contains "mentioned you"
+          const expectedNotificationMessage = `${standardUserFullName} mentioned you`;
+          await activityNotificationPage.verifyNotificationExists(expectedNotificationMessage);
+        });
 
         // ==================== Standard User (NOT in UX Designs, sharer) verifies campaign is NOT visible ====================
         await test.step('Standard User (NOT in UX Designs audience) navigates to Home Feed and verifies shared campaign is NOT visible', async () => {
