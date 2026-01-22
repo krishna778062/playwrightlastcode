@@ -3,8 +3,8 @@ export const TEST_FILTER_VALUES = {
    * App Adoption Dashboard filter values
    */
   APP_ADOPTION: {
-    DEPARTMENTS: ['Information Technology', 'New department DUCK DB', 'Payroll', 'Retail', 'Undefined'],
-    LOCATIONS: ['Undefined', 'India'],
+    DEPARTMENTS: ['Human Resources', 'Operations'],
+    LOCATIONS: ['Texas, US', 'San Jose, CA, US'],
     COMPANY_NAMES: ['Undefined'],
   },
 
@@ -12,17 +12,17 @@ export const TEST_FILTER_VALUES = {
    * Social Interaction Dashboard filter values
    */
   SOCIAL_INTERACTION: {
-    SEGMENTS: ['india'],
-    DEPARTMENTS: ['Information Analysis', 'Information Technology'],
-    LOCATIONS: ['Kolkata, WEST BENGAL, India'],
+    SEGMENTS: ['Retail', 'USA Operations'],
+    DEPARTMENTS: ['CEO', 'Engineering', 'Finance', 'Information Technology', 'Human Resources'],
+    LOCATIONS: ['Austin, Texas, US', 'Chicago, IL, US', 'Los Angeles, CA, US', 'Denver, CO, USA'],
   },
 
   /**
    * Search Dashboard filter values
    */
   SEARCH: {
-    SEGMENTS: ['india'],
-    DEPARTMENTS: ['Undefined'],
-    LOCATIONS: ['Gurugram, Haryana, India', 'India'],
+    SEGMENTS: ['USA Operations', 'Manufacturing'],
+    DEPARTMENTS: ['Human Resources', 'Sales & Marketing', 'Operations', 'Engineering', 'Manufacturing'],
+    LOCATIONS: ['Chicago, IL, US', 'Philadelphia, PA, US', 'San Francisco, CA, US'],
   },
 } as const;
