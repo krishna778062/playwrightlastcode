@@ -1,4 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { MESSAGES } from '@recognition/constants/messages';
+import { SubTabIndicator } from '@recognition/ui/components';
+import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { GiveRecognitionDialogBox } from '@recognition-components/give-recognition-dialog-box';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -6,13 +9,9 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 import { getFormattedDate } from '@core/utils/dateUtil';
 
-import MESSAGES from '../../../constants/messages';
-import { SubTabIndicator } from '../../components/common/sub-tab-indicator';
-
-import { ManageRecognitionPage } from './manageRecognitionPage';
-
 export class SpotAwardPage extends BasePage {
   readonly subTabIndicator: SubTabIndicator;
+  dialog = new GiveRecognitionDialogBox(this.page);
   // Create/Edit form locators
   readonly container: Locator;
   readonly header: Locator;
@@ -44,6 +43,7 @@ export class SpotAwardPage extends BasePage {
   readonly giveAwardButton: Locator;
   readonly giveRecognitionButton: Locator;
   readonly spotAwardPromotionTile: Locator;
+  readonly suggesterContainer: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.RECOGNITION_HUB) {
     super(page, pageUrl);
@@ -69,6 +69,7 @@ export class SpotAwardPage extends BasePage {
     this.whoCanReceiveAwardOption = this.container
       .getByTestId('field-Who can receive this award')
       .getByTestId('SelectInput');
+    this.suggesterContainer = this.container.getByRole('listbox');
     this.extraField = this.container.locator('input[id*="react-select-"]');
     this.dateFrom = this.container.getByRole('button', { name: 'Date from*' });
     this.dateTo = this.container.getByRole('button', { name: 'Date to*' });
@@ -478,13 +479,19 @@ export class SpotAwardPage extends BasePage {
     howOften: 'Unlimited' | 'Limited' = 'Unlimited',
     guidance: string = 'Spot award guidance',
     timesValue: string = '5',
-    frequency: string = 'Monthly'
+    frequency: string = 'Monthly',
+    audienceName?: string
   ): Promise<void> {
     await test.step('Filling spot award configuration', async () => {
       await this.selectComboboxOption(this.whoCanGiveAwardOption, whoCanGive);
 
-      // Handle giver type extra field (department or location)
-      if (
+      // Handle giver type extra field (audience / department / location)
+      if (whoCanGive.includes('Users in an audience') && audienceName) {
+        await this.extraField.first().waitFor({ state: 'visible' });
+        await this.extraField.first().fill(audienceName);
+        await this.suggesterContainer.last().waitFor({ state: 'visible' });
+        await this.extraFieldSelectOption(audienceName).click();
+      } else if (
         whoCanGive.includes('Employees in a location') ||
         whoCanGive.includes('Managers in a location') ||
         whoCanGive.includes('Employees in a department') ||
@@ -503,11 +510,17 @@ export class SpotAwardPage extends BasePage {
 
       await this.selectComboboxOption(this.whoCanReceiveAwardOption, whoCanReceive);
 
-      // Handle receiver type extra field (department or location)
-      if (whoCanReceive.includes('location')) {
-        if (location) {
-          await this.extraField.last().fill(location);
-          await this.extraFieldSelectOption(location).click();
+      // Handle receiver type extra field (audience / department / location)
+      if (whoCanReceive.includes('Users in an audience') && audienceName) {
+        await this.extraField.last().waitFor({ state: 'visible' });
+        await this.extraField.last().fill(audienceName);
+        await this.suggesterContainer.last().waitFor({ state: 'visible' });
+        await this.extraFieldSelectOption(audienceName).click();
+      } else if (whoCanReceive.includes('location')) {
+        const valueToSelect = location;
+        if (valueToSelect) {
+          await this.extraField.last().fill(valueToSelect);
+          await this.extraFieldSelectOption(valueToSelect).click();
         } else {
           // If no specific location provided, select first option
           await this.extraField.last().click();
@@ -520,16 +533,21 @@ export class SpotAwardPage extends BasePage {
           await this.extraFieldSelectOptionByIndex(0).click();
         }
       } else if (whoCanReceive.includes('department')) {
+        const valueToSelect = location;
         await this.extraField.last().click();
-        await expect(
-          this.extraFieldSelectOptionByIndex(0),
-          'expecting receiver department option to be visible'
-        ).toBeVisible({
-          timeout: TIMEOUTS.MEDIUM,
-        });
-        await this.extraFieldSelectOptionByIndex(0).click();
+        if (valueToSelect) {
+          await this.extraField.last().fill(valueToSelect);
+          await this.extraFieldSelectOption(valueToSelect).click();
+        } else {
+          await expect(
+            this.extraFieldSelectOptionByIndex(0),
+            'expecting receiver department option to be visible'
+          ).toBeVisible({
+            timeout: TIMEOUTS.MEDIUM,
+          });
+          await this.extraFieldSelectOptionByIndex(0).click();
+        }
       }
-
       if (awardPeriod === 'During a specified period' && dateFrom && dateTo) {
         await this.selectAwardPeriod(awardPeriod).check();
         await this.dateFrom.click();
@@ -616,25 +634,23 @@ export class SpotAwardPage extends BasePage {
     howOften: 'Unlimited' | 'Limited',
     guidance: string = 'Test Guidance',
     timesValue: string = '5',
-    frequency: string = 'Monthly'
+    frequency: string = 'Monthly',
+    audienceName?: string
   ): Promise<void> {
     await test.step('Fill out required details', async () => {
       // Fill page one
       await this.fillSpotAwardFormPageOne(awardName, awardDescription, badgeIndex);
-
       // Wait for configuration page to load
       await expect(this.whoCanGiveAwardOption, 'expecting who can give award option to be visible').toBeVisible({
         timeout: TIMEOUTS.MEDIUM,
       });
-
       // Handle award period dates
       let from: string | undefined;
       let to: string | undefined;
       if (awardPeriod === 'During a specified period') {
-        from = getFormattedDate({ days: 1 }).replace(',', '');
+        from = getFormattedDate({ days: 0 }).replace(',', '');
         to = getFormattedDate({ days: 5 }).replace(',', '');
       }
-
       await this.fillSpotAwardConfiguration(
         giverType,
         receiverType,
@@ -645,7 +661,8 @@ export class SpotAwardPage extends BasePage {
         howOften,
         guidance,
         timesValue,
-        frequency
+        frequency,
+        audienceName
       );
     });
   }
@@ -1233,6 +1250,7 @@ export class SpotAwardPage extends BasePage {
    */
   async deleteSpotAwardAndVerifyToast(): Promise<void> {
     await test.step('Clean up - Delete created spot award', async () => {
+      await this.subTabIndicator.clickOnColumnButton('Created', 2);
       await this.page.waitForTimeout(1000);
       await this.subTabIndicator.getThreeDotsButton(0).click();
       await expect(this.subTabIndicator.deleteMenuItem, 'expecting delete menu item to be visible').toBeVisible({
@@ -1625,6 +1643,62 @@ export class SpotAwardPage extends BasePage {
       );
       await manageRecognitionPage.spotAwardTab.click();
       await this.verifyAwardInTableAndDelete(awardName);
+    });
+  }
+
+  /**
+   * Check whether a spot award is eligible/visible in the give recognition dialog (spot award tab).
+   * @param awardName - Award to search for
+   * @param shouldBeEligible - true if it should be selectable, false if it should be absent
+   */
+  async assertSpotAwardEligibility(awardName: string, shouldBeEligible: boolean): Promise<void> {
+    await test.step(`Validate eligibility for award "${awardName}"`, async () => {
+      await this.clickOnElement(this.dialog.selectAwardInput, { stepInfo: 'Click on select award input' });
+      await this.dialog.suggesterContainer.waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
+      await expect(this.dialog.suggesterContainer).not.toBeEmpty();
+      await this.fillInElement(this.dialog.selectAwardInput, awardName, { stepInfo: 'Fill in select award input' });
+      await this.dialog.suggesterContainer.waitFor({ state: 'visible', timeout: TIMEOUTS.LONG });
+      await expect(this.dialog.suggesterContainer).not.toBeEmpty();
+      const optionCount = await this.dialog.selectOptions.filter({ hasText: awardName }).count();
+      if (shouldBeEligible) {
+        expect(optionCount, `Expected award "${awardName}" to be selectable`).toBeGreaterThan(0);
+      } else {
+        expect(optionCount, `Expected award "${awardName}" to be hidden`).toBe(0);
+        const text = await this.dialog.suggesterContainer.innerText();
+        expect(text, `Expected award "${awardName}" to be hidden`).toContain('No results');
+      }
+    });
+  }
+
+  /**
+   * Press escape to dismiss open menus/dialogs.
+   */
+  async pressEscape(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+  }
+
+  /**
+   * Reload current page.
+   */
+  async reloadPage(): Promise<void> {
+    await this.page.reload();
+  }
+
+  /**
+   * Verify award action menu options (Edit / Deactivate / Delete) are visible
+   * @param awardName - Name of the award whose menu needs to be validated
+   */
+  async verifyAwardMenuOptions(awardName: string): Promise<void> {
+    await test.step(`Verify award action menu options for ${awardName}`, async () => {
+      await this.subTabIndicator.getThreeDotsButton(awardName).click();
+      await expect(this.subTabIndicator.editMenuItem, 'expecting edit menu item to be visible').toBeVisible();
+      await expect(
+        this.subTabIndicator.deactivateMenuItem,
+        'expecting deactivate menu item to be visible'
+      ).toBeVisible();
+      await expect(this.subTabIndicator.deleteMenuItem, 'expecting delete menu item to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
