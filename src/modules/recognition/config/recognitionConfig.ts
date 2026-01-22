@@ -1,4 +1,4 @@
-export type TenantKey = 'primary' | 'onlyPeerToPeer';
+export type TenantKey = 'primary' | 'onlyPeerToPeer' | 'ABACEnabled';
 export type EnvironmentKey =
   | 'qa'
   | 'test'
@@ -74,8 +74,8 @@ export const config = {
   primary: {
     qa: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco-auto.qa.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-auto-api.qa.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco-auto.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reco-auto-api.qa.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -92,8 +92,8 @@ export const config = {
     },
     test: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco-automation.test.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco-automation.test.simpplr.xyz',
+      apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -112,8 +112,8 @@ export const config = {
     },
     uat: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco.uat.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-api.uat.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco.uat.simpplr.xyz',
+      apiBaseUrl: 'https://reco-api.uat.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -148,8 +148,8 @@ export const config = {
     },
     uatAU: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com/',
-      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com/',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -166,8 +166,8 @@ export const config = {
     },
     uatCA: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com/',
-      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com/',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -184,8 +184,8 @@ export const config = {
     },
     prodUS: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com/',
-      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com/',
+      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com',
+      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -220,8 +220,8 @@ export const config = {
     },
     prodCA: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com/',
-      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com/',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -238,8 +238,8 @@ export const config = {
     },
     prodAU: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://au-5.au.simpplr.com/',
-      apiBaseUrl: 'https://au-5-api.au.simpplr.com/',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com',
+      apiBaseUrl: 'https://au-5-api.au.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -290,6 +290,44 @@ export const config = {
       endUserName: 'Priya Singh',
       endUserUserId: 'c1fed284-175c-4384-a3b2-5564fa1c4901',
       endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+  },
+  ABACEnabled: {
+    test: {
+      tenantName: 'Recognition ABAC Enabled',
+      frontendBaseUrl: 'https://abac.test.simpplr.xyz',
+      apiBaseUrl: 'https://abac-api.test.simpplr.xyz',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'debe8950-bca5-41d0-9aa9-4fe65afebca7',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: 'b46a7791-55f7-4d31-b902-b9710951ee48',
+      endUserPassword: 'Simpplr@12345',
+      newUxEnabled: true,
+    },
+    qa: {
+      tenantName: 'Recognition ABAC Enabled',
+      frontendBaseUrl: 'https://abac.qa.simpplr.xyz',
+      apiBaseUrl: 'https://abac.qa.simpplr.xyz',
+      appManagerEmail: 'keerthana.ks@simpplr.com',
+      appManagerName: 'Keerthana Ks',
+      appManagerUserId: '02e75451-4ff6-42e8-ac17-2ee52cb04407',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '9489122f-089e-4cd3-9b7f-ccc6bdc19b80',
+      endUserPassword: 'Simpplr@12345',
       newUxEnabled: true,
     },
   },

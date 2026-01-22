@@ -10,6 +10,36 @@ import {
 
 import { HttpClient } from '@/src/core';
 
+/**
+ * Interface for hierarchy search response item data
+ */
+interface HierarchyItemData {
+  id: string;
+  name: string;
+  description?: string | null;
+  type?: string;
+}
+
+/**
+ * Interface for hierarchy search response item
+ */
+interface HierarchyItem {
+  type?: string;
+  data?: HierarchyItemData;
+  children?: HierarchyItem[];
+  hasAudience?: boolean;
+}
+
+/**
+ * Interface for hierarchy search response
+ */
+interface HierarchySearchResponse {
+  status?: string;
+  result?: {
+    listOfItems?: HierarchyItem[];
+  };
+}
+
 export class AudienceManagementService {
   private httpClient: HttpClient;
   constructor(
@@ -34,13 +64,73 @@ export class AudienceManagementService {
   }
 
   /**
-   * Finds an audience by name
+   * Searches for an audience by name
+   * @param audienceName - Name of the audience to search for
+   * @returns Promise<{ audienceId: string; name: string } | null>
+   */
+  async searchAudienceByName(audienceName: string): Promise<{ audienceId: string; name: string } | null> {
+    return await test.step(`Searching audience by name: ${audienceName}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.v2IdentityAudiencesHierarchy, {
+        data: {
+          nextPageToken: 0,
+          type: 'category',
+          size: 50,
+          selectedFields: [],
+          term: audienceName,
+        },
+      });
+
+      const responseJson = (await response.json()) as HierarchySearchResponse;
+      const items = responseJson.result?.listOfItems || [];
+
+      // Search through items and their children for the audience
+      for (const item of items) {
+        // Check if item itself is an audience matching the name
+        if (item.type === 'audience' && item.data && item.data.name.toLowerCase() === audienceName.toLowerCase()) {
+          return { audienceId: item.data.id, name: item.data.name };
+        }
+
+        // Check children (audiences under categories)
+        if (item.children && item.children.length > 0) {
+          for (const child of item.children) {
+            if (
+              child.type === 'audience' &&
+              child.data &&
+              child.data.name.toLowerCase() === audienceName.toLowerCase()
+            ) {
+              return { audienceId: child.data.id, name: child.data.name };
+            }
+          }
+        }
+      }
+
+      return null;
+    });
+  }
+
+  /**
+   * Finds an audience by name using optimized direct search.
+   * Makes maximum 2 API calls: 1 for direct search, 1 for fallback list if needed.
+   * Falls back to the list-based search if direct search doesn't find the audience.
    * @param audienceName - Name of the audience to find
    * @param size - Number of audiences to fetch (default: 16)
    * @returns Promise<Audience | null>
    */
   async findAudienceByName(audienceName: string, size: number = 16): Promise<Audience | null> {
     return await test.step(`Finding audience by name: ${audienceName}`, async () => {
+      // Try direct audience search first
+      const searchResult = await this.searchAudienceByName(audienceName);
+
+      if (searchResult) {
+        return {
+          id: searchResult.audienceId,
+          audienceId: searchResult.audienceId,
+          name: searchResult.name,
+          displayName: searchResult.name,
+          isDeleted: false,
+        } as Audience;
+      }
+
       const response = await this.getAudienceList(size);
       const audience = response.result.listOfItems.find(
         audience => audience.name === audienceName || audience.displayName === audienceName

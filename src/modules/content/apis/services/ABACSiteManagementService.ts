@@ -26,11 +26,6 @@ export class ABACSiteManagementService {
     accessType: 'public' | 'private' = 'public'
   ): Promise<ABACSiteCreationResponse> {
     return await test.step(`Creating ${accessType} site with ABAC audience`, async () => {
-      // Extract CSRF token from cookies for UAT compatibility
-      const storageState = await this.context.storageState();
-      const cookies = storageState.cookies || [];
-      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
-
       const apiPayload: any = {
         access: accessType,
         hasPages: payload.hasPages ?? true,
