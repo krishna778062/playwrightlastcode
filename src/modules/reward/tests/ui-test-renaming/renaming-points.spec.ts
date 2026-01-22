@@ -3,7 +3,6 @@ import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecogn
 import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
-import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -146,23 +145,23 @@ test.describe('renaming page', () => {
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      const userProfile = new UserProfilePage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       await renamingPage.changeSomeDataAndClickOnSave('Points');
       await renamingPage.verifyThePageIsLoaded();
-      const getCustomValue: Map<string, string> = await renamingPage.getAllTheCustomValue();
-      const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
-      const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
-      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0] && id !== 1);
+      await renamingPage.clickEditButtonByCardType('points');
+      const pointsTranslationsByLanguage: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
 
-      // Mock each non-default language and re-run validations
-      for (const langId of otherLanguageIds) {
-        // ensure we don't stack multiple route handlers
-        await appManagerFixture.page.unroute('**/account/**').catch(() => {});
-        await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
-        await renamingPage.validateThePointsValueInApp(getCustomValue);
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validatePointsManualTranslationsAcrossLanguages(pointsTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
       }
     }
   );

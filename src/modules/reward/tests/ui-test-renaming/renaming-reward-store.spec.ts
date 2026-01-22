@@ -148,18 +148,19 @@ test.describe('renaming page', () => {
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
       await renamingPage.verifyThePageIsLoaded();
-      const getCustomValue: Map<string, string> = await renamingPage.getAllTheCustomValue();
-      const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
-      const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
-      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0] && id !== 1);
-
-      // Mock each non-default language and re-run validations
-      for (const langId of otherLanguageIds) {
-        // ensure we don't stack multiple route handlers
-        await appManagerFixture.page.unroute('**/account/**').catch(() => {});
-        await renamingPage.validateTheRewardStoreValueInApp(getCustomValue, langId);
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const rewardStoreTranslationsByLanguage: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRewardStoreManualTranslationsAcrossLanguages(rewardStoreTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
       }
     }
   );

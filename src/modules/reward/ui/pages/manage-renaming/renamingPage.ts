@@ -584,15 +584,12 @@ export class RenamingPage extends BasePage {
     const stringArray: string[] = [];
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
     for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('', { timeout: TIMEOUTS.SHORT });
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.SHORT });
-      stringArray.push(await editModal.getOtherLanguageCustomInputBox(i).inputValue());
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+      stringArray.push(await input.inputValue());
     }
     return stringArray;
   }
@@ -606,9 +603,12 @@ export class RenamingPage extends BasePage {
     const count = await manualTranslationSwitches.count();
     for (let i = 0; i < count; i++) {
       const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
       const value = await input.inputValue();
       expect(value, 'expecting other language input to have a non-empty value').not.toBe('');
-      expect(value, 'expecting other language input to finish loading').not.toBe('Loading...');
       const languageLabel = (await editModal.getOtherLanguageCustomLabel(i).textContent())?.trim() ?? '';
       map.set(languageLabel, value);
     }
@@ -619,17 +619,12 @@ export class RenamingPage extends BasePage {
     const editModal = new EditLabelModal(this.page);
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
     for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_SHORT });
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.SHORT });
-      expect(defaultOtherLanguageTranslationValue).toContain(
-        await editModal.getOtherLanguageCustomInputBox(i).inputValue()
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
       );
+      expect(defaultOtherLanguageTranslationValue).toContain(await input.inputValue());
     }
   }
 
@@ -836,8 +831,15 @@ export class RenamingPage extends BasePage {
   private async openRecognitionComposer(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.postFormButton, {
       timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Post Form button is visible on the page',
     });
-    await this.postFormButton.click();
+    await this.clickOnElement(this.postFormButton, {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Clicking Post Form button to open recognition composer',
+    });
+    await this.verifier.waitUntilElementIsVisible(this.recognitionCreationButton, {
+      stepInfo: 'Recognition Button in Post Form button is visible',
+    });
   }
 
   private walletTextLabel(testId: string): Locator {
@@ -850,17 +852,20 @@ export class RenamingPage extends BasePage {
   }
 
   private async verifyPointsLabelText(locator: Locator, expected: string): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(locator, { timeout: TIMEOUTS.SHORT });
+    await this.verifier.waitUntilElementIsVisible(locator, { timeout: TIMEOUTS.MEDIUM });
     await locator.scrollIntoViewIfNeeded();
-    expect(await locator.textContent()).toContain(expected);
+    await this.verifier.verifyElementContainsText(locator, expected, {
+      assertionMessage: `Verifying ${await locator.textContent()} label contains expected text: ${expected}`,
+    });
   }
 
   private async validateRecognitionOnHome(recognition: string): Promise<void> {
     const homePage = new HomeDashboardPage(this.page);
     await homePage.visit();
-    await this.verifier.verifyTheElementIsVisible(
-      this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`)
-    );
+    const locator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`);
+    await this.verifier.verifyTheElementIsVisible(locator, {
+      assertionMessage: `Verifying recognition nav menu with label ${await locator.textContent()} is visible on home page`,
+    });
     await this.openRecognitionComposer();
     await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }));
   }
@@ -869,9 +874,10 @@ export class RenamingPage extends BasePage {
     const hub = new RecognitionHubPage(this.page);
     await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
     await hub.verifyThePageIsLoaded();
-    await this.verifier.verifyTheElementIsVisible(
-      this.page.locator('[class*="PageContainerFullscreen_header"] h1').filter({ hasText: recognition })
-    );
+    const recognitionHubHeading = this.page.locator('[class*="PageContainerFullscreen_header"] h1');
+    await this.verifier.verifyTheElementIsVisible(recognitionHubHeading, {
+      assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubHeading.filter({ hasText: recognition }).textContent()} is visible on recognition hub page`,
+    });
   }
 
   private async validateAcrossPages(steps: Array<() => Promise<void>>): Promise<void> {
@@ -888,7 +894,9 @@ export class RenamingPage extends BasePage {
       async () => {
         await this.openOneSiteDashboard();
         await this.openRecognitionComposer();
-        await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }));
+        await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }), {
+          assertionMessage: 'Verifying recognition button with custom value is visible on site dashboard page',
+        });
       },
     ]);
   }
@@ -896,12 +904,13 @@ export class RenamingPage extends BasePage {
   async validateThePointsValueInApp(customValue: any): Promise<void> {
     const points = customValue.get('points');
     const recognition = customValue.get('recognition');
-
     await this.validateAcrossPages([
       async () => {
         await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
         await this.openRecognitionComposer();
-        await this.clickOnElement(this.recognitionCreationButton);
+        await this.clickOnElement(this.recognitionCreationButton, {
+          stepInfo: 'Clicking on recognition creation button on home page',
+        });
         await this.verifyPointsLabelText(this.pointsLabel, points);
       },
       async () => {
@@ -915,22 +924,44 @@ export class RenamingPage extends BasePage {
       async () => {
         await this.openOneSiteDashboard();
         await this.openRecognitionComposer();
-        await this.clickOnElement(this.recognitionCreationButton);
+        await this.clickOnElement(this.recognitionCreationButton, {
+          stepInfo: 'Clicking on recognition creation button on home page',
+        });
         await this.verifyPointsLabelText(this.pointsLabel, points);
         this.recognitionCreationButton.filter({ hasText: recognition });
+      },
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.loadPage();
+        await this.verifyPointsLabelText(
+          this.page
+            .getByTestId('i-coinsStacked')
+            .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
+            .locator('p')
+            .filter({ hasNotText: /^\d+$/ })
+            .first(),
+          points
+        );
+        const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
+        await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
+        await rewardStore.openGiftCardModal(2);
+        const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
+        await this.verifier.verifyTheElementIsVisible(
+          giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
+          { timeout: TIMEOUTS.SHORT }
+        );
+        expect(
+          await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
+        ).toContain(points);
       },
     ]);
   }
 
-  async validateTheRewardStoreValueInApp(customValue: any, languageId: number): Promise<void> {
+  async validateTheRewardStoreValueInApp(customValue: any): Promise<void> {
     const rewardStoreHeading = customValue.get('rewardsStore');
     const points = customValue.get('points');
     const rewardStore = new RewardsStore(this.page);
     await rewardStore.loadPage();
-    const languageApi = new LanguageApiService();
-    await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
-    await this.page.reload({ waitUntil: 'domcontentloaded' });
-    await rewardStore.verifyThePageIsLoaded();
     await this.validateAcrossPages([
       async () => {
         await this.verifyPointsLabelText(
@@ -955,6 +986,7 @@ export class RenamingPage extends BasePage {
         );
       },
       async () => {
+        const rewardStore = new RewardsStore(this.page);
         const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
         await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
         await rewardStore.openGiftCardModal(2);
@@ -1015,14 +1047,13 @@ export class RenamingPage extends BasePage {
     rewardStoreTranslationsByLanguage: Map<string, string>
   ): Promise<void> {
     const languageApi = new LanguageApiService();
-    // If modal is open (caller just read translations), close it so we can open other card modals.
     await this.clickDialogCloseButton().catch(() => {});
 
     const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
       await this.captureTranslationsForCard('points');
     const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
       await this.captureTranslationsForCard('recognition');
-
+    let i = 0;
     for (const [languageLabel, translatedRewardStoreValue] of rewardStoreTranslationsByLanguage.entries()) {
       const candidates = this.parseLanguageCandidates(languageLabel);
       let languageId: number | undefined;
@@ -1047,7 +1078,8 @@ export class RenamingPage extends BasePage {
       );
       await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
       await this.page.reload({ waitUntil: 'domcontentloaded' });
-      await this.validateTheRewardStoreValueInApp(expectedMap, languageId);
+      await this.validateTheRewardStoreValueInApp(expectedMap);
+      console.log(i++);
     }
   }
 
@@ -1098,8 +1130,6 @@ export class RenamingPage extends BasePage {
     options?: { resetLanguageId?: number; recognitionLabel?: string }
   ): Promise<void> {
     const languageApi = new LanguageApiService();
-    const resetLanguageId = 1;
-
     // If modal is open (caller just read translations), close it so we can safely navigate.
     await this.clickDialogCloseButton().catch(() => {});
 
