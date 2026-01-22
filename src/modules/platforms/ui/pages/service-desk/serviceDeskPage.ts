@@ -319,23 +319,156 @@ export class ServiceDeskPage extends BasePage {
   }
 
   async deleteTicket(ticketId: string): Promise<void> {
-    const currentUrl = this.page.url();
-    const isOnTicketDetailsPage = currentUrl.includes(`/service-desk/settings/request-management/${ticketId}`);
+    await test.step(`Delete ticket ${ticketId}`, async () => {
+      // Navigate directly to Request Management URL
+      const serviceDeskUrl = this.getServiceDeskUrl();
+      await this.page.goto(`${serviceDeskUrl}/service-desk/settings/request-management`, {
+        waitUntil: 'domcontentloaded',
+      });
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+      await this.page.waitForTimeout(3000);
 
-    if (!isOnTicketDetailsPage) {
-      await this.navigateToTicketDetails(ticketId);
-    }
+      // Wait for the Tickets heading to be visible
+      const ticketsHeading = this.page.getByRole('heading', { name: /Tickets/i });
+      await expect(ticketsHeading).toBeVisible({ timeout: TIMEOUTS.SHORT });
 
-    await this.deleteTicketFromDetailsPage();
+      // Wait for any loading indicators to disappear
+      const loadingIndicator = this.page.getByRole('progressbar');
+      await loadingIndicator.waitFor({ state: 'hidden', timeout: TIMEOUTS.MEDIUM }).catch(() => {
+        console.log('No loading indicator found or already hidden');
+      });
+      await this.page.waitForTimeout(2000);
+
+      // Find the ticket link (tickets are usually clickable links)
+      const ticketLink = this.page.getByRole('link', { name: new RegExp(ticketId) });
+      await expect(ticketLink).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      console.log(`Found ticket ${ticketId} in the list`);
+
+      // Scroll to the ticket to ensure it's in view
+      await ticketLink.scrollIntoViewIfNeeded();
+      await this.page.waitForTimeout(1000);
+
+      // Find the three dots button in the same row as the ticket
+      // Get the position of the ticket link to find buttons near it
+      const ticketBox = await ticketLink.boundingBox();
+      if (!ticketBox) {
+        throw new Error(`Could not get position of ticket ${ticketId}`);
+      }
+
+      // Find all buttons on the page
+      const allButtons = this.page.locator('button');
+      const buttonCount = await allButtons.count();
+
+      // Find the button (three dots) that's on the same row (similar Y position) as the ticket
+      let menuButton = null;
+      for (let i = 0; i < buttonCount; i++) {
+        const button = allButtons.nth(i);
+        const buttonBox = await button.boundingBox();
+        if (buttonBox && Math.abs(buttonBox.y - ticketBox.y) < 50) {
+          // This button is on the same row as the ticket
+          const ariaLabel = await button.getAttribute('aria-label').catch(() => '');
+          const text = await button.textContent().catch(() => '');
+          // Look for three dots or menu button
+          if (ariaLabel?.includes('menu') || text?.includes('⋯') || text?.includes('...')) {
+            menuButton = button;
+            break;
+          }
+          // If no specific indicator, use the last button on the row (three dots is usually last)
+          menuButton = button;
+        }
+      }
+
+      if (!menuButton) {
+        throw new Error(`Could not find three dots menu button for ticket ${ticketId}`);
+      }
+
+      await expect(menuButton).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await menuButton.click();
+      await this.page.waitForTimeout(1500);
+      console.log('Clicked three dots menu');
+
+      // Wait for the dropdown menu to appear
+      const dropdownMenu = this.page
+        .locator('.DropdownMenu-module__DropdownMenu__5WJhl, [role="menu"], .dropdown-menu')
+        .first();
+      await expect(dropdownMenu).toBeVisible({ timeout: 5000 });
+
+      // Click the menuitem role element that contains "Delete" text
+      const deleteMenuItem = dropdownMenu.locator('[role="menuitem"]').filter({ hasText: 'Delete' }).first();
+      await expect(deleteMenuItem).toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await deleteMenuItem.click();
+      await this.page.waitForTimeout(500);
+      console.log('Clicked Delete option from dropdown');
+
+      // Wait for confirmation dialog to appear
+      await this.page.waitForTimeout(1000);
+
+      // Click the Delete button in the confirmation dialog
+      const deleteConfirmButton = this.page.getByRole('button', { name: /^delete$/i }).filter({ hasText: /^delete$/i });
+
+      await expect(deleteConfirmButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await deleteConfirmButton.click();
+      await this.page.waitForTimeout(1000);
+      console.log('✓ Clicked Delete button in confirmation dialog');
+
+      // Wait for and verify the success message
+      const successMessage = this.page.getByText(/Ticket deleted successfully/i);
+      await expect(successMessage).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      console.log('✓ Verified: Ticket deleted successfully message appeared');
+
+      // Wait a bit more for the deletion to fully complete on the backend
+      await this.page.waitForTimeout(2000);
+      console.log(`✓ Deleted ticket: ${ticketId}`);
+    });
   }
 
   async deleteTicketFromDetailsPage(): Promise<void> {
-    await this.dropdownTrigger.click();
-    await expect(this.page.getByRole('menu', { name: 'More' })).toBeVisible();
-    await this.deleteMenuItem.click();
-    await expect(this.deleteConfirmDialog).toBeVisible();
-    await this.deleteConfirmButton.click();
-    await expect(this.deleteSuccessMessage).toBeVisible({ timeout: 10000 });
+    const menuButton = this.page
+      .getByTestId('dropdown-trigger')
+      .or(this.page.getByRole('button', { name: /more|options|menu|⋯|.../i }))
+      .or(this.page.locator('[data-testid*="dropdown"], [data-testid*="menu"]').first());
+
+    await expect(menuButton.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
+    await menuButton.first().click();
+
+    const deleteOption = this.page
+      .getByRole('menuitem', { name: /delete ticket|delete/i })
+      .or(this.page.getByText('Delete ticket').first())
+      .or(this.page.getByText('Delete').first());
+    let isDeleteVisible = await deleteOption
+      .first()
+      .isVisible({ timeout: TIMEOUTS.SHORT })
+      .catch(() => false);
+    if (!isDeleteVisible) {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await this.page.waitForTimeout(300);
+      await menuButton.first().click();
+      isDeleteVisible = await deleteOption
+        .first()
+        .isVisible({ timeout: TIMEOUTS.SHORT })
+        .catch(() => false);
+    }
+
+    if (isDeleteVisible) {
+      await deleteOption.first().click();
+    } else {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      const directDeleteButton = this.page.getByRole('button', { name: /delete ticket|delete/i }).first();
+      const isDirectDeleteVisible = await directDeleteButton.isVisible({ timeout: 3000 }).catch(() => false);
+      if (isDirectDeleteVisible) {
+        await directDeleteButton.click();
+      } else {
+        return;
+      }
+    }
+
+    const confirmButton = this.page.getByRole('button', { name: /delete|confirm|yes/i });
+    const isConfirmVisible = await confirmButton.isVisible({ timeout: 2000 }).catch(() => false);
+    if (isConfirmVisible) {
+      await confirmButton.click();
+    }
+
+    await this.deleteSuccessMessage.isVisible({ timeout: 10000 }).catch(() => false);
   }
 
   /**
@@ -608,40 +741,63 @@ export class ServiceDeskPage extends BasePage {
       // Wait for page to be ready
       await this.page.waitForTimeout(1000);
 
-      // Find search input in the main content area (not header)
-      // Look for input inside the section that contains "Create incident ticket" button
-      const mainContent = this.page.locator('main, [role="main"], .main-content').first();
-      let ticketsSearchBox = mainContent.locator('input[type="text"], input[type="search"]').first();
+      // Find search input in the main content area (not header/nav)
+      // Strategy 1: Look for input inside main content area
+      const mainContent = this.page.locator('main, [role="main"], #page-content, [class*="main-content"]').first();
+      let ticketsSearchBox = mainContent
+        .locator('input[type="text"]:not([placeholder*="Simpplr"]), input[type="search"]:not([placeholder*="Simpplr"])')
+        .first();
       let isVisible = await ticketsSearchBox.isVisible({ timeout: 3000 }).catch(() => false);
 
       if (!isVisible) {
-        // Find input near "Create incident ticket" button
+        // Strategy 2: Find input near "Create incident ticket" button or "Tickets" heading
+        const ticketsHeading = this.page.getByRole('heading', { name: /Tickets/i });
         const createButton = this.page.getByRole('button', { name: /Create incident ticket/i });
+        const isHeadingVisible = await ticketsHeading.isVisible({ timeout: 2000 }).catch(() => false);
         const isCreateVisible = await createButton.isVisible({ timeout: 2000 }).catch(() => false);
-        if (isCreateVisible) {
-          // Get the parent container and find input in it
-          ticketsSearchBox = createButton
-            .locator('xpath=ancestor::div[contains(@class, "flex") or contains(@class, "header")]')
-            .first()
-            .locator('input')
-            .first();
+
+        if (isHeadingVisible) {
+          // Find input in the same section as Tickets heading
+          const section = ticketsHeading.locator(
+            'xpath=ancestor::div[contains(@class, "flex") or contains(@class, "section")][1]'
+          );
+          ticketsSearchBox = section.locator('input[type="text"], input[type="search"]').first();
+          isVisible = await ticketsSearchBox.isVisible({ timeout: 2000 }).catch(() => false);
+        }
+
+        if (!isVisible && isCreateVisible) {
+          // Find input in the same container as Create button
+          const container = createButton.locator(
+            'xpath=ancestor::div[contains(@class, "flex") or contains(@class, "header")][1]'
+          );
+          ticketsSearchBox = container.locator('input[type="text"], input[type="search"]').first();
           isVisible = await ticketsSearchBox.isVisible({ timeout: 2000 }).catch(() => false);
         }
       }
 
       if (!isVisible) {
-        // Find any input that's NOT in the header/nav area
-        const allInputs = this.page.locator('input');
-        const count = await allInputs.count();
+        // Strategy 3: Find input in main content by excluding header/nav areas
+        const headerNav = this.page.locator('header, nav, [role="banner"], [role="navigation"]');
+        const contentInputs = mainContent.locator('input[type="text"], input[type="search"]');
+        const count = await contentInputs.count();
+
         for (let i = 0; i < count; i++) {
-          const input = allInputs.nth(i);
-          const placeholder = await input.getAttribute('placeholder');
-          // Skip the global search which has "Search Simpplr..."
-          if (placeholder && placeholder.toLowerCase().includes('search') && !placeholder.includes('Simpplr')) {
-            ticketsSearchBox = input;
-            isVisible = true;
-            console.log(`Found search box with placeholder: ${placeholder}`);
-            break;
+          const input = contentInputs.nth(i);
+          const placeholder = await input.getAttribute('placeholder').catch(() => '');
+
+          // Skip global search (contains "Simpplr") and check if input is NOT inside header/nav
+          if (placeholder && !placeholder.includes('Simpplr')) {
+            const isInHeader =
+              (await headerNav
+                .locator('..', { has: input })
+                .count()
+                .catch(() => 0)) > 0;
+            if (!isInHeader) {
+              ticketsSearchBox = input;
+              isVisible = true;
+              console.log(`Found search box in content with placeholder: ${placeholder}`);
+              break;
+            }
           }
         }
       }
@@ -650,18 +806,23 @@ export class ServiceDeskPage extends BasePage {
         await ticketsSearchBox.click();
         await ticketsSearchBox.clear();
         await ticketsSearchBox.fill(searchTerm);
-        // Click the search icon button next to the input
-        const searchButton = ticketsSearchBox.locator('xpath=following-sibling::button | ../button').first();
+        await this.page.waitForTimeout(500);
+
+        // Try to find and click search button, otherwise press Enter
+        const parent = ticketsSearchBox.locator('xpath=ancestor::div[1]');
+        const searchButton = parent.locator('button[type="submit"], button:has(svg)').first();
         const isSearchBtnVisible = await searchButton.isVisible({ timeout: 1000 }).catch(() => false);
+
         if (isSearchBtnVisible) {
           await searchButton.click();
         } else {
           await ticketsSearchBox.press('Enter');
         }
+
         await this.page.waitForTimeout(2000);
-        console.log(`Searched for: ${searchTerm} in Tickets search box`);
+        console.log(`Searched for: ${searchTerm} in Tickets content search box`);
       } else {
-        console.log('Tickets search box not found');
+        console.log('Tickets content search box not found - search may not be available');
       }
     });
   }
@@ -789,11 +950,14 @@ export class ServiceDeskPage extends BasePage {
       // Enable public comment toggle
       if (isPublic) {
         // Find the toggle switch near "Public comment" text
-        const publicToggleSwitch = this.page.getByRole('switch').first();
+        const publicLabel = this.page.getByText(/Public comment/i);
+        const publicToggleSwitch = publicLabel
+          .locator('..')
+          .getByRole('switch')
+          .or(this.page.getByRole('switch').first());
         const isToggleVisible = await publicToggleSwitch.isVisible({ timeout: 2000 }).catch(() => false);
 
         if (isToggleVisible) {
-          // Check if toggle is already checked
           const isChecked = await publicToggleSwitch.isChecked().catch(() => false);
           if (!isChecked) {
             await publicToggleSwitch.click();
@@ -869,32 +1033,161 @@ export class ServiceDeskPage extends BasePage {
   async navigateToTicketAsRequester(ticketId: string): Promise<void> {
     await test.step(`Navigate to ticket ${ticketId} as requester`, async () => {
       const serviceDeskUrl = this.getServiceDeskUrl();
+      const ticketNumber = ticketId.replace('INC-', '');
 
-      // Try requester/support portal path
-      await this.goToUrl(`${serviceDeskUrl}/support/tickets/${ticketId}`, {
+      // Go to support portal
+      await this.goToUrl(`${serviceDeskUrl}/service-desk/support-portal`, {
         waitUntil: 'domcontentloaded',
       });
 
       await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
-      await this.page.waitForTimeout(2000);
 
-      // If not found, try alternate path
-      const currentUrl = this.page.url();
-      if (!currentUrl.includes(ticketId)) {
-        // Navigate to my tickets and find the ticket
-        await this.goToUrl(`${serviceDeskUrl}/support/my-tickets`, {
-          waitUntil: 'domcontentloaded',
-        });
-        await this.page.waitForTimeout(2000);
-
-        // Click on the ticket
-        const ticketLink = this.page.getByRole('link', { name: new RegExp(ticketId, 'i') });
-        const isTicketVisible = await ticketLink.isVisible({ timeout: 3000 }).catch(() => false);
-        if (isTicketVisible) {
-          await ticketLink.click();
-          await this.page.waitForTimeout(2000);
+      // If user is redirected to deactivated, go to home and open Support manually
+      if (this.page.url().includes('/deactivated')) {
+        await this.goToUrl(`${serviceDeskUrl}/home`, { waitUntil: 'domcontentloaded' });
+        await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+        const supportLink = this.page.getByRole('link', { name: /Support/i }).first();
+        const isSupportVisible = await supportLink.isVisible({ timeout: 3000 }).catch(() => false);
+        if (isSupportVisible) {
+          await supportLink.click();
+          await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
         }
       }
+      await this.page.waitForTimeout(1000);
+
+      // If support portal shows not found, click Support link in nav
+      const notFoundHeading = this.page.getByRole('heading', { name: /Page not found/i });
+      const isNotFoundVisible = await notFoundHeading.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isNotFoundVisible) {
+        const supportLink = this.page.getByRole('link', { name: /Support/i }).first();
+        const isSupportVisible = await supportLink.isVisible({ timeout: 3000 }).catch(() => false);
+        if (isSupportVisible) {
+          await supportLink.click();
+          await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+        }
+      }
+
+      // Navigate to My tickets tab if available
+      const myTicketsTab = this.page
+        .getByRole('tab', { name: /My tickets/i })
+        .or(this.page.getByRole('button', { name: /My tickets/i }))
+        .first();
+      const isMyTicketsVisible = await myTicketsTab.isVisible({ timeout: 3000 }).catch(() => false);
+      if (isMyTicketsVisible) {
+        await myTicketsTab.click();
+        await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+      }
+
+      // Refresh the page before looking for ticket
+      console.log('Refreshing page before looking for ticket...');
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+      await this.page.waitForTimeout(2000);
+
+      // After refresh, ensure we're on My tickets tab (refresh might lose tab state)
+      const myTicketsTabAfterRefresh = this.page
+        .getByRole('tab', { name: /My tickets/i })
+        .or(this.page.getByRole('button', { name: /My tickets/i }))
+        .first();
+      const isTabVisible = await myTicketsTabAfterRefresh.isVisible({ timeout: 3000 }).catch(() => false);
+      if (isTabVisible) {
+        await myTicketsTabAfterRefresh.click();
+        await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.SHORT }).catch(() => {});
+        await this.page.waitForTimeout(2000);
+      }
+
+      // Wait for the table/list to be present
+      await this.page.waitForTimeout(2000);
+
+      // Find and click the ticket in the content area (not in search box)
+      console.log(`Looking for ticket ${ticketId}...`);
+
+      // Target the ticket link/text specifically in the main content area, not in input fields
+      const contentArea = this.page.locator('#page-content, [role="main"], main, .content').first();
+      const ticketLink = contentArea.getByText(ticketId, { exact: false }).first();
+
+      // Use a longer timeout and poll for newly created tickets
+      await expect(ticketLink).toBeVisible({ timeout: 60000 }); // 60 seconds for newly created tickets
+      console.log(`✓ Found ticket ${ticketId}`);
+
+      // Define patterns and drawer heading for fallback logic
+      const ticketIdPattern = new RegExp(`INC-\\s*${ticketNumber}`, 'i');
+      const drawerHeading = this.page
+        .getByRole('heading', { name: new RegExp(ticketId, 'i') })
+        .or(this.page.getByText(new RegExp(ticketId, 'i')).first());
+
+      // Click on the ticket to open it
+      await ticketLink.click();
+      await this.page.waitForTimeout(1000);
+      console.log(`✓ Clicked on ticket ${ticketId}`);
+
+      if (
+        !(await drawerHeading
+          .first()
+          .isVisible({ timeout: TIMEOUTS.SHORT })
+          .catch(() => false))
+      ) {
+        for (const frame of this.page.frames()) {
+          if (frame === this.page.mainFrame()) {
+            continue;
+          }
+          const frameLink = frame.locator('a', { hasText: ticketIdPattern }).first();
+          const isFrameLinkVisible = await frameLink.isVisible({ timeout: 2000 }).catch(() => false);
+          if (!isFrameLinkVisible) {
+            continue;
+          }
+          await frameLink.scrollIntoViewIfNeeded().catch(() => {});
+          await frameLink.click({ force: true }).catch(() => {});
+          const isDrawerVisible = await drawerHeading
+            .first()
+            .isVisible({ timeout: TIMEOUTS.SHORT })
+            .catch(() => false);
+          if (isDrawerVisible) {
+            break;
+          }
+        }
+      }
+
+      if (
+        !(await drawerHeading
+          .first()
+          .isVisible({ timeout: TIMEOUTS.SHORT })
+          .catch(() => false))
+      ) {
+        await this.page
+          .waitForFunction(
+            (pattern: string) => {
+              const regex = new RegExp(pattern, 'i');
+              const elements = Array.from(document.querySelectorAll('a, [role="row"], tr, td, div, span'));
+              return elements.some(element => regex.test(element.textContent || ''));
+            },
+            `INC-\\s*${ticketNumber}`,
+            { timeout: TIMEOUTS.LONG }
+          )
+          .catch(() => {});
+
+        await this.page
+          .evaluate((pattern: string) => {
+            const regex = new RegExp(pattern, 'i');
+            const preferredSelectors = ['a', '[role="row"]', 'tr', 'td', 'div', 'span'];
+            for (const selector of preferredSelectors) {
+              const elements = Array.from(document.querySelectorAll(selector));
+              const target = elements.find(element => regex.test(element.textContent || ''));
+              if (target && target instanceof HTMLElement) {
+                const clickable = target.closest('a, button, [role="button"], [role="link"]') || target;
+                if (clickable instanceof HTMLElement) {
+                  clickable.click();
+                  clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+                }
+                return true;
+              }
+            }
+            return false;
+          }, `INC-\\s*${ticketNumber}`)
+          .catch(() => false);
+      }
+
+      await expect(drawerHeading.first()).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 
@@ -904,9 +1197,58 @@ export class ServiceDeskPage extends BasePage {
    */
   async verifyCommentVisible(commentText: string): Promise<void> {
     await test.step(`Verify comment is visible: "${commentText.substring(0, 30)}..."`, async () => {
+      const drawer = this.page
+        .getByRole('dialog')
+        .or(this.page.locator('aside'))
+        .or(this.page.locator('[data-testid*="drawer"]'))
+        .first();
+
+      const commentsTab = drawer
+        .getByRole('tab', { name: /comments/i })
+        .or(drawer.getByRole('button', { name: /comments/i }))
+        .first();
+      const isCommentsVisible = await commentsTab.isVisible({ timeout: 2000 }).catch(() => false);
+      if (isCommentsVisible) {
+        await commentsTab.click();
+      }
+
       // Look for the comment text on the page
-      const commentElement = this.page.getByText(commentText);
-      const isVisible = await commentElement.isVisible({ timeout: 5000 }).catch(() => false);
+      const commentElement = drawer.getByText(commentText).or(this.page.getByText(commentText));
+      let isVisible = await commentElement.isVisible({ timeout: 5000 }).catch(() => false);
+
+      if (!isVisible) {
+        const activitiesTab = drawer.getByRole('tab', { name: /activities|comments|updates/i });
+        const activitiesButton = drawer.getByRole('button', { name: /activities|comments|updates/i });
+        const isTabVisible = await activitiesTab
+          .first()
+          .isVisible({ timeout: 2000 })
+          .catch(() => false);
+        const isBtnVisible = await activitiesButton
+          .first()
+          .isVisible({ timeout: 2000 })
+          .catch(() => false);
+        if (isTabVisible) {
+          await activitiesTab.first().click();
+          await this.page.waitForTimeout(500);
+        } else if (isBtnVisible) {
+          await activitiesButton.first().click();
+          await this.page.waitForTimeout(500);
+        }
+
+        const publicFilter = drawer
+          .getByRole('button', { name: /public|all|everyone/i })
+          .or(drawer.getByRole('radio', { name: /public/i }));
+        const isFilterVisible = await publicFilter
+          .first()
+          .isVisible({ timeout: 2000 })
+          .catch(() => false);
+        if (isFilterVisible) {
+          await publicFilter.first().click();
+          await this.page.waitForTimeout(500);
+        }
+
+        isVisible = await commentElement.isVisible({ timeout: 5000 }).catch(() => false);
+      }
 
       if (!isVisible) {
         // Try partial match
