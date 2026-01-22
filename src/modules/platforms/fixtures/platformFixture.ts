@@ -10,6 +10,7 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
 import { QuickTaskTestHelper } from '../apis/helpers/quickTaskTestHelper';
+import { IdentityService } from '../apis/services/IdentityService';
 import { QuickTaskService } from '../apis/services/QuickTaskService';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
@@ -109,6 +110,7 @@ export interface PlatformApiFixture {
   audienceTestDataHelper: AudienceTestDataHelper;
   identityManagementHelper: IdentityManagementHelper;
   userManagementService: UserManagementService;
+  identityService: IdentityService;
 }
 
 // UI-only fixture type for browser and page components
@@ -148,6 +150,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
   const audienceTestDataHelper = new AudienceTestDataHelper(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const identityService = new IdentityService(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
@@ -155,6 +158,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
     audienceTestDataHelper,
     identityManagementHelper,
     userManagementService,
+    identityService,
   };
 }
 

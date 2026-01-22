@@ -49,6 +49,7 @@ export interface RecognitionTenantConfig {
   apiBaseUrl: string;
   siteName?: string;
   siteId?: string;
+  audience?: string;
   appManagerEmail: string;
   appManagerName: string;
   appManagerUserId: string;
@@ -88,6 +89,9 @@ export const config = {
       endUserName: 'arbind appmanager',
       endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
       endUserPassword: 'simpplr123',
+      siteName: 'recognition_automation_site',
+      siteId: '8f87117a-8f62-47e8-9a17-34cf90179880',
+      audience: 'recognition_automation_audience_do_not_delete',
       newUxEnabled: true,
     },
     test: {
@@ -96,18 +100,19 @@ export const config = {
       apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
-      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerUserId: 'f12a51ca-528c-4236-9f15-343901d489db',
       appManagerPassword: 'simpplr123',
       recognitionManagerEmail: 'aishma.gupta+5@simpplr.com',
       recognitionManagerName: 'Recognition User',
-      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerUserId: '27f7f0df-2783-49f2-b989-c170f520421f',
       recognitionManagerPassword: 'simpplr123',
       endUserEmail: 'aishma.gupta+1@simpplr.com',
       endUserName: 'aishma enduser',
-      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserUserId: 'd4d82341-04e6-459a-b9ae-cda3e9a17ed8',
       endUserPassword: 'simpplr123',
       siteName: 'recognition_automation_site',
       siteId: '8f87117a-8f62-47e8-9a17-34cf90179880',
+      audience: 'recognition_automation_audience_do_not_delete',
       newUxEnabled: true,
     },
     uat: {

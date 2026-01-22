@@ -43,6 +43,7 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
   readonly noResultsFoundHeading: Locator;
   readonly noResultsFoundDescription: Locator;
   readonly featureOwnerRecords: Locator;
+  readonly featureOwnersUsersCount: (featureName: string) => Locator;
 
   // Component
   readonly userCountPopup: UserCountPopupComponent;
@@ -76,6 +77,8 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
     this.noResultsFoundHeading = page.getByText('No results found');
     this.noResultsFoundDescription = page.getByText('Try adjusting search terms or filters');
     this.featureOwnerRecords = page.locator('[data-testid*="dataGridRow"]');
+    this.featureOwnersUsersCount = (featureName: string) =>
+      this.featureOwnerRecords.filter({ hasText: featureName }).locator('[class*="Cell-module"] button p');
 
     // Initialize component
     this.userCountPopup = new UserCountPopupComponent(page);
@@ -243,10 +246,12 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
 
   /**
    * Verifies that the user count popup is opened with correct count using dedicated component (to be used in the future)
-   * @param expectedCount - Expected user count to verify
+   * @param featureName - Feature name for which the feature owner list needs to be verified.
+   * @param numberOfFeaturesDisplayed - Number of features displayed in the feature owner list.
    */
   async verifyFeatureOwnerList(featureName: string, numberOfFeaturesDisplayed: number): Promise<void> {
     await test.step(`Verify that ${featureName} feature and only ${numberOfFeaturesDisplayed} count of asset is displayed in the feature owner list`, async () => {
+      await this.searchForFeature(featureName);
       const expectedNumberOfFeatureOwnerRecords = await this.featureOwnerRecords.count();
       expect(
         expectedNumberOfFeatureOwnerRecords,
@@ -259,6 +264,32 @@ export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions
       await this.verifier.verifyTheElementIsVisible(feature, {
         assertionMessage: `Feature ${featureName} should be visible in the feature owner list`,
       });
+    });
+  }
+
+  /**
+   * Verifies that the user count popup is opened with correct count using dedicated component (to be used in the future)
+   * @param featureName - Feature name for which the feature owner count needs to be fetched.
+   */
+  async getFeatureOwnerCount(featureName: string): Promise<number> {
+    return await test.step(`Get the count of feature owners for ${featureName} feature`, async () => {
+      const featureOwnerUsersCount = await this.featureOwnersUsersCount(featureName).textContent();
+      return parseInt(featureOwnerUsersCount || '0', 10);
+    });
+  }
+
+  /**
+   * Verifies that the user count for the given feature
+   * @param featureName - Feature name for which the feature owner count needs to be fetched.
+   * @param expectedCount - Expected feature owner count.
+   */
+  async verifyFeatureOwnersUserCountIsEqualToExpectedCount(featureName: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify that the feature owner count is equal to expected count for ${featureName} feature`, async () => {
+      const actualCount = await this.getFeatureOwnerCount(featureName);
+      expect(
+        actualCount,
+        `Feature owner count should be equal to expected count ${expectedCount} but found ${actualCount}`
+      ).toBe(expectedCount);
     });
   }
 }
