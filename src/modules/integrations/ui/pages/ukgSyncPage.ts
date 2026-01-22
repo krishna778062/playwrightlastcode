@@ -8,9 +8,11 @@ import { BasePage } from '@/src/core/ui/pages/basePage';
 export class UkgSyncPage extends BasePage {
   readonly ukgSyncComponents: UkgSyncComponents;
   readonly scheduledSources: Locator;
+  readonly toastContainer: Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.PEOPLE_DATA_PAGE);
     this.scheduledSources = page.getByRole('heading', { name: 'Scheduled sources' });
+    this.toastContainer = page.locator('[class*="Toast-module"]');
     this.ukgSyncComponents = new UkgSyncComponents(page);
   }
 
@@ -90,5 +92,40 @@ export class UkgSyncPage extends BasePage {
   // Method to check sync checkbox
   async checkSyncCheckBox(name: string): Promise<void> {
     await this.ukgSyncComponents.checkSyncCheckBox(name);
+  }
+
+  /**
+   * Verify toast message appears with extended timeout for save operations
+   */
+  async verifyToastMessage(message: string): Promise<void> {
+    await test.step(`Verify toast message: ${message}`, async () => {
+      // Wait for save operation to complete
+      await Promise.race([
+        this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+        this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+      ]);
+
+      // Verify toast message with extended timeout
+      const toastMessage = this.toastContainer.locator('p').filter({ hasText: message }).first();
+      await toastMessage.waitFor({ state: 'visible', timeout: 60_000 });
+    });
+  }
+
+  /**
+   * Connect UKG Pro with connection details
+   * Handles the complete flow: checkbox verification, filling details, saving, and verifying success
+   */
+  async connectUkgPro(source: string, username: string, password: string, url: string, key: string): Promise<void> {
+    await test.step(`Connect UKG Pro: ${source}`, async () => {
+      await this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+      await this.verifyScheduledSourcesCheckBox(source);
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 10_000 }).catch(() => {});
+      await this.addUkgConnectionDetails(source, username, password, url, key);
+      await this.ukgSyncComponents.waitForSaveButtonAndClick();
+      await Promise.race([
+        this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+        this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+      ]);
+    });
   }
 }

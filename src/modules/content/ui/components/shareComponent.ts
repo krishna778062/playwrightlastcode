@@ -3,6 +3,21 @@ import { Locator, Page, test } from '@playwright/test';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
+import { SitePermission } from '@/src/core/types/siteManagement.types';
+
+export interface ShareWithLimitVisibilityOptions {
+  siteName: string;
+  description?: string;
+  audience: string;
+}
+
+export interface ShareWithRestrictedViewersOptions {
+  siteName: string;
+  description?: string;
+  targetUsers: SitePermission[];
+}
+
 export class ShareComponent extends BaseComponent {
   readonly shareToFeedButton!: Locator;
   readonly shareOptionDropdown!: Locator;
@@ -11,6 +26,23 @@ export class ShareComponent extends BaseComponent {
   readonly shareButton!: Locator;
   readonly shareButtonOnFeed!: Locator;
   readonly enterSiteNameInput!: Locator;
+
+  // Limit visibility locators
+  readonly limitVisibilityToggle: Locator;
+  readonly audiencePickerDialog: Locator;
+  readonly audiencePickerButton: Locator;
+  readonly audienceSearchInput: Locator;
+  readonly audienceDoneButton: Locator;
+  readonly audienceConfirmButton: Locator;
+  readonly audienceSearchButton: Locator;
+  readonly siteDropdown: Locator;
+  readonly siteSecondDropdown: Locator;
+  readonly memberDropdown: Locator;
+  readonly ownerAndManagerDropdown: Locator;
+  readonly managerCheckbox: Locator;
+  readonly ownerCheckbox: Locator;
+  readonly memberCheckbox: Locator;
+  readonly contentManagerCheckbox: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -21,6 +53,27 @@ export class ShareComponent extends BaseComponent {
     this.shareButton = page.getByRole('dialog').getByRole('button', { name: 'Share' });
     this.shareOptionDropdown = page.getByLabel('Post in');
     this.enterSiteNameInput = page.locator('div:has-text("Select site") + div >> input');
+
+    // Limit visibility locators
+    this.limitVisibilityToggle = page.getByRole('dialog').getByRole('switch').first();
+    this.audiencePickerDialog = page.getByRole('dialog', { name: 'Audiences' });
+    this.audiencePickerButton = page.getByRole('dialog').getByRole('button', { name: 'Browse' });
+    this.audienceSearchInput = page.getByRole('textbox', { name: 'Search…' });
+    this.audienceDoneButton = page.getByRole('button', { name: 'Done' });
+    this.audienceConfirmButton = page.getByRole('button', { name: 'Confirm' });
+    this.audienceSearchButton = page.getByRole('button', { name: 'Search' });
+    this.siteDropdown = page.getByLabel('Site', { exact: true }).getByRole('button');
+    this.siteSecondDropdown = page.locator('[data-testid="i-arrowRight"]').first();
+    this.memberDropdown = page.getByLabel('Members').getByRole('button');
+    this.ownerAndManagerDropdown = page.getByLabel('Owners & managers').getByRole('button');
+    this.memberCheckbox = page.getByLabel('Non-managing members').getByRole('checkbox');
+    this.ownerCheckbox = page.getByText('Owner', { exact: true });
+    this.managerCheckbox = page.getByText('Managers', { exact: true });
+    this.contentManagerCheckbox = page.getByLabel('Content managers').getByRole('checkbox');
+  }
+
+  getAudienceOption(audienceName: string): Locator {
+    return this.page.getByLabel(audienceName, { exact: true }).getByRole('checkbox').first();
   }
   async clickShareToFeedButton(): Promise<void> {
     await test.step('Click Share to feed button', async () => {
@@ -245,6 +298,117 @@ export class ShareComponent extends BaseComponent {
       await this.verifier.verifyTheElementIsVisible(viewPostLink, {
         assertionMessage: 'View Post link should be visible in share dialog',
       });
+    });
+  }
+
+  // ==================== Limit Visibility Methods ====================
+
+  async toggleLimitVisibility(): Promise<void> {
+    await test.step('Toggle limit visibility in share modal', async () => {
+      await this.clickOnElement(this.limitVisibilityToggle);
+    });
+  }
+
+  async selectAudience(audienceName: string): Promise<void> {
+    await test.step(`Select audience: ${audienceName}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audiencePickerDialog, {
+        assertionMessage: 'Audience picker modal should be visible',
+      });
+
+      await this.clickOnElement(this.audiencePickerButton);
+
+      const isSearchVisible = await this.verifier.isTheElementVisible(this.audienceSearchInput, {
+        timeout: TIMEOUTS.VERY_SHORT,
+      });
+
+      if (isSearchVisible) {
+        await this.fillInElement(this.audienceSearchInput, audienceName);
+      }
+      await this.clickOnElement(this.audienceSearchButton.first());
+      await this.clickOnElement(this.getAudienceOption(audienceName));
+      await this.clickOnElement(this.audienceDoneButton);
+      await this.clickOnElement(this.audienceConfirmButton);
+    });
+  }
+
+  async shareToSiteFeedWithLimitVisibility(options: ShareWithLimitVisibilityOptions): Promise<string> {
+    return await test.step(`Share to site feed with limit visibility: ${options.siteName} -> ${options.audience}`, async () => {
+      // Select site feed option
+      await this.selectShareOptionAsSiteFeed();
+
+      // Enter site name
+      await this.enterSiteName(options.siteName);
+
+      // Enter description if provided
+      if (options.description) {
+        await this.enterShareDescription(options.description);
+      }
+
+      // Enable limit visibility and select audience
+      await this.toggleLimitVisibility();
+      await this.selectAudience(options.audience);
+
+      // Click share and get post ID
+      const sharedPostId = await this.clickShareButtonAndGetPostId();
+      return sharedPostId;
+    });
+  }
+  async shareToSiteFeedWithRestrictedViewers(options: ShareWithRestrictedViewersOptions): Promise<string> {
+    return await test.step(`Share to site feed with restricted viewers: ${options.siteName} -> ${options.targetUsers.join(', ')}`, async () => {
+      // Select site feed option
+      await this.selectShareOptionAsSiteFeed();
+
+      // Enter site name
+      await this.enterSiteName(options.siteName);
+
+      // Enter description if provided
+      if (options.description) {
+        await this.enterShareDescription(options.description);
+      }
+
+      // Enable restricted viewers and select target users
+      await this.toggleLimitVisibility();
+      await this.selectTargetUsers(options.targetUsers);
+
+      // Click share and get post ID
+      const sharedPostId = await this.clickShareButtonAndGetPostId();
+      return sharedPostId;
+    });
+  }
+  async selectTargetUsers(targetUsers: SitePermission[]): Promise<void> {
+    await test.step(`Select target users: ${targetUsers.join(', ')}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audiencePickerDialog, {
+        assertionMessage: 'Audience picker modal should be visible',
+      });
+
+      await this.clickOnElement(this.audiencePickerButton);
+
+      await this.clickOnElement(this.siteDropdown.first());
+
+      await this.clickOnElement(this.siteSecondDropdown);
+
+      await this.clickOnElement(this.memberDropdown);
+
+      await this.clickOnElement(this.ownerAndManagerDropdown);
+
+      if (targetUsers.includes(SitePermission.MANAGER)) {
+        await this.clickOnElement(this.managerCheckbox);
+      }
+
+      if (targetUsers.includes(SitePermission.OWNER)) {
+        await this.clickOnElement(this.ownerCheckbox);
+      }
+
+      if (targetUsers.includes(SitePermission.MEMBER)) {
+        await this.clickOnElement(this.memberCheckbox);
+      }
+
+      if (targetUsers.includes(SitePermission.CONTENT_MANAGER)) {
+        await this.clickOnElement(this.contentManagerCheckbox);
+      }
+
+      await this.clickOnElement(this.audienceDoneButton);
+      await this.clickOnElement(this.audienceConfirmButton);
     });
   }
 }

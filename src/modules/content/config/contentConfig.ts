@@ -83,7 +83,7 @@ export const config = {
       b2bBaseUrl: 'https://api-be.test.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr002',
-      endUserEmail: 'keerthana.ks@simpplr.com',
+      endUserEmail: 'sonali.gupta+10@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'chaitanya.sharma@simpplr.com',
       siteManagerPassword: 'simpplr001',
@@ -174,6 +174,22 @@ export const config = {
     },
   },
   contentSettings: {
+    test: {
+      tenantName: 'Content Settings',
+      frontendBaseUrl: 'https://content-settings.test.simpplr.xyz',
+      apiBaseUrl: 'https://content-settings-api.test.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.test.simpplr.com',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'keerthana.ks@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'chaitanya.sharma@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
     qa: {
       tenantName: 'Content Settings',
       frontendBaseUrl: ' https://automation-ui-content.qa.simpplr.xyz',
@@ -240,16 +256,32 @@ export const config = {
     },
   },
   contentAbac: {
+    test: {
+      tenantName: 'Content ABAC',
+      frontendBaseUrl: 'https://abac.test.simpplr.xyz',
+      apiBaseUrl: 'https://abac-api.test.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.test.simpplr.xyz',
+      appManagerEmail: 'sonali.gupta@simpplr.com',
+      appManagerPassword: 'simpplr001',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
+      endUserPassword: 'simpplr001',
+      siteManagerEmail: 'sonali.gupta+9@simpplr.com',
+      siteManagerPassword: 'simpplr001',
+      newUxEnabled: true,
+      orgId: 'abac-qa-org-id',
+      socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
+      socialCampaignManagerPassword: 'simpplr001',
+    },
     qa: {
       tenantName: 'Content ABAC',
       frontendBaseUrl: 'https://automation-test-content-alpha.qa.simpplr.xyz',
       apiBaseUrl: 'https://automation-test-content-alpha-api.qa.simpplr.xyz',
       b2bBaseUrl: 'https://api-be.qa.simpplr.xyz',
-      appManagerEmail: 'sonali.gupta+1@simpplr.com',
+      appManagerEmail: 'diksha.gaur@simpplr.com',
       appManagerPassword: 'simpplr001',
-      endUserEmail: 'sonali.gupta+2@simpplr.com',
+      endUserEmail: 'sonali.gupta+1@simpplr.com',
       endUserPassword: 'simpplr001',
-      siteManagerEmail: 'diksha.gaur@simpplr.com',
+      siteManagerEmail: 'sonali.gupta+3@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
@@ -306,7 +338,7 @@ export const config = {
     },
   },
   contentStudio: {
-    qa: {
+    test: {
       tenantName: 'Content Studio',
       frontendBaseUrl: 'https://content-studio.test.simpplr.xyz',
       apiBaseUrl: 'https://content-studio-api.test.simpplr.xyz',
@@ -322,11 +354,59 @@ export const config = {
       socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
       socialCampaignManagerPassword: 'Simpplr@123',
     },
+    qa: {
+      tenantName: 'Content Studio',
+      frontendBaseUrl: 'https://content-studio.qa.simpplr.xyz',
+      apiBaseUrl: 'https://content-studio-api.qa.simpplr.xyz',
+      b2bBaseUrl: 'https://api-be.qa.simpplr.xyz',
+      appManagerEmail: 'pushker.yadav@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'pushker.yadav@simpplr.com',
+      endUserPassword: 'Simpplr@123',
+      siteManagerEmail: 'pushker.yadav@simpplr.com',
+      siteManagerPassword: 'Simpplr@123',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
+      socialCampaignManagerPassword: 'Simpplr@123',
+    },
     uat: {
       tenantName: 'Content Studio',
-      frontendBaseUrl: 'https://content-studio.test.simpplr.xyz',
-      apiBaseUrl: 'https://content-studio-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://content-studio.uat.simpplr.xyz',
+      apiBaseUrl: 'https://content-studio-api.uat.simpplr.xyz',
       b2bBaseUrl: 'https://api-be.app.simpplr.com',
+      appManagerEmail: 'pushker.yadav@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'pushker.yadav@simpplr.com',
+      endUserPassword: 'Simpplr@123',
+      siteManagerEmail: 'pushker.yadav@simpplr.com',
+      siteManagerPassword: 'Simpplr@123',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
+      socialCampaignManagerPassword: 'Simpplr@123',
+    },
+    prodUS: {
+      tenantName: 'Content Studio',
+      frontendBaseUrl: 'https://content-studio.app.simpplr.com',
+      apiBaseUrl: 'https://content-studio-api.app.simpplr.com',
+      b2bBaseUrl: 'https://api-be.app.simpplr.com',
+      appManagerEmail: 'pushker.yadav@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      endUserEmail: 'pushker.yadav@simpplr.com',
+      endUserPassword: 'Simpplr@123',
+      siteManagerEmail: 'pushker.yadav@simpplr.com',
+      siteManagerPassword: 'Simpplr@123',
+      newUxEnabled: true,
+      orgId: 'test-org-id',
+      socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
+      socialCampaignManagerPassword: 'Simpplr@123',
+    },
+    prodEU: {
+      tenantName: 'Content Studio',
+      frontendBaseUrl: 'https://content-studio.eu.simpplr.com',
+      apiBaseUrl: 'https://content-studio-api.eu.simpplr.com',
+      b2bBaseUrl: 'https://api-be.eu.simpplr.com',
       appManagerEmail: 'pushker.yadav@simpplr.com',
       appManagerPassword: 'Simpplr@123',
       endUserEmail: 'pushker.yadav@simpplr.com',
@@ -428,7 +508,12 @@ export function initializeContentConfig(tenant: TenantKey): void {
  */
 export function getContentTenantConfigFromCache(): ContentTenantConfig {
   if (!configCache) {
-    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+    const caller = getCallerInfo();
+    throw new Error(
+      `❌ Config not initialized! Call initializeContentConfig(tenant) first\n` +
+        `Called from: ${caller}\n` +
+        `Make sure your Playwright config file calls initializeContentConfig() before using this function.`
+    );
   }
 
   return configCache.tenantConfig;
@@ -460,7 +545,12 @@ export function getContentTenantConfigFor(tenant: TenantKey): ContentTenantConfi
  */
 export function getAppConfig(): AppConfig {
   if (!configCache) {
-    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+    const caller = getCallerInfo();
+    throw new Error(
+      `❌ Config not initialized! Call initializeContentConfig(tenant) first\n` +
+        `Called from: ${caller}\n` +
+        `Make sure your Playwright config file calls initializeContentConfig() before using this function.`
+    );
   }
 
   return configCache.appConfig;
@@ -489,7 +579,12 @@ export function isContentConfigInitialized(): boolean {
  */
 export function getContentEnvironmentFromCache(): EnvironmentKey {
   if (!configCache) {
-    throw new Error(`❌ Config not initialized! Call initializeContentConfig(tenant) first`);
+    const caller = getCallerInfo();
+    throw new Error(
+      `❌ Config not initialized! Call initializeContentConfig(tenant) first\n` +
+        `Called from: ${caller}\n` +
+        `Make sure your Playwright config file calls initializeContentConfig() before using this function.`
+    );
   }
   return configCache.environment;
 }

@@ -10,7 +10,7 @@
 import { log } from '@core/utils/logger';
 
 export type TenantKey = 'primary' | 'abac';
-export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatEU' | 'prodUS';
+export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatAU' | 'uatCA' | 'uatEU' | 'prodUS';
 
 // Tenant-specific configuration structure
 export interface DataEngineeringTenantConfig {
@@ -38,14 +38,14 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
   primary: {
     test: {
       tenantName: 'Data Engineering Primary',
-      frontendBaseUrl: 'https://de.test.simpplr.xyz',
-      apiBaseUrl: 'https://de-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://de-auto.test.simpplr.xyz',
+      apiBaseUrl: 'https://de-auto-api.test.simpplr.xyz',
       apiBeUrl: 'https://api-be.test.simpplr.xyz',
-      appManagerEmail: 'divya.jain@simpplr.com',
-      appManagerPassword: 'test@12345',
-      standardUserEmail: 'adil.shamim+2@simpplr.com',
-      standardUserPassword: 'test@123456',
-      orgId: 'ea411953-6702-4a01-8b03-b98a172be511',
+      appManagerEmail: 'bharat.madaan@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      standardUserEmail: 'simpplr.dev+amber.rich@example.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: '7d21708d-908a-4c60-b1b7-5d6647ee112c',
       odinOrgId: '00D8Y000000g1g2UAA',
     },
     qa: {
@@ -70,6 +70,30 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
       standardUserPassword: 'Simpplr@123',
       orgId: '51c136f3-b99e-450c-81c8-743521eafe68',
       odinOrgId: 'uat-odin-org-id',
+    },
+    uatAU: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
+      apiBeUrl: 'https://api-be.uat-au.simpplr.com',
+      appManagerEmail: 'amit.verma@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      standardUserEmail: 'aishma.gupta+2@simpplr.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: '096fb4bf-a52c-41af-9bf8-904ed4fa602a',
+      odinOrgId: 'uat-au-odin-org-id',
+    },
+    uatCA: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
+      apiBeUrl: 'https://api-be.uat-ca.simpplr.com',
+      appManagerEmail: 'parul.sharma@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      standardUserEmail: 'aishma.gupta+5@simpplr.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: 'fd12a72a-b0fc-42b5-a5fb-61ed3f178519',
+      odinOrgId: 'uat-ca-odin-org-id',
     },
     uatEU: {
       tenantName: 'Data Engineering Primary',
@@ -156,7 +180,7 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  const validEnvs: EnvironmentKey[] = ['qa', 'test', 'uat', 'uatEU', 'prodUS'];
+  const validEnvs: EnvironmentKey[] = ['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS'];
   if (!validEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +

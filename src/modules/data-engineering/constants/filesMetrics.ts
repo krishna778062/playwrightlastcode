@@ -14,7 +14,7 @@ export const FILES_METRICS = {
   },
   FAVOURITES: {
     title: 'Favourites',
-    subtitle: 'Total files marked at favourites',
+    subtitle: 'Total files marked as favourites',
   },
   REACTIONS: {
     title: 'Reactions',

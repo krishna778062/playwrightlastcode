@@ -1,4 +1,4 @@
-export type TenantKey = 'primary' | 'onlyPeerToPeer';
+export type TenantKey = 'primary' | 'onlyPeerToPeer' | 'ABACEnabled';
 export type EnvironmentKey =
   | 'qa'
   | 'test'
@@ -47,6 +47,8 @@ export interface RecognitionTenantConfig {
   tenantName: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  siteName?: string;
+  siteId?: string;
   appManagerEmail: string;
   appManagerName: string;
   appManagerUserId: string;
@@ -72,8 +74,8 @@ export const config = {
   primary: {
     qa: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco-auto.qa.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-auto-api.qa.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco-auto.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reco-auto-api.qa.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -90,8 +92,8 @@ export const config = {
     },
     test: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco-automation.test.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco-automation.test.simpplr.xyz',
+      apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -110,8 +112,8 @@ export const config = {
     },
     uat: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco.uat.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-api.uat.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco.uat.simpplr.xyz',
+      apiBaseUrl: 'https://reco-api.uat.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -146,8 +148,8 @@ export const config = {
     },
     uatAU: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com/',
-      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com/',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -164,8 +166,8 @@ export const config = {
     },
     uatCA: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com/',
-      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com/',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -182,8 +184,8 @@ export const config = {
     },
     prodUS: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com/',
-      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com/',
+      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com',
+      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -218,8 +220,8 @@ export const config = {
     },
     prodCA: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com/',
-      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com/',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -236,8 +238,8 @@ export const config = {
     },
     prodAU: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://au-5.au.simpplr.com/',
-      apiBaseUrl: 'https://au-5-api.au.simpplr.com/',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com',
+      apiBaseUrl: 'https://au-5-api.au.simpplr.com',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -261,7 +263,7 @@ export const config = {
       appManagerEmail: 'charan.b@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
-      appManagerPassword: 'Simpplr@1234',
+      appManagerPassword: 'Simpplr@12345',
       recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
       recognitionManagerName: 'Recognition Manager',
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
@@ -285,9 +287,47 @@ export const config = {
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
       recognitionManagerPassword: 'Simpplr123',
       endUserEmail: 'sonu.kumar+3@simpplr.com',
-      endUserName: 'Standard User',
-      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserName: 'Priya Singh',
+      endUserUserId: 'c1fed284-175c-4384-a3b2-5564fa1c4901',
       endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+  },
+  ABACEnabled: {
+    test: {
+      tenantName: 'Recognition ABAC Enabled',
+      frontendBaseUrl: 'https://abac.test.simpplr.xyz',
+      apiBaseUrl: 'https://abac-api.test.simpplr.xyz',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'debe8950-bca5-41d0-9aa9-4fe65afebca7',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: 'b46a7791-55f7-4d31-b902-b9710951ee48',
+      endUserPassword: 'Simpplr@12345',
+      newUxEnabled: true,
+    },
+    qa: {
+      tenantName: 'Recognition ABAC Enabled',
+      frontendBaseUrl: 'https://abac.qa.simpplr.xyz',
+      apiBaseUrl: 'https://abac.qa.simpplr.xyz',
+      appManagerEmail: 'keerthana.ks@simpplr.com',
+      appManagerName: 'Keerthana Ks',
+      appManagerUserId: '02e75451-4ff6-42e8-ac17-2ee52cb04407',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '9489122f-089e-4cd3-9b7f-ccc6bdc19b80',
+      endUserPassword: 'Simpplr@12345',
       newUxEnabled: true,
     },
   },
@@ -296,38 +336,41 @@ export const config = {
   },
 };
 
+// Environment resolution helpers ------------------------------------------------
+
 /**
- * Get current environment from TEST_ENV (required)
- * Throws error if TEST_ENV is not set or invalid
+ * Get current environment from TEST_ENV (required).
+ * Throws an error if TEST_ENV is not set or invalid.
  */
-function getCurrentEnvironment(): EnvironmentKey {
+export function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!testEnv) {
-    throw new Error(
-      `❌ TEST_ENV environment variable is required!\n` +
-        `Please set TEST_ENV before running tests:\n` +
-        `  TEST_ENV=qa npm run test\n` +
-        `  TEST_ENV=uat npm run test\n` +
-        `  TEST_ENV=uatAU npm run test\n` +
-        `  TEST_ENV=uatCA npm run test\n` +
-        `  TEST_ENV=uatUS npm run test\n` +
-        `  TEST_ENV=uatEU npm run test\n` +
-        `  TEST_ENV=prodAU npm run test\n` +
-        `  TEST_ENV=prodCA npm run test\n` +
-        `  TEST_ENV=prodUS npm run test\n` +
-        `  TEST_ENV=prodEU npm run test\n` +
-        `  TEST_ENV=prod npm run test`
-    );
-  }
+  const allowedEnvs: EnvironmentKey[] = [
+    'qa',
+    'test',
+    'uat',
+    'uatAU',
+    'uatCA',
+    'uatEU',
+    'prodUS',
+    'prodAU',
+    'prodCA',
+    'prodEU',
+  ];
 
-  if (!['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS', 'prodAU', 'prodCA', 'prodEU'].includes(testEnv)) {
+  if (!allowedEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, test, uat, uatAU, uatCA, uatEU, prodUS, prodAU, prodCA, prodEU\n` +
+        `Valid values are: ${allowedEnvs.join(', ')}\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prodUS npm run test\n`
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodAU npm run test\n` +
+        `Example: TEST_ENV=prodCA npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n` +
+        `Example: TEST_ENV=uatCA npm run test\n` +
+        `Example: TEST_ENV=test npm run test\n`
     );
   }
 
@@ -335,16 +378,15 @@ function getCurrentEnvironment(): EnvironmentKey {
 }
 
 /**
- * Initialize config cache for specific tenant once per test run
- * This is the equivalent of loading properties file in Java
- * Call this at the start of your test suite with the tenant you're testing
+ * Initialize config cache for specific tenant once per test run.
+ * Call this at the start of your test suite with the tenant you're testing.
  */
 export function initializeRecognitionConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
   if (configCache && configCache.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
-    return; // Already initialized for the same tenant
+    return;
   }
 
   // Allow tenant switching - clear cache if different tenant
@@ -379,9 +421,7 @@ export function initializeRecognitionConfig(tenant: TenantKey): void {
 }
 
 /**
- * Get tenant configuration for current environment (from cache)
- * No need to pass tenant - uses the initialized tenant
- * @returns Tenant configuration object
+ * Get tenant configuration for current environment (from cache).
  */
 export function getRecognitionTenantConfigFromCache(): RecognitionTenantConfig {
   if (!configCache) {

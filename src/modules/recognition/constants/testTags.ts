@@ -14,6 +14,8 @@ export enum RecognitionFeatureTags {
   CUSTOM_RECURRING_AWARD_STATUS_DB = '@custom-recurring-award-status-db',
   CUSTOM_NOMINATION = '@rc-custom-nomination',
   EDIT_CUSTOM_RECURRING_AWARD = '@edit-custom-recurring-award',
+  SPOT_AWARDS = '@spot-awards',
+  ABAC_RECOGNITION_SHARE = '@abac-recognition-share',
 }
 
 export enum RecurringAwardsFeatureTags {

@@ -51,6 +51,18 @@ export class SiteMembershipHelper {
         };
       }
     }
+    if (action === SiteMembershipAction.REMOVE) {
+      const membershipList = await this.getSiteMembershipList(siteId);
+      const existingMember = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
+      if (!existingMember) {
+        log.debug(`User ${userId} is not a member of site ${siteId}`);
+        return {
+          status: 'success',
+          message: 'User is not a member',
+          result: { userId, siteId, permission, action },
+        };
+      }
+    }
 
     const result = await this.siteManagementService.makeUserSiteMembership(siteId, userId, permission, action);
 
@@ -410,6 +422,42 @@ export class SiteMembershipHelper {
       }
 
       return nonMemberNames;
+    });
+  }
+
+  /**
+   * Gets a follower name from the site, excluding specified names
+   * @param siteId - The site ID
+   * @param excludeNames - Array of names to exclude from the followers list
+   * @returns Promise with the follower name
+   * @throws Error if no follower is found after excluding the specified names
+   */
+  async getFollowerNameExcluding(siteId: string, excludeNames: string[]): Promise<string> {
+    return await test.step(`Getting follower name for site ${siteId} excluding: ${excludeNames.join(', ')}`, async () => {
+      const followersResponse = await this.getSiteMembershipList(siteId, {
+        type: 'followers',
+      });
+
+      // Normalize excluded names for case-insensitive comparison
+      const excludedNamesNormalized = excludeNames.map(name => (name || '').trim().toLowerCase());
+
+      // Filter out followers whose names match any excluded name
+      const availableFollowers = (followersResponse.result.listOfItems || []).filter((follower: any) => {
+        const followerName = (follower.name || '').trim().toLowerCase();
+        return !excludedNamesNormalized.includes(followerName);
+      });
+
+      if (availableFollowers.length === 0) {
+        throw new Error(`No followers found in the site (excluding: ${excludeNames.join(', ')}) after filtering`);
+      }
+
+      const followerName = availableFollowers[0]?.name;
+      if (!followerName) {
+        throw new Error('Follower name is empty or undefined');
+      }
+
+      log.debug(`Found follower name: ${followerName} (excluded: ${excludeNames.join(', ')})`);
+      return followerName;
     });
   }
 
