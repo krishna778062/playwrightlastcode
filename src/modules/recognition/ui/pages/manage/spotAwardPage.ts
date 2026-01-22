@@ -48,7 +48,6 @@ export class SpotAwardPage extends BasePage {
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.RECOGNITION_HUB) {
     super(page, pageUrl);
     this.subTabIndicator = new SubTabIndicator(page);
-    this.inAppNotification = new InAppNotification(page);
     // Initialize create/edit form locators
     this.container = page.locator('[data-testid*="pageContainer"]');
     this.header = this.container.getByRole('heading').first();
