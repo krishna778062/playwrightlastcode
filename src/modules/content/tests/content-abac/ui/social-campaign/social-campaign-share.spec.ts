@@ -143,6 +143,8 @@ test.describe(
             'ABAC: Verify FO can share a Social Campaign to Home Feed with Restricted Viewers (Limit Visibility ON + Engineering audience). Engineering users CAN see the shared campaign, Non-Engineering users CANNOT see it.',
           zephyrTestId: 'CONT-42250',
           storyId: 'CONT-42250',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44631',
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
