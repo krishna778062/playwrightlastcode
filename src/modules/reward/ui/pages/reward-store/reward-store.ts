@@ -137,6 +137,10 @@ export class RewardsStore extends BasePage {
     });
   }
 
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.giftCardNames.last(), { timeout: 20000 });
+  }
+
   async selectDropdownByLabel(locator: Locator, optionTextLabel: string) {
     await locator.selectOption(optionTextLabel);
   }
@@ -156,10 +160,6 @@ export class RewardsStore extends BasePage {
     await this.giftCardNames.last().waitFor({ state: 'visible', timeout: 20000 });
     const selectedOption = await this.rewardCountry.locator('option:checked').textContent();
     console.log('selected country:', selectedOption);
-  }
-
-  async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.giftCardNames.last(), { timeout: 20000 });
   }
 
   async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
@@ -755,6 +755,13 @@ export class RewardsStore extends BasePage {
       });
     });
     await this.page.reload();
+  }
+
+  async openGiftCardModal(index: number = 0): Promise<void> {
+    await this.giftCardItems.nth(index).click();
+    await this.verifier.waitUntilElementIsVisible(this.rewardsDialogBox.container, {
+      stepInfo: 'Waiting for gift card modal to be visible',
+    });
   }
 
   async verifyTheAllOptionsAndTheValueInConfirmYourOrderModal(selectYourRewardValueDropdownValues: string[]) {
