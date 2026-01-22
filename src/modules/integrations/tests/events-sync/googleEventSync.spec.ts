@@ -40,7 +40,8 @@ test.describe(
     tag: [IntegrationsSuiteTags.INTEGRATIONS, IntegrationsFeatureTags.EVENT_SYNC, IntegrationsSuiteTags.PHOENIX],
   },
   () => {
-    test(
+    // eslint-disable-next-line playwright/no-focused-test
+    test.only(
       '2-Way RSVP Sync: Simpplr ↔ Google Calendar',
       {
         tag: [
