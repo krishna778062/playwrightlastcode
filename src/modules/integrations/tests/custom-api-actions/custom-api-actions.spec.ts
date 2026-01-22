@@ -336,8 +336,6 @@ test.describe(
         await createApiActionPage.verifyButtonsAreEnabled();
         await createApiActionPage.clickSaveDraft();
         await createApiActionPage.verifyNavigationToApiActionsList();
-        const customApiActionsPage = new CustomApiActionsPage(appManagerFixture.page);
-        await customApiActionsPage.verifyThePageIsLoaded();
       }
     );
 

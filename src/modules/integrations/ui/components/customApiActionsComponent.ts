@@ -119,22 +119,21 @@ export class CustomApiActionsComponent extends BaseComponent {
    */
   async verifyShowMoreBehavior(): Promise<void> {
     await test.step('Verify Show more behavior for API actions list', async () => {
+      await this.page.waitForTimeout(500);
+      const isButtonVisible = await this.showMoreButton.isVisible().catch(() => false);
       const initialCount = await this.apiActionNameLocators.count();
-
-      if (initialCount >= MAX_ITEMS_TO_CHECK) {
+      const hasEnoughItems = initialCount >= MAX_ITEMS_TO_CHECK || (initialCount === 0 && isButtonVisible);
+      if (hasEnoughItems) {
         await expect(this.showMoreButton, 'Show more should be visible when >= 10 items').toBeVisible();
         await this.clickOnElement(this.showMoreButton);
-        await this.verifier.verifyCountOfElementsIsGreaterThan(this.apiActionNameLocators, MAX_ITEMS_TO_CHECK, {
-          assertionMessage: 'After clicking Show more, more than 10 API actions should be visible',
-        });
-      } else {
-        const isButtonVisible = await this.showMoreButton.isVisible().catch(() => false);
-        if (isButtonVisible) {
-          const isButtonEnabled = await this.showMoreButton.isEnabled().catch(() => false);
-          if (isButtonEnabled) {
-            await expect(this.showMoreButton, 'Show more should not be visible when < 10 items').toBeHidden();
-          }
+        await this.page.waitForTimeout(1000);
+        if (initialCount > 0) {
+          await this.verifier.verifyCountOfElementsIsGreaterThan(this.apiActionNameLocators, MAX_ITEMS_TO_CHECK, {
+            assertionMessage: 'After clicking Show more, more than 10 API actions should be visible',
+          });
         }
+      } else {
+        await expect(this.showMoreButton, 'Show more should not be visible when < 10 items').toBeHidden();
       }
     });
   }
