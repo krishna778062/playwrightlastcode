@@ -14,6 +14,7 @@ export enum ContentSuiteTags {
   SITE_DEACTIVATION = '@site-deactivation',
   TOPIC_MANAGEMENT = '@topic-management',
   FEED_ABAC = '@feed-abac',
+  SUBSCRIPTIONS_ABAC = '@subscriptions-abac',
 }
 
 export enum ContentFeatureTags {

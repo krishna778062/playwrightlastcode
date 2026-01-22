@@ -9,7 +9,7 @@ import { SITE_CREATION_TEST_DATA } from '@/src/modules/content/test-data/create-
 import { SiteCreationPageAbac } from '@/src/modules/content/ui/pages/siteCreationPageAbac';
 import { ManageSiteSubscriptionPage } from '@/src/modules/content/ui/pages/sitePages/siteSubscriptionPage';
 
-test.describe('Subscription Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SITE_CREATION] }, () => {
+test.describe('Subscription Site Creation Test Suite (ABAC)', { tag: [ContentSuiteTags.SUBSCRIPTIONS_ABAC] }, () => {
   let siteId: string | undefined;
   let siteCreationPage: SiteCreationPageAbac;
   let audienceId: string | null;
