@@ -579,18 +579,17 @@ export class RenamingPage extends BasePage {
 
   async getTheDefaultTranslationValues(): Promise<string[]> {
     const editModal = new EditLabelModal(this.page);
-
     const stringArray: string[] = [];
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
     for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
       await expect(
         editModal.getOtherLanguageCustomInputBox(i),
         'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_SHORT });
+      ).not.toHaveValue('', { timeout: TIMEOUTS.SHORT });
       await expect(
         editModal.getOtherLanguageCustomInputBox(i),
         'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_SHORT });
+      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.SHORT });
       stringArray.push(await editModal.getOtherLanguageCustomInputBox(i).inputValue());
     }
     return stringArray;
