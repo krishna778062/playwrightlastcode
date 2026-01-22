@@ -1,5 +1,6 @@
 import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
 import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
@@ -162,6 +163,60 @@ test.describe('renaming page', () => {
         await appManagerFixture.page.unroute('**/account/**').catch(() => {});
         await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
         await renamingPage.validateTheRecognitionValueInApp(getCustomValue);
+      }
+    }
+  );
+
+  test(
+    '[RC-7124] Validate custom and manual translation for recognition in different languages showing in application',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description:
+          'Validate custom and manual translation for recognition in different languages showing in application',
+        zephyrTestId: 'RC-7124',
+        storyId: 'RC-6370',
+      });
+
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      const userProfile = new UserProfilePage(appManagerFixture.page);
+      const languageApi = new LanguageApiService();
+
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+
+      // Save a new custom label (manual translations enabled) then capture per-language translation values.
+      await renamingPage.changeSomeDataAndClickOnSave('Recognition');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const labelForOtherLanguages: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
+
+      for (const [languageLabel, translatedRecognitionValue] of labelForOtherLanguages.entries()) {
+        const [englishName, nativeName] = languageLabel.split(' - ').map(s => s.trim());
+        const candidates = [nativeName, englishName, languageLabel].filter(Boolean) as string[];
+
+        let languageId: number | undefined;
+        for (const candidate of candidates) {
+          languageId = await languageApi.getLanguageIdByName(appManagerFixture.page, candidate);
+          if (languageId !== undefined) break;
+        }
+        if (languageId === undefined) {
+          throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+        }
+
+        await userProfile.mockAppConfigLanguage(appManagerFixture.page, languageId);
+
+        const expectedMap = new Map<string, string>();
+        expectedMap.set('recognition', translatedRecognitionValue);
+        await renamingPage.validateTheRecognitionValueInApp(expectedMap);
+
+        await userProfile.restoreAppConfigMock(appManagerFixture.page);
       }
     }
   );

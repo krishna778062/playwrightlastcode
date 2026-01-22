@@ -230,7 +230,7 @@ export class UserProfilePage extends BasePage {
    * Restore original behavior (disable API mocking)
    */
   async restoreAppConfigMock(page: Page): Promise<void> {
-    await page.unroute('**/v2/account/basic-app-config');
+    await page.unroute('**/account/basic-app-config');
     await page.reload();
     console.log('✅ Restored API, mock disabled, page reloaded.');
   }

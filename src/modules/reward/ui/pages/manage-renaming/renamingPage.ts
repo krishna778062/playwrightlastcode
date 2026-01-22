@@ -596,6 +596,24 @@ export class RenamingPage extends BasePage {
     return stringArray;
   }
 
+  async getTheDefaultTranslationValuesByLanguages(): Promise<Map<string, string>> {
+    const editModal = new EditLabelModal(this.page);
+    const map = new Map<string, string>();
+    await editModal.verifyThePageIsLoaded();
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    const count = await manualTranslationSwitches.count();
+    for (let i = 0; i < count; i++) {
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      const value = await input.inputValue();
+      expect(value, 'expecting other language input to have a non-empty value').not.toBe('');
+      expect(value, 'expecting other language input to finish loading').not.toBe('Loading...');
+      const languageLabel = (await editModal.getOtherLanguageCustomLabel(i).textContent())?.trim() ?? '';
+      map.set(languageLabel, value);
+    }
+    return map;
+  }
+
   async validateTheLanguageDataRested(defaultOtherLanguageTranslationValue: string[]) {
     const editModal = new EditLabelModal(this.page);
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
@@ -614,8 +632,9 @@ export class RenamingPage extends BasePage {
     }
   }
 
-  async clickOnSaveButton() {
+  async clickOnSaveButton(): Promise<void> {
     const editModal = new EditLabelModal(this.page);
+    await this.verifier.verifyTheElementIsEnabled(editModal.getSaveButton());
     await editModal.getSaveButton().click();
   }
 
