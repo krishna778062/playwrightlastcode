@@ -48,7 +48,7 @@ export class TopNavBarComponent extends BaseComponent {
     //message section
     this.messageButton = this.page
       .getByRole('button', { name: 'Messaging' })
-      .or(this.page.getByRole('menuitem', { name: 'Messaging' }));
+      .or(this.page.locator("button[aria-label='Messaging']"));
 
     //search section
     this.globalSearchInputBox = this.page.locator('input[data-slot*=search]').first();
