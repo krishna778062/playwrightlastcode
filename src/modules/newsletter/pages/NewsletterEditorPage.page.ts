@@ -36,6 +36,7 @@ export class NewsletterEditorPage extends BasePage {
   // Additional locators for methods
   readonly backArrowLink: Locator;
   readonly previewButton: Locator;
+  readonly stageOuter: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_NEWSLETTER_PAGE);
@@ -58,6 +59,9 @@ export class NewsletterEditorPage extends BasePage {
 
     // Preview button
     this.previewButton = this.page.getByRole('button', { name: /preview/i });
+
+    // Staging outer area (for clicking outside modals/dialogs)
+    this.stageOuter = this.page.locator('div[class*="Stage_outer"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -104,8 +108,17 @@ export class NewsletterEditorPage extends BasePage {
    */
   async verifyEditorIsLoaded(): Promise<void> {
     await test.step('Verify newsletter editor is loaded', async () => {
+      // Wait for URL to navigate to the editor (contains newsletter ID)
+      await this.page.waitForURL(/employee-newsletter\/[a-f0-9-]+/, { timeout: TIMEOUTS.MEDIUM });
+
+      // Wait for network idle to ensure editor content is loaded
+      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
+
+      // Dismiss any blocking dialogs (e.g., survey prompts)
+      await this.dismissSurveyPromptIfVisible();
+
       // Check for the Blocks tab which is unique to the editor
-      await expect(this.blocksTab, 'Newsletter editor should be loaded').toBeVisible({ timeout: TIMEOUTS.SHORT });
+      await expect(this.blocksTab, 'Newsletter editor should be loaded').toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 
@@ -200,6 +213,18 @@ export class NewsletterEditorPage extends BasePage {
     await test.step('Click Preview button', async () => {
       await this.clickOnElement(this.previewButton, {
         stepInfo: 'Click Preview button',
+      });
+    });
+  }
+
+  /**
+   * Clicks on the staging outer area to close any open modals/sidebars
+   * and deselect any selected blocks
+   */
+  async clickOntoStagingOuterArea(): Promise<void> {
+    await test.step('Click on staging outer area', async () => {
+      await this.clickOnElement(this.stageOuter, {
+        stepInfo: 'Click on staging outer area',
       });
     });
   }
