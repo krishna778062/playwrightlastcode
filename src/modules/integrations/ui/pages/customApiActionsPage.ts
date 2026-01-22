@@ -1,7 +1,6 @@
-import { Page, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
-import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 import { CustomApiActionsComponent } from '@/src/modules/integrations/ui/components/customApiActionsComponent';
 
@@ -15,35 +14,25 @@ export class CustomApiActionsPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify the page is loaded', async () => {
-      // Check if page is still open before proceeding
-      if (this.page.isClosed()) {
-        throw new Error('Page was closed before verification could complete');
-      }
+      // Wait for DOM to be ready first
+      await this.page.waitForLoadState('domcontentloaded').catch(() => {});
 
-      // Wait for network to be idle to ensure page is fully loaded
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM }).catch(() => {});
-
-      // Verify page is still open after network idle
-      if (this.page.isClosed()) {
-        throw new Error('Page was closed during network idle wait');
-      }
-
-      // Use the paragraph with API actions count as it's more reliable
+      // Use the paragraph with API actions count as it's more reliable - this is the primary verification
       await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.apiActionCountText, {
-        timeout: TIMEOUTS.MEDIUM,
         assertionMessage:
           'Verifying that the custom api actions page is loaded by asserting API action count text presence',
       });
 
-      // Verify page is still open before checking button
-      if (this.page.isClosed()) {
-        throw new Error('Page was closed after API action count text verification');
-      }
-
-      // Also verify the Create API action button is visible to ensure page is fully loaded
-      await this.verifier.verifyTheElementIsVisible(this.customApiActionsComponent.createApiActionButton, {
-        timeout: TIMEOUTS.MEDIUM,
-        assertionMessage: 'Verifying that the Create API action button is visible',
+      // Verify the Create API action button is visible to ensure page is fully loaded
+      // Use Playwright's retry mechanism as the button might take a moment to appear after navigation
+      await expect(async () => {
+        await expect(
+          this.customApiActionsComponent.createApiActionButton,
+          'Expected Create API action button to be visible'
+        ).toBeVisible();
+      }).toPass({
+        intervals: [500, 1000, 2000],
+        timeout: 15000,
       });
     });
   }

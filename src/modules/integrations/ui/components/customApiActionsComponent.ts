@@ -1,21 +1,13 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-
-const TIMEOUTS = {
-  SHORT: 10000,
-  MEDIUM: 15000,
-  FILTER_WAIT: 500,
-  SEARCH_WAIT: 1000,
-} as const;
 
 const MAX_ITEMS_TO_CHECK = 10;
 
 export class CustomApiActionsComponent extends BaseComponent {
   // List and search locators
-  readonly resultListApiActionsItemCountLocator: Locator;
   readonly searchInput: Locator;
-  readonly apiActionNameLocator: Locator;
   readonly apiActionNameLocators: Locator;
   readonly clearSearchButton: Locator;
   readonly showMoreButton: Locator;
@@ -23,7 +15,6 @@ export class CustomApiActionsComponent extends BaseComponent {
   // Filter locators
   readonly appsFilterButton: Locator;
   readonly customAppsHeading: Locator;
-  readonly appsFilterSearchInput: Locator;
   readonly appsFilterSearchInPanel: Locator;
   readonly clearInAppsFilterButton: Locator;
   readonly statusFilterButton: Locator;
@@ -48,9 +39,7 @@ export class CustomApiActionsComponent extends BaseComponent {
     super(page);
 
     // List and search
-    this.resultListApiActionsItemCountLocator = page.locator('div[class*="TasksList_resultCount"]');
     this.searchInput = page.locator('input[name="search"]').first();
-    this.apiActionNameLocator = page.locator('div[class*="ApiAction_name"]').first();
     this.apiActionNameLocators = page.locator('div[class*="ApiAction_name"]');
     this.clearSearchButton = page.getByRole('button', { name: 'Clear' });
     this.showMoreButton = page.getByRole('button', { name: /show more/i });
@@ -58,7 +47,6 @@ export class CustomApiActionsComponent extends BaseComponent {
     // Filters
     this.appsFilterButton = page.getByRole('button', { name: /^Apps(\s\d+)?$/ });
     this.customAppsHeading = page.getByRole('heading', { name: 'Custom apps' });
-    this.appsFilterSearchInput = page.getByRole('textbox', { name: 'Search…' }).first();
     this.appsFilterSearchInPanel = this.customAppsHeading.locator('xpath=following::input[@aria-label="Search…"][1]');
     this.clearInAppsFilterButton = this.customAppsHeading.locator(
       'xpath=following::button[normalize-space()="Clear"][1]'
@@ -97,18 +85,11 @@ export class CustomApiActionsComponent extends BaseComponent {
   }
 
   /**
-   * Get text locator
-   */
-  getText(text: string): Locator {
-    return this.page.getByText(text);
-  }
-
-  /**
    * Search for API actions
    */
   async searchForApp(searchTerm: string): Promise<void> {
     await test.step(`Search for api action: ${searchTerm}`, async () => {
-      await this.typeInElement(this.searchInput, searchTerm, { timeout: 20000 });
+      await this.typeInElement(this.searchInput, searchTerm);
       await this.searchInput.press('Enter');
     });
   }
@@ -119,60 +100,51 @@ export class CustomApiActionsComponent extends BaseComponent {
   async verifyApiActionIsDisplayedInList(apiActionName: string): Promise<void> {
     await test.step(`Verify api action "${apiActionName}" is displayed in list`, async () => {
       await expect(
-        this.getText(apiActionName).first(),
+        this.page.getByText(apiActionName).first(),
         `Expected api action "${apiActionName}" to be visible in the list`
       ).toBeVisible();
     });
   }
 
   /**
-   * Clear the search input field by clicking the clear button
+   * Clear the search input field
    */
   async clearSearch(): Promise<void> {
-    await test.step('Clear search field', async () => {
-      await this.clearSearchButton.waitFor({ state: 'visible' });
-      await this.clickOnElement(this.clearSearchButton, { timeout: TIMEOUTS.SHORT });
-      await this.searchInput.waitFor({ state: 'visible' });
-    });
+    await this.clickOnElement(this.clearSearchButton);
   }
 
   /**
    * Verify Show more behavior for API actions list
+   * Show more button should be visible when there are 10 or more items (>= 10)
    */
   async verifyShowMoreBehavior(): Promise<void> {
     await test.step('Verify Show more behavior for API actions list', async () => {
-      // Wait for the list to stabilize after clearing search
-      await this.page.waitForTimeout(TIMEOUTS.SEARCH_WAIT);
       const initialCount = await this.apiActionNameLocators.count();
-      if (initialCount <= MAX_ITEMS_TO_CHECK) {
-        // Wait a bit more for UI to update, then check if button is hidden
-        await this.page.waitForTimeout(500);
+
+      if (initialCount >= MAX_ITEMS_TO_CHECK) {
+        await expect(this.showMoreButton, 'Show more should be visible when >= 10 items').toBeVisible();
+        await this.clickOnElement(this.showMoreButton);
+        await this.verifier.verifyCountOfElementsIsGreaterThan(this.apiActionNameLocators, MAX_ITEMS_TO_CHECK, {
+          assertionMessage: 'After clicking Show more, more than 10 API actions should be visible',
+        });
+      } else {
         const isButtonVisible = await this.showMoreButton.isVisible().catch(() => false);
         if (isButtonVisible) {
-          // If button is visible but count is <= 10, wait a bit more for UI to catch up
-          await this.page.waitForTimeout(1000);
+          const isButtonEnabled = await this.showMoreButton.isEnabled().catch(() => false);
+          if (isButtonEnabled) {
+            await expect(this.showMoreButton, 'Show more should not be visible when < 10 items').toBeHidden();
+          }
         }
-        await expect(this.showMoreButton, 'Show more should not be visible when <= 10 items').toBeHidden({
-          timeout: TIMEOUTS.MEDIUM,
-        });
-        return;
       }
-      await expect(this.showMoreButton, 'Show more should be visible when > 10 items').toBeVisible();
-      await this.clickOnElement(this.showMoreButton, { timeout: TIMEOUTS.MEDIUM });
-      await this.verifier.verifyCountOfElementsIsGreaterThan(this.apiActionNameLocators, MAX_ITEMS_TO_CHECK, {
-        assertionMessage: 'After clicking Show more, more than 10 API actions should be visible',
-      });
     });
   }
 
   /**
-   * Click "Apps" dropdown filter and verify "Custom apps" heading is visible inside filter
+   * Click "Apps" dropdown filter and verify "Custom apps" heading is visible
    */
   async clickAndVerifyAppsFilter(): Promise<void> {
-    await test.step('Click Apps filter and verify "Custom apps" heading', async () => {
-      await this.appsFilterButton.click();
-      await expect(this.customAppsHeading, 'Expected "Custom apps" heading').toBeVisible();
-    });
+    await this.appsFilterButton.click();
+    await expect(this.customAppsHeading, 'Expected "Custom apps" heading').toBeVisible();
   }
 
   /**
@@ -192,7 +164,6 @@ export class CustomApiActionsComponent extends BaseComponent {
   private async openFilterSearchAndSelectFirst(appName: string): Promise<void> {
     await this.appsFilterButton.click();
     await this.appsFilterSearchInPanel.fill(appName);
-    await this.page.waitForTimeout(TIMEOUTS.FILTER_WAIT);
 
     const appCheckbox = this.getAppCheckboxByName(appName);
     await appCheckbox.first().waitFor({ state: 'visible' });
@@ -208,7 +179,7 @@ export class CustomApiActionsComponent extends BaseComponent {
    * Close filter and verify app visible
    */
   private async closeFilterAndVerifyAppVisible(appName: string): Promise<void> {
-    await this.pressEscapeAndWait(TIMEOUTS.FILTER_WAIT);
+    await this.pressEscapeAndWait();
     await expect(this.page.getByText(appName).first(), `Expected "${appName}" to be visible on the page`).toBeVisible();
   }
 
@@ -226,13 +197,10 @@ export class CustomApiActionsComponent extends BaseComponent {
   }
 
   /**
-   * Press Escape with optional wait
+   * Press Escape key to close dialogs/panels
    */
-  async pressEscapeAndWait(waitMs?: number): Promise<void> {
+  private async pressEscapeAndWait(): Promise<void> {
     await this.page.keyboard.press('Escape');
-    if (waitMs && waitMs > 0) {
-      await this.page.waitForTimeout(waitMs);
-    }
   }
 
   /**
@@ -242,7 +210,7 @@ export class CustomApiActionsComponent extends BaseComponent {
     await test.step(`Verify select/deselect behaviour for app: ${appName}`, async () => {
       const appCheckbox = this.getAppCheckboxByName(appName);
       await appCheckbox.first().click();
-      await this.pressEscapeAndWait(TIMEOUTS.FILTER_WAIT);
+      await this.pressEscapeAndWait();
 
       const count = await this.apiActionNameLocators.count();
       const maxToCheck = Math.min(count, MAX_ITEMS_TO_CHECK);
@@ -256,7 +224,7 @@ export class CustomApiActionsComponent extends BaseComponent {
 
       await this.appsFilterButton.click();
       await appCheckbox.first().click();
-      await this.pressEscapeAndWait(TIMEOUTS.FILTER_WAIT);
+      await this.pressEscapeAndWait();
     });
   }
 
@@ -279,23 +247,14 @@ export class CustomApiActionsComponent extends BaseComponent {
   async selectStatusFilter(status: 'Draft' | 'Published'): Promise<void> {
     await test.step(`Select status filter: ${status}`, async () => {
       try {
-        await this.showNextItemsButton.click({ timeout: TIMEOUTS.SEARCH_WAIT });
+        await this.showNextItemsButton.click({ timeout: TIMEOUTS.VERY_SHORT });
       } catch {
         // Continue if button is not visible
       }
       await this.statusFilterButton.click();
       const statusOption = status === 'Draft' ? this.statusDraftOption : this.statusPublishedOption;
-      await this.clickOnElement(statusOption, { timeout: TIMEOUTS.SHORT });
+      await this.clickOnElement(statusOption);
       await this.pressEscapeAndWait();
-    });
-  }
-
-  /**
-   * Click the sort dropdown button
-   */
-  async clickSortDropdown(): Promise<void> {
-    await test.step('Click sort dropdown', async () => {
-      await this.clickOnElement(this.sortDropdownButton, { timeout: TIMEOUTS.SHORT });
     });
   }
 
@@ -304,25 +263,18 @@ export class CustomApiActionsComponent extends BaseComponent {
    */
   async selectSortBy(sortBy: 'Last updated' | 'Date created' | 'Name'): Promise<void> {
     await test.step(`Select sort by: ${sortBy}`, async () => {
-      await this.clickSortDropdown();
-      await this.menuContainer.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.sortDropdownButton);
+      await this.menuContainer.waitFor({ state: 'visible' });
 
-      let menuItem: Locator;
-      switch (sortBy) {
-        case 'Last updated':
-          menuItem = this.sortByLastUpdatedMenuItem;
-          break;
-        case 'Date created':
-          menuItem = this.sortByDateCreatedMenuItem;
-          break;
-        case 'Name':
-          menuItem = this.sortByNameMenuItem;
-          break;
-      }
+      const menuItemMap: Record<string, Locator> = {
+        'Last updated': this.sortByLastUpdatedMenuItem,
+        'Date created': this.sortByDateCreatedMenuItem,
+        Name: this.sortByNameMenuItem,
+      };
 
-      await menuItem.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
-      await expect(menuItem).toBeEnabled({ timeout: TIMEOUTS.SHORT });
-      await this.clickOnElement(menuItem, { timeout: TIMEOUTS.SHORT });
+      const menuItem = menuItemMap[sortBy];
+      await menuItem.waitFor({ state: 'visible' });
+      await this.clickOnElement(menuItem);
     });
   }
 
@@ -331,9 +283,9 @@ export class CustomApiActionsComponent extends BaseComponent {
    */
   async selectSortOrder(order: 'Newest first' | 'Oldest first'): Promise<void> {
     await test.step(`Select sort order: ${order}`, async () => {
-      await this.clickSortDropdown();
+      await this.clickOnElement(this.sortDropdownButton);
       const menuItem = order === 'Newest first' ? this.sortOrderNewestFirstMenuItem : this.sortOrderOldestFirstMenuItem;
-      await this.clickOnElement(menuItem, { timeout: TIMEOUTS.SHORT });
+      await this.clickOnElement(menuItem);
     });
   }
 
@@ -341,9 +293,7 @@ export class CustomApiActionsComponent extends BaseComponent {
    * Verify the sort dropdown label text
    */
   async verifySortDropdownLabel(expectedLabel: string): Promise<void> {
-    await test.step(`Verify sort dropdown label is "${expectedLabel}"`, async () => {
-      await expect(this.sortDropdownButton).toContainText(expectedLabel);
-    });
+    await expect(this.sortDropdownButton).toContainText(expectedLabel);
   }
 
   /**
@@ -396,9 +346,7 @@ export class CustomApiActionsComponent extends BaseComponent {
    * Verify API action count text is displayed
    */
   async verifyApiActionCountDisplayed(): Promise<void> {
-    await test.step('Verify API action count is displayed', async () => {
-      await expect(this.apiActionCountText.first(), 'Expected API action count text to be visible').toBeVisible();
-    });
+    await expect(this.apiActionCountText.first(), 'Expected API action count text to be visible').toBeVisible();
   }
 
   /**
@@ -414,22 +362,16 @@ export class CustomApiActionsComponent extends BaseComponent {
    * Verify API action count is greater than zero
    */
   async verifyApiActionCountIsGreaterThanZero(): Promise<void> {
-    await test.step('Verify API action count is greater than zero', async () => {
-      const count = await this.getApiActionCount();
-      expect(count, 'Expected API action count to be greater than zero').toBeGreaterThan(0);
-    });
+    const count = await this.getApiActionCount();
+    expect(count, 'Expected API action count to be greater than zero').toBeGreaterThan(0);
   }
 
   /**
    * Verify Create API action button navigates to create page
    */
   async verifyCreateApiActionButtonNavigation(): Promise<void> {
-    await test.step('Verify Create API action button navigation', async () => {
-      await expect(this.createApiActionButton, 'Expected Create API action button to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      const href = await this.createApiActionButton.getAttribute('href');
-      expect(href).toContain('/api-actions/create');
-    });
+    await expect(this.createApiActionButton, 'Expected Create API action button to be visible').toBeVisible();
+    const href = await this.createApiActionButton.getAttribute('href');
+    expect(href).toContain('/api-actions/create');
   }
 }

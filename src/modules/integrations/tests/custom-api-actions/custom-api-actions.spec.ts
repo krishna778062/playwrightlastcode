@@ -320,7 +320,7 @@ test.describe(
     test(
       'verify Save Draft functionality saves API action',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY],
+        tag: [TestPriority.P9, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {

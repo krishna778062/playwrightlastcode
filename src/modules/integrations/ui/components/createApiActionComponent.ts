@@ -1,12 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
-
-const TIMEOUTS = {
-  SHORT: 10000,
-  MEDIUM: 15000,
-  LONG: 30000,
-} as const;
 
 export class CreateApiActionComponent extends BaseComponent {
   // Form input locators
@@ -65,18 +60,20 @@ export class CreateApiActionComponent extends BaseComponent {
    */
   async selectCustomApp(appName: string): Promise<void> {
     await test.step(`Select custom app: ${appName}`, async () => {
-      await expect(this.customAppCombobox, 'Expected Custom app combobox to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.clickOnElement(this.customAppCombobox, { timeout: TIMEOUTS.MEDIUM });
-      await this.typeInElement(this.customAppCombobox, appName, { timeout: TIMEOUTS.MEDIUM });
-      await this.page.waitForTimeout(1000);
+      await expect(this.customAppCombobox, 'Expected Custom app combobox to be visible').toBeVisible();
+      await this.clickOnElement(this.customAppCombobox);
+      await this.typeInElement(this.customAppCombobox, appName);
 
-      // Use first() to handle cases where multiple apps match (e.g., "Box" matches multiple Box apps)
-      const option = this.customAppOption(appName).first();
-      await option.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
-      await this.clickOnElement(option, { timeout: TIMEOUTS.SHORT });
-      await this.page.waitForTimeout(1000);
+      let option = this.customAppOption(appName).first();
+      if ((await option.count()) === 0 && appName.includes('(')) {
+        const baseName = appName.split('(')[0].trim();
+        await this.customAppCombobox.clear();
+        await this.typeInElement(this.customAppCombobox, baseName);
+        option = this.customAppOption(baseName).first();
+      }
+
+      await option.waitFor({ state: 'visible' });
+      await this.clickOnElement(option);
     });
   }
 
@@ -86,7 +83,7 @@ export class CreateApiActionComponent extends BaseComponent {
    */
   async enterApiActionName(actionName: string): Promise<void> {
     await test.step(`Enter API action name: ${actionName}`, async () => {
-      await this.typeInElement(this.apiActionNameInput, actionName, { timeout: TIMEOUTS.SHORT });
+      await this.typeInElement(this.apiActionNameInput, actionName);
     });
   }
 
@@ -95,41 +92,12 @@ export class CreateApiActionComponent extends BaseComponent {
    */
   async verifyPageIsLoaded(): Promise<void> {
     await test.step('Verify Create API action page is loaded', async () => {
-      // Check if page is still open before proceeding
-      if (this.page.isClosed()) {
-        throw new Error('Page was closed before verification could complete');
-      }
-
-      // Wait for network to be idle to ensure page is fully loaded
-      await this.page.waitForLoadState('networkidle', { timeout: TIMEOUTS.LONG }).catch(() => {});
-
-      // Verify page is still open after network idle
-      if (this.page.isClosed()) {
-        throw new Error('Page was closed during network idle wait');
-      }
-
-      await expect(this.pageHeading, 'Expected Create API action heading to be visible').toBeVisible({
-        timeout: TIMEOUTS.LONG,
-      });
-
-      // Verify page is still open before checking other elements
-      if (this.page.isClosed()) {
-        throw new Error('Page was closed after heading verification');
-      }
-
-      await expect(this.customAppCombobox, 'Expected Custom app combobox to be visible').toBeVisible({
-        timeout: TIMEOUTS.LONG,
-      });
-      await expect(this.apiActionNameInput, 'Expected API action name input to be visible').toBeVisible({
-        timeout: TIMEOUTS.LONG,
-      });
-      // Also verify Cancel button and Save draft button are visible to ensure page is fully loaded
-      await expect(this.cancelButton, 'Expected Cancel button to be visible').toBeVisible({
-        timeout: TIMEOUTS.LONG,
-      });
-      await expect(this.saveDraftButton, 'Expected Save draft button to be visible').toBeVisible({
-        timeout: TIMEOUTS.LONG,
-      });
+      await this.page.waitForLoadState('domcontentloaded').catch(() => {});
+      await expect(this.customAppCombobox, 'Expected Custom app combobox to be visible').toBeVisible();
+      await expect(this.apiActionNameInput, 'Expected API action name input to be visible').toBeVisible();
+      await expect(this.cancelButton, 'Expected Cancel button to be visible').toBeVisible();
+      await expect(this.saveDraftButton, 'Expected Save draft button to be visible').toBeVisible();
+      await expect(this.pageHeading, 'Expected Create API action heading to be visible').toBeVisible();
     });
   }
 
@@ -138,13 +106,7 @@ export class CreateApiActionComponent extends BaseComponent {
    */
   async verifyButtonsAreDisabled(): Promise<void> {
     await test.step('Verify Save draft and Next buttons are disabled', async () => {
-      await expect(this.saveDraftButton, 'Expected Save draft button to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
       await expect(this.saveDraftButton, 'Expected Save draft button to be disabled').toBeDisabled();
-      await expect(this.nextButton, 'Expected Next button to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
       await expect(this.nextButton, 'Expected Next button to be disabled').toBeDisabled();
     });
   }
@@ -155,10 +117,10 @@ export class CreateApiActionComponent extends BaseComponent {
   async verifyButtonsAreEnabled(): Promise<void> {
     await test.step('Verify Save draft and Next buttons are enabled', async () => {
       await expect(this.saveDraftButton, 'Expected Save draft button to be enabled').toBeEnabled({
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.DEFAULT,
       });
       await expect(this.nextButton, 'Expected Next button to be enabled').toBeEnabled({
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.DEFAULT,
       });
     });
   }
@@ -167,66 +129,48 @@ export class CreateApiActionComponent extends BaseComponent {
    * Click Cancel button
    */
   async clickCancel(): Promise<void> {
-    await test.step('Click Cancel button', async () => {
-      await this.clickOnElement(this.cancelButton, { timeout: TIMEOUTS.SHORT });
-    });
+    await this.clickOnElement(this.cancelButton);
   }
 
   /**
    * Click Save draft button
    */
   async clickSaveDraft(): Promise<void> {
-    await test.step('Click Save draft button', async () => {
-      await this.clickOnElement(this.saveDraftButton, { timeout: TIMEOUTS.SHORT });
-    });
+    await this.clickOnElement(this.saveDraftButton);
   }
 
   /**
    * Click Next button
    */
   async clickNext(): Promise<void> {
-    await test.step('Click Next button', async () => {
-      await this.clickOnElement(this.nextButton, { timeout: TIMEOUTS.SHORT });
-    });
+    await this.clickOnElement(this.nextButton);
   }
 
   /**
    * Verify Cancel button navigation
    */
   async verifyCancelButtonNavigation(): Promise<void> {
-    await test.step('Verify Cancel button navigation', async () => {
-      await expect(this.cancelButton, 'Expected Cancel button to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      const href = await this.cancelButton.getAttribute('href');
-      expect(href).toContain('/api-actions');
-    });
+    await expect(this.cancelButton, 'Expected Cancel button to be visible').toBeVisible();
+    const href = await this.cancelButton.getAttribute('href');
+    expect(href).toContain('/api-actions');
   }
 
   /**
    * Verify Add custom app link navigation
    */
   async verifyAddCustomAppLinkNavigation(): Promise<void> {
-    await test.step('Verify Add custom app link navigation', async () => {
-      await expect(this.addCustomAppLink, 'Expected Add custom app link to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      const href = await this.addCustomAppLink.getAttribute('href');
-      expect(href).toContain('/custom/new');
-    });
+    await expect(this.addCustomAppLink, 'Expected Add custom app link to be visible').toBeVisible();
+    const href = await this.addCustomAppLink.getAttribute('href');
+    expect(href).toContain('/custom/new');
   }
 
   /**
    * Verify back to API actions link navigation
    */
   async verifyBackToApiActionsLinkNavigation(): Promise<void> {
-    await test.step('Verify back to API actions link navigation', async () => {
-      await expect(this.backToApiActionsLink, 'Expected back to API actions link to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      const href = await this.backToApiActionsLink.getAttribute('href');
-      expect(href).toContain('/api-actions');
-    });
+    await expect(this.backToApiActionsLink, 'Expected back to API actions link to be visible').toBeVisible();
+    const href = await this.backToApiActionsLink.getAttribute('href');
+    expect(href).toContain('/api-actions');
   }
 
   /**
@@ -244,19 +188,14 @@ export class CreateApiActionComponent extends BaseComponent {
    * Verify navigation to API actions list after saving draft
    */
   async verifyNavigationToApiActionsList(): Promise<void> {
-    await test.step('Verify navigation to API actions list', async () => {
-      await this.page.waitForURL('**/api-actions**', { timeout: TIMEOUTS.MEDIUM });
-    });
+    await this.page.waitForURL('**/api-actions**');
+    await this.page.waitForLoadState('domcontentloaded').catch(() => {});
   }
 
   /**
-   * Verify API configuration step is visible/active
+   * Verify API configuration step is visible
    */
   async verifyApiConfigurationStepIsVisible(): Promise<void> {
-    await test.step('Verify API configuration step is visible', async () => {
-      await expect(this.apiConfigurationStepButton, 'Expected API configuration step to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
-      });
-    });
+    await expect(this.apiConfigurationStepButton, 'Expected API configuration step to be visible').toBeVisible();
   }
 }
