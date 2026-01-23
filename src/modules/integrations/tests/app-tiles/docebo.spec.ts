@@ -8,9 +8,16 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { UserCredentials } from '@/src/core/types/test.types';
 import { UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+
+const doceboUser: UserCredentials = {
+  email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
+  password: process.env.QA_SYSTEM_ADMIN_PASSWORD!,
+};
 
 test.describe(
   'docebo App Tiles Integration',
@@ -21,6 +28,10 @@ test.describe(
     const AppName = 'Docebo';
     const tileName = 'Display learning courses';
     let createdTileTitle: string | undefined = undefined;
+
+    test.beforeEach(async ({ page }) => {
+      await LoginHelper.loginWithPassword(page, doceboUser);
+    });
 
     test.afterEach(async ({ appManagerFixture }) => {
       const { homeDashboard, tileManagementHelper } = appManagerFixture;
