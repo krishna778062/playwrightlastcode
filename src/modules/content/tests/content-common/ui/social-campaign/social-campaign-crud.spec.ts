@@ -1405,15 +1405,7 @@ test.describe(
         });
       }
     );
-  }
-);
 
-test.describe(
-  'Social Campaign Navigation Redirect',
-  {
-    tag: [ContentTestSuite.SOCIAL_CAMPAIGN],
-  },
-  () => {
     test(
       'Verify Social Campaign navigation when redirected via Manage feature CONT-44413',
       {
