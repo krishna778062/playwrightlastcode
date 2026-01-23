@@ -15,8 +15,8 @@ import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
 
 const doceboUser: UserCredentials = {
-  email: process.env.QA_SYSTEM_ADMIN_USERNAME!,
-  password: process.env.QA_SYSTEM_ADMIN_PASSWORD!,
+  email: process.env.QA_MANAGER_EMAIL!,
+  password: process.env.QA_MANAGER_PASSWORD!,
 };
 
 test.describe(
