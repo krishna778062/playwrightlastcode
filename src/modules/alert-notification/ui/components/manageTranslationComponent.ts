@@ -76,19 +76,6 @@ export class ManageTranslationComponent extends BaseComponent {
   }
 
   /**
-   * Verifies inline error message is displayed
-   * @param errorMessage - The expected error message
-   */
-  async verifyInlineErrorMessage(errorMessage: string): Promise<void> {
-    await test.step(`Verify inline error message: ${errorMessage}`, async () => {
-      await this.verifier.verifyTheElementIsVisible(this.page.getByText(errorMessage), {
-        assertionMessage: `Inline error message should be visible: ${errorMessage}`,
-        timeout: TIMEOUTS.SHORT,
-      });
-    });
-  }
-
-  /**
    * Verifies that automatic translation text is visible
    */
   async verifyAutomaticTranslationText(): Promise<void> {
@@ -232,6 +219,19 @@ export class ManageTranslationComponent extends BaseComponent {
       }
 
       return translatedText;
+    });
+  }
+
+  /**
+   * Verifies that the translation text contains a specific token
+   * @param token - The token to verify (e.g., "{{count}}", "{{message}}")
+   */
+  async verifyTranslationTextContainsToken(token: string): Promise<void> {
+    await test.step(`Verify translation text contains token: ${token}`, async () => {
+      const translationText = await this.getTranslationTextValue();
+      if (!translationText.includes(token)) {
+        throw new Error(`Expected translation text to contain "${token}" token, but found: ${translationText}`);
+      }
     });
   }
 }

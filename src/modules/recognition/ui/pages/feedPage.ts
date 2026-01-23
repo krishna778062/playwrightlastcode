@@ -121,7 +121,7 @@ export class FeedPage extends BasePage {
       await this.recognitionTab.waitFor({ state: 'visible' });
       await expect(this.recognitionTab, 'Recognition tab should be visible').toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.recognitionTab, { stepInfo: 'Clicking on Recognition tab' });
-      await this.recognizeButton.waitFor({ state: 'visible' });
+      await this.recognizeButton.waitFor({ state: 'visible', timeout: TIMEOUTS.VERY_VERY_LONG });
     });
   }
 

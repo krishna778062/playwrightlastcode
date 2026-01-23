@@ -38,14 +38,14 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
   primary: {
     test: {
       tenantName: 'Data Engineering Primary',
-      frontendBaseUrl: 'https://de.test.simpplr.xyz',
-      apiBaseUrl: 'https://de-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://de-auto.test.simpplr.xyz',
+      apiBaseUrl: 'https://de-auto-api.test.simpplr.xyz',
       apiBeUrl: 'https://api-be.test.simpplr.xyz',
-      appManagerEmail: 'divya.jain@simpplr.com',
-      appManagerPassword: 'test@12345',
-      standardUserEmail: 'adil.shamim+2@simpplr.com',
-      standardUserPassword: 'test@123456',
-      orgId: 'ea411953-6702-4a01-8b03-b98a172be511',
+      appManagerEmail: 'bharat.madaan@simpplr.com',
+      appManagerPassword: 'Simpplr@123',
+      standardUserEmail: 'simpplr.dev+amber.rich@example.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: '7d21708d-908a-4c60-b1b7-5d6647ee112c',
       odinOrgId: '00D8Y000000g1g2UAA',
     },
     qa: {
