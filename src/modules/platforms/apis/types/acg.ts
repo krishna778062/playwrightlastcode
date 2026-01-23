@@ -89,3 +89,40 @@ export interface ACGCreationAPI {
   adminAudience?: string[];
   acgStatus?: string;
 }
+
+export interface ACGSubjectStatsAudienceInfo {
+  audienceCount: number;
+  combinedUserCount: number | string;
+}
+
+export interface ACGSubjectStatsUserInfo {
+  count: number;
+}
+
+export interface ACGSubjectStatsAdminManager {
+  totalUsers: number | string;
+  audiences: ACGSubjectStatsAudienceInfo;
+  users: ACGSubjectStatsUserInfo;
+}
+
+export interface ACGSubjectStatsTargets {
+  totalUsers: number | string;
+  audiences: ACGSubjectStatsAudienceInfo;
+}
+
+export interface ACGSubjectStats {
+  admins: ACGSubjectStatsAdminManager;
+  managers: ACGSubjectStatsAdminManager;
+  targets: ACGSubjectStatsTargets;
+}
+
+export interface ACGSubjectStatsResult {
+  acgs: Record<string, ACGSubjectStats>;
+}
+
+export interface ACGSubjectStatsResponse {
+  status: string;
+  message: string;
+  result: ACGSubjectStatsResult;
+  apiName: string;
+}

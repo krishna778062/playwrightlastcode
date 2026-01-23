@@ -63,7 +63,6 @@ on:
           - 'frontline'
           - 'alert-notification'
           - 'employee-listening'
-          - 'form-designer'
 
       is_browserstack:
         description: 'Enable BrowserStack'
