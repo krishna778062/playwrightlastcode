@@ -61,11 +61,7 @@ export class ChatInboxSideBarComponent extends BaseComponent {
     this.announcementRadioButton = this.page.getByRole('radio', {
       name: 'Announcement only (Only group admin/s can post)',
     });
-    this.groupSearchResult = this.page
-      .locator('div')
-      .filter({ hasText: /^all-companyall-companyall-company1all-companyShow more$/ })
-      .getByRole('paragraph')
-      .nth(3);
+    this.groupSearchResult = this.page.locator("//p[text()='all-company']").nth(2);
     this.groupSearchResult1 = this.page.locator("//p[text()='all-company']").first();
   }
 
