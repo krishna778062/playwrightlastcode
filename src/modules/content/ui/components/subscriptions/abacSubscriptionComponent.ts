@@ -5,17 +5,27 @@ import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 export class AbacSubscriptionComponent extends BaseComponent {
   readonly addSubscriptionButton: Locator;
   readonly subscriptionsSection: Locator;
+  readonly audiencesDialogSelector: string;
+  readonly allOrganizationSwitch: Locator;
+  readonly selectedAllOrganizationTextSelector: string;
+  readonly doneButton: Locator;
+  readonly menuItemSelector: string;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
     this.addSubscriptionButton = this.page.getByRole('button', { name: 'Add subscription' });
     this.subscriptionsSection = this.page.locator('section').filter({ hasText: 'Subscriptions' });
+    this.audiencesDialogSelector = 'dialog:has-text("Audiences"), [role="dialog"]:has-text("Audiences")';
+    this.allOrganizationSwitch = this.page.getByRole('switch', { name: 'All organization' });
+    this.selectedAllOrganizationTextSelector = "text=You've selected 'All organization'";
+    this.doneButton = this.page.getByRole('button', { name: 'Done' });
+    this.menuItemSelector = '[role="menuitem"]';
   }
 
   async clickAddSubscriptionButton(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Click Add subscription button', async () => {
       await this.clickOnElement(this.addSubscriptionButton);
-      await this.page.waitForSelector('dialog:has-text("Audiences"), [role="dialog"]:has-text("Audiences")', {
+      await this.page.waitForSelector(this.audiencesDialogSelector, {
         state: 'visible',
         timeout: 10000,
       });
@@ -24,15 +34,13 @@ export class AbacSubscriptionComponent extends BaseComponent {
 
   async selectAllOrganizationAudience(options?: { stepInfo?: string }): Promise<void> {
     await test.step(options?.stepInfo || 'Select All organization audience', async () => {
-      const allOrgSwitch = this.page.getByRole('switch', { name: 'All organization' });
-      await this.clickOnElement(allOrgSwitch);
-      await this.page.waitForSelector("text=You've selected 'All organization'", { timeout: 10000 });
-      const doneButton = this.page.getByRole('button', { name: 'Done' });
-      await this.verifier.verifyTheElementIsEnabled(doneButton, {
+      await this.clickOnElement(this.allOrganizationSwitch);
+      await this.page.waitForSelector(this.selectedAllOrganizationTextSelector, { timeout: 10000 });
+      await this.verifier.verifyTheElementIsEnabled(this.doneButton, {
         assertionMessage: 'Done button should be enabled',
       });
-      await this.clickOnElement(doneButton);
-      await this.page.waitForSelector('dialog:has-text("Audiences"), [role="dialog"]:has-text("Audiences")', {
+      await this.clickOnElement(this.doneButton);
+      await this.page.waitForSelector(this.audiencesDialogSelector, {
         state: 'hidden',
         timeout: 10000,
       });
@@ -96,7 +104,7 @@ export class AbacSubscriptionComponent extends BaseComponent {
       }
 
       await this.clickOnElement(moreButton);
-      await this.page.waitForSelector('[role="menuitem"]', { state: 'visible', timeout: 10000 });
+      await this.page.waitForSelector(this.menuItemSelector, { state: 'visible', timeout: 10000 });
     });
   }
 
