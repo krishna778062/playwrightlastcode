@@ -4141,6 +4141,266 @@ test.describe(
     );
 
     test(
+      'verify SU can share non-restricted Page comment to Home Feed with Restricted Viewers (UX Designs)',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42222', '@SU-feed', '@share-restriction'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'ABAC: Verify SU (Manager of Private Site) can create a comment on a non-restricted Page and share it to Home Feed with Restricted Viewers (UX Designs). The shared post should be visible to siteManager (in UX) and App Manager (in UX), who see "This post has been deleted" for the original. SU (creator but NOT in UX) cannot see the shared post.',
+          zephyrTestId: 'CONT-42222',
+          storyId: 'CONT-42222',
+        });
+
+        let pageCommentText: string;
+        let sharePostText: string;
+        let privateSiteId: string = '';
+        let pageId: string = '';
+        let standardUserUserId: string = '';
+        let appManagerUserId: string = '';
+        let siteManagerUserId: string = '';
+        let contentPreviewPage: ContentPreviewPage;
+        let suContentPreviewPage: ContentPreviewPage;
+
+        // ==================== Get User info ====================
+        await test.step('Get Users info', async () => {
+          const standardUserUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.endUser.email
+          );
+          const appManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.appManager.email
+          );
+          const siteManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+            users.siteManager.email
+          );
+          standardUserUserId = standardUserUserInfo.userId;
+          appManagerUserId = appManagerUserInfo.userId;
+          siteManagerUserId = siteManagerUserInfo.userId;
+        });
+
+        // ==================== Get or create Private Site with App Manager as Owner ====================
+        await test.step('Get or create a Private Site with App Manager as Owner', async () => {
+          const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteWithUserAsOwner(
+            appManagerUserId,
+            SITE_TYPES.PRIVATE
+          );
+          privateSiteId = privateSite.siteId;
+
+          // Add SU as member of Private Site
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.ADD
+          );
+
+          // Make SU a MANAGER of the Private Site
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MANAGER,
+            SiteMembershipAction.SET_PERMISSION
+          );
+
+          // Remove siteManager from Private Site (ensures "deleted" message for original)
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            siteManagerUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
+        });
+
+        // ==================== Create a non-restricted Page on Private Site ====================
+        await test.step('Create a non-restricted Page on Private Site', async () => {
+          const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: privateSiteId,
+            contentInfo: {
+              contentType: 'page',
+              contentSubType: 'news',
+            },
+            options: {
+              waitForSearchIndex: false,
+            },
+          });
+          pageId = pageInfo.contentId;
+
+          // Navigate to Page (no restriction enabled - all site members can view)
+          contentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            privateSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage();
+          await contentPreviewPage.verifyThePageIsLoaded();
+        });
+
+        // ==================== SU creates a comment/feed post on the non-restricted Page ====================
+        await test.step('SU navigates to non-restricted Page and creates a comment', async () => {
+          suContentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            privateSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await suContentPreviewPage.loadPage();
+          await suContentPreviewPage.verifyThePageIsLoaded();
+
+          // Create comment on the non-restricted Page
+          pageCommentText = TestDataGenerator.generateRandomText(
+            'SU comment on non-restricted Page for Home Feed sharing with UX',
+            2,
+            true
+          );
+          await suContentPreviewPage.clickShareThoughtsButton();
+
+          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
+          await createFeedPostComponent.createAndPost({ text: pageCommentText });
+
+          // Verify comment is visible
+          await suContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
+        });
+
+        // ==================== Verify App Manager CAN see the comment on the Page ====================
+        await test.step('Verify App Manager (Owner) CAN see the comment on the non-restricted Page', async () => {
+          const amContentPreviewPage = new ContentPreviewPage(
+            appManagerFixture.page,
+            privateSiteId,
+            pageId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await amContentPreviewPage.loadPage();
+          await amContentPreviewPage.verifyThePageIsLoaded();
+
+          // Verify App Manager can see the comment
+          await amContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
+        });
+
+        // ==================== App manager adds SU as Manager of Post In Home Feed ACG ====================
+        await test.step('App manager adds SU as Manager of Post In Home Feed ACG', async () => {
+          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.assertions.verifyThePageIsLoaded();
+
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Managers section and add user
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
+            if (isAdded) {
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+            } else {
+              await acgPage.editACGModal.clickCloseButton();
+            }
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+
+        // ==================== SU shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs) ====================
+        await test.step('SU shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs)', async () => {
+          // Click share icon on the comment
+          await suContentPreviewPage.listFeedComponent.clickShareIcon(pageCommentText);
+
+          const shareComponent = new ShareComponent(standardUserFixture.page);
+          sharePostText = TestDataGenerator.generateRandomText(
+            'SU shared non-restricted Page comment to Home Feed with UX restriction',
+            2,
+            true
+          );
+
+          // Share to Home Feed WITH limit visibility (UX Designs audience)
+          await shareComponent.enterShareDescription(sharePostText);
+          await shareComponent.toggleLimitVisibility();
+          await shareComponent.selectAudience('UX');
+
+          await shareComponent.clickShareButtonAndGetPostId();
+        });
+
+        // ==================== siteManager (IN UX) CAN see shared post and "deleted" message on Home Feed ====================
+        await test.step('siteManager (in UX Designs) navigates to Home Feed and verifies shared post IS visible with deleted message', async () => {
+          await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const smHomeFeedPage = new FeedPage(siteManagerFixture.page);
+          await smHomeFeedPage.reloadPageWithTimelineMode();
+          await smHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to siteManager (in UX Designs audience)
+          await smHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+
+          // Verify the original post shows "This post has been deleted" message
+          // (siteManager is not a member of Private Site)
+          await smHomeFeedPage.feedList.verifyDeletedPostMessage(sharePostText);
+        });
+
+        // ==================== App Manager (IN UX) CAN see shared post on Home Feed ====================
+        await test.step('App Manager (in UX Designs) navigates to Home Feed and verifies shared post IS visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeIconButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+
+          const amHomeFeedPage = new FeedPage(appManagerFixture.page);
+          await amHomeFeedPage.reloadPageWithTimelineMode();
+          await amHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post IS visible to App Manager (in UX Designs audience)
+          await amHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
+        });
+
+        // ==================== SU (creator but NOT in UX) CANNOT see shared post on Home Feed ====================
+        await test.step('SU (creator but NOT in UX Designs) navigates to Home Feed and verifies shared post is NOT visible', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+
+          const suHomeFeedPage = new FeedPage(standardUserFixture.page);
+          await suHomeFeedPage.reloadPageWithTimelineMode();
+          await suHomeFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          // Verify the shared post is NOT visible to SU (NOT in UX Designs audience)
+          await suHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
+        });
+
+        // ==================== Cleanup: Remove users from Private Site ====================
+        await test.step('Cleanup: Remove users from Private Site', async () => {
+          // Remove SU from Private Site
+          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+            privateSiteId,
+            standardUserUserId,
+            SitePermission.MEMBER,
+            SiteMembershipAction.REMOVE
+          );
+        });
+
+        // ==================== Cleanup: Remove SU as Manager of Post In Home Feed ACG ====================
+        await test.step('Cleanup: Remove SU as Manager of Post In Home Feed ACG', async () => {
+          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
+          await acgPage.loadPage();
+          await acgPage.assertions.verifyThePageIsLoaded();
+
+          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
+          await acgPage.confirmEditACGModal.clickContinueButton();
+
+          // Navigate to Managers section and remove user
+          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
+          if (isManagerButtonEnabled) {
+            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
+            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
+          } else {
+            await acgPage.editACGModal.clickCloseButton();
+          }
+        });
+      }
+    );
+
+    test(
       'verify SU can share restricted Page comment to Home Feed WITHOUT Restriction',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42221', '@SU-feed', '@share-restriction'],
