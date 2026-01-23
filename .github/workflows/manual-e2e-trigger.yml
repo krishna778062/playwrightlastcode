@@ -36,7 +36,7 @@ on:
       module:
         description: 'Module to test'
         required: true
-        default: 'all'
+        default: 'chat'
         type: choice
         options:
           - 'all'
