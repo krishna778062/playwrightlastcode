@@ -78,11 +78,11 @@ export const config = {
   primary: {
     test: {
       tenantName: 'Content Primary',
-      frontendBaseUrl: 'https://automation-ui-content.test.simpplr.xyz',
-      apiBaseUrl: 'https://automation-ui-content-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://zeta-abac.test.simpplr.xyz',
+      apiBaseUrl: 'https://zeta-abac-api.test.simpplr.xyz',
       b2bBaseUrl: 'https://api-be.test.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
-      appManagerPassword: 'simpplr002',
+      appManagerPassword: 'simpplr001',
       endUserEmail: 'sonali.gupta+10@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'chaitanya.sharma@simpplr.com',
@@ -176,8 +176,8 @@ export const config = {
   contentSettings: {
     test: {
       tenantName: 'Content Settings',
-      frontendBaseUrl: 'https://content-settings.test.simpplr.xyz',
-      apiBaseUrl: 'https://content-settings-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://zeta-abac.test.simpplr.xyz',
+      apiBaseUrl: 'https://zeta-abac-api.test.simpplr.xyz',
       b2bBaseUrl: 'https://api-be.test.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
       appManagerPassword: 'simpplr001',
