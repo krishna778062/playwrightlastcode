@@ -18,6 +18,10 @@ export enum RecognitionFeatureTags {
   ABAC_RECOGNITION_SHARE = '@abac-recognition-share',
 }
 
+export enum spotAwardsFeatureTags {
+  SPOT_AWARDS_AUDIENCE = '@spot-awards-audience',
+}
+
 export enum RecurringAwardsFeatureTags {
   RECURRING_AWARD = '@recurring-award',
   NOMINATION_RECURRING_AWARD = '@nomination-recurring-award',
