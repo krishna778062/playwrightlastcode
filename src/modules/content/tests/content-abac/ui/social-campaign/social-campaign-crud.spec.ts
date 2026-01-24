@@ -14,6 +14,7 @@ import {
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -336,10 +337,8 @@ test.describe(
         };
 
         // Create or get a test audience for the campaign
-        const audienceDetails = await appManagerFixture.abacAudienceHelper.findFirstAvailableAudience();
-        if (!audienceDetails) {
-          throw new Error('No audience found');
-        }
+        const audienceDetails = await appManagerFixture.abacAudienceHelper.getRandomAudienceIdABAC();
+
         // Create campaign via API
         const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignData.message,
@@ -1230,6 +1229,39 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnSocialCampaignCard();
         await manageFeaturesPage.verifyUrlContains('campaigns/latest');
+      }
+    );
+
+    test(
+      'ABAC Verify user can connect LinkedIn account and share social campaign CONT-44585',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-44585', '@Social_Campaign_LinkedIn'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'ABAC: Verify user can connect LinkedIn account and share social campaign',
+          zephyrTestId: 'CONT-44585',
+          storyId: 'CONT-44585',
+        });
+
+        // Get LinkedIn credentials from config
+        const config = getContentTenantConfigFromCache();
+        const linkedInEmail = config.linkedInEmail;
+        const linkedInPassword = config.linkedInPassword;
+
+        // Step 1: Navigate to Social campaigns page
+        await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
+        await socialCampaignPage.verifyThePageIsLoaded();
+
+        // Step 2: Click the first Share button
+        await socialCampaignPage.clickFirstShareButton();
+
+        // Step 3: Click Connect LinkedIn button and complete LinkedIn login
+        await socialCampaignPage.connectLinkedIn(linkedInEmail, linkedInPassword);
+
+        // Step 4: Verify LinkedIn connection success message
+        await socialCampaignPage.verifyLinkedInConnectionSuccess();
       }
     );
   }

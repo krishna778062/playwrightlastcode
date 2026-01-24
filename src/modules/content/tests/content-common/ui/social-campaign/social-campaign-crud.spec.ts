@@ -17,6 +17,7 @@ import {
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
@@ -752,12 +753,7 @@ test.describe(
       }
     );
 
-    /**
-     * TODO:
-     *
-     * Looks like this bug is in prod and the bheaviour with carousel apis are very flaky
-     */
-    test.fixme(
+    test(
       'in Zeus Verify App Manager able to add and remove Social Campaign to Site Carousel and remove when deleted',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14905'],
@@ -767,8 +763,6 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-14905',
           storyId: 'CONT-14905',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
 
         const siteId =
@@ -864,8 +858,6 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-14904',
           storyId: 'CONT-14904',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
 
         //remove all the carousel items from the site
@@ -959,8 +951,6 @@ test.describe(
             'In Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
           zephyrTestId: 'CONT-21039',
           storyId: 'CONT-21039',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1057,8 +1047,6 @@ test.describe(
             'In Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
           zephyrTestId: 'CONT-40519',
           storyId: 'CONT-40519',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1108,8 +1096,6 @@ test.describe(
             'In Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
           zephyrTestId: 'CONT-40721',
           storyId: 'CONT-40721',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
 
         // Create campaign with audience
@@ -1416,8 +1402,6 @@ test.describe(
           description: 'Verify Social Campaign navigation via side nav redirects to /campaigns/latest',
           zephyrTestId: 'CONT-44413',
           storyId: 'CONT-44413',
-          isKnownFailure: true,
-          bugTicket: 'UIUX-1691',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await appManagerFixture.navigationHelper.clickOnSocialCampaignsUnderManageFeature();
@@ -1428,6 +1412,39 @@ test.describe(
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
         await manageFeaturesPage.clickOnSocialCampaignCard();
         await manageFeaturesPage.verifyUrlContains('campaigns/latest');
+      }
+    );
+
+    test(
+      'Verify user can connect LinkedIn account and share social campaign CONT-44584',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-44584', '@Social_Campaign_LinkedIn'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify user can connect LinkedIn account and share social campaign',
+          zephyrTestId: 'CONT-44584',
+          storyId: 'CONT-44584',
+        });
+
+        // Get LinkedIn credentials from config
+        const config = getContentTenantConfigFromCache();
+        const linkedInEmail = config.linkedInEmail;
+        const linkedInPassword = config.linkedInPassword;
+
+        // Step 1: Navigate to Social campaigns page
+        await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
+        await socialCampaignPage.verifyThePageIsLoaded();
+
+        // Step 2: Click the first Share button
+        await socialCampaignPage.clickFirstShareButton();
+
+        // Step 3: Click Connect LinkedIn button and complete LinkedIn login
+        await socialCampaignPage.connectLinkedIn(linkedInEmail, linkedInPassword);
+
+        // Step 4: Verify LinkedIn connection success message
+        await socialCampaignPage.verifyLinkedInConnectionSuccess();
       }
     );
   }

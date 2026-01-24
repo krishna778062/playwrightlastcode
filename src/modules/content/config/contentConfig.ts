@@ -66,6 +66,8 @@ export interface ContentTenantConfig {
   orgId: string;
   socialCampaignManagerEmail: string;
   socialCampaignManagerPassword: string;
+  linkedInEmail: string;
+  linkedInPassword: string;
 }
 
 // App-level configuration (same for all tenants/environments)
@@ -78,11 +80,11 @@ export const config = {
   primary: {
     test: {
       tenantName: 'Content Primary',
-      frontendBaseUrl: 'https://zeta-abac.test.simpplr.xyz',
-      apiBaseUrl: 'https://zeta-abac-api.test.simpplr.xyz',
+      frontendBaseUrl: 'https://automation-ui-content.test.simpplr.xyz',
+      apiBaseUrl: 'https://automation-ui-content-api.test.simpplr.xyz',
       b2bBaseUrl: 'https://api-be.test.simpplr.com',
       appManagerEmail: 'sonali.gupta@simpplr.com',
-      appManagerPassword: 'simpplr001',
+      appManagerPassword: 'simpplr002',
       endUserEmail: 'sonali.gupta+10@simpplr.com',
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'chaitanya.sharma@simpplr.com',
@@ -91,6 +93,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     qa: {
       tenantName: 'Content Primary',
@@ -107,6 +111,8 @@ export const config = {
       orgId: 'c3b312f2-064d-44ae-b0f1-40721116e5e0',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     uat: {
       tenantName: 'Content Primary',
@@ -123,6 +129,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodEU: {
       tenantName: 'Content Primary',
@@ -139,6 +147,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'keerthana.ks@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodUS: {
       tenantName: 'Content Primary',
@@ -155,6 +165,8 @@ export const config = {
       orgId: 'ac0335f1-8bb2-4593-8249-669fc5c9a904',
       socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     uatEU: {
       tenantName: 'Content Primary',
@@ -171,6 +183,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+1@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
   },
   contentSettings: {
@@ -189,6 +203,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     qa: {
       tenantName: 'Content Settings',
@@ -205,6 +221,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     uat: {
       tenantName: 'Content Settings',
@@ -221,6 +239,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodUS: {
       tenantName: 'Content Settings',
@@ -237,6 +257,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodEU: {
       tenantName: 'Content Settings',
@@ -253,6 +275,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
   },
   contentAbac: {
@@ -271,6 +295,8 @@ export const config = {
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     qa: {
       tenantName: 'Content ABAC',
@@ -287,6 +313,8 @@ export const config = {
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     uat: {
       tenantName: 'Content ABAC',
@@ -303,6 +331,8 @@ export const config = {
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodEU: {
       tenantName: 'Content ABAC',
@@ -319,6 +349,8 @@ export const config = {
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodUS: {
       tenantName: 'Content ABAC',
@@ -335,6 +367,8 @@ export const config = {
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
   },
   contentStudio: {
@@ -353,6 +387,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
       socialCampaignManagerPassword: 'Simpplr@123',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     qa: {
       tenantName: 'Content Studio',
@@ -369,6 +405,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
       socialCampaignManagerPassword: 'Simpplr@123',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     uat: {
       tenantName: 'Content Studio',
@@ -385,6 +423,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
       socialCampaignManagerPassword: 'Simpplr@123',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodUS: {
       tenantName: 'Content Studio',
@@ -401,6 +441,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
       socialCampaignManagerPassword: 'Simpplr@123',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
     prodEU: {
       tenantName: 'Content Studio',
@@ -417,6 +459,8 @@ export const config = {
       orgId: 'test-org-id',
       socialCampaignManagerEmail: 'pushker.yadav@simpplr.com',
       socialCampaignManagerPassword: 'Simpplr@123',
+      linkedInEmail: 'Keerthana.KS@Simpplr.com',
+      linkedInPassword: 'Keerthi@123',
     },
   },
   appConfig: {
