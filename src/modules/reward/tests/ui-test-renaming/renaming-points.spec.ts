@@ -197,4 +197,36 @@ test.describe('renaming page', () => {
       }
     }
   );
+
+  test(
+    '[RC-7084] Validate manual translation of points name in selected language showing in application',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description: 'Validate manual translation of points name in selected language showing in application',
+        zephyrTestId: 'RC-7084',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      await renamingPage.changeSomeDataAndClickOnSave('Points');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const pointsTranslationsByLanguage: Map<string, string> =
+        await renamingPage.setTheManualTranslationValuesByLanguages('points');
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validatePointsManualTranslationsAcrossLanguages(pointsTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
 });

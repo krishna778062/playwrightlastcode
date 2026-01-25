@@ -614,6 +614,34 @@ export class RenamingPage extends BasePage {
     return map;
   }
 
+  async setTheManualTranslationValuesByLanguages(
+    cardType: 'recognition' | 'points' | 'rewardStore'
+  ): Promise<Map<string, string>> {
+    const editModal = new EditLabelModal(this.page);
+    const map = new Map<string, string>();
+    await editModal.verifyThePageIsLoaded();
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    const count = await manualTranslationSwitches.count();
+    for (let i = 0; i < count; i++) {
+      await this.checkElement(manualTranslationSwitches.nth(i));
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+      const languageLabel = (await editModal.getOtherLanguageCustomLabel(i).textContent())?.trim() ?? '';
+      const value = languageLabel.split(' - ')[0] + `_${cardType}_` + TestDataGenerator.getRandomNo(10, 999);
+      map.set(languageLabel.split(' - ')[0], value);
+      await input.clear();
+      await this.fillInElement(input, value, { stepInfo: `Entering manual translation value for ${languageLabel}` });
+    }
+    await this.verifier.verifyTheElementIsEnabled(editModal.getSaveButton());
+    await this.clickOnElement(editModal.getSaveButton());
+    await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
+    return map;
+  }
+
   async validateTheLanguageDataRested(defaultOtherLanguageTranslationValue: string[]) {
     const editModal = new EditLabelModal(this.page);
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
@@ -832,10 +860,7 @@ export class RenamingPage extends BasePage {
       timeout: TIMEOUTS.MEDIUM,
       stepInfo: 'Post Form button is visible on the page',
     });
-    await this.clickOnElement(this.postFormButton, {
-      timeout: TIMEOUTS.MEDIUM,
-      stepInfo: 'Clicking Post Form button to open recognition composer',
-    });
+    await this.clickByInjectingJavaScript(this.postFormButton);
     await this.verifier.waitUntilElementIsVisible(this.recognitionCreationButton, {
       stepInfo: 'Recognition Button in Post Form button is visible',
     });
