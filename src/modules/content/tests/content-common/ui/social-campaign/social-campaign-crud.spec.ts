@@ -11,6 +11,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import {
   SocialCampaignFilter,
+  SocialCampaignNetwork,
   SocialCampaignNetworkUI,
   SocialCampaignRecipient,
 } from '@core/types/social-campaign.types';
@@ -1426,6 +1427,23 @@ test.describe(
           zephyrTestId: 'CONT-44584',
           storyId: 'CONT-44584',
         });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          networks: [SocialCampaignNetwork.LINKEDIN],
+        });
+        campaignId = createdCampaign.campaignId;
 
         // Get LinkedIn credentials from config
         const config = getContentTenantConfigFromCache();

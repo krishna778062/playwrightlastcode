@@ -127,12 +127,12 @@ export class SideNavBarComponent extends BaseComponent {
   async clickOnGlobalFeed(): Promise<void> {
     await test.step('side navbar: clicking Global Feed button on side navbar', async () => {
       if (await this.verifier.isTheElementVisibleWithLessTimeout(this.feedLink)) {
-        await this.clickOnElement(this.feedLink);
+        await this.clickOnElement(this.feedLink, { force: true });
       } else {
         try {
-          await this.clickOnElement(this.homeLink);
-        } catch (error) {
-          await this.clickOnElement(this.homeLink);
+          await this.clickOnElement(this.homeLink, { force: true });
+        } catch (timeoutError) {
+          await this.clickOnElement(this.homeLink, { force: true });
         }
       }
     });

@@ -83,6 +83,9 @@ export class ShareComponent extends BaseComponent {
 
   async enterShareDescription(description: string): Promise<void> {
     await test.step(`Enter share description: ${description}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shareDescriptionInput.first(), {
+        assertionMessage: 'Share description input should be visible',
+      });
       await this.fillInElement(this.shareDescriptionInput.first(), description);
     });
   }
@@ -149,6 +152,12 @@ export class ShareComponent extends BaseComponent {
   async selectShareOptionAsSiteFeed(): Promise<void> {
     await test.step(`Select share option: site feed`, async () => {
       await this.shareOptionDropdown.selectOption('site');
+    });
+  }
+
+  async selectShareOptionAsHomeFeed(): Promise<void> {
+    await test.step(`Select share option: home feed`, async () => {
+      await this.shareOptionDropdown.selectOption('home');
     });
   }
 

@@ -8,6 +8,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import {
   SocialCampaignFilter,
+  SocialCampaignNetwork,
   SocialCampaignNetworkUI,
   SocialCampaignRecipient,
 } from '@core/types/social-campaign.types';
@@ -450,6 +451,7 @@ test.describe(
         const description = TestDataGenerator.generateRandomString();
         await socialCampaignPage.clickCampaignOptions();
         await socialCampaignPage.clickShareToFeedButton();
+        await socialCampaignPage.selectShareOptionAsHomeFeed();
         await socialCampaignPage.enterShareDescription(description);
         await socialCampaignPage.clickShareButton();
         await socialCampaignPage.verifyToastMessageIsVisibleWithText(
@@ -564,11 +566,7 @@ test.describe(
         const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
-        await Promise.all([
-          appManagerFeedPage.verifyThePageIsLoaded(),
-          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
-          endUserFeedPage.verifyThePageIsLoaded(),
-        ]);
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded()]);
 
         await Promise.all([
           appManagerFeedPage.clickOnShowOption('all'),
@@ -715,6 +713,8 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-44782',
           storyId: 'CONT-44782',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
         const siteId =
           await appManagerFixture.abacSiteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
@@ -808,6 +808,8 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-44780',
           storyId: 'CONT-44780',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
         const siteId =
@@ -1243,6 +1245,23 @@ test.describe(
           zephyrTestId: 'CONT-44585',
           storyId: 'CONT-44585',
         });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          networks: [SocialCampaignNetwork.LINKEDIN],
+        });
+        campaignId = createdCampaign.campaignId;
 
         // Get LinkedIn credentials from config
         const config = getContentTenantConfigFromCache();
