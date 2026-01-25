@@ -42,19 +42,19 @@ export class NotificationCustomizationHelper {
 
       // Select template
       await page.selectNotificationStep.selectTemplateForFeature(feature, template);
-      await page.clickButton(PAGE_TEXT.ADD_CUSTOMIZATION.BUTTONS.NEXT);
+      await page.commonActions.clickButton(PAGE_TEXT.ADD_CUSTOMIZATION.BUTTONS.NEXT);
 
       // Subject line step - select custom subject line
       await page.subjectLineCustomizationComponent.clickOnCustomSubjectLineOption();
       const customSubject = NotificationTestDataGenerator.generateRandomSubject();
       await page.subjectLineCustomizationComponent.fillCustomSubjectLine(customSubject);
-      await page.clickButton(PAGE_TEXT.ADD_CUSTOMIZATION.BUTTONS.NEXT);
+      await page.commonActions.clickButton(PAGE_TEXT.ADD_CUSTOMIZATION.BUTTONS.NEXT);
 
       // Manage translations step - just save
-      await page.clickButton(MANAGE_TRANSLATIONS_TEXT.SAVE_BUTTON);
+      await page.commonActions.clickButton(MANAGE_TRANSLATIONS_TEXT.SAVE_BUTTON);
 
       // Verify success toast
-      await page.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_SAVED);
+      await page.commonActions.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_SAVED);
 
       // Return to listing page
       await page.verifyThePageIsLoaded();

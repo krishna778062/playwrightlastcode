@@ -1,5 +1,6 @@
 import { Locator, Page, test } from '@playwright/test';
 
+import { ALERT_NOTIFICATION_MESSAGES } from '../../constants/messageRepo';
 import {
   MANAGE_TRANSLATIONS_TEXT,
   OVERRIDE_CONFIRMATION_TEXT,
@@ -10,6 +11,7 @@ import {
 
 import { BasePage, PAGE_ENDPOINTS } from '@/src/core';
 import { AddDynamicValueComponent } from '@/src/modules/alert-notification/ui/components/addDynamicValueComponent';
+import { CommonActionsComponent } from '@/src/modules/alert-notification/ui/components/commonActionsComponent';
 import { ManageTranslationComponent } from '@/src/modules/alert-notification/ui/components/manageTranslationComponent';
 import {
   NotificationFeatures,
@@ -32,6 +34,7 @@ export class NotificationCustomizationPage extends BasePage {
   readonly addDynamicValueComponent: AddDynamicValueComponent;
   readonly manageTranslationComponent: ManageTranslationComponent;
   readonly manageTranslationPage: ManageTranslationPage;
+  readonly commonActions: CommonActionsComponent;
   readonly nextButton: Locator;
   readonly saveButton: Locator;
   readonly searchInput: Locator;
@@ -98,6 +101,7 @@ export class NotificationCustomizationPage extends BasePage {
     this.addDynamicValueComponent = new AddDynamicValueComponent(page);
     this.manageTranslationComponent = new ManageTranslationComponent(page);
     this.manageTranslationPage = new ManageTranslationPage(page);
+    this.commonActions = new CommonActionsComponent(page);
     this.nextButton = page.getByRole('button', { name: 'Next' });
     this.saveButton = page.getByRole('button', { name: 'Save' });
     this.searchInput = page.getByRole('textbox', { name: 'Search…' });
@@ -174,6 +178,33 @@ export class NotificationCustomizationPage extends BasePage {
   }
 
   /**
+   * Waits for the listing page to fully load with all existing customizations
+   * Uses element visibility checks instead of hard waits to follow framework patterns
+   */
+  async waitForListingPageToFullyLoad(): Promise<void> {
+    await test.step('Wait for listing page to fully load with customizations', async () => {
+      // First verify the page basic elements are loaded
+      await this.verifyThePageIsLoaded();
+
+      // Check if there are any existing items and wait for them to be fully loaded
+      // Use try-catch since page might be empty (no customizations exist)
+      try {
+        const itemCount = await this.notificationItems.count();
+        if (itemCount > 0) {
+          // If items exist, wait for the first item to be visible (indicates data is loaded)
+          await this.verifier.verifyTheElementIsVisible(this.notificationItems.first(), {
+            assertionMessage: 'First notification item should be visible',
+            timeout: 10_000,
+          });
+        }
+      } catch {
+        // If no items exist or counting fails, it's okay - page might be empty
+        // The page is still loaded (verified by verifyThePageIsLoaded above)
+      }
+    });
+  }
+
+  /**
    * Clicks on the add customization button
    */
   async clickOnAddCustomizationButton(): Promise<void> {
@@ -209,41 +240,15 @@ export class NotificationCustomizationPage extends BasePage {
     });
   }
 
-  async clickButton(buttonName: string, step?: string, timeout = 30_000): Promise<void> {
-    const stepName = step || `Click ${buttonName}`;
-    await test.step(stepName, async () => {
-      const button = this.page.getByRole('button', { name: buttonName });
-      await this.clickOnElement(button, { timeout });
-    });
-  }
-
   /**
-   * Verifies button state (visible, enabled, disabled)
-   * @param buttonName - The name of the button
-   * @param verificationType - Type of verification (visible, enabled, disabled)
-   * @param step - Optional step name
+   * Verifies button state - delegates to CommonActionsComponent
    */
   async verifyButton(
     buttonName: string,
     verificationType: 'visible' | 'enabled' | 'disabled',
     step?: string
   ): Promise<void> {
-    const stepName = step || `Verify ${buttonName} button is ${verificationType}`;
-    await test.step(stepName, async () => {
-      // Use first() to handle multiple buttons with same name (e.g., Cancel button in tooltip and in step)
-      const button = this.page.getByRole('button', { name: buttonName }).first();
-      switch (verificationType) {
-        case 'visible':
-          await this.verifier.verifyTheElementIsVisible(button);
-          break;
-        case 'enabled':
-          await this.verifier.verifyTheElementIsEnabled(button);
-          break;
-        case 'disabled':
-          await this.verifier.verifyTheElementIsDisabled(button);
-          break;
-      }
-    });
+    await this.commonActions.verifyButton(buttonName, verificationType, step);
   }
 
   /**
@@ -265,6 +270,18 @@ export class NotificationCustomizationPage extends BasePage {
     return await test.step('Count template items on Add customization page', async () => {
       const count = await this.templateItems.count();
       return count;
+    });
+  }
+
+  /**
+   * Verifies that template items counter shows items (count > 0)
+   */
+  async verifyTemplateItemsCounterIsVisible(): Promise<void> {
+    await test.step('Verify template items counter shows items', async () => {
+      const templateCount = await this.countTemplateItems();
+      if (templateCount === 0) {
+        throw new Error('Template items counter should show items but count is 0');
+      }
     });
   }
 
@@ -303,12 +320,15 @@ export class NotificationCustomizationPage extends BasePage {
   }
 
   /**
-   * Opens the More menu and clicks the Delete option for the first item
+   * Opens the More menu and clicks the Delete option
+   * @param customizationText - Optional text to identify the specific customization row. If not provided, uses the first item.
    */
-  async clickOnDeleteOption(): Promise<void> {
+  async clickOnDeleteOption(customizationText?: string): Promise<void> {
     await test.step('Click on delete option from More menu', async () => {
-      const menuButton = this.page.getByRole('button', { name: 'More' }).first();
-      await this.clickOnElement(menuButton);
+      const menuButton = customizationText
+        ? this.getMenuButton(customizationText)
+        : this.page.getByRole('button', { name: 'More' }).first();
+      await this.clickOnElement(menuButton, { timeout: 10_000 });
 
       const deleteOption = this.page.getByRole('button', { name: 'Delete' });
       await this.clickOnElement(deleteOption);
@@ -382,18 +402,15 @@ export class NotificationCustomizationPage extends BasePage {
   }
 
   /**
-   * Verifies that a toast message with the specified text is visible
-   * @param message - The expected toast message text
+   * Verifies toast message is visible - delegates to CommonActionsComponent
    */
   async verifyToastMessage(message: string): Promise<void> {
-    await test.step(`Verify toast message: ${message}`, async () => {
-      const specificAlert = this.page.getByRole('alert').filter({ hasText: message }).first();
-      await this.verifier.verifyTheElementIsVisible(specificAlert, {
-        timeout: 15_000,
-        assertionMessage: `Toast should contain: ${message}`,
-      });
-    });
+    await this.commonActions.verifyToastMessage(message);
   }
+
+  /**
+   * Verifies toast message is NOT visible - delegates to CommonActionsComponent
+   */
 
   /**
    * Searches in the notification listing
@@ -429,7 +446,7 @@ export class NotificationCustomizationPage extends BasePage {
     await test.step('Delete customization from menu', async () => {
       // Click the 'More' menu button (first one if no specific text provided)
       const menuButton = customizationText
-        ? this.page.locator(`tr:has-text("${customizationText}")`).getByRole('button', { name: 'More' }).first()
+        ? this.getMenuButton(customizationText)
         : this.page.getByRole('button', { name: 'More' }).first();
 
       await this.clickOnElement(menuButton, { timeout: 10_000 });
@@ -496,10 +513,7 @@ export class NotificationCustomizationPage extends BasePage {
   async clickEditFromMenu(customizationText: string): Promise<void> {
     await test.step(`Click Edit from More menu for ${customizationText}`, async () => {
       // Click the 'More' menu button for the specific customization
-      const menuButton = this.page
-        .locator(`tr:has-text("${customizationText}")`)
-        .getByRole('button', { name: 'More' })
-        .first();
+      const menuButton = this.getMenuButton(customizationText);
       await this.clickOnElement(menuButton, { timeout: 10_000 });
 
       // Click Edit option from menu
@@ -510,6 +524,20 @@ export class NotificationCustomizationPage extends BasePage {
       await this.verifier.verifyTheElementIsVisible(this.addCustomizationTitle, {
         assertionMessage: 'Add customization page should be visible',
         timeout: 10_000,
+      });
+    });
+  }
+
+  /**
+   * Waits for a customization to be visible in the listing
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   */
+  async waitForCustomizationToBeVisible(customizationText: string): Promise<void> {
+    await test.step(`Wait for customization "${customizationText}" to be visible in listing`, async () => {
+      const row = this.page.locator(`tr:has-text("${customizationText}")`).first();
+      await this.verifier.verifyTheElementIsVisible(row, {
+        assertionMessage: `Customization row for "${customizationText}" should be visible`,
+        timeout: 30_000,
       });
     });
   }
@@ -537,6 +565,76 @@ export class NotificationCustomizationPage extends BasePage {
   }
 
   /**
+   * Gets the "Last modified" timestamp text for a specific customization row
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   * @returns Promise<string> - The "Last modified" timestamp text
+   */
+  async getLastModifiedTimestamp(customizationText: string): Promise<string> {
+    return await test.step(`Get last modified timestamp for ${customizationText}`, async () => {
+      const row = this.page.locator(`tr:has-text("${customizationText}")`).first();
+      await this.verifier.verifyTheElementIsVisible(row, {
+        assertionMessage: `Row for ${customizationText} should be visible`,
+        timeout: 10_000,
+      });
+
+      // Find the "Last modified" cell - typically contains text like "in a few seconds", "a few seconds ago", "a minute ago", etc.
+      // The timestamp is usually in a cell that contains relative time text
+      const lastModifiedCell = row
+        .locator('td')
+        .filter({ hasText: /(in|ago|seconds|minute|minutes|hour|hours|day|days)/i })
+        .last();
+      const timestampText = await lastModifiedCell.textContent();
+      if (!timestampText) {
+        throw new Error(`Could not find "Last modified" timestamp for ${customizationText}`);
+      }
+      return timestampText.trim();
+    });
+  }
+
+  /**
+   * Verifies the "Last modified" field shows expected text (e.g., "in a few seconds")
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   * @param expectedText - The expected timestamp text (can be partial match, e.g., "in a few seconds", "a minute ago")
+   */
+  async verifyLastModifiedTimestamp(customizationText: string, expectedText: string): Promise<void> {
+    await test.step(`Verify last modified timestamp for ${customizationText} shows "${expectedText}"`, async () => {
+      const row = this.page.locator(`tr:has-text("${customizationText}")`).first();
+      await this.verifier.verifyTheElementIsVisible(row, {
+        assertionMessage: `Row for ${customizationText} should be visible`,
+        timeout: 10_000,
+      });
+
+      // Find the timestamp text in the row (it should be in a cell)
+      const timestampCell = row.getByText(expectedText, { exact: false });
+      await this.verifier.verifyTheElementIsVisible(timestampCell, {
+        assertionMessage: `Last modified timestamp "${expectedText}" should be visible in listing`,
+        timeout: 10_000,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the "Last modified" timestamp has been updated (changed from previous value)
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   * @param previousTimestamp - The previous timestamp text to compare against
+   */
+  async verifyLastModifiedTimestampUpdated(customizationText: string, previousTimestamp: string): Promise<void> {
+    await test.step(`Verify last modified timestamp for ${customizationText} has been updated from "${previousTimestamp}"`, async () => {
+      // Wait a moment for the timestamp to potentially update
+      await this.page.waitForTimeout(1_000);
+
+      const currentTimestamp = await this.getLastModifiedTimestamp(customizationText);
+
+      // The timestamp should be different from the previous one
+      if (currentTimestamp === previousTimestamp) {
+        throw new Error(
+          `Expected "Last modified" timestamp to be updated for ${customizationText}, but it remains "${currentTimestamp}"`
+        );
+      }
+    });
+  }
+
+  /**
    * Verifies the help icon is visible
    */
   async verifyHelpIconIsVisible(): Promise<void> {
@@ -549,28 +647,333 @@ export class NotificationCustomizationPage extends BasePage {
   }
 
   /**
+   * Verifies the best practices tooltip is visible and contains the expected bullet points
+   * @param expectedBulletPoints - Array of expected bullet point texts
+   */
+  async verifyBestPracticesTooltipContent(expectedBulletPoints: readonly string[]): Promise<void> {
+    await test.step('Verify best practices tooltip content', async () => {
+      // Verify tooltip heading is visible (ensures tooltip is open)
+      await this.verifier.verifyTheElementIsVisible(this.tipsHeading, {
+        assertionMessage: 'Tips heading should be visible in tooltip',
+        timeout: 10_000,
+      });
+
+      // Use XPath to locate the paragraph elements containing bullet points
+      // XPath: //h5[text()='Tips for custom subject lines']//ancestor::div[contains(@class,'Panel-module__panel__5CmIk')]//ul//li//p
+      const bulletPointParagraphs = this.page.locator(
+        "xpath=//h5[text()='Tips for custom subject lines']//ancestor::div[contains(@class,'Panel-module__panel__5CmIk')]//ul//li//p"
+      );
+
+      // Verify each bullet point is present in the tooltip
+      // First, wait for the paragraphs to be available
+      const paragraphCount = await bulletPointParagraphs.count();
+      if (paragraphCount === 0) {
+        throw new Error('No bullet point paragraphs found in tooltip');
+      }
+
+      // Helper function to normalize whitespace for comparison
+      // Normalizes whitespace around punctuation to handle differences like "(e.g., " vs "(e.g.,"
+      const normalizeWhitespace = (text: string): string => {
+        return text
+          .trim()
+          .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+          .replace(/\s*([,.:;!?])\s*/g, '$1 ') // Normalize whitespace around punctuation
+          .replace(/\s+/g, ' ') // Replace multiple spaces again after punctuation normalization
+          .trim();
+      };
+
+      // Get all paragraph texts and verify each expected bullet point is present
+      const foundTexts: string[] = [];
+      for (let i = 0; i < paragraphCount; i++) {
+        const paragraphText = await bulletPointParagraphs.nth(i).textContent();
+        if (paragraphText) {
+          foundTexts.push(normalizeWhitespace(paragraphText));
+        }
+      }
+
+      // Verify each expected bullet point is found in the paragraphs
+      for (const bulletPoint of expectedBulletPoints) {
+        const normalizedBulletPoint = normalizeWhitespace(bulletPoint);
+        const found = foundTexts.some(text => text === normalizedBulletPoint || text.includes(normalizedBulletPoint));
+        if (!found) {
+          throw new Error(`Bullet point "${bulletPoint}" not found in tooltip. Found texts: ${foundTexts.join(' | ')}`);
+        }
+      }
+    });
+  }
+
+  /**
+   * Verifies the best practices tooltip is not visible (closed)
+   */
+  async verifyBestPracticesTooltipIsClosed(): Promise<void> {
+    await test.step('Verify best practices tooltip is closed', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.tipsHeading, {
+        assertionMessage: 'Tips tooltip should be closed',
+        timeout: 5_000,
+      });
+    });
+  }
+
+  /**
+   * Verifies text is visible on the page - delegates to CommonActionsComponent
+   */
+  async verifyTextIsVisible(
+    text: string,
+    options?: {
+      exact?: boolean;
+      timeout?: number;
+      assertionMessage?: string;
+    }
+  ): Promise<void> {
+    await this.commonActions.verifyTextIsVisible(text, options);
+  }
+
+  /**
    * Ensures at least one customization exists for the specified feature and template
    * If none exists, creates one
    * @param feature - The notification feature (e.g., MUST_READS, ALERTS)
    * @param template - The template name to use for this feature
+   * @param featureButtonName - The button name to identify the feature in the listing (e.g., "Must reads", "Alerts")
    */
-  async ensureAtLeastOneCustomizationExists(feature: NotificationFeatures, template: string): Promise<void> {
+  async ensureAtLeastOneCustomizationExists(
+    feature: NotificationFeatures,
+    template: string,
+    featureButtonName: string
+  ): Promise<void> {
     await test.step(`Ensure at least one customization exists for ${feature}`, async () => {
-      // Wait for page to be fully loaded before counting items
-      await this.verifyThePageIsLoaded();
+      // Wait for listing page to fully load with all existing customizations
+      await this.waitForListingPageToFullyLoad();
 
-      // Wait for notification items to be visible (if any exist)
-      const currentCount = await this.countNotificationItems();
-      if (currentCount > 0) {
-        // Wait for existing items to be fully loaded
-        await this.verifier.verifyTheElementIsVisible(this.notificationItems.first(), {
-          timeout: 10_000,
-        });
-      }
+      // Check if the SPECIFIC customization for this feature exists
+      const customizationExists = await this.isCustomizationVisible(featureButtonName);
 
-      if (currentCount === 0) {
+      if (!customizationExists) {
+        // This specific customization doesn't exist, create one
         await NotificationCustomizationHelper.createNotificationCustomization(this, feature, template);
+        // Wait for the newly created customization to appear
+        await this.waitForListingPageToFullyLoad();
       }
+    });
+  }
+
+  /**
+   * Verifies that a stepper step is disabled/not clickable
+   * @param stepName - The name of the stepper step (e.g., "Select notification", "Override and confirmation", "Manage translations")
+   */
+  async verifyEditSelectStepperStepIsDisabled(stepName: string): Promise<void> {
+    await test.step(`Verify stepper step "${stepName}" is disabled/not clickable`, async () => {
+      const stepButton = this.page.getByRole('button', { name: stepName });
+      await this.verifier.verifyTheElementIsDisabled(stepButton, {
+        assertionMessage: `Stepper step "${stepName}" should be disabled/not clickable`,
+      });
+    });
+  }
+
+  /**
+   * Gets the menu button locator for a specific customization row
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   * @returns The menu button locator
+   */
+  getMenuButton(customizationText: string): Locator {
+    return this.page.locator(`tr:has-text("${customizationText}")`).getByRole('button', { name: 'More' }).first();
+  }
+
+  /**
+   * Opens the three-dot menu for a specific customization row without clicking an option
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   */
+  async openThreeDotMenu(customizationText: string): Promise<void> {
+    await test.step(`Open three-dot menu for ${customizationText}`, async () => {
+      const menuButton = this.getMenuButton(customizationText);
+      await this.clickOnElement(menuButton, { timeout: 10_000 });
+    });
+  }
+
+  /**
+   * Verifies the notification customization table is visible with expected columns
+   */
+  async verifyNotificationCustomizationTableIsVisible(): Promise<void> {
+    await test.step('Verify notification customization table is visible with columns', async () => {
+      // Prefer using explicit row locators instead of generic "table"
+      // to avoid hidden DataTables scaffolding or cloned tables.
+      const rowCount = await this.notificationItems.count();
+      if (rowCount === 0) {
+        throw new Error('Notification customization table should be visible but no rows were found');
+      }
+
+      // Verify the first data row is visible – this implies the table is rendered
+      await this.verifier.verifyTheElementIsVisible(this.notificationItems.first(), {
+        assertionMessage: 'Notification customization table should be visible',
+        timeout: 10_000,
+      });
+    });
+  }
+
+  /**
+   * Verifies the menu options (Edit and Delete) are visible and enabled
+   */
+  async verifyMenuOptionsAreVisibleAndEnabled(): Promise<void> {
+    await test.step('Verify menu options (Edit and Delete) are visible and enabled', async () => {
+      const editOption = this.page.getByRole('button', { name: 'Edit' });
+      const deleteOption = this.page.getByRole('button', { name: 'Delete' });
+
+      await this.verifier.verifyTheElementIsVisible(editOption, {
+        assertionMessage: 'Edit option should be visible in menu',
+        timeout: 5_000,
+      });
+      await this.verifier.verifyTheElementIsEnabled(editOption, {
+        assertionMessage: 'Edit option should be enabled',
+      });
+
+      await this.verifier.verifyTheElementIsVisible(deleteOption, {
+        assertionMessage: 'Delete option should be visible in menu',
+        timeout: 5_000,
+      });
+      await this.verifier.verifyTheElementIsEnabled(deleteOption, {
+        assertionMessage: 'Delete option should be enabled',
+      });
+    });
+  }
+
+  /**
+   * Closes the menu by clicking outside of it
+   */
+  async closeMenuByClickingOutside(): Promise<void> {
+    await test.step('Close menu by clicking outside', async () => {
+      // Click on the page title or a neutral area to close the menu
+      await this.clickOnElement(this.notificationCustomizationTitle);
+    });
+  }
+
+  /**
+   * Verifies the menu is closed (Edit and Delete options are not visible)
+   */
+  async verifyMenuIsClosed(): Promise<void> {
+    await test.step('Verify menu is closed', async () => {
+      const editOption = this.page.getByRole('button', { name: 'Edit' });
+      await this.verifier.verifyTheElementIsNotVisible(editOption, {
+        assertionMessage: 'Menu should be closed (Edit option should not be visible)',
+        timeout: 2_000,
+      });
+    });
+  }
+
+  /**
+   * Verifies the delete confirmation modal content (title, message, description, and buttons)
+   */
+  async verifyDeleteConfirmationModalContent(): Promise<void> {
+    await test.step('Verify delete confirmation modal content', async () => {
+      // Verify modal is visible
+      await this.verifier.verifyTheElementIsVisible(this.deleteConfirmationDialog, {
+        assertionMessage: 'Delete confirmation modal should be visible',
+        timeout: 5_000,
+      });
+
+      // Verify modal title "Delete override"
+      const dialog = this.page.getByRole('dialog');
+      const modalTitle = dialog.getByRole('heading', { name: /delete override/i });
+      await this.verifier.verifyTheElementIsVisible(modalTitle, {
+        assertionMessage: 'Modal title "Delete override" should be visible',
+        timeout: 5_000,
+      });
+
+      // Verify modal message
+      await this.verifier.verifyTheElementIsVisible(this.deleteConfirmationMessage, {
+        assertionMessage: 'Modal message should be visible',
+      });
+
+      // Verify modal description
+      await this.verifier.verifyTheElementIsVisible(this.deleteConfirmationDescription, {
+        assertionMessage: 'Modal description should be visible',
+      });
+
+      // Verify Cancel and Delete buttons
+      await this.verifier.verifyTheElementIsVisible(this.modalCancelButton, {
+        assertionMessage: 'Cancel button should be visible in modal',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.modalConfirmDeleteButton, {
+        assertionMessage: 'Delete button should be visible in modal',
+      });
+    });
+  }
+
+  /**
+   * Clicks Cancel button in the delete confirmation modal
+   */
+  async cancelDeletion(): Promise<void> {
+    await test.step('Cancel deletion in modal', async () => {
+      await this.clickOnElement(this.modalCancelButton);
+    });
+  }
+
+  /**
+   * Verifies a customization is NOT visible in the listing
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   */
+  async verifyCustomizationIsNotVisible(customizationText: string): Promise<void> {
+    await test.step(`Verify customization "${customizationText}" is not visible in listing`, async () => {
+      const row = this.page.locator(`tr:has-text("${customizationText}")`).first();
+      await this.verifier.verifyTheElementIsNotVisible(row, {
+        assertionMessage: `Customization "${customizationText}" should not be visible in listing`,
+        timeout: 5_000,
+      });
+    });
+  }
+
+  /**
+   * Checks if a customization is visible in the listing (returns boolean without throwing error)
+   * @param customizationText - The text to identify the customization row (e.g., "Must reads")
+   * @returns Promise<boolean> - true if visible, false if not
+   */
+  async isCustomizationVisible(customizationText: string): Promise<boolean> {
+    return await test.step(`Check if customization "${customizationText}" is visible in listing`, async () => {
+      try {
+        const row = this.page.locator(`tr:has-text("${customizationText}")`).first();
+        // Wait briefly for the row to appear if it exists
+        await row.waitFor({ state: 'visible', timeout: 3000 });
+        return await row.isVisible();
+      } catch {
+        // If waiting fails, the row doesn't exist
+        return false;
+      }
+    });
+  }
+
+  /**
+   * Deletes a customization if it exists (graceful - no error if doesn't exist)
+   * @param featureButtonName - The button name to identify the feature in the listing
+   */
+  async deleteCustomizationIfExists(featureButtonName: string): Promise<void> {
+    await test.step(`Delete customization "${featureButtonName}" if it exists`, async () => {
+      const customizationExists = await this.isCustomizationVisible(featureButtonName);
+      if (customizationExists) {
+        await this.deleteCustomizationFromMenu(featureButtonName);
+        await this.verifyToastMessage(ALERT_NOTIFICATION_MESSAGES.CUSTOMIZATION_DELETED);
+      }
+    });
+  }
+
+  /**
+   * Creates a fresh customization by first deleting any existing one, then creating new
+   * This ensures tests start with clean state
+   * @param feature - The notification feature (e.g., MUST_READS, ALERTS)
+   * @param template - The template name to use for this feature
+   * @param featureButtonName - The button name to identify the feature in the listing
+   */
+  async createFreshCustomization(
+    feature: NotificationFeatures,
+    template: string,
+    featureButtonName: string
+  ): Promise<void> {
+    await test.step(`Create fresh customization for ${feature}`, async () => {
+      // Delete existing customization if present
+      await this.deleteCustomizationIfExists(featureButtonName);
+
+      // Create new customization
+      await NotificationCustomizationHelper.createNotificationCustomization(this, feature, template);
+
+      // Wait for listing page to reload
+      await this.waitForListingPageToFullyLoad();
     });
   }
 }

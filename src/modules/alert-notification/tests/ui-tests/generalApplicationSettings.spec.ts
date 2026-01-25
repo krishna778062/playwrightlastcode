@@ -1,6 +1,8 @@
 import { AlertNotificationSuiteTags } from '@alert-notification-constants/testTags';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ApplicationNotificationSettingsPage } from '../../ui/pages/applicationNotificationSettingsPage';
@@ -21,51 +23,69 @@ test.describe(
       await applicationNotificationSettingsPage.verifyThePageIsLoaded();
     });
 
-    test('tc001 - verify SMS and Push notification settings are displayed under General Application Settings tab', async () => {
-      tagTest(test.info(), {
-        zephyrTestId: 'INT-29350',
-      });
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSNotificatioTextIsDisplayed();
+    test(
+      'tc001 - verify SMS and Push notification settings are displayed under General Application Settings tab',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29350',
+        });
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSNotificatioTextIsDisplayed();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushNotificationTextIsDisplayed();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushNotificationTextIsDisplayed();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSDescriptionTextIsDisplayed();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSDescriptionTextIsDisplayed();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushDescriptionTextIsDisplayed();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushDescriptionTextIsDisplayed();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsDisplayed();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsDisplayed();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsDisplayed();
-    });
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsDisplayed();
+      }
+    );
 
-    test('tc002 - verify user is able to toggle SMS notification settings from General Application Settings page', async () => {
-      tagTest(test.info(), {
-        zephyrTestId: '',
-      });
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.unCheckSMSNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
-      await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsUnhecked();
+    test(
+      'tc002 - verify user is able to toggle SMS notification settings from General Application Settings page',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: '',
+        });
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.unCheckSMSNotificationsCheckbox();
+        await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
+        await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsUnhecked();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.checkSMSNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
-      await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsChecked();
-    });
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.checkSMSNotificationsCheckbox();
+        await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
+        await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifySMSCheckboxIsChecked();
+      }
+    );
 
-    test('tc003 - verify user is able to toggle Push notification settings from General Application Settings page', async () => {
-      tagTest(test.info(), {
-        zephyrTestId: 'INT-29352',
-      });
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.unCheckPushNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
-      await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsUnhecked();
+    test(
+      'tc003 - verify user is able to toggle Push notification settings from General Application Settings page',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async () => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-29352',
+        });
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.unCheckPushNotificationsCheckbox();
+        await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
+        await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsUnhecked();
 
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.checkPushNotificationsCheckbox();
-      await applicationNotificationSettingsPage.commonActionsComponent.clickButton('Save');
-      await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
-      await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsChecked();
-    });
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.checkPushNotificationsCheckbox();
+        await applicationNotificationSettingsPage.commonActionsComponent.clickButtonIfEnabled('Save');
+        await applicationNotificationSettingsPage.commonActionsComponent.reloadPage();
+        await applicationNotificationSettingsPage.applicationNotificationSettingsComponent.verifyPushCheckboxIsChecked();
+      }
+    );
   }
 );

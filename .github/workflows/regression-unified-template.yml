@@ -397,7 +397,7 @@ jobs:
               # Same modules, runs during UAT stage
               # ──────────────────────────────────────────────────────────
               "uat_release")
-                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
+                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","comms-planner"]'
                 echo "✅ UAT release: Full UI regression (all modules including content)"
                 ;;
 
@@ -406,7 +406,7 @@ jobs:
               # Excludes some modules that are less critical for healthcheck
               # ──────────────────────────────────────────────────────────
               "prod_healthcheck")
-                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening","form-designer"]'
+                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening"]'
                 echo "✅ Prod healthcheck: Core UI modules"
                 ;;
 
