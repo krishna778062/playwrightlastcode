@@ -291,7 +291,6 @@ export class RenamingPage extends BasePage {
     if (!flag || typeof flag.value !== 'string') {
       throw new Error(`Harness flag "${flagName}" not found in response`);
     }
-    console.log(`Harness flag ${flagName} value:`, flag.value.toLowerCase());
     return flag.value.toLowerCase() === 'true';
   }
 
@@ -1053,7 +1052,6 @@ export class RenamingPage extends BasePage {
       await this.captureTranslationsForCard('points');
     const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
       await this.captureTranslationsForCard('recognition');
-    let i = 0;
     for (const [languageLabel, translatedRewardStoreValue] of rewardStoreTranslationsByLanguage.entries()) {
       const candidates = this.parseLanguageCandidates(languageLabel);
       let languageId: number | undefined;
@@ -1079,7 +1077,6 @@ export class RenamingPage extends BasePage {
       await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
       await this.page.reload({ waitUntil: 'domcontentloaded' });
       await this.validateTheRewardStoreValueInApp(expectedMap);
-      console.log(i++);
     }
   }
 
