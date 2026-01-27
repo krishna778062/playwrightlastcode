@@ -883,7 +883,8 @@ export class RenamingPage extends BasePage {
     });
   }
 
-  private async validateRecognitionOnHome(recognition: string): Promise<void> {
+  private async validateRecognitionOnHome(customValue: any): Promise<void> {
+    const recognition = customValue.get('recognition');
     const homePage = new HomeDashboardPage(this.page);
     await homePage.visit();
     const locator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`);
@@ -894,13 +895,36 @@ export class RenamingPage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }));
   }
 
-  private async validateRecognitionOnHub(recognition: string): Promise<void> {
+  private async validateRecognitionOnHub(customValue: any): Promise<void> {
     const hub = new RecognitionHubPage(this.page);
     await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
     await hub.verifyThePageIsLoaded();
     const recognitionHubHeading = this.page.locator('[class*="PageContainerFullscreen_header"] h1');
     await this.verifier.verifyTheElementIsVisible(recognitionHubHeading, {
-      assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubHeading.filter({ hasText: recognition }).textContent()} is visible on recognition hub page`,
+      assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
+    });
+    await this.validateRecognitionButtonText(customValue.get('recognition'));
+    await this.validateRecognitionButtonInGiveRecognitionModal(customValue);
+  }
+
+  private async validateRecognitionButtonInGiveRecognitionModal(customValue: any): Promise<void> {
+    const recognitionHubButton = this.page.locator('[class*="Fullscreen_header"] button');
+    const recognitionModalHeading = this.page.locator('[class*="Dialog-module__header"] h2');
+    const recognitionModalCloseButton = this.page.locator('[class*="Dialog-module__header"] button');
+    await recognitionHubButton.click();
+    await this.verifier.verifyTheElementIsVisible(recognitionModalHeading, {
+      assertionMessage: `Verifying give recognition modal heading with label ${await recognitionModalHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
+    });
+    await recognitionModalCloseButton.click();
+    await this.verifier.verifyTheElementIsNotVisible(recognitionModalHeading, {
+      assertionMessage: `Verifying give recognition modal heading with label ${await recognitionModalHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
+    });
+  }
+
+  private async validateRecognitionButtonText(recognition: string): Promise<void> {
+    const recognitionHubButton = this.page.locator('[class="PageContainerFullscreen_headerRightContent"] button');
+    await this.verifier.verifyTheElementIsVisible(recognitionHubButton, {
+      assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubButton.filter({ hasText: recognition }).textContent()} is visible on recognition hub page`,
     });
   }
 
@@ -911,16 +935,18 @@ export class RenamingPage extends BasePage {
   }
 
   async validateTheRecognitionValueInApp(customValue: any): Promise<void> {
-    const recognition = customValue.get('recognition');
     await this.validateAcrossPages([
-      () => this.validateRecognitionOnHome(recognition),
-      () => this.validateRecognitionOnHub(recognition),
+      () => this.validateRecognitionOnHome(customValue),
+      () => this.validateRecognitionOnHub(customValue),
       async () => {
         await this.openOneSiteDashboard();
         await this.openRecognitionComposer();
-        await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }), {
-          assertionMessage: 'Verifying recognition button with custom value is visible on site dashboard page',
-        });
+        await this.verifier.verifyTheElementIsVisible(
+          this.recognitionCreationButton.filter({ hasText: customValue.get('recognition') }),
+          {
+            assertionMessage: 'Verifying recognition button with custom value is visible on site dashboard page',
+          }
+        );
       },
     ]);
   }
@@ -1113,10 +1139,10 @@ export class RenamingPage extends BasePage {
     recognitionTranslationsByLanguage: Map<string, string>
   ): Promise<void> {
     const languageApi = new LanguageApiService();
-    const resetLanguageId = 1;
-
-    // If modal is open (caller just read translations), close it so we can safely navigate.
     await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
 
     for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
       const candidates = this.parseLanguageCandidates(languageLabel);
@@ -1129,17 +1155,15 @@ export class RenamingPage extends BasePage {
         throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
       }
 
-      try {
-        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
-
-        const expectedMap = new Map<string, string>();
-        expectedMap.set('recognition', translatedRecognitionValue);
-        await this.validateTheRecognitionValueInApp(expectedMap);
-      } finally {
-        await languageApi.languageChangeFunction(this.page, { supportedLanguageId: resetLanguageId });
-        await this.page.reload({ waitUntil: 'domcontentloaded' });
-      }
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', translatedRecognitionValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.validateTheRecognitionValueInApp(expectedMap);
     }
   }
 
