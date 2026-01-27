@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@/src/core';
 
@@ -39,6 +39,49 @@ export class ManageTranslationPage extends BaseComponent {
   async clickSendTestButton(): Promise<void> {
     await test.step('Click send test button', async () => {
       await this.clickOnElement(this.sendTestButton);
+    });
+  }
+
+  /**
+   * Verifies that "Different email address" option is selected
+   */
+  async verifyDifferentEmailAddressIsSelected(): Promise<void> {
+    await test.step('Verify different email address option is selected', async () => {
+      await expect(this.differentEmailAddressRadio, 'Different email address should be checked').toBeChecked();
+    });
+  }
+
+  /**
+   * Verifies that "Different email address" option is NOT selected
+   */
+  async verifyDifferentEmailAddressIsNotSelected(): Promise<void> {
+    await test.step('Verify different email address option is not selected', async () => {
+      await expect(this.differentEmailAddressRadio, 'Different email address should not be checked').not.toBeChecked();
+    });
+  }
+
+  /**
+   * Verifies that the email address input is empty
+   */
+  async verifyEmailAddressInputIsEmpty(): Promise<void> {
+    await test.step('Verify email address input is empty', async () => {
+      const inputValue = await this.emailAddressInput.inputValue();
+      if (inputValue !== '') {
+        throw new Error(`Expected email address input to be empty, but found "${inputValue}"`);
+      }
+    });
+  }
+
+  /**
+   * Verifies that the email address input contains the expected value
+   * @param expectedEmail - The expected email address value
+   */
+  async verifyEmailAddressInputValue(expectedEmail: string): Promise<void> {
+    await test.step(`Verify email address input contains: ${expectedEmail}`, async () => {
+      const inputValue = await this.emailAddressInput.inputValue();
+      if (inputValue !== expectedEmail) {
+        throw new Error(`Expected email addresses to remain "${expectedEmail}", but found "${inputValue}"`);
+      }
     });
   }
 }
