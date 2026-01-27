@@ -115,7 +115,8 @@ export class MessageCardComponent extends MessageBaseComponent {
         assertionMessage: 'expecting message container to be visible',
       });
       await this.messageContainer.hover();
-      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.openMessageActionsMenuFrom3Dots();
+      // await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
       await this.verifier.verifyTheElementIsNotVisible(this.editMessageButtonFromMessageActionsMenu, {
         assertionMessage: 'expecting edit message button to be not visible',
       });
