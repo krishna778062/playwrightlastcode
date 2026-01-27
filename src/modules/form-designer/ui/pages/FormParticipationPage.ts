@@ -125,9 +125,7 @@ export class FormParticipationPage extends BasePage {
       this.page.getByRole('textbox', { name: `Enter text for the property` }).nth(index);
     // this.notificationBell = this.page.getByTestId('launcher');
     this.notificationBell = this.page.locator('button[aria-label*=Notifications]').first();
-    this.zipPostCodeResponseNew = this.page
-      .getByTestId('field-Zip/Post code')
-      .getByRole('textbox', { name: 'Zip/Post code*', exact: true });
+    this.zipPostCodeResponseNew = this.page.getByRole('textbox', { name: 'Zip/Postal code *', exact: true });
     this.formNameInNotification = (formName: string) =>
       this.page.locator(`//span[contains(text(),'A new form is ready for you "${formName}"')]`);
     this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
@@ -657,6 +655,14 @@ export class FormParticipationPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
       await test.expect(this.page.getByText(response).first()).toBeChecked({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyMultiSelectFieldResponseOnPreviewScreen(response: string): Promise<void> {
+    await test.step('Verify multi select field response', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.page.getByText(response), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await test.expect(this.page.getByText(response)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
   async verifySingleSelectFieldResponse(response: string): Promise<void> {
