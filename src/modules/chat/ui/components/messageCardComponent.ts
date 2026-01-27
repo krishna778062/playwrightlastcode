@@ -141,7 +141,8 @@ export class MessageCardComponent extends MessageBaseComponent {
   async editAndUpdateMessage(message: string, editedMessage: string): Promise<void> {
     await test.step(`Editing and updating the message`, async () => {
       await this.messageContainer.hover();
-      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.openMessageActionsMenuFrom3Dots();
+      // await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
       await this.clickOnElement(this.editMessageButtonFromMessageActionsMenu);
       const messageEditor = this.page.getByLabel(message).getByTestId('tiptap-content');
       await messageEditor.click();
@@ -155,7 +156,8 @@ export class MessageCardComponent extends MessageBaseComponent {
   async editAndCancelMessage(): Promise<void> {
     await test.step(`Editing and updating the message`, async () => {
       await this.messageContainer.hover();
-      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.openMessageActionsMenuFrom3Dots();
+      // await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
       await this.clickOnElement(this.editMessageButtonFromMessageActionsMenu);
       await this.verifier.verifyTheElementIsVisible(this.cancelMessageButtonFromMessageEditBox, {
         assertionMessage: 'expecting cancel message button to be visible',
