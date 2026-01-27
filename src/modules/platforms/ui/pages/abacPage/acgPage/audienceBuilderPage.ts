@@ -83,12 +83,6 @@ export class AudienceBuilderPage extends BasePage {
   }
 
   /**
-   * Get a filter element by its text content
-   * @param filterText - The text content of the filter element
-   * @returns Locator for the filter element
-   */
-
-  /**
    * Verify the presence of a specific filter element
    * @param filterText - The text content of the filter element to verify
    */
@@ -112,12 +106,6 @@ export class AudienceBuilderPage extends BasePage {
       });
     });
   }
-
-  /**
-   * Get a filter option element by its text content
-   * @param optionText - The text content of the filter option element
-   * @returns Locator for the filter option element
-   */
 
   /**
    * Verify the presence of a specific filter option element

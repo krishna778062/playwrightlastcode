@@ -19,6 +19,142 @@ test.describe(
   },
   () => {
     test(
+      'verify the appearance of Create audience modal under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35852'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await test.step('Navigate to Audiences page', async () => {
+          await audiencePage.loadPage();
+        });
+
+        await test.step('Open Create audience modal', async () => {
+          await audiencePage.openCreateAudienceForm();
+        });
+
+        await test.step('Verify all modal elements are visible', async () => {
+          await audiencePage.verifyCreateAudienceModalAppearance();
+        });
+      }
+    );
+
+    test(
+      'verify the text for No Results when user searched audience which is not present',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33808'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await test.step('Navigate to manage/audience page', async () => {
+          await audiencePage.loadPage();
+        });
+
+        await test.step('Click on Create audience button', async () => {
+          await audiencePage.openCreateAudienceForm();
+        });
+
+        await test.step('Click on Edit icon of parent', async () => {
+          await audiencePage.clickParentEditIcon();
+        });
+
+        await test.step('Search for non-existent audience', async () => {
+          await audiencePage.searchAudienceInPicker('ewugdwebih');
+        });
+
+        await test.step('Verify No Results messages', async () => {
+          await audiencePage.verifyNoResultsMessage();
+        });
+      }
+    );
+
+    test(
+      'verify text No results found when user searched audience which is not present on main page',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33796'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await test.step('Navigate to manage/audience page', async () => {
+          await audiencePage.loadPage();
+        });
+
+        await test.step('Search for non-existent audience in search bar', async () => {
+          await audiencePage.searchAudienceOnMainPage('edhfbwekjsf');
+        });
+
+        await test.step('Verify No Results messages', async () => {
+          await audiencePage.verifyNoResultsOnMainPage();
+        });
+      }
+    );
+
+    test(
+      'verify the presence of all filters under Filters tab under audience page',
+      { tag: [TestPriority.P1, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33931'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await test.step('Navigate to manage/audience page', async () => {
+          await audiencePage.loadPage();
+        });
+
+        await test.step('Click on Filters button', async () => {
+          await audiencePage.clickFiltersButton();
+        });
+
+        await test.step('Verify presence of Attributes filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Attributes');
+        });
+
+        await test.step('Verify presence of Audience category filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Audience category');
+        });
+
+        await test.step('Verify presence of Audience member filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Audience member');
+        });
+
+        await test.step('Verify presence of Access control filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Access control');
+        });
+
+        await test.step('Verify presence of Feature filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Feature');
+        });
+
+        await test.step('Verify presence of Created by filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Created by');
+        });
+
+        await test.step('Verify presence of Modified by filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Modified by');
+        });
+
+        await test.step('Verify presence of Created date filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Created date');
+        });
+
+        await test.step('Verify presence of Modified date filter', async () => {
+          await audiencePage.verifyFilterElementPresence('Modified date');
+        });
+      }
+    );
+
+    test(
       'verify user is able to create audience with Okta attribute with All groups type under manage audience',
       { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {

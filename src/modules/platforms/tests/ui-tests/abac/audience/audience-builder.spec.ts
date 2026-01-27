@@ -11,6 +11,86 @@ import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audien
 
 test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, TestSuite.ABAC] }, () => {
   test(
+    'verify the presence of createdBy filter under audience rules filter',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-34534'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to manage/audience/rules', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Click on Filters button', async () => {
+        await audienceBuilderPage.clickFiltersButton();
+      });
+
+      await test.step('Verify presence of Created by filter', async () => {
+        await audienceBuilderPage.verifyFilterElementPresence('Created by');
+      });
+    }
+  );
+
+  test(
+    'verify the presence of Filters button under audience page',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33930'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to manage/audience/rules', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Verify presence of Filters button', async () => {
+        await audienceBuilderPage.verifyFiltersButtonPresence();
+      });
+
+      await test.step('Click on Filters button', async () => {
+        await audienceBuilderPage.clickFiltersButton();
+      });
+    }
+  );
+
+  test(
+    'verify the presence of cross Reset all and View results button under filters tab',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33932'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to Audience rules page', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Click on Filters button', async () => {
+        await audienceBuilderPage.clickFiltersButton();
+      });
+
+      await test.step('Verify presence of Cross icon', async () => {
+        await audienceBuilderPage.verifyCloseButtonPresence();
+      });
+
+      await test.step('Verify presence of Reset all button', async () => {
+        await audienceBuilderPage.verifyButtonTextPresence('Reset all');
+      });
+
+      await test.step('Verify presence of View results button', async () => {
+        await audienceBuilderPage.verifyButtonTextPresence('View results');
+      });
+    }
+  );
+
+  test(
     'filters under audience rule page',
     { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, '@healthcheck'] },
     async ({ appManagerUiFixture }) => {
