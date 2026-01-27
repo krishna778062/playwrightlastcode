@@ -417,6 +417,8 @@ export class ContentManagementHelper {
       publishAt?: string;
       publishTo?: string;
       listOfTopics?: string[];
+      isRestricted?: boolean;
+      targetAudience?: string[];
     };
   }) {
     const { siteId, contentInfo, options = {} } = params;
@@ -451,6 +453,8 @@ export class ContentManagementHelper {
       ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
       ...(options.publishAt && { publishAt: options.publishAt }),
       ...(options.publishTo && { publishTo: options.publishTo }),
+      ...(options.isRestricted !== undefined && { isRestricted: options.isRestricted }),
+      ...(options.targetAudience && { targetAudience: options.targetAudience }),
     });
 
     if (options.waitForSearchIndex) {

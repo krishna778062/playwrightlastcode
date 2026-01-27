@@ -588,4 +588,54 @@ export class BaseActionUtil {
       };
     });
   }
+
+  /**
+   *  Select the value in the Dropdown
+   * @param dropdownSelectorOrLocator : Locator of Dropdown
+   * @param option: {index: number or value: string or visibleText:strng}
+   * @param options
+   */
+  async selectDropdownOption(
+    dropdownSelectorOrLocator: string | Locator,
+    option: { index?: number; value?: string; visibleText?: string },
+    options?: { stepInfo?: string }
+  ) {
+    const dropdown =
+      typeof dropdownSelectorOrLocator === 'string'
+        ? this.page.locator(dropdownSelectorOrLocator)
+        : dropdownSelectorOrLocator;
+
+    await test.step(
+      options?.stepInfo ||
+        `Select dropdown option ${
+          option.index !== undefined
+            ? `by index ${option.index}`
+            : option.value
+              ? `by value ${option.value}`
+              : `by visible text ${option.visibleText}`
+        }`,
+      async () => {
+        try {
+          if (option.index !== undefined) {
+            await dropdown.selectOption({ index: option.index });
+            return;
+          }
+
+          if (option.value !== undefined) {
+            await dropdown.selectOption({ value: option.value });
+            return;
+          }
+
+          if (option.visibleText !== undefined) {
+            await dropdown.selectOption({ label: option.visibleText });
+            return;
+          }
+
+          throw new Error('selectDropdownOption requires one of: index | value | visibleText');
+        } catch (error) {
+          throw new Error(`Unable to select elements ${error}`);
+        }
+      }
+    );
+  }
 }

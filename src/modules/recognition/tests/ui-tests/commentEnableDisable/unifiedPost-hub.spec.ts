@@ -15,6 +15,7 @@ import { getRecognitionTenantConfigFromCache } from '@recognition/config/recogni
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { expect } from 'playwright/test';
 import { commonRecognitionTestData } from '@recognition/test-data/awardTestData';
+import { DialogContainerForm } from '@recognition/ui/components/common/dialog-container-form';
 
 test.describe('Add comments to unified posts - hub/feed', () => {
   test(
@@ -83,7 +84,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -154,7 +155,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -229,7 +230,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -313,7 +314,7 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
     }
   );
 
@@ -387,7 +388,35 @@ test.describe('Add comments to unified posts - hub/feed', () => {
         email: getRecognitionTenantConfigFromCache().appManagerEmail!,
         password: getRecognitionTenantConfigFromCache().appManagerPassword!,
       });
-      await recognitionHubApi.deleteAwardViaApi(appManagerPage, 'Peer recognition', awardId);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', awardId);
+    }
+  );
+});
+
+test.describe('Share peer recognition from hub - Site feed', () => {
+  test(
+    'Validate recognition post can be shared to Site feed while posting it on Hub',
+    {
+      tag: [RecognitionSuitTags.REGRESSION_TEST, TestPriority.P2, TestGroupType.REGRESSION],
+    },
+    async ({ appManagerFixture, recognitionHubApi }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-4214',
+        storyId: 'RC-1526',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const recognitionHubPage = new RecognitionHubPage(appManagerPage);
+      const dialogContainerForm = new DialogContainerForm(appManagerPage);
+      await recognitionHubPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await recognitionHubPage.givePeerRecognition(0, 0);
+      await dialogContainerForm.crossButton.click();
+      await recognitionHubPage.shareRecognitionPostFromHubToFeed(
+        `Recognition award share message_${Date.now()}`,
+        'site feed',
+        commonRecognitionTestData.siteName
+      );
+      const { awardId: recognitionAwardId } = await recognitionHubPage.copyLinkFromPost(0);
+      await recognitionHubApi.deleteRecognitionAwardPostViaApi(appManagerPage, 'Peer recognition', recognitionAwardId);
     }
   );
 });

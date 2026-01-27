@@ -33,6 +33,8 @@ export const PLATFORM_API_ENDPOINTS = {
       listOfAccessControlGroups: '/v2/identity/access-control/groups/list',
       createAccessControlGroup: '/v2/identity/access-control/groups',
       v1AccountSecurityIdpInternal: '/v1/account/security/idp/internal',
+      v2IdentityAccessControlGroupsSubjectStatsACGId: (acgId: string) =>
+        `/v2/identity/access-control/groups/subject-stats?acgIds=${acgId}`,
     },
   },
   identity: {

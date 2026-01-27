@@ -10,6 +10,9 @@ import { BasePage } from '@core/pages/basePage';
 import { MESSAGES } from '@/src/modules/recognition/constants/messages';
 
 export class RecognitionHubPage extends BasePage {
+  private lastAbacConfig?: { canCreateHomeFeedPost?: boolean };
+  private abacConfigPromise?: Promise<{ canCreateHomeFeedPost?: boolean }>;
+  private resolveAbacConfig?: (config: { canCreateHomeFeedPost?: boolean }) => void;
   readonly recognitionHeader: Locator;
   readonly giveRecognitionButton: Locator;
   readonly recognizeButton: Locator;
@@ -36,13 +39,17 @@ export class RecognitionHubPage extends BasePage {
   readonly commentSubmitButton: Locator;
   readonly commentCountIndicator: Locator;
   readonly commentItems: Locator;
+  readonly giveRecognition: Locator;
+  readonly giveAwardButton: Locator;
+  readonly spotAwardPromotionTile: Locator;
   readonly receiverNameLink: Locator;
+  readonly sharePostButton: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
     this.manageRecognitionPage = new ManageRecognitionPage(page);
     this.recognitionHeader = page.getByRole('heading', { name: 'Recognition', exact: true });
-    this.giveRecognitionButton = page.locator('header').filter({ hasText: 'Give recognition' }).getByRole('button');
+    this.giveRecognitionButton = page.locator('[class*="headerContent"] button');
     this.recognizeButton = page.getByRole('button', { name: /recognize/i }).first();
     this.shareModal = page.locator('[data-testid="share-recognition-modal"], [role="dialog"]').first();
     this.shareModalHeading = this.shareModal.getByRole('heading', { name: /share recognition/i }).first();
@@ -64,6 +71,7 @@ export class RecognitionHubPage extends BasePage {
     this.feedPostMoreButton = page.getByTestId('recognition_popover_launcher');
     this.copyLinkMenuItem = page.getByRole('menuitem', { name: /copy link/i }).first();
     this.badgeIcon = page.locator('[data-testid="award-icon"]');
+    this.sharePostButton = page.getByRole('button', { name: /share this recognition/i }).first();
 
     // Commenting locators
     this.commentIcon = page.getByRole('button', { name: /comment on this recognition/i }).first();
@@ -71,6 +79,9 @@ export class RecognitionHubPage extends BasePage {
     this.commentSubmitButton = page.getByRole('button', { name: /(post)/i }).first();
     this.commentCountIndicator = page.getByRole('button', { name: /(comment|comments)/i }).first();
     this.commentItems = page.locator('[data-testid="comment-item"], [class*="comment"]');
+    this.giveRecognition = page.locator('header').filter({ hasText: 'Give recognition' }).getByRole('button');
+    this.spotAwardPromotionTile = page.locator('[data-testid*="spot-awards"]');
+    this.giveAwardButton = this.spotAwardPromotionTile.getByRole('button', { name: 'Give award' }).first();
   }
 
   /**
@@ -118,6 +129,17 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Verify spot award promotion tile is visible
+   */
+  async verifySpotAwardPromotionTile(): Promise<void> {
+    await test.step('Verify promotional tile for Spot awards', async () => {
+      await expect(this.spotAwardPromotionTile, 'expecting spot award promotion tile to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
    * Give peer recognition to a user
    */
   async givePeerRecognition(
@@ -144,7 +166,6 @@ export class RecognitionHubPage extends BasePage {
         'Recognize button should disappear after submit'
       ).not.toBeVisible();
     });
-
     return recognitionPostMessage;
   }
 
@@ -207,8 +228,61 @@ export class RecognitionHubPage extends BasePage {
         }
         await this.shareButton.click();
       } else {
-        await this.skipButton.click();
+        if ((await this.skipButton.count()) > 0) {
+          await this.skipButton.waitFor({ state: 'attached' });
+          await this.skipButton.click();
+        }
       }
+    });
+  }
+  /**
+   * Fill form and validate Recognize button state
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param awardName - Name of the award
+   */
+  async fillFormAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Fill form and validate Recognize button', async () => {
+      await this.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
+      await this.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeDisabled();
+      await giveRecognitionDialogBox.recipientsInput.click();
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await giveRecognitionDialogBox.messageInput.fill('Test Message');
+      await giveRecognitionDialogBox.companyValuesInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeEnabled();
+    });
+  }
+
+  /**
+   * Remove optional field and validate Recognize button remains enabled
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async removeOptionalFieldAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox
+  ): Promise<void> {
+    await test.step('Remove optional field and validate Recognize button', async () => {
+      await giveRecognitionDialogBox.companyValuesInput.clear();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to remain enabled after removing optional field'
+      ).toBeEnabled();
     });
   }
 
@@ -270,6 +344,43 @@ export class RecognitionHubPage extends BasePage {
       });
     });
   }
+  /**
+   * Remove mandatory field and validate Recognize button is disabled
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async removeMandatoryFieldAndValidateRecognizeButton(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox
+  ): Promise<void> {
+    await test.step('Remove mandatory field and validate Recognize button', async () => {
+      await giveRecognitionDialogBox.recipientsInput.clear();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled after removing mandatory field'
+      ).toBeDisabled();
+    });
+  }
+
+  /**
+   * Click on Give Recognition button and validate dialog and tabs
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async clickGiveRecognitionAndValidate(giveRecognitionDialogBox: GiveRecognitionDialogBox): Promise<void> {
+    await test.step('Click on Give Recognition button and validate', async () => {
+      await this.giveRecognitionButton.click();
+      await expect(giveRecognitionDialogBox.container, 'expecting dialog container to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(
+        giveRecognitionDialogBox.peerRecognitionTab,
+        'expecting peer recognition tab to be visible'
+      ).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await expect(giveRecognitionDialogBox.spotAwardTab, 'expecting spot award tab to be visible').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
 
   async verifyCommentingAllowedForPost(allowed: boolean): Promise<void> {
     await test.step('Verify commenting allowed for post', async () => {
@@ -282,6 +393,19 @@ export class RecognitionHubPage extends BasePage {
           timeout: TIMEOUTS.MEDIUM,
         });
       }
+    });
+  }
+  /**
+   * Select Spot Award tab and validate it's active
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   */
+  async selectSpotAwardTabAndValidate(giveRecognitionDialogBox: GiveRecognitionDialogBox): Promise<void> {
+    await test.step('Select Spot Award tab and validate', async () => {
+      await giveRecognitionDialogBox.spotAwardTab.click();
+      await expect(giveRecognitionDialogBox.spotAwardTab, 'expecting spot award tab to be active').toHaveAttribute(
+        'data-state',
+        'active'
+      );
     });
   }
 
@@ -318,6 +442,44 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Verify spot awards for single recipient
+   * @param giveRecognitionDialogBox - GiveRecognitionDialogBox instance
+   * @param spotAwardPage - SpotAwardPage instance
+   */
+  async verifySpotAwardsForSingleRecipient(
+    giveRecognitionDialogBox: GiveRecognitionDialogBox,
+    awardName: string
+  ): Promise<void> {
+    await test.step('Verify spot awards for single recipient', async () => {
+      await this.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
+      await this.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeDisabled();
+      await giveRecognitionDialogBox.recipientsInput.click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientsInput.fill(awardName);
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+
+      await giveRecognitionDialogBox.getOption(0).click();
+      await this.page.waitForTimeout(1000);
+      await giveRecognitionDialogBox.recipientToGiveAwardInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await giveRecognitionDialogBox.messageInput.fill('Test Message');
+      await giveRecognitionDialogBox.companyValuesInput.click();
+      await giveRecognitionDialogBox.suggesterContainer.waitFor({ state: 'visible' });
+      await giveRecognitionDialogBox.getOption(0).click();
+      await expect(
+        giveRecognitionDialogBox.recognizeButton,
+        'expecting recognize button to be disabled initially'
+      ).toBeEnabled();
+      await giveRecognitionDialogBox.recognizeButton.click();
+    });
+  }
+
+  /**
    * Share a recognition post from the hub feed to home/site feed.
    */
   async shareRecognitionPostFromHubToFeed(
@@ -343,8 +505,10 @@ export class RecognitionHubPage extends BasePage {
         timeout: TIMEOUTS.SHORT,
       });
 
+      if ((await this.shareToFeedCheckbox.count()) > 0) {
+        await this.ensureChecked(this.shareToFeedCheckbox);
+      }
       // Ensure share to feed is enabled
-      await this.ensureChecked(this.shareToFeedCheckbox);
       if (feedType === 'site feed') {
         await this.siteFeedOption.click({ timeout: TIMEOUTS.MEDIUM });
         await this.siteInputField.waitFor({ state: 'visible' });
@@ -384,5 +548,53 @@ export class RecognitionHubPage extends BasePage {
       stepInfo: 'Clicking on cheer button',
     });
     await expect.poll(async () => await cheerIcon.getAttribute('data-testid')).not.toBe(before);
+  }
+
+  /**
+   * Register a one-time mock for the ABAC config call and capture the response.
+   * Call this BEFORE the action that triggers the request.
+   */
+  async setupCanCreateHomeFeedPostMock(canCreateHomeFeedPost: boolean): Promise<void> {
+    this.lastAbacConfig = undefined;
+    this.abacConfigPromise = new Promise(resolve => {
+      this.resolveAbacConfig = resolve;
+    });
+    await test.step(`Mock canCreateHomeFeedPost=${canCreateHomeFeedPost}`, async () => {
+      const pattern = '**/v1/rfeed/users/**/config';
+      await this.page.unroute(pattern).catch(() => {});
+      console.log('Registering ABAC config mock for pattern:', pattern);
+      await this.page.route(
+        pattern,
+        async route => {
+          const upstream = await route.fetch();
+          const json = await upstream.json();
+          this.lastAbacConfig = { ...json, canCreateHomeFeedPost };
+          await route.fulfill({
+            status: upstream.status(),
+            headers: upstream.headers(),
+            body: JSON.stringify(this.lastAbacConfig),
+          });
+          this.resolveAbacConfig?.(this.lastAbacConfig!);
+          this.resolveAbacConfig = undefined;
+        },
+        { times: 1 }
+      );
+    });
+  }
+
+  /**
+   * Validate the mocked ABAC flag was applied after the request completes.
+   * Call this AFTER the action that triggers the request (e.g., givePeerRecognition).
+   */
+  async validateCanCreateHomeFeedPostMock(expected: boolean): Promise<void> {
+    await test.step('Validate canCreateHomeFeedPost flag from mocked ABAC config', async () => {
+      const config = (await Promise.race([
+        this.abacConfigPromise ?? Promise.reject(new Error('ABAC mock was not initialized before validation')),
+        this.page.waitForTimeout(TIMEOUTS.MEDIUM).then(() => {
+          throw new Error('ABAC config request did not fire within expected time');
+        }),
+      ])) as { canCreateHomeFeedPost?: boolean };
+      expect(config.canCreateHomeFeedPost, 'canCreateHomeFeedPost should match requested value').toBe(expected);
+    });
   }
 }

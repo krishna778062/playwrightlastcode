@@ -50,6 +50,7 @@ test.describe(
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
           IntegrationsSuiteTags.HEALTH_CHECK,
+          '@google-calendar-2-way-rsvp-sync',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -344,7 +345,6 @@ test.describe(
           TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
-          '@siteDeactivationReactivation',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
@@ -417,7 +417,6 @@ test.describe(
           TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
-          '@siteDeactivationReactivation',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -491,7 +490,6 @@ test.describe(
           TestGroupType.SANITY,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
-          '@siteDeactivationReactivation',
         ],
       },
       async ({ appManagerFixture }) => {
@@ -953,7 +951,6 @@ test.describe(
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
           IntegrationsSuiteTags.HEALTH_CHECK,
           TestGroupType.SMOKE,
-          '@rsvpFromGoogleCalendar',
         ],
       },
       async ({ appManagerFixture, testSiteName, browser }) => {
@@ -1183,7 +1180,6 @@ test.describe(
           TestGroupType.SMOKE,
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
-          '@disconnectGoogleCalendar',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
