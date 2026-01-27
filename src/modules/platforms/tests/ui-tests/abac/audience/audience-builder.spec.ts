@@ -107,4 +107,117 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.verifyAppliedFilterRailAbsence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
     }
   );
+
+  test(
+    'verify the presence of Add category name option when user types something in Category dropdown field',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-36307'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to manage/audience/rules', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Click Create button to open dialog', async () => {
+        await audienceBuilderPage.clickCreateButton();
+      });
+
+      await test.step('Type category name in dropdown', async () => {
+        await audienceBuilderPage.typeInCategoryDropdown('NewCategory');
+      });
+
+      await test.step('Verify Add category option appears', async () => {
+        await audienceBuilderPage.verifyAddCategoryOptionPresence('NewCategory');
+      });
+    }
+  );
+
+  test(
+    'verify the order of filter name under Filters tab under Audience rules screen',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35235'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to manage/audience/rules', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Click on Filters button', async () => {
+        await audienceBuilderPage.clickFiltersButton();
+      });
+
+      await test.step('Verify the order of filter names', async () => {
+        const expectedOrder = ['Attributes', 'Created by', 'Created date'];
+        await audienceBuilderPage.verifyFilterOrder(expectedOrder);
+      });
+    }
+  );
+
+  test(
+    'verify the absence of search bar when options are less than 10 under createdBy filter',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-34538'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to manage/audience/rules', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Click on Filters button', async () => {
+        await audienceBuilderPage.clickFiltersButton();
+      });
+
+      await test.step('Click on Created by filter', async () => {
+        await audienceBuilderPage.clickButtonText('Created by');
+      });
+
+      await test.step('Verify search bar is not present when options are less than 10', async () => {
+        await audienceBuilderPage.verifySearchBarAbsence();
+      });
+    }
+  );
+
+  test(
+    'verify the presence and functionality of cross button under audience rule detail dialog',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33995'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await test.step('Navigate to manage/audience/rules', async () => {
+        await audienceBuilderPage.loadPage();
+      });
+
+      await test.step('Click Create button to open Create audience rule dialog', async () => {
+        await audienceBuilderPage.clickCreateButton();
+      });
+
+      await test.step('Verify close button is present', async () => {
+        await audienceBuilderPage.verifyCloseButtonInCreateDialog();
+      });
+
+      await test.step('Click close button', async () => {
+        await audienceBuilderPage.clickCloseButtonInCreateDialog();
+      });
+
+      await test.step('Verify Create audience rule dialog is closed', async () => {
+        await audienceBuilderPage.verifyCreateDialogClosed();
+      });
+    }
+  );
 });

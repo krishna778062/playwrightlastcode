@@ -1,3 +1,5 @@
+import { expect } from '@playwright/test';
+
 import { TestPriority } from '@core/constants/testPriority';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
@@ -18,6 +20,103 @@ test.describe(
     tag: [TestPriority.P0, `@AUDIENCE`, `@audience`],
   },
   () => {
+    test(
+      'verify user is able to create audience without description under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35862'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
+
+        await audiencePage.loadPage();
+
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+          description: 'Parent category for audience without description test',
+        });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
+
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.createAudienceWithDetails({
+          name: audienceName,
+          parentCategoryName,
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
+        });
+      }
+    );
+
+    test(
+      'verify user is able to create audience with description under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35861'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
+
+        await audiencePage.loadPage();
+
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+          description: 'Parent category for audience with description test',
+        });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
+
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.createAudienceWithDetails({
+          name: audienceName,
+          description,
+          parentCategoryName,
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
+        });
+      }
+    );
+
+    test(
+      'verify the maximum length limit of description field should be less than or equal to 1024 under Create audience modal',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35858'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+
+        await test.step('Click Add description button', async () => {
+          await audiencePage.addAudienceDescriptionButton.click();
+        });
+
+        await test.step('Verify description field has maxlength attribute of 1024', async () => {
+          const maxLength = audiencePage.audienceDescriptionInput;
+          await expect(maxLength).toHaveAttribute('maxlength', '1024');
+        });
+
+        await test.step('Fill description with 1024 characters and verify it is accepted', async () => {
+          const description1024 = 'a'.repeat(1024);
+          await audiencePage.audienceDescriptionInput.fill(description1024);
+          const inputValue = await audiencePage.audienceDescriptionInput.inputValue();
+          expect(inputValue.length).toBe(1024);
+        });
+
+        await test.step('Try to add more than 1024 characters and verify it is truncated', async () => {
+          const description1025 = 'a'.repeat(1025);
+          await audiencePage.audienceDescriptionInput.fill(description1025);
+          const inputValue = await audiencePage.audienceDescriptionInput.inputValue();
+          expect(inputValue.length).toBeLessThanOrEqual(1024);
+        });
+      }
+    );
+
     test(
       'verify user is able to create audience with Okta attribute with All groups type under manage audience',
       { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
