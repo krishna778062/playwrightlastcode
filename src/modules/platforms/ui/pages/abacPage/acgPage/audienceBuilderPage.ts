@@ -27,8 +27,9 @@ export class AudienceBuilderPage extends BasePage {
     // Page title/heading
     this.labelAudienceBuilder = pageContainer.locator('header h1').filter({ hasText: 'Audiences' });
 
-    // Create button and dialog
-    this.createButton = pageContainer.getByRole('button', { name: 'Create' });
+    // Create button and dialog - scope to banner to avoid table header conflicts
+    const banner = pageContainer.getByRole('banner');
+    this.createButton = banner.getByRole('button', { name: 'Create', exact: true });
     this.createAudienceRuleDialog = page.getByRole('dialog').filter({ hasText: 'Create audience rule' });
     this.categoryDropdownInput = this.createAudienceRuleDialog.locator('input[type="text"]').first();
 
