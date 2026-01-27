@@ -91,6 +91,10 @@ export class ConfluenceHelper {
     await this.acceptButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.acceptButton.click();
     await this.page.waitForLoadState('domcontentloaded');
+
+    await this.acceptButton.waitFor({ state: 'visible', timeout: 30000 });
+    await this.acceptButton.click();
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   async clickConfluenceKnowledgeBaseInSearchResults(
