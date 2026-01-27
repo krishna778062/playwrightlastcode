@@ -1,11 +1,11 @@
 import test, { Locator, Page } from '@playwright/test';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BasePage } from '@/src/core/ui/pages/basePage';
 
 export class ContentPreviewPage extends BasePage {
+  readonly contentTitle: Locator;
   readonly contentThreeDotsMenu: Locator;
-  readonly settingsMenuButton: Locator;
-  readonly makeMustReadOption: Locator;
   readonly surveyDialog: Locator;
   readonly dismissButton: Locator;
   readonly skipButton: Locator;
@@ -13,9 +13,8 @@ export class ContentPreviewPage extends BasePage {
   constructor(page: Page, contentUrl?: string) {
     super(page, contentUrl || '');
 
-    this.contentThreeDotsMenu = this.page.getByRole('button', { name: 'Category option' });
-    this.settingsMenuButton = this.page.getByRole('button', { name: 'Category option' });
-    this.makeMustReadOption = this.page.getByRole('button', { name: "Make 'must read'" });
+    this.contentTitle = this.page.locator('div[class="w-full text-4xl font-semibold"]');
+    this.contentThreeDotsMenu = this.page.locator('[data-testid="content-option-menu-trigger"]');
     this.surveyDialog = this.page.getByRole('dialog', { name: 'Survey participation prompt' });
     this.dismissButton = this.surveyDialog.getByLabel('Dismiss');
     this.skipButton = this.page.getByRole('button', { name: 'Skip this step' });
@@ -23,27 +22,24 @@ export class ContentPreviewPage extends BasePage {
 
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the home page is loaded', async () => {
-      await this.expect(
-        this.page.locator('.type--h1'),
-        'Expected to find Content title on content detail page'
-      ).toBeVisible({
-        timeout: 35_000,
+      await this.expect(this.contentTitle, 'Expected to find Content title on content detail page').toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
       });
     });
   }
 
   async clickOnSkipThisStepButton(): Promise<void> {
     await test.step('Click on skip this step button', async () => {
-      if (await this.skipButton.isVisible({ timeout: 2000 })) {
-        await this.skipButton.click({ timeout: 2000 });
+      if (await this.skipButton.isVisible({ timeout: TIMEOUTS.SHORT })) {
+        await this.skipButton.click({ timeout: TIMEOUTS.SHORT });
       }
     });
   }
 
   async closeSurveyPrompt(): Promise<void> {
     await test.step('Close survey prompt if present', async () => {
-      if (await this.dismissButton.isVisible({ timeout: 2000 })) {
-        await this.dismissButton.click({ timeout: 2000 });
+      if (await this.dismissButton.isVisible({ timeout: TIMEOUTS.SHORT })) {
+        await this.dismissButton.click({ timeout: TIMEOUTS.SHORT });
       }
     });
   }
@@ -51,14 +47,7 @@ export class ContentPreviewPage extends BasePage {
   async clickOnContentThreeDotsMenu(): Promise<void> {
     await test.step('Click on content three dots menu', async () => {
       await this.contentThreeDotsMenu.waitFor({ state: 'attached' });
-      await this.contentThreeDotsMenu.click({ timeout: 2000 });
-    });
-  }
-
-  async selectMustReadFromMenuOptions(): Promise<void> {
-    await test.step('Click on make must read option', async () => {
-      await this.makeMustReadOption.waitFor({ state: 'attached' });
-      await this.makeMustReadOption.click({ timeout: 3000 });
+      await this.contentThreeDotsMenu.click({ timeout: TIMEOUTS.SHORT });
     });
   }
 

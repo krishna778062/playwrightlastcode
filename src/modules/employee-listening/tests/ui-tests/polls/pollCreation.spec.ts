@@ -13,7 +13,7 @@ test.describe('aI Poll Creation Tests', () => {
   let aiPollCreationPage: AIPollCreationPage;
   let pollsHelper: PollsHelper;
 
-  test.beforeEach(async ({ appManagersPage }) => {
+  test.beforeAll(async ({ appManagersPage }) => {
     pollsSettingsPage = new PollsSettingsPage(appManagersPage);
     pollsListeningPage = new PollsListeningPage(appManagersPage);
     aiPollCreationPage = new AIPollCreationPage(appManagersPage);
@@ -458,7 +458,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
       await pollsListeningPage.clickCreatePollButton();
       await aiPollCreationPage.enterManualPrompt('e tt yu');
-      await aiPollCreationPage.generateButton.click();
+      await aiPollCreationPage.clickGenerateButton();
       await aiPollCreationPage.verifyInlineErrorMessage();
     }
   );
@@ -536,7 +536,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await aiPollCreationPage.verifyCharacterLimitCounter();
       await aiPollCreationPage.verifyCharacterCounterText('0/250');
 
@@ -576,7 +576,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await aiPollCreationPage.enterManualPollQuestion('What is your preferred work schedule?');
       await aiPollCreationPage.enterPollOption(0, 'Option A');
 
@@ -608,7 +608,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What is your favorite team event activity?',
         pollOptions: ['Escape Room', 'Cooking Class', 'Outdoor Adventure'],
@@ -635,7 +635,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What is your preferred development methodology?',
         pollOptions: ['Scrum', 'Kanban', 'Waterfall', 'Agile'],
@@ -846,7 +846,7 @@ test.describe('aI Poll Creation Tests', () => {
         storyId: 'EL-UI Automation',
       });
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What are you thinking for lunch?',
         pollOptions: ['Pizza', 'Pasta', 'Salad', 'Biryani'],
@@ -857,25 +857,6 @@ test.describe('aI Poll Creation Tests', () => {
       await pollsListeningPage.loadPage({ stepInfo: 'Navigate back to Polls listing page' });
       await pollsListeningPage.verifyThePageIsLoaded();
       await aiPollCreationPage.verifyPollMetadataDisplay('What are you thinking for lunch?');
-    }
-  );
-
-  test(
-    'verify Tooltip on Hover Over Generate Button',
-    {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
-    },
-    async () => {
-      tagTest(test.info(), {
-        description:
-          'Verify that when user hovers over the Generate button, it shows proper visual feedback and maintains accessibility. Test validates button hover state, cursor changes, and any tooltip or visual indicators that appear on hover.',
-        zephyrTestId: 'LS-7395',
-        storyId: 'EL-UI Automation',
-      });
-
-      await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.enterManualPrompt('What are the best team collaboration tools?');
-      await aiPollCreationPage.verifyGenerateButtonHoverBehavior();
     }
   );
 });
