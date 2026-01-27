@@ -6,4 +6,5 @@ export * from './participantEngagementActivity';
 export * from './reactionsOrLikes';
 export * from './replies';
 export * from './shares';
+export * from './socialCampaigns';
 export * from './socialCampaignShareDistribution';

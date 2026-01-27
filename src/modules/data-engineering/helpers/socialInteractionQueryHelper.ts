@@ -80,6 +80,19 @@ export class SocialInteractionDashboardQueryHelper extends BaseAnalyticsQueryHel
   }
 
   /**
+   * Gets active social campaign count data from database with filters applied
+   * @param filterBy - Filter options including time period and other filters
+   * @returns Promise<number> - Active social campaign count value
+   */
+  async getActiveSocialCampaignCountDataFromDBWithFilters({ filterBy }: { filterBy: FilterOptions }): Promise<number> {
+    const finalQuery = await this.transformQueryWithFilters({
+      baseQuery: SocialInteractionSql.Active_Campaign_Count,
+      filterBy,
+    });
+    return await this.getHeroMetricDataFromDB(finalQuery);
+  }
+
+  /**
    * Gets campaign share data from database with filters applied
    * @param filterBy - Filter options including time period and other filters
    * @returns Promise<any[]> - Campaign share data records

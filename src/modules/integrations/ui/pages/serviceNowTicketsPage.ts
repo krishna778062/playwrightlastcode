@@ -73,7 +73,7 @@ export class ServiceNowTicketsPage extends BasePage {
     this.pageTitle = page.getByRole('heading', { level: 1 });
 
     // Menu Navigation Elements - ServiceNow menu item
-    this.serviceNowMenuButton = page.locator('a[href="/servicenow"][role="menuitem"]');
+    this.serviceNowMenuButton = page.locator('//a[@href="/servicenow"]//span');
     this.topNavBarComponent = new TopNavBarComponent(page);
     this.serviceNowKbSourceButton = page.getByRole('button').filter({ has: page.getByAltText('ServiceNow') });
     this.listTitle = page.locator('h2[class*="listTitle"]');
@@ -332,12 +332,11 @@ export class ServiceNowTicketsPage extends BasePage {
   async verifyCustomNameInServiceNowMenu(expectedCustomName: string): Promise<void> {
     await test.step(`Verify custom name '${expectedCustomName}' is displayed in ServiceNow menu button`, async () => {
       await this.serviceNowMenuButton.waitFor({ state: 'visible', timeout: 15_000 });
-      const menuTextElement = this.serviceNowMenuButton.locator('p.Typography-module__paragraph__OGpiQ');
-      await menuTextElement.waitFor({ state: 'visible', timeout: 10_000 });
-      const actualMenuText = await menuTextElement.textContent();
+      //const menuTextElement = this.serviceNowMenuButton.locator('span, p').first();;
+      const actualMenuText = await this.serviceNowMenuButton.textContent();
       expect(actualMenuText?.trim()).toContain(expectedCustomName);
       await expect(this.serviceNowMenuButton).toBeVisible();
-      await expect(menuTextElement).toBeVisible();
+      //await expect(menuTextElement).toBeVisible();
     });
   }
 

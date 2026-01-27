@@ -11,4 +11,5 @@ export enum DataEngineeringTestSuite {
   ON_PAGE_ANALYTICS = '@on-page-analytics',
   FILES = '@files',
   ON_SITE = '@on-site',
+  CONTENT_MODERATION_ANALYTICS = '@content-moderation-analytics',
 }
