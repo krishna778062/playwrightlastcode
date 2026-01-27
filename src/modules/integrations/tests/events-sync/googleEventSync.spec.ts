@@ -50,6 +50,7 @@ test.describe(
           IntegrationsFeatureTags.EVENT_SYNC,
           IntegrationsFeatureTags.GOOGLE_CALENDAR_EVENTS_SYNC,
           IntegrationsSuiteTags.HEALTH_CHECK,
+          '@google-calendar-2-way-rsvp-sync',
         ],
       },
       async ({ appManagerFixture, testSiteName }) => {
