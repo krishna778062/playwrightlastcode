@@ -521,7 +521,7 @@ export class SiteManagementService implements ISiteManagementOperations {
     permission: SitePermission = SitePermission.MEMBER,
     action: SiteMembershipAction = SiteMembershipAction.ADD
   ): Promise<SiteMembershipResponse> {
-    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
+    return await test.step(`Making user ${userId} a ${permission} for site ${siteId}`, async () => {
       const payload: any = {
         userId: userId,
         action: action.toString(), // Convert enum to string
@@ -532,6 +532,41 @@ export class SiteManagementService implements ISiteManagementOperations {
         payload.permission = permission.toString(); // Convert enum to string
       }
 
+      if (action === SiteMembershipAction.SET_PERMISSION) {
+        const siteMembershipList = await this.getSiteMembershipList(siteId);
+        const userMembership = siteMembershipList.result?.listOfItems?.find(
+          (member: any) => member.peopleId === userId
+        );
+        if (SitePermission.OWNER === permission && userMembership?.isOwner) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already an owner of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+        if (SitePermission.MANAGER === permission && userMembership?.isManager) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already a manager of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+        if (SitePermission.MEMBER === permission && userMembership?.isMember) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already a member of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+        if (SitePermission.CONTENT_MANAGER === permission && userMembership?.isContentManager) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already a content manager of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+      }
+
       const response = await this.httpClient.post(API_ENDPOINTS.site.manageMembers(siteId), {
         data: payload,
       });
@@ -540,7 +575,7 @@ export class SiteManagementService implements ISiteManagementOperations {
 
       if (!response.ok()) {
         throw new Error(
-          `Failed to make user content manager. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
+          `Failed to make user ${permission} for site ${siteId}. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
         );
       }
 

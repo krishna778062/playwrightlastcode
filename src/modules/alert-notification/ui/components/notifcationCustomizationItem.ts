@@ -78,4 +78,82 @@ export class NotificationCustomizationItem extends BaseComponent {
       });
     });
   }
+
+  /**
+   * Verifies if a template option is selected
+   * @param templateOption - The template option to check
+   * @returns Promise<boolean> - True if selected, false otherwise
+   */
+  async isTemplateOptionSelected(templateOption: string): Promise<boolean> {
+    return await test.step(`Check if template option ${templateOption} is selected`, async () => {
+      const templateOptionLocator = this.customizationTemplateOptions.filter({ hasText: templateOption });
+      const radioInput = templateOptionLocator.locator('input[type="radio"]');
+      // Check if element exists before checking if it's checked
+      const count = await radioInput.count();
+      if (count === 0) {
+        return false;
+      }
+      // Check if the radio button is checked (templates use radio buttons)
+      const isChecked = await radioInput.isChecked();
+      return isChecked;
+    });
+  }
+
+  /**
+   * Verifies that a template option is selected
+   * @param templateOption - The template option that should be selected
+   */
+  async verifyTemplateOptionIsSelected(templateOption: string): Promise<void> {
+    await test.step(`Verify template option ${templateOption} is selected`, async () => {
+      const templateOptionLocator = this.customizationTemplateOptions.filter({ hasText: templateOption });
+      await this.verifier.verifyTheElementIsVisible(templateOptionLocator, {
+        assertionMessage: `Template option ${templateOption} should be visible`,
+        timeout: 10_000,
+      });
+      const radioInput = templateOptionLocator.locator('input[type="radio"]');
+      const isChecked = await radioInput.isChecked();
+      if (!isChecked) {
+        throw new Error(`Template option ${templateOption} should be selected but it is not`);
+      }
+    });
+  }
+
+  /**
+   * Verifies that a template option is NOT selected
+   * @param templateOption - The template option that should not be selected
+   */
+  async verifyTemplateOptionIsNotSelected(templateOption: string): Promise<void> {
+    await test.step(`Verify template option ${templateOption} is NOT selected`, async () => {
+      const templateOptionLocator = this.customizationTemplateOptions.filter({ hasText: templateOption });
+      const radioInput = templateOptionLocator.locator('input[type="radio"]');
+      // Check if element exists before checking if it's checked
+      const count = await radioInput.count();
+      if (count === 0) {
+        // If element doesn't exist, it's not selected, which is what we want
+        return;
+      }
+      const isChecked = await radioInput.isChecked();
+      if (isChecked) {
+        throw new Error(`Template option ${templateOption} should NOT be selected but it is`);
+      }
+    });
+  }
+
+  /**
+   * Verifies that a template option is disabled (cannot be selected)
+   * @param templateOption - The template option that should be disabled
+   */
+  async verifyTemplateOptionIsDisabled(templateOption: string): Promise<void> {
+    await test.step(`Verify template option ${templateOption} is disabled`, async () => {
+      const templateOptionLocator = this.customizationTemplateOptions.filter({ hasText: templateOption });
+      await this.verifier.verifyTheElementIsVisible(templateOptionLocator, {
+        assertionMessage: `Template option ${templateOption} should be visible`,
+        timeout: 10_000,
+      });
+      await this.verifier.verifyTheElementIsDisabled(templateOptionLocator, {
+        assertionMessage: `Template option ${templateOption} should be disabled`,
+        timeout: 10_000,
+      });
+    });
+  }
 }

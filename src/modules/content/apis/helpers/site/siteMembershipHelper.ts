@@ -51,6 +51,18 @@ export class SiteMembershipHelper {
         };
       }
     }
+    if (action === SiteMembershipAction.REMOVE) {
+      const membershipList = await this.getSiteMembershipList(siteId);
+      const existingMember = membershipList.result?.listOfItems?.find((member: any) => member.peopleId === userId);
+      if (!existingMember) {
+        log.debug(`User ${userId} is not a member of site ${siteId}`);
+        return {
+          status: 'success',
+          message: 'User is not a member',
+          result: { userId, siteId, permission, action },
+        };
+      }
+    }
 
     const result = await this.siteManagementService.makeUserSiteMembership(siteId, userId, permission, action);
 

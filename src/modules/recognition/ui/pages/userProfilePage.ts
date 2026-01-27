@@ -42,7 +42,7 @@ export class UserProfilePage extends BasePage {
   async navigateToReceivedAwardFromUserProfile(awardName: string, awardType?: string): Promise<void> {
     await test.step(`Open received award "${awardName}" of type "${awardType}" from user profile`, async () => {
       await this.verifyThePageIsLoaded();
-      if (await this.viewAllRecognitionButton.isVisible()) {
+      if ((await this.viewAllRecognitionButton.count()) > 0) {
         await this.viewAllRecognitionButton.scrollIntoViewIfNeeded();
         await this.clickOnElement(this.viewAllRecognitionButton, {
           stepInfo: 'Clicking on View all recognition button',
