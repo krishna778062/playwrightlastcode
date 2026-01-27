@@ -36,6 +36,7 @@ on:
           - '@overview'
           - '@on-page-analytics'
           - '@analytics'
+          - '@content-moderation-analytics'
       priority_filter:
         description: 'Priority filter'
         required: true
@@ -91,7 +92,7 @@ permissions:
 jobs:
   de-automation-tests:
     timeout-minutes: 120
-    runs-on: [kubernetes]
+    runs-on: [kubernetes-fe]
     env:
       S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
       TEST_ENV: ${{ inputs.environment }}
@@ -149,6 +150,9 @@ jobs:
       - name: Run Data Engineering tests
         id: run-tests
         run: |
+          # Set TLS config for test environments (some use self-signed certs)
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+
           PRIORITY="${{ inputs.priority_filter }}"
           TEST_TYPE="${{ inputs.test_type }}"
           DASHBOARD="${{ inputs.dashboard }}"
@@ -247,21 +251,30 @@ jobs:
 
       - name: Upload Regression Data to Postgres
         if: always()
+        continue-on-error: true
         env:
+          # TLS config for database connections
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+          # Database connection pool settings
           DB_POOL_MAX: 3
           DB_POOL_MIN: 1
-          DB_CONNECTION_TIMEOUT: 10000
+          DB_CONNECTION_TIMEOUT: 30000
           DB_ACQUIRE_TIMEOUT: 60000
           DB_IDLE_TIMEOUT: 15000
           DB_ALLOW_EXIT_ON_IDLE: true
+          # Database credentials (from secrets)
           PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
           PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
           PG_DB_NAME: ${{ secrets.PG_DB_NAME }}
           PG_DB_USER: ${{ secrets.PG_DB_USER }}
           PG_DB_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+          # Metadata
           TEAM_NAME: data-engineering
           IS_REGRESSION: true
-        run: REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres
+        run: |
+          echo "📊 Uploading regression data to PostgreSQL..."
+          REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres || echo "⚠️ PostgreSQL upload failed (non-blocking)"
+          echo "✅ Upload step completed"
 
       - name: Parse Test Results
         if: always()
