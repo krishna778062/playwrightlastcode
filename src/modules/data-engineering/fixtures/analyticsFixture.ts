@@ -6,7 +6,7 @@ import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { AnalyticsApiService } from '@/src/modules/data-engineering/api/services/AnalyticsApiService';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
-import { SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
+import { MustReadQueryHelper, SnowflakeHelper } from '@/src/modules/data-engineering/helpers';
 import { SocialInteractionDashboardQueryHelper } from '@/src/modules/data-engineering/helpers';
 import { AnalyticsQueryHelper } from '@/src/modules/data-engineering/helpers/analyticsQueryHelper';
 import { AnalyticsOverviewDashboard } from '@/src/modules/data-engineering/ui/dashboards';
@@ -21,6 +21,7 @@ export interface AnalyticsApiFixture {
   snowflakeHelper: SnowflakeHelper;
   socialInteractionQueryHelper: SocialInteractionDashboardQueryHelper;
   analyticsQueryHelper: AnalyticsQueryHelper;
+  mustReadQueryHelper: MustReadQueryHelper;
 }
 
 // UI-only fixture type for browser and page components
@@ -70,6 +71,7 @@ async function createAnalyticsApiFixture(
     snowflakeHelper,
     socialInteractionQueryHelper: new SocialInteractionDashboardQueryHelper(snowflakeHelper, orgId),
     analyticsQueryHelper: new AnalyticsQueryHelper(snowflakeHelper, orgId),
+    mustReadQueryHelper: new MustReadQueryHelper(snowflakeHelper, orgId),
   };
 }
 
