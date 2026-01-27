@@ -40,11 +40,11 @@ AND u.tenant_code = fc.tenant_code;
   SELECT COUNT(DISTINCT
 CASE WHEN m.feed_code != 'N/A' THEN f.code
 ELSE c.code END ) AS detected_content_count
-FROM simpplr_common_tenant.udl.vw_content_moderation_detail_as_is m
-LEFT JOIN simpplr_common_tenant.udl.vw_feed_as_is f
+FROM udl.vw_content_moderation_detail_as_is m
+LEFT JOIN udl.vw_feed_as_is f
 ON m.feed_code = f.code
 AND m.feed_code != 'N/A'
-LEFT JOIN simpplr_common_tenant.udl.vw_comment_as_is c
+LEFT JOIN udl.vw_comment_as_is c
 ON m.comment_code = c.code
 AND m.feed_code = 'N/A'
 WHERE m.tenant_code = '{tenantCode}'
@@ -57,11 +57,11 @@ AND m.reported_datetime BETWEEN '{startDate}' AND '{endDate}';
   SELECT COUNT(DISTINCT
 CASE WHEN m.feed_code != 'N/A' THEN f.code
 ELSE c.code END ) AS detected_content_count
-FROM simpplr_common_tenant.udl.vw_content_moderation_detail_as_is m
-LEFT JOIN simpplr_common_tenant.udl.vw_feed_as_is f
+FROM udl.vw_content_moderation_detail_as_is m
+LEFT JOIN udl.vw_feed_as_is f
 ON m.feed_code = f.code
 AND m.feed_code != 'N/A'
-LEFT JOIN simpplr_common_tenant.udl.vw_comment_as_is c
+LEFT JOIN udl.vw_comment_as_is c
 ON m.comment_code = c.code
 AND m.feed_code = 'N/A'
 WHERE m.tenant_code = '{tenantCode}'
@@ -74,11 +74,11 @@ AND m.reported_datetime BETWEEN '{startDate}' AND '{endDate}';
   SELECT COUNT(DISTINCT
 CASE WHEN m.feed_code != 'N/A' THEN f.code
 ELSE c.code END ) AS detected_content_count
-FROM simpplr_common_tenant.udl.vw_content_moderation_detail_as_is m
-LEFT JOIN simpplr_common_tenant.udl.vw_feed_as_is f
+FROM udl.vw_content_moderation_detail_as_is m
+LEFT JOIN udl.vw_feed_as_is f
 ON m.feed_code = f.code
 AND m.feed_code != 'N/A'
-LEFT JOIN simpplr_common_tenant.udl.vw_comment_as_is c
+LEFT JOIN udl.vw_comment_as_is c
 ON m.comment_code = c.code
 AND m.feed_code = 'N/A'
 WHERE m.tenant_code = '{tenantCode}'
