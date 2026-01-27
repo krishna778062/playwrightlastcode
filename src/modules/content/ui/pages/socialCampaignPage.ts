@@ -118,6 +118,10 @@ export class SocialCampaignPage extends BasePage {
     return await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
   }
 
+  async selectShareOptionAsHomeFeed(): Promise<void> {
+    return await this.shareSocialCampaignComponent.selectShareOptionAsHomeFeed();
+  }
+
   async enterShareDescription(description: string): Promise<void> {
     return await this.shareSocialCampaignComponent.enterShareDescription(description);
   }

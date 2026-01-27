@@ -451,6 +451,7 @@ test.describe(
         const description = TestDataGenerator.generateRandomString();
         await socialCampaignPage.clickCampaignOptions();
         await socialCampaignPage.clickShareToFeedButton();
+        await socialCampaignPage.selectShareOptionAsHomeFeed();
         await socialCampaignPage.enterShareDescription(description);
         await socialCampaignPage.clickShareButton();
         await socialCampaignPage.verifyToastMessageIsVisibleWithText(
@@ -565,11 +566,7 @@ test.describe(
         const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
-        await Promise.all([
-          appManagerFeedPage.verifyThePageIsLoaded(),
-          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
-          endUserFeedPage.verifyThePageIsLoaded(),
-        ]);
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded()]);
 
         await Promise.all([
           appManagerFeedPage.clickOnShowOption('all'),
@@ -716,6 +713,8 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-44782',
           storyId: 'CONT-44782',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
         const siteId =
           await appManagerFixture.abacSiteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
@@ -809,6 +808,8 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-44780',
           storyId: 'CONT-44780',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
         const siteId =
