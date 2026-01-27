@@ -397,7 +397,7 @@ jobs:
               # Same modules, runs during UAT stage
               # ──────────────────────────────────────────────────────────
               "uat_release")
-                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
+                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","comms-planner"]'
                 echo "✅ UAT release: Full UI regression (all modules including content)"
                 ;;
               
@@ -406,7 +406,7 @@ jobs:
               # Excludes some modules that are less critical for healthcheck
               # ──────────────────────────────────────────────────────────
               "prod_healthcheck")
-                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening","form-designer"]'
+                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening"]'
                 echo "✅ Prod healthcheck: Core UI modules"
                 ;;
               
@@ -541,16 +541,16 @@ jobs:
           ref: ${{ needs.determine-config.outputs.checkout_ref }}
 
       # ────────────────────────────────────────────────────────────────────
-      # STEP 3: CREATE CALENDAR SECRETS (for Content module)
-      # Purpose: Content module tests require Google/Outlook calendar integration
+      # STEP 3: CREATE CALENDAR SECRETS (for Content and Integrations modules)
+      # Purpose: Content and Integrations module tests require Google/Outlook calendar integration
       # Note: Only creates file if CALENDAR_SECRETS variable exists
       # ────────────────────────────────────────────────────────────────────
       - name: Create Calendar Secrets JSON
-        if: contains(fromJson('["content", "content-settings", "content-studio", "content-abac"]'), matrix.module)
+        if: contains(fromJson('["content", "content-settings", "content-studio", "content-abac", "integrations-primary", "integrations-workday", "integrations-azuresso", "integrations-api"]'), matrix.module)
         run: |
           if [ -n "${{ vars.CALENDAR_SECRETS }}" ]; then
             echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
-            echo "✅ Created githubSecrets.json for content module calendar integration"
+            echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
           else
             echo "⚠️ CALENDAR_SECRETS not set - calendar tests may fail"
           fi

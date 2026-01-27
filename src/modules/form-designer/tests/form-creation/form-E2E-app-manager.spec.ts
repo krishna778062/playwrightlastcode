@@ -1293,15 +1293,15 @@ test.describe(
         await formParticipationPage.changeDefaultOptionsOfMultiSelectComponent('Automation-Monthly', 2);
         await formParticipationPage.changeDefaultOptionsOfMultiSelectComponent('Automation-Yearly', 3);
         await formCreationPage.clickOnPreviewButton();
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Daily');
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Weekly');
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Monthly');
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Yearly');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Daily');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Weekly');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Monthly');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Yearly');
         await formCreationPage.clickOnEditButton();
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Daily');
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Weekly');
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Monthly');
-        await formParticipationPage.verifyMultiSelectFieldResponse('Automation-Yearly');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Daily');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Weekly');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Monthly');
+        await formParticipationPage.verifyMultiSelectFieldResponseOnPreviewScreen('Automation-Yearly');
       }
     );
 

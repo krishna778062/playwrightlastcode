@@ -68,7 +68,9 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.selectedAwardInRecognition = this.container.locator('div[class*="AwardSelect_singleValueWrapper"] p');
     this.suggesterContainer = this.container.getByRole('listbox');
     this.selectOptions = this.container.getByRole('menuitem');
-    this.recipientsInput = this.container.getByRole('combobox', { name: 'Select a spot award to recognize someone' });
+    this.recipientsInput = this.container
+      .getByRole('combobox', { name: 'Select a spot award to recognize someone' })
+      .first();
     this.descriptionTextArea = this.container.locator('[class*="tiptap ProseMirror"]');
     this.companyValues = this.container.getByTestId('field-Company values');
     this.companyValuesField = this.container.getByTestId('field-Company values');
@@ -81,9 +83,11 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.clearButton = this.container.getByRole('button', { name: 'Clear' });
     this.awardDisabledWarning = this.container.locator('[class*="SpotAwardGuidanceAndWarningPanel"]');
     this.shareIcon = page.locator('i[data-testid="i-share"]');
-    this.recipientToGiveAwardInput = this.container.getByRole('combobox', {
-      name: 'To whom do you want to give this spot award?',
-    });
+    this.recipientToGiveAwardInput = this.container
+      .getByRole('combobox', {
+        name: 'To whom do you want to give this spot award?',
+      })
+      .first();
     this.messageInput = this.container.getByTestId('tiptap-editor-v2').getByRole('paragraph');
     this.shareModal = this.page.getByRole('dialog').filter({ hasText: 'Share recognition' });
     this.shareToFeedCheckBox = this.shareModal.getByRole('checkbox', { name: 'Share to feed' });
@@ -266,20 +270,28 @@ export class GiveRecognitionDialogBox extends DialogBox {
    * @param awardName - Name of the award
    * @param message - Message to send
    */
-  async publishSpotAward(awardName: string, message: string = 'Test Message'): Promise<void> {
+  async publishSpotAward(
+    awardName: string,
+    message: string = 'Test Message',
+    recipient: string | number = 0
+  ): Promise<void> {
     await test.step('Publish the spot award', async () => {
       await this.descriptionTextArea.waitFor({ state: 'visible' });
       await this.recipientsInput.click();
-      await this.page.waitForTimeout(1000);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
       await this.recipientsInput.fill(awardName);
-      await this.page.waitForTimeout(1000);
       await this.suggesterContainer.waitFor({ state: 'visible' });
       await this.getOption(0).click();
-      await this.page.waitForTimeout(1000);
+      await this.recipientToGiveAwardInput.waitFor({ state: 'visible' });
       await this.recipientToGiveAwardInput.click();
-      await this.page.waitForTimeout(1000);
       await this.suggesterContainer.waitFor({ state: 'visible' });
-      await this.getOption(0).click();
+      if (typeof recipient === 'string') {
+        await this.recipientToGiveAwardInput.fill(recipient);
+        await this.suggesterContainer.waitFor({ state: 'visible' });
+        await this.getOption(recipient).click();
+      } else {
+        await this.getOption(0).click();
+      }
       await this.descriptionTextArea.fill(message);
       await this.recognizeButton.click();
     });
