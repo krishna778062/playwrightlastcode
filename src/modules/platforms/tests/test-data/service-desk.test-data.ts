@@ -12,7 +12,7 @@ export const ServiceDeskTestData = {
   categories: {
     hr: 'HR',
     finance: 'Finance',
-    it: 'IT Support',
+    it: 'IT',
     facilities: 'Facilities',
     legal: 'Legal',
   },
@@ -36,7 +36,7 @@ export const ServiceDeskTestData = {
     },
 
     itTicket: {
-      category: 'IT Support',
+      category: 'IT',
       subject: 'Test Ticket IT Support Request',
       description:
         'This is a test ticket for IT Support category to verify system functionality and ticket processing workflow.',
@@ -44,7 +44,7 @@ export const ServiceDeskTestData = {
     },
 
     urgentTicket: {
-      category: 'IT Support',
+      category: 'IT',
       subject: 'Urgent System Down',
       description:
         'Critical system outage affecting multiple users. Immediate attention required for business continuity.',
@@ -200,6 +200,49 @@ export const ServiceDeskTestData = {
       accountAdmin: 'Account Admin',
       workspaceAdmin: 'Workspace Admin',
       hrAgent: 'HR Agent',
+    },
+  },
+
+  // Custom Workspace Data
+  customWorkspace: {
+    sampleWorkspace: {
+      name: 'Auto Test Workspace',
+      type: 'IT',
+      description: 'Automated test workspace for verification',
+    },
+    editedWorkspace: {
+      name: 'Edited Auto Workspace',
+      type: 'HR',
+      description: 'Updated workspace description',
+    },
+    successMessages: {
+      created: /Workspace created successfully|Successfully created/i,
+      updated: /Workspace updated successfully|Changes saved|Saved successfully/i,
+      deleted: /Workspace deleted successfully|Successfully deleted/i,
+    },
+  },
+
+  // Comments and Attachments
+  comments: {
+    agentComment: 'This is a test comment from the agent. We are working on your request.',
+    agentPublicComment: 'Hello! Thank you for reaching out. Your ticket has been received and is being processed.',
+    requesterReply: 'Thank you for the update. Looking forward to resolution.',
+  },
+
+  // Message Templates
+  messageTemplates: {
+    sampleTemplate: {
+      name: 'Auto Test Template',
+      description: 'This is an automated test message template for agents',
+      messageContent:
+        'Hello, thank you for contacting support. We are looking into your request and will get back to you shortly.',
+    },
+    successMessages: {
+      templateCreated: /Template created successfully|Template saved successfully|Successfully created/i,
+    },
+    visibilityOptions: {
+      allAgents: 'All agents',
+      onlyMe: 'Only me',
     },
   },
 };
