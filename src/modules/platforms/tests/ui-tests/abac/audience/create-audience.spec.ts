@@ -537,28 +537,34 @@ test.describe(
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
 
+        // Verify + New category button is visible
         await audiencePage.openParentPicker();
         await audiencePage.verifyButtonVisible('+ New category');
 
+        // Verify Create category modal elements are visible
         await audiencePage.clickButtonByText('+ New category');
         await audiencePage.addCategoryModal.verifyUIElementsOfCategoryModal();
 
+        // Verify Name required validation
         await audiencePage.addCategoryModal.triggerNameRequiredValidation();
         await audiencePage.addCategoryModal.verifyNameRequiredErrorMessage();
         await audiencePage.addCategoryModal.verifySubmitButtonState();
 
+        // Verify category creation with no description
         const categoryWithoutDescription = TestDataGenerator.generateCategoryName('001TestCategoryNoDesc');
         await audiencePage.addCategoryModal.fillCategoryName(categoryWithoutDescription);
         await audiencePage.addCategoryModal.submitCategory();
         await audiencePage.verifyToastMessageForCategoryOperation('created');
         await audiencePage.verifyCategoryPresentInParentPicker(categoryWithoutDescription);
 
+        // Verify category creation with name already used
         await audiencePage.clickButtonByText('+ New category');
         await audiencePage.addCategoryModal.fillCategoryName(categoryWithoutDescription);
         await audiencePage.addCategoryModal.submitCategory();
         await audiencePage.verifyNameAlreadyUsedError();
         await audiencePage.addCategoryModal.clickCloseButton();
 
+        // Verify category creation with description
         const categoryWithDescription = TestDataGenerator.generateCategoryName('001TestCategoryWithDesc');
         const descriptionText = TestDataGenerator.generateRandomString('Category Test description for category');
         await audiencePage.clickButtonByText('+ New category');
@@ -566,18 +572,18 @@ test.describe(
         await audiencePage.addCategoryModal.fillInCategoryDescription(descriptionText);
         await audiencePage.addCategoryModal.submitCategory();
         await audiencePage.verifyToastMessageForCategoryOperation('created');
-        await audiencePage.addCategoryModal.clickCloseButton();
+        await audiencePage.addCategoryModal.clickCancelButton();
         await audiencePage.verifyCategoryPresentInParentPicker(categoryWithDescription);
 
+        // Verify category creation with name not created
         const catNotCreated = TestDataGenerator.generateCategoryName('001TestCategoryNotCreated');
         await audiencePage.clickButtonByText('+ New category');
         await audiencePage.addCategoryModal.fillCategoryName(categoryWithDescription);
         await audiencePage.addCategoryModal.clickCancelButton();
         await audiencePage.verifyCategoryNotPresentInParentPicker(catNotCreated);
 
-        // Delete the UI-created category via API (CleanUp)
-        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoryByName(categoryWithoutDescription);
-        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoryByName(categoryWithDescription);
+        // Delete the UI-created category via API (CleanUp
+        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoriesByName(categoryWithoutDescription,categoryWithDescription);
       }
     );
   }
