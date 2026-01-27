@@ -8,9 +8,19 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { HomeDashboard } from '../../ui/pages/homeDashboard';
+import { SiteDashboard } from '../../ui/pages/siteDashboard';
+
+import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { UserCredentials } from '@/src/core/types/test.types';
 import { UI_ACTIONS } from '@/src/modules/integrations/constants/common';
 import { MESSAGES } from '@/src/modules/integrations/constants/messageRepo';
 import { CONNECTOR_IDS, TILE_IDS } from '@/src/modules/integrations/test-data/app-tiles.test-data';
+
+const doceboUser: UserCredentials = {
+  email: process.env.QA_MANAGER_EMAIL!,
+  password: process.env.QA_MANAGER_PASSWORD!,
+};
 
 test.describe(
   'docebo App Tiles Integration',
@@ -22,9 +32,14 @@ test.describe(
     const tileName = 'Display learning courses';
     let createdTileTitle: string | undefined = undefined;
 
-    test.afterEach(async ({ appManagerFixture }) => {
-      const { homeDashboard, tileManagementHelper } = appManagerFixture;
+    test.beforeEach(async ({ page }) => {
+      await LoginHelper.loginWithPassword(page, doceboUser);
+    });
+
+    test.afterEach(async ({ page, appManagerApiFixture }) => {
+      const { tileManagementHelper } = appManagerApiFixture;
       if (createdTileTitle) {
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         await tileManagementHelper.removeIntegrationAppTile(createdTileTitle);
         await homeDashboard.verifyTileRemoved(createdTileTitle);
         createdTileTitle = undefined;
@@ -37,14 +52,15 @@ test.describe(
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
 
-      async ({ appManagerFixture }) => {
-        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: ['INT-24660,INT-24671'],
           storyId: 'INT-24422',
         });
 
-        // Use homeDashboard from fixture
+        // Create HomeDashboard with tileManagementHelper
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Add and edit tile
@@ -101,8 +117,9 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
       },
-      async ({ appManagerFixture }) => {
-        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         tagTest(test.info(), {
           zephyrTestId: ['INT-24676,INT-24677'],
           storyId: 'INT-24422',
@@ -129,8 +146,9 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.HEALTHCHECK],
       },
-      async ({ appManagerFixture }) => {
-        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        const siteDashboard = new SiteDashboard(page);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28328',
           storyId: 'INT-24422',
@@ -162,14 +180,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ appManagerFixture }) => {
-        const { homeDashboard } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24666',
           storyId: 'INT-24422',
         });
 
         //Generate a random tile title
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,personalize,edit,verify
@@ -203,14 +222,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ appManagerFixture }) => {
-        const { homeDashboard } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24662',
           storyId: 'INT-24422',
         });
 
         //Generate a random tile title
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         //add,personalize,edit,verify
@@ -236,14 +256,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
       },
-      async ({ appManagerFixture }) => {
-        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-24685',
           storyId: 'INT-24422',
         });
 
         //Generate a random tile title
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
         await tileManagementHelper.createIntegrationAppTile(
           createdTileTitle,
@@ -261,14 +282,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
       },
-      async ({ appManagerFixture }) => {
-        const { homeDashboard } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { tileManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-28456',
           storyId: 'INT-24422',
         });
 
         //Generate a random tile title
+        const homeDashboard = new HomeDashboard(page, tileManagementHelper);
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
         await homeDashboard.addTileWithUserDefinedOptions(
           createdTileTitle,
@@ -292,8 +314,9 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ appManagerFixture }) => {
-        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        const siteDashboard = new SiteDashboard(page);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28518',
           storyId: 'INT-24422',
@@ -339,8 +362,9 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY],
       },
-      async ({ appManagerFixture }) => {
-        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        const siteDashboard = new SiteDashboard(page);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28519',
           storyId: 'INT-24422',
@@ -378,8 +402,9 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
       },
-      async ({ appManagerFixture }) => {
-        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
+        const siteDashboard = new SiteDashboard(page);
         tagTest(test.info(), {
           zephyrTestId: 'INT-28530',
           storyId: 'INT-24422',
@@ -406,14 +431,15 @@ test.describe(
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TEST_TAGS.SHOW_MORE],
       },
-      async ({ appManagerFixture }) => {
-        const { siteDashboard, siteManagementHelper } = appManagerFixture;
+      async ({ page, appManagerApiFixture }) => {
+        const { siteManagementHelper } = appManagerApiFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-28531',
           storyId: 'INT-24422',
         });
 
         //Generate a random tile title
+        const siteDashboard = new SiteDashboard(page);
         createdTileTitle = `Docebo report ${faker.string.alphanumeric({ length: 6 })}`;
 
         // Create site and navigate
