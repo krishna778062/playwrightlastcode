@@ -75,10 +75,19 @@ and i.interaction_type_code = 'IT006'
     `,
 
   Active_Campaign_Count: `
-select count(distinct sc.code) from udl.social_campaign as sc
+ select count(distinct sc.code) from udl.social_campaign as sc
+ left join udl.social_campaign_share as scs
+ on sc.code = scs.social_campaign_code
+ inner join udl.vw_user_as_is as u
+ on sc.campaign_created_by_code = u.code
 where sc.tenant_code = '{tenantCode}'
 and sc.is_campaign_active = true
 and sc.is_deleted = false
+{locationFilter}
+{departmentFilter}
+{segmentFilter}
+{userCategoryFilter}
+{companyNameFilter}
 and sc.campaign_created_on between '{startDate}' AND '{endDate}';
     `,
 
@@ -208,7 +217,7 @@ AND i.TENANT_CODE = '{tenantCode}'
 {userCategoryFilter}
 {companyNameFilter}
 AND i.INTERACTION_DATETIME BETWEEN '{startDate}' AND '{endDate}'
-GROUP BY interaction_date
+GROUP BY DATE(i.INTERACTION_DATETIME)
 ORDER BY interaction_date ASC;
     `,
 };

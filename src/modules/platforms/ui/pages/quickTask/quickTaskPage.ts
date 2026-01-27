@@ -720,8 +720,16 @@ export class QuickTaskPage extends BasePage {
    * Used after API task creation to refresh the UI
    */
   async reloadAndNavigateToMyTasks(): Promise<void> {
-    await this.page.reload({ waitUntil: 'load' });
-    await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    try {
+      // Try to reload the page, but handle network errors gracefully
+      await this.page.reload({ waitUntil: 'load', timeout: 10000 });
+      await this.page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    } catch (error) {
+      // If reload fails (e.g., ERR_NETWORK_CHANGED), just navigate directly
+      // This can happen when network state changes during reload
+      console.warn('Page reload failed, navigating directly instead:', error);
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 5000 }).catch(() => {});
+    }
     await this.navigateToMyTasks();
   }
 
