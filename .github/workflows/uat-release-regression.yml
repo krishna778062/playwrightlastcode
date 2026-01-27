@@ -72,7 +72,6 @@ on:
           - 'frontline'
           - 'alert-notification'
           - 'employee-listening'
-          # - 'form-designer'
           - 'comms-planner'
 
       is_browserstack:
