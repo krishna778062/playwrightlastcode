@@ -25,8 +25,8 @@ export class DateHelper {
    * @returns Date object representing current UTC date
    */
   static getCurrentUTCDate(): Date {
-    const localDate = new Date();
-    return new Date(localDate.getTime() + localDate.getTimezoneOffset() * 60000);
+    // Date already represents an absolute UTC instant; avoid double-shifting with timezoneOffset
+    return new Date();
   }
   /**
    * Gets date replacements for SQL queries based on period type
