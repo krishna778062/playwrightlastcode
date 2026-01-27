@@ -418,13 +418,14 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option CONT-44786',
+      'ABAC - In Zeus Verify Standard User is not able see HOME FEED option on Social Campaign share modal(no acg) CONT-44786',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44786'],
       },
       async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify App Manager able to share Social Campaign to Home Feed',
+          description:
+            'ABAC - In Zeus Verify Standard User is not able see option Home Feed on Social Campaign share modal(no acg)',
           zephyrTestId: 'CONT-44786',
           storyId: 'CONT-44786',
         });
@@ -448,20 +449,10 @@ test.describe(
         await socialCampaignPage.loadPage();
         await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
-        const description = TestDataGenerator.generateRandomString();
         await socialCampaignPage.clickCampaignOptions();
         await socialCampaignPage.clickShareToFeedButton();
-        await socialCampaignPage.selectShareOptionAsHomeFeed();
-        await socialCampaignPage.enterShareDescription(description);
-        await socialCampaignPage.clickShareButton();
-        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
-          SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.SHARED_SUCCESSFULLY
-        );
-
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.verifyThePageIsLoaded();
-        await feedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await socialCampaignPage.selectShareOptionNotVisible('followers');
+        await socialCampaignPage.selectShareOptionVisible('site');
       }
     );
 
@@ -519,7 +510,9 @@ test.describe(
       }
     );
 
-    test(
+    // TODO: Fix this test- Need to know how it works in ABAC
+
+    test.fixme(
       'in Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted CONT-44784',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44784'],

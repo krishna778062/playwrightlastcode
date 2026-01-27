@@ -190,4 +190,14 @@ export class ABACSiteManagementHelper {
     this.creationHelper.clearTrackedSites();
     this.membershipHelper.clearTrackedMembers();
   }
+  async getPeopleList(): Promise<any> {
+    return await this.siteManagementService.getListOfPeopleV2({
+      size: 16,
+      sortBy: ['user_name', 'asc'],
+      includePendingActivation: true,
+      includeTotal: true,
+      q: '',
+      limitToSegment: true,
+    });
+  }
 }

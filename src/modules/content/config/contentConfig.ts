@@ -310,7 +310,7 @@ export const config = {
       siteManagerEmail: 'sonali.gupta+3@simpplr.com',
       siteManagerPassword: 'simpplr001',
       newUxEnabled: true,
-      orgId: 'abac-qa-org-id',
+      orgId: 'd6a1c58b-6569-4ae0-9db4-fdbce096db4f',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
       socialCampaignManagerPassword: 'simpplr001',
       linkedInEmail: 'Keerthana.KS@Simpplr.com',

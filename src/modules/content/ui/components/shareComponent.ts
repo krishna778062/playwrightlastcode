@@ -1,4 +1,4 @@
-import { Locator, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import { BaseComponent } from '@core/ui/components/baseComponent';
@@ -155,9 +155,19 @@ export class ShareComponent extends BaseComponent {
     });
   }
 
-  async selectShareOptionAsHomeFeed(): Promise<void> {
-    await test.step(`Select share option: home feed`, async () => {
-      await this.shareOptionDropdown.selectOption('home');
+  async selectShareOptionNotVisible(option: string): Promise<void> {
+    await test.step(`Select share option: ${option}`, async () => {
+      await this.clickOnElement(this.shareOptionDropdown);
+      const optionLocator = this.shareOptionDropdown.locator(`xpath=.//option[@value="${option}"]`);
+      await expect(optionLocator).not.toBeAttached();
+    });
+  }
+
+  async selectShareOptionVisible(option: string): Promise<void> {
+    await test.step(`Select share option: ${option}`, async () => {
+      await this.clickOnElement(this.shareOptionDropdown);
+      const optionLocator = this.shareOptionDropdown.locator(`xpath=.//option[@value='${option}']`);
+      await expect(optionLocator).toBeAttached();
     });
   }
 

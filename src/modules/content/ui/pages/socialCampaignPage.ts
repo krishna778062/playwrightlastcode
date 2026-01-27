@@ -118,8 +118,12 @@ export class SocialCampaignPage extends BasePage {
     return await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
   }
 
-  async selectShareOptionAsHomeFeed(): Promise<void> {
-    return await this.shareSocialCampaignComponent.selectShareOptionAsHomeFeed();
+  async selectShareOptionNotVisible(option: string): Promise<void> {
+    return await this.shareSocialCampaignComponent.selectShareOptionNotVisible(option);
+  }
+
+  async selectShareOptionVisible(option: string): Promise<void> {
+    return await this.shareSocialCampaignComponent.selectShareOptionVisible(option);
   }
 
   async enterShareDescription(description: string): Promise<void> {

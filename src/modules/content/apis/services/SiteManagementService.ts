@@ -16,6 +16,7 @@ import { log } from '@core/utils/logger';
 
 import { PeopleListResponse } from '@/src/core/types/people.type';
 import { ISiteManagementOperations } from '@/src/modules/content/apis/interfaces/ISiteManagemenOperations';
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 
 const defaultSitePayload: SiteCreationPayload = {
   access: 'public',
@@ -731,6 +732,213 @@ export class SiteManagementService implements ISiteManagementOperations {
       if (!response.ok()) {
         throw new Error(
           `Failed to search sites. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Gets user sites access information for given site IDs
+   * @param siteIds - Array of site IDs to check access for
+   * @returns Promise containing the user sites access response with status and result array
+   */
+  async getUserSitesAccess(siteIds: string[]): Promise<{
+    status: string;
+    result: Array<{ siteId: string; hasAccess: boolean }>;
+  }> {
+    return await test.step(`Getting user sites access for sites: ${siteIds.join(', ')}`, async () => {
+      const payload = {
+        siteIds: siteIds,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.site.userSitesAccess, {
+        data: payload,
+      });
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to get user sites access. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Gets bulk users sites access information for given site IDs and user IDs
+   * @param siteIds - Array of site IDs to check access for
+   * @param userIds - Array of user IDs to check access for
+   * @returns Promise containing the bulk users sites access response
+   */
+
+  async getBulkUsersSitesAccess(
+    siteIds: string[],
+    userIds: string[]
+  ): Promise<{
+    status: string;
+    result: Array<{ userId: string; siteId: string; hasAccess: boolean }>;
+  }> {
+    return await test.step(`Getting bulk users sites access for ${siteIds.length} sites and ${userIds.length} users`, async () => {
+      // Get orgId from content config
+      const tenantConfig = getContentTenantConfigFromCache();
+      const orgId = tenantConfig.orgId;
+
+      const headers: Record<string, string> = {};
+      headers['x-smtip-tid'] = orgId;
+
+      const payload = {
+        siteIds: siteIds,
+        userIds: userIds,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.site.bulkUsersSitesAccess, {
+        data: payload,
+        headers: headers,
+      });
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to get bulk users sites access. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Gets segments config to retrieve segment IDs
+   * @returns Promise containing the segments config response
+   */
+  async getSegmentsConfig(): Promise<any> {
+    return await test.step('Getting segments config', async () => {
+      const response = await this.httpClient.get(API_ENDPOINTS.segments.configs);
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to get segments config. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      // Log the full response for debugging
+      log.info(`Segments config response: ${JSON.stringify(responseBody)}`);
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Gets the default segment ID from segments config
+   * @returns Promise containing the default segment ID
+   */
+  async getDefaultSegmentId(): Promise<string> {
+    return await test.step('Getting default segment ID', async () => {
+      const segmentsConfig = await this.getSegmentsConfig();
+
+      // Log full response for debugging
+      log.info(`Full segments config: ${JSON.stringify(segmentsConfig, null, 2)}`);
+
+      // Validate response structure
+      if (!segmentsConfig?.result) {
+        throw new Error(
+          `Invalid segments config response: result is missing. Full response: ${JSON.stringify(segmentsConfig)}`
+        );
+      }
+
+      // Check if segments exist in result
+      const segments = segmentsConfig.result.segments;
+      if (!segments) {
+        // Log the actual result structure to help debug
+        log.error(`Segments array is missing. Result keys: ${Object.keys(segmentsConfig.result).join(', ')}`);
+        throw new Error(
+          `Segments array is missing in response. Available keys in result: ${Object.keys(segmentsConfig.result).join(', ')}. Full result: ${JSON.stringify(segmentsConfig.result)}`
+        );
+      }
+
+      if (!Array.isArray(segments) || segments.length === 0) {
+        throw new Error(`No segments found in segments config. Segments: ${JSON.stringify(segments)}`);
+      }
+
+      // Find default segment, or use the first segment if no default exists
+      const defaultSegment = segments.find((segment: any) => segment.isDefault === true);
+      const segmentToUse = defaultSegment || segments[0];
+
+      if (!segmentToUse?.segmentId) {
+        throw new Error(`Invalid segment structure. Segment: ${JSON.stringify(segmentToUse)}`);
+      }
+
+      log.info(`Using segment ID: ${segmentToUse.segmentId} (default: ${!!defaultSegment})`);
+      return segmentToUse.segmentId;
+    });
+  }
+
+  /**
+   * Gets list of people using v2/identity/people API
+   * @param options - Options for the people list request
+   * @returns Promise containing the people list response
+   */
+  async getListOfPeopleV2(options?: {
+    size?: number;
+    sortBy?: string[];
+    includePendingActivation?: boolean;
+    includeTotal?: boolean;
+    q?: string;
+    limitToSegment?: boolean;
+  }): Promise<any> {
+    return await test.step('Getting list of people using v2 API', async () => {
+      const limitToSegment = options?.limitToSegment !== undefined ? options.limitToSegment : true;
+      let segmentId: string | undefined;
+      const headers: Record<string, string> = {};
+
+      // Only get segment ID if limitToSegment is true
+      if (limitToSegment) {
+        try {
+          segmentId = await this.getDefaultSegmentId();
+          if (segmentId) {
+            headers['x-smtip-segment-id'] = segmentId;
+          }
+        } catch (error) {
+          log.warn(`Failed to get segment ID, proceeding without segment header. Error: ${error}`);
+          // If we can't get segment ID and limitToSegment is true, set it to false
+          // to avoid API errors
+        }
+      }
+
+      const payload = {
+        sortBy: options?.sortBy || ['user_name', 'asc'],
+        size: options?.size || 16,
+        includePendingActivation:
+          options?.includePendingActivation !== undefined ? options.includePendingActivation : true,
+        includeTotal: options?.includeTotal !== undefined ? options.includeTotal : true,
+        q: options?.q || '',
+        limitToSegment: segmentId ? limitToSegment : false,
+      };
+
+      const requestOptions: any = {
+        data: payload,
+      };
+
+      // Only add headers if we have a segment ID
+      if (Object.keys(headers).length > 0) {
+        requestOptions.headers = headers;
+      }
+
+      const response = await this.httpClient.post(API_ENDPOINTS.identity.people, requestOptions);
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to get list of people. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
         );
       }
 
