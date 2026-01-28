@@ -7,6 +7,7 @@ import { getContentConfigFromCache } from '@/src/modules/content/config/contentC
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
@@ -224,6 +225,7 @@ for (const testData of feedTestData) {
           });
 
           const initialPostText = TestDataGenerator.generateRandomText('Post', 1, false);
+          const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
@@ -232,13 +234,11 @@ for (const testData of feedTestData) {
             text: initialPostText,
             userName: fullName,
             topicName: randomTopic.name,
-            siteName: [publicSiteName, privateSiteName],
+            siteName: [publicSiteName],
             embedUrl: embeedUrl,
           });
           createdPostId = postResult.postId;
           const postText = postResult.postText;
-
-          console.log('postText :   ', postText);
 
           // Step 2: Validate post creation
           await appManagerFeedPage.feedList.validatePostIsVisibleWithText(postText);

@@ -4,7 +4,7 @@ import { ContentPreviewPage } from '@content/ui/pages/contentPreviewPage';
 import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { SitePermission } from '@core/types/siteManagement.types';
+import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
@@ -146,26 +146,27 @@ test.describe(
 
         // ==================== SCENARIO 1: Site Content Manager CAN post ====================
         // Assign user as Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           siteId,
           userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.SET_PERMISSION
+        );
 
         // Navigate to Content Detail Page as Site Content Manager
-        const scmContentPreviewPage = new ContentPreviewPage(
+        const contentPreviewPage = new ContentPreviewPage(
           standardUserFixture.page,
           siteId,
           pageContent.contentId,
           'page'
         );
-        await scmContentPreviewPage.loadPage();
+        await contentPreviewPage.loadPage();
 
         // Verify that comment option is visible on content detail page feed form
-        await scmContentPreviewPage.verifyCommentOptionIsVisible();
+        await contentPreviewPage.verifyCommentOptionIsVisible();
 
         // Click "Share your thoughts" button to open comment editor
-        await scmContentPreviewPage.clickShareThoughtsButton();
+        await contentPreviewPage.clickShareThoughtsButton();
 
         // Generate unique comment text for Site Content Manager
         const scmCommentText = TestDataGenerator.generateRandomText('Site Content Manager Comment', 3, true);
@@ -176,27 +177,21 @@ test.describe(
         await scmCreateFeedPostComponent.clickPostButton();
 
         // Verify Site Content Manager comment is successfully posted
-        await scmContentPreviewPage.listFeedComponent.waitForPostToBeVisible(scmCommentText);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(scmCommentText);
 
         // ==================== SCENARIO 2: Site Member CANNOT post ====================
         // Change user role from Site Content Manager to Site Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           siteId,
           userId,
-          role: SitePermission.MEMBER,
-        });
-
-        // Reload the Content Detail Page as Site Member
-        const memberContentPreviewPage = new ContentPreviewPage(
-          standardUserFixture.page,
-          siteId,
-          pageContent.contentId,
-          'page'
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.REMOVE
         );
-        await memberContentPreviewPage.loadPage();
+
+        await contentPreviewPage.loadPage();
 
         // Verify that Site Member sees the restriction message and cannot post
-        await memberContentPreviewPage.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
+        await contentPreviewPage.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
       }
     );
   }
