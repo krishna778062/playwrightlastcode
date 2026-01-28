@@ -654,7 +654,7 @@ export class ContentManagementService implements IContentManagementServices {
       // Extract CSRF token from cookies for UAT compatibility
       const storageState = await this.context.storageState();
       const cookies = storageState.cookies || [];
-      const _csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
+      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
 
       const requestData: {
         size: number;
