@@ -29,7 +29,7 @@ const defaultBaseContentPayload = {
   isFeedEnabled: true,
   listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
-  isNewTiptap: false,
+  isNewTiptap: true, // ROOT CAUSE FIX: Must be true for edit page to work
 };
 
 const defaultPageContentPayload = () => {
@@ -300,7 +300,7 @@ export class ContentManagementService implements IContentManagementServices {
             isNewTiptap: payload.isNewTiptap,
             ...(payload.publishAt && { publishAt: payload.publishAt }),
             ...(payload.publishTo && { publishTo: payload.publishTo }),
-            ...(payload.isRestricted !== undefined && { isRestricted: payload.isRestricted }),
+            isRestricted: payload.isRestricted,
             ...(payload.targetAudience && { targetAudience: payload.targetAudience }),
           },
         }
@@ -651,11 +651,6 @@ export class ContentManagementService implements IContentManagementServices {
     } = {}
   ) {
     return await test.step('Getting content list', async () => {
-      // Extract CSRF token from cookies for UAT compatibility
-      const storageState = await this.context.storageState();
-      const cookies = storageState.cookies || [];
-      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
-
       const requestData: {
         size: number;
         status?: string;
