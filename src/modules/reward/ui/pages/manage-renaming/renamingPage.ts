@@ -601,7 +601,7 @@ export class RenamingPage extends BasePage {
     const editModal = new EditLabelModal(this.page);
     const map = new Map<string, string>();
     await editModal.verifyThePageIsLoaded();
-    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
     const count = await manualTranslationSwitches.count();
     for (let i = 0; i < count; i++) {
