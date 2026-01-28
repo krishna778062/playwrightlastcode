@@ -13,7 +13,7 @@ test.describe('aI Poll Creation Tests', () => {
   let aiPollCreationPage: AIPollCreationPage;
   let pollsHelper: PollsHelper;
 
-  test.beforeAll(async ({ appManagersPage }) => {
+  test.beforeEach(async ({ appManagersPage }) => {
     pollsSettingsPage = new PollsSettingsPage(appManagersPage);
     pollsListeningPage = new PollsListeningPage(appManagersPage);
     aiPollCreationPage = new AIPollCreationPage(appManagersPage);
