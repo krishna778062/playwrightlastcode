@@ -76,7 +76,7 @@ export class RewardsStore extends BasePage {
     this.charityDonationsTab = page.getByRole('tab', { name: 'Charity donations' });
     this.orderHistoryTab = page.getByRole('tab', { name: 'Order history' });
     this.searchField = page.locator('#q');
-    this.searchButton = page.locator('[class^="UI_searchBar"] button[aria-label="Search"]');
+    this.searchButton = page.locator('[class^="UI_searchBar"] button');
     this.rewardCategory = page.locator('#categoryId');
     this.rewardCountry = page.locator('#countryCode');
     this.firstTimeCountrySelectDropdown = page.locator(
@@ -152,7 +152,9 @@ export class RewardsStore extends BasePage {
     });
     await this.searchField.clear(); // clear any previous input
     await this.searchField.fill(searchTerm);
-    await this.searchButton.click({ force: true });
+    await this.clickOnElement(this.searchButton.last());
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    await this.verifier.verifyTheElementIsVisible(this.giftCardItems.last());
   }
 
   async selectCountry(countryName: string) {

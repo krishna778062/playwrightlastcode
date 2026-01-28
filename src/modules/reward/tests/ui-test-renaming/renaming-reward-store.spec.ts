@@ -3,6 +3,7 @@ import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecogn
 import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -214,7 +215,10 @@ test.describe('renaming page', () => {
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      await renamingPage.verifyThePageIsLoaded();
+      const rewardStore = new RewardsStore(appManagerFixture.page);
+      await rewardStore.loadPage();
+      await rewardStore.selectCountry('United States');
+      await renamingPage.loadPage();
       await renamingPage.clickEditButtonByCardType('rewardsStore');
       const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);

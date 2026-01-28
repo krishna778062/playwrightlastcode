@@ -6,6 +6,7 @@ import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-r
 import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
+import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 
 import { HomeDashboardPage } from '@content/ui/pages/homeDashboardPage';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -1057,9 +1058,10 @@ export class RenamingPage extends BasePage {
       },
       async () => {
         const rewardStore = new RewardsStore(this.page);
+        await rewardStore.searchForGiftCard('Amazon');
         const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
         await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
-        await rewardStore.openGiftCardModal(2);
+        await rewardStore.openGiftCardModal(0);
         const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
         await this.verifier.verifyTheElementIsVisible(
           giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
@@ -1068,6 +1070,52 @@ export class RenamingPage extends BasePage {
         expect(
           await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
         ).toContain(points);
+
+        //Input place holder validation
+        const giftCardPointInputPlaceHolder = this.page.locator(`[id="reward_points"] +span`);
+        await this.verifier.verifyTheElementIsVisible(giftCardPointInputPlaceHolder.filter({ hasNotText: /^\d+$/ }), {
+          timeout: TIMEOUTS.SHORT,
+        });
+        expect(await giftCardPointInputPlaceHolder.filter({ hasNotText: /^\d+$/ }).textContent()).toContain(points);
+        // Max points label
+        const giftCardMaxPointLabel = this.page.locator(`[for="reward_variableRewardAmountTypeMAX"] div`);
+        await this.verifier.verifyTheElementIsVisible(giftCardMaxPointLabel.filter({ hasNotText: /^\d+$/ }), {
+          timeout: TIMEOUTS.SHORT,
+        });
+        expect(await giftCardMaxPointLabel.filter({ hasNotText: /^\d+$/ }).textContent()).toContain(points);
+
+        // In Checkout page
+        const checkoutButton = this.page.locator('[class*="Dialog-module__footer"] button');
+        const rewardsDialogBox = new RewardsDialogBox(this.page);
+        await this.clickOnElement(checkoutButton);
+        await expect(rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(points);
+        await this.clickOnElement(rewardsDialogBox.closeButton);
+      },
+
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.searchForGiftCard('Callaway');
+        const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
+        await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
+        await rewardStore.openGiftCardModal(0);
+        const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
+        await this.verifier.verifyTheElementIsVisible(
+          giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
+          { timeout: TIMEOUTS.SHORT }
+        );
+        expect(
+          await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
+        ).toContain(points);
+
+        const selectYourRewardValueDropdownValues =
+          await rewardStore.rewardsDialogBox.rewardValueOptions.allTextContents();
+        for (const val of selectYourRewardValueDropdownValues) {
+          expect(val, `Expected dropdown value "${val}" to contain points "${points}"`).toContain(points);
+        }
+        const checkoutButton = this.page.locator('[class*="Dialog-module__footer"] button');
+        await this.clickOnElement(checkoutButton);
+        await expect(rewardStore.rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(points);
+        await this.clickOnElement(rewardStore.rewardsDialogBox.closeButton);
       },
     ]);
   }
