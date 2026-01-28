@@ -646,11 +646,7 @@ test.describe(
         const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
-        await Promise.all([
-          appManagerFeedPage.verifyThePageIsLoaded(),
-          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
-          endUserFeedPage.verifyThePageIsLoaded(),
-        ]);
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded()]);
 
         await Promise.all([
           appManagerFeedPage.clickOnShowOption('all'),

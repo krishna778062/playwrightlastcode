@@ -66,7 +66,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.clickOnEditTopic();
       await manageTopicsPage.editTopicName(`${topicName}--__`);
       await manageTopicsPage.clickOnUpdateButton();
-      await manageTopicsPage.verifyErroToastMessage();
+      await manageTopicsPage.verifyErrorToastMessage();
     }
   );
   test(
@@ -88,7 +88,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.clickOnAddButton();
       await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(topicName);
       await manageTopicsPage.searchingTopicInSearchBar(`${topicName}--__`);
       await manageTopicsPage.verifyingNothingToShowHereText();
     }
@@ -164,8 +164,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       });
 
       console.log(`Created album via API: ${albumName} with ID: ${albumInfo.contentId} in site: ${siteId}`);
-      await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.loadPage();
       await manageTopicsPage.searchingTopicInSearchBar(topicName);
       await manageTopicsPage.openingSearchedTopic(topicName);
       await topicDetailsPage.verifyingCreatedContentInTopicDetailsPage(albumName, eventName, randomPageName);
@@ -463,15 +462,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify standard user is able to add/list topic in Content CONT-25968',
+    'verify standard user is able to add/list topic in Content CONT-41628',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25968'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41628'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify standard user is able to add/list topic in Content',
-        zephyrTestId: 'CONT-25968',
-        storyId: 'CONT-25969',
+        zephyrTestId: 'CONT-41628',
+        storyId: 'CONT-41628',
       });
       const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
       // Store topic names in array for later use
@@ -559,10 +558,10 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.clickOnTopics();
       await manageTopicsPage.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(topicName);
       await manageTopicsPage.clearSearchBar();
       await manageTopicsPage.searchingTopicInSearchBar(topicNameInReply);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicNameInReply);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(topicNameInReply);
       const siteInfo = await standardUserFixture.siteManagementHelper.getListOfSites({
         filter: `active`,
       });
@@ -574,7 +573,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await feedPage.postEditor.createAndPostWithTopic(`test topic`, siteTopicName);
       await manageTopicsPage.clearSearchBar();
       await manageTopicsPage.searchingTopicInSearchBar(siteTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(siteTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(siteTopicName);
       const siteInfoForCreateContent = await standardUserFixture.siteManagementHelper.getListOfSites({
         filter: `active`,
       });
@@ -595,10 +594,10 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await feedPage.feedList.addReplyToPost(`test topic`, contentPostResult.postId || '', undefined, contentReplyText);
       await manageTopicsPage.clearSearchBar();
       await manageTopicsPage.searchingTopicInSearchBar(contentTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(contentTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(contentTopicName);
       await manageTopicsPage.clearSearchBar();
       await manageTopicsPage.searchingTopicInSearchBar(contentReplyText);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(contentReplyText);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(contentReplyText);
     }
   );
 
@@ -714,13 +713,13 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       topicName = faker.lorem.words(2);
       const existingTopicName = await manageTopicsPage.getTopicNameFromList();
       await manageTopicsPage.searchingTopicInSearchBar(existingTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(existingTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(existingTopicName);
 
       topicId = await manageTopicsPage.createTopic(topicName.toLowerCase());
       await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.verifyTopicIsVisible(topicName.toLowerCase());
       await manageTopicsPage.searchingTopicInSearchBar(topicName.toLowerCase());
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName.toLowerCase());
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(topicName.toLowerCase());
       await manageTopicsPage.editTopic(topicName.toUpperCase());
       await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
       await manageTopicsPage.verifyTopicIsVisible(topicName.toUpperCase());
@@ -754,7 +753,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
       await manageTopicsPage.verifyingNothingToShowHereText();
       await manageTopicsPage.searchingTopicInSearchBar(secondTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(secondTopicName);
       await manageTopicsPage.deleteTopic();
       await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
     }
@@ -856,12 +855,12 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Create second topic "UI-test"
       const secondTopicName = faker.string.alpha({ length: 5 });
-      const secondTopicId = await manageTopicsPage.createTopic(secondTopicName);
+      await manageTopicsPage.createTopic(secondTopicName);
       await manageTopicsPage.verifyToastMessageIsVisibleWithText(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
       // Search for the edited topic "me rge"
       await manageTopicsPage.searchingTopicInSearchBar(editedTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(editedTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(editedTopicName);
 
       // Merge "me rge" into "UI-test"
       await manageTopicsPage.openTopicOptionsDropdown();
@@ -873,7 +872,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Search for "UI-test" topic
       await manageTopicsPage.searchingTopicInSearchBar(secondTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(secondTopicName);
 
       // Delete "UI-test" topic
       await manageTopicsPage.openTopicOptionsDropdown();

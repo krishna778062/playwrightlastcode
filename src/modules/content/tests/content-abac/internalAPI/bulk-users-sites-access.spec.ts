@@ -105,7 +105,8 @@ test.describe(
         //   --header 'sec-fetch-site: same-site' \
         //   --header 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36' \
         //   --header 'x-smtip-csrfid: <CSRF_TOKEN>' \
-        //   --header 'Cookie: <COOKIE_STRING>' \
+        //   --header 'Cookie:
+        // <COOKIE_STRING>' \
         //   --data '{"siteIds": ["<SITE_ID_1>", "<SITE_ID_2>", "<SITE_ID_3>"], "userIds": ["<USER_ID_1>", "<USER_ID_2>"]}'
         const bulkUsersSitesAccessResponse =
           await appManagerApiFixture.siteManagementHelper.siteManagementService.getBulkUsersSitesAccess(
