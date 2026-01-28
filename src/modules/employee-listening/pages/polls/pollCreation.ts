@@ -2015,23 +2015,4 @@ export class AIPollCreationPage extends BasePage {
       test.expect(hasPollQuestion, `Poll question "${pollQuestion}" should be present in metadata`).toBeTruthy();
     });
   }
-
-  // async verifyGenerateButtonHoverBehavior(): Promise<void> {
-  //   await test.step('Verify Generate button hover behavior', async () => {
-  //     await this.verifier.verifyTheElementIsVisible(this.generateButton, {
-  //       assertionMessage: 'Generate button should be visible',
-  //       timeout: TIMEOUTS.MEDIUM,
-  //     });
-  //     await this.verifier.verifyTheElementIsEnabled(this.generateButton, {
-  //       assertionMessage: 'Generate button should be enabled with valid prompt',
-  //       timeout: TIMEOUTS.MEDIUM,
-  //     });
-  //     await this.generateButton.hover();
-  //     const isButtonEnabled = await this.generateButton.isEnabled();
-  //     test.expect(isButtonEnabled, 'Generate button should remain enabled during hover').toBe(true);
-  //     const ariaLabel = await this.generateButton.getAttribute('aria-label');
-  //     test.expect(ariaLabel, 'Generate button should maintain aria-label on hover').toBe('Generate poll');
-  //     await this.aiTextBox.hover();
-  //   });
-  // }
 }
