@@ -1240,15 +1240,14 @@ export class RenamingPage extends BasePage {
    * Keeps Recognition label populated to avoid any locator filters receiving undefined.
    */
   async validatePointsManualTranslationsAcrossLanguages(
-    pointsTranslationsByLanguage: Map<string, string>,
-    options?: { resetLanguageId?: number; recognitionLabel?: string }
+    pointsTranslationsByLanguage: Map<string, string>
   ): Promise<void> {
     const languageApi = new LanguageApiService();
     // If modal is open (caller just read translations), close it so we can safely navigate.
     await this.clickDialogCloseButton().catch(() => {});
 
-    const recognitionLabel =
-      options?.recognitionLabel ?? ((await this.getTheNewCustomizedValue('recognition'))?.trim() || 'Recognition');
+    const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
+      await this.captureTranslationsForCard('recognition');
 
     for (const [languageLabel, translatedPointsValue] of pointsTranslationsByLanguage.entries()) {
       const candidates = this.parseLanguageCandidates(languageLabel);
@@ -1265,7 +1264,11 @@ export class RenamingPage extends BasePage {
       await this.page.reload({ waitUntil: 'domcontentloaded' });
 
       const expectedMap = new Map<string, string>();
-      expectedMap.set('recognition', recognitionLabel);
+      expectedMap.set(
+        'recognition',
+        this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
+          defaultRecognitionLabel
+      );
       expectedMap.set('points', translatedPointsValue);
       await this.validateThePointsValueInApp(expectedMap);
     }

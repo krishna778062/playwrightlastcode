@@ -10,7 +10,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe('renaming page', () => {
+test.describe('Reward Store renaming', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
