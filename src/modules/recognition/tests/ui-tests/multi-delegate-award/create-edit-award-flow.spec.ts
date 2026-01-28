@@ -14,8 +14,10 @@ test.describe('create & edit multi delegate award', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        TestPriority.P0,
+        TestPriority.P1,
         TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.REGRESSION,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -61,8 +63,8 @@ test.describe('create & edit multi delegate award', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        TestPriority.P0,
-        TestGroupType.SANITY,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
       ],
     },
     async ({ appManagerFixture }) => {
