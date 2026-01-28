@@ -2,6 +2,7 @@ import { expect, Locator, Page, test } from '@playwright/test';
 import { RecognitionHubPage } from '@recognition/ui/pages';
 import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { HomeDashboardPage } from '@content/ui/pages/homeDashboardPage';
@@ -908,21 +909,24 @@ export class RenamingPage extends BasePage {
   }
 
   private async validateRecognitionButtonInGiveRecognitionModal(customValue: any): Promise<void> {
-    const recognitionHubButton = this.page.locator('[class*="Fullscreen_header"] button');
+    const recognitionHubButton = this.page.locator('[class*="PageContainerFullscreen_headerContent"] button');
     const recognitionModalHeading = this.page.locator('[class*="Dialog-module__header"] h2');
     const recognitionModalCloseButton = this.page.locator('[class*="Dialog-module__header"] button');
     await recognitionHubButton.click();
     await this.verifier.verifyTheElementIsVisible(recognitionModalHeading, {
       assertionMessage: `Verifying give recognition modal heading with label ${await recognitionModalHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
     });
+    const recognitionModal = new GiveRecognitionDialogBox(this.page);
+    const text = await recognitionModal.giftingPointsValueLabel.textContent();
+    expect(text).toContain(customValue.get('points'));
     await recognitionModalCloseButton.click();
     await this.verifier.verifyTheElementIsNotVisible(recognitionModalHeading, {
-      assertionMessage: `Verifying give recognition modal heading with label ${await recognitionModalHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
+      assertionMessage: 'Verifying give recognition modal is closed',
     });
   }
 
   private async validateRecognitionButtonText(recognition: string): Promise<void> {
-    const recognitionHubButton = this.page.locator('[class="PageContainerFullscreen_headerRightContent"] button');
+    const recognitionHubButton = this.page.locator('[class*="PageContainerFullscreen_headerRightContent"] button');
     await this.verifier.verifyTheElementIsVisible(recognitionHubButton, {
       assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubButton.filter({ hasText: recognition }).textContent()} is visible on recognition hub page`,
     });
