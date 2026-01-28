@@ -191,4 +191,62 @@ export class IdentityManagementHelper {
     // Update the user with the new additional roles
     return await this.updateUser(userId, updatePayload);
   }
+
+  // ==================== ACG Management Methods ====================
+
+  /**
+   * Adds a user as manager of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to add as manager
+   */
+  async addUserAsManagerOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.addManagerToACG(acgName, userId);
+  }
+
+  /**
+   * Removes a user from managers of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to remove from managers
+   */
+  async removeUserFromManagerOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.removeManagerFromACG(acgName, userId);
+  }
+
+  /**
+   * Adds a user as admin of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to add as admin
+   */
+  async addUserAsAdminOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.addAdminToACG(acgName, userId);
+  }
+
+  /**
+   * Removes a user from admins of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to remove from admins
+   */
+  async removeUserFromAdminOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.removeAdminFromACG(acgName, userId);
+  }
+
+  // ==================== Feature Owner Methods ====================
+
+  /**
+   * Adds a user as Feature Owner for a specific feature
+   * @param featureCode - Feature code (e.g., 'ADD_HOME_FEED')
+   * @param userId - User ID to add as feature owner
+   */
+  async addUserAsFeatureOwner(featureCode: string, userId: string): Promise<void> {
+    await this.identityService.addFeatureOwner(featureCode, userId);
+  }
+
+  /**
+   * Removes a user from Feature Owners for a specific feature
+   * @param featureCode - Feature code (e.g., 'ADD_HOME_FEED')
+   * @param userId - User ID to remove from feature owners
+   */
+  async removeUserFromFeatureOwner(featureCode: string, userId: string): Promise<void> {
+    await this.identityService.removeFeatureOwner(featureCode, userId);
+  }
 }
