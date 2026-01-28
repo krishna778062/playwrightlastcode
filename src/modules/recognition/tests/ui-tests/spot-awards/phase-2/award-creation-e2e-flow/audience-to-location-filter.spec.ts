@@ -12,8 +12,9 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { spotAwardTestData } from '@/src/modules/recognition/test-data/awardTestData';
 
-test.describe('Spot award end to end flow - audience to audience', () => {
+test.describe('Spot award end to end flow - audience to location', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -23,50 +24,110 @@ test.describe('Spot award end to end flow - audience to audience', () => {
     );
     await manageRecognitionPage.spotAwardTab.click();
   });
+
+  const defaultLocation = spotAwardTestData.location;
+
   [
+    //Manager in a location receiver
     {
-      testId: 'RC-6497',
+      testId: 'RC-6467',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Users in audience for Indefinitely limited times',
+        'Validate creation of Spot award when Users in audience selected to give award to Managers in a location for Specific period limited times',
       giverType: 'Users in an audience',
-      receiverType: 'Users in an audience',
-      selectAwardPeriodValue: 'Indefinitely',
+      receiverType: 'Managers in a location',
+      location: defaultLocation,
+      selectAwardPeriodValue: 'During a specified period',
       selectHowOftenAwardGivenValue: 'Limited',
       timesValue: '5',
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
-    },
-    {
-      testId: 'RC-6498',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Users in audience for Indefinitely unlimited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Users in an audience',
-      selectAwardPeriodValue: 'Indefinitely',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      timesValue: undefined,
       priority: TestPriority.P1,
       testGroup: TestGroupType.SANITY,
     },
     {
-      testId: 'RC-6499',
+      testId: 'RC-6466',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Users in audience for Specific period limited times',
+        'Validate creation of Spot award when Users in audience selected to give award to Managers in a location for Specific period unlimited times',
       giverType: 'Users in an audience',
-      receiverType: 'Users in an audience',
+      receiverType: 'Managers in a location',
+      location: defaultLocation,
       selectAwardPeriodValue: 'During a specified period',
+      selectHowOftenAwardGivenValue: 'Unlimited',
+      timesValue: '2',
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
+    {
+      testId: 'RC-6465',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Managers in a location  for Indefinitely limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Managers in a location',
+      location: defaultLocation,
+      selectAwardPeriodValue: 'Indefinitely',
       selectHowOftenAwardGivenValue: 'Limited',
-      timesValue: '1',
-      priority: TestPriority.P1,
+      timesValue: '3',
+      priority: TestPriority.P2,
       sanityGroup: TestGroupType.SANITY,
     },
     {
-      testId: 'RC-6500',
+      testId: 'RC-6464',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Users in audience for Specific period unlimited times',
+        'Validate creation of Spot award when Users in audience selected to give award to Managers in a location for Indefinitely unlimited times',
       giverType: 'Users in an audience',
-      receiverType: 'Users in an audience',
+      receiverType: 'Managers in a location',
+      location: defaultLocation,
+      selectAwardPeriodValue: 'Indefinitely',
+      selectHowOftenAwardGivenValue: 'Unlimited',
+      timesValue: undefined,
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
+
+    //Employee in a location receiver
+    {
+      testId: 'RC-4471',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Employees in a location for Specific period limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Employees in a location',
+      location: defaultLocation,
       selectAwardPeriodValue: 'During a specified period',
+      selectHowOftenAwardGivenValue: 'Limited',
+      timesValue: '2',
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
+    {
+      testId: 'RC-4470',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Employees in a location for Specific period unlimited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Employees in a location',
+      location: defaultLocation,
+      selectAwardPeriodValue: 'During a specified period',
+      selectHowOftenAwardGivenValue: 'Unlimited',
+      timesValue: undefined,
+      priority: TestPriority.P3,
+    },
+    {
+      testId: 'RC-4469',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Employees in a location for Indefinitely limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Employees in a location',
+      location: defaultLocation,
+      selectAwardPeriodValue: 'Indefinitely',
+      selectHowOftenAwardGivenValue: 'Limited',
+      timesValue: '3',
+      priority: TestPriority.P3,
+    },
+    {
+      testId: 'RC-4349',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Employees in a location for Indefinitely unlimited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Employees in a location',
+      location: defaultLocation,
+      selectAwardPeriodValue: 'Indefinitely',
       selectHowOftenAwardGivenValue: 'Unlimited',
       timesValue: undefined,
       priority: TestPriority.P2,
@@ -78,6 +139,7 @@ test.describe('Spot award end to end flow - audience to audience', () => {
       testTitle,
       giverType,
       receiverType,
+      location = defaultLocation,
       selectAwardPeriodValue,
       selectHowOftenAwardGivenValue,
       timesValue,
@@ -109,7 +171,7 @@ test.describe('Spot award end to end flow - audience to audience', () => {
             2,
             giverType,
             receiverType,
-            undefined,
+            location,
             selectAwardPeriodValue as 'Indefinitely' | 'During a specified period',
             selectHowOftenAwardGivenValue as 'Unlimited' | 'Limited',
             guidance,

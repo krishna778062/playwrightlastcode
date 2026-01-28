@@ -40,6 +40,7 @@ export class AlbumCreationPage extends BasePage {
   readonly addFromContainerInput: Locator;
   readonly addFilesAttachmentsButton: Locator;
   readonly enterVideoURL: Locator;
+  readonly topicSectionInput: Locator;
   readonly addVideo: Locator;
   readonly topicInDescription: (topic: string) => Locator;
 
@@ -61,6 +62,7 @@ export class AlbumCreationPage extends BasePage {
     this.addFilesAttachmentsButton = this.page.locator('button:has-text("Add files & attachments")');
     this.enterVideoURL = this.page.locator('button', { hasText: 'enter a video URL' });
     this.addVideo = this.page.locator('button', { hasText: 'Add video' });
+    this.topicSectionInput = this.page.getByRole('combobox', { name: 'Topics' });
     this.topicInDescription = (topic: string) => this.page.getByLabel(`${topic}`);
   }
 
@@ -382,6 +384,71 @@ export class AlbumCreationPage extends BasePage {
         }
       }
 
+      // Set open album if specified
+      if (options.openAlbum) {
+        await this.checkElement(this.openAlbumCheckbox, {
+          stepInfo: 'Check open album checkbox',
+        });
+      }
+
+      // Publish the album
+      const publishResponse = await this.publishAlbum();
+
+      // Get response body
+      const publishResponseBody = (await publishResponse.json()) as AlbumCreationResponse;
+
+      // Extract the album ID and site ID from the response
+      const albumId = publishResponseBody.result.id;
+      const siteId = publishResponseBody.result.site.siteId;
+
+      return {
+        title: options.title,
+        description: options.description,
+        albumId: albumId,
+        siteId: siteId,
+        response: publishResponseBody,
+      };
+    });
+  }
+  // Action methods implementation
+  async createWithTopicInDescriptionAndInTopicSectionAndPublish(
+    options: AlbumCreationOptions & { topicsSection: string[] }
+  ): Promise<{
+    title: string;
+    description: string;
+    albumId: string;
+    siteId: string;
+    response: AlbumCreationResponse;
+  }> {
+    return await test.step(`Creating and publishing album with title: ${options.title}`, async () => {
+      // Fill album title
+      await this.fillInElement(this.titleInput, options.title, {
+        stepInfo: 'Fill album title',
+      });
+
+      // Fill description
+      await this.fillInElement(this.albumDescriptionInput, options.description, {
+        stepInfo: 'Fill album description',
+      });
+
+      //Add topic in description
+      if (options.topics && options.topics.length > 0) {
+        await this.fillInElement(this.albumDescriptionInput, '#' + options.topics[0], {
+          stepInfo: 'Fill album description with topic',
+        });
+        await this.clickOnElement(this.topicInDescription(options.topics[0]));
+      }
+      // Upload images if provided
+      if (options.images && options.images.length > 0) {
+        for (const image of options.images) {
+          await this.uploadImage(image);
+        }
+      }
+
+      // Add topics in topics section
+      if (options.topicsSection && options.topicsSection.length > 0) {
+        await this.addTopics(options.topicsSection);
+      }
       // Set open album if specified
       if (options.openAlbum) {
         await this.checkElement(this.openAlbumCheckbox, {

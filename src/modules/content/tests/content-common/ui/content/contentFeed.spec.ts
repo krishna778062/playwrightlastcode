@@ -78,7 +78,7 @@ test.describe(
           stepInfo: 'Standard User clicking on bell icon to view notifications',
         });
         const notificationComponent = new NotificationComponent(standardUserFixture.page);
-        const activityNotificationPage = await notificationComponent.actions.clickOnViewAllNotifications();
+        const activityNotificationPage = await notificationComponent.clickOnViewAllNotifications();
         const appManagerInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
           users.appManager.email
         );
