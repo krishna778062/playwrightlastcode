@@ -1,8 +1,12 @@
 import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
+import { DialogBox } from '@rewards-components/common/dialog-box';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
@@ -234,7 +238,7 @@ test.describe('Recognition Renaming Scenarios', () => {
   );
 
   test(
-    '[RC-7073] Validate Recognition and points custom value in selected language showing in Delete Recognition Modal',
+    '[RC-7073] Validate Recognition and points custom value in selected language showing in Delete Recognition Modal when grace period is over',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
     },
@@ -242,16 +246,11 @@ test.describe('Recognition Renaming Scenarios', () => {
       test.setTimeout(360_000);
       tagTest(test.info(), {
         description:
-          'Validate Recognition and points custom value in selected language showing in Delete Recognition Modal',
+          ' Validate Recognition and points custom value in selected language showing in Delete Recognition Modal when grace period is over',
         zephyrTestId: 'RC-7073',
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      await renamingPage.verifyThePageIsLoaded();
-      await renamingPage.clickEditButtonByCardType('recognition');
-      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
-      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
-      await renamingPage.changeSomeDataAndClickOnSave('Recognition');
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.clickEditButtonByCardType('recognition');
       const recognitionTranslationsByLanguage: Map<string, string> =
@@ -259,6 +258,67 @@ test.describe('Recognition Renaming Scenarios', () => {
       const languageApi = new LanguageApiService();
       try {
         await renamingPage.validateRecognitionAndPointsLabelInDeleteRecognitionModal(recognitionTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
+
+  test(
+    '[RC-7073] Validate Recognition and points custom value in selected language showing in Delete Recognition Modal when grace period is not over',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description:
+          'Validate Recognition and points custom value in selected language showing in Delete Recognition Modal when grace period is not over',
+        zephyrTestId: 'RC-7073',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
+      if (existingOptions.length <= 1) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
+      await recognitionHub.clickOnGiveRecognition();
+      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+      await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().endUserName);
+      await giveRecognitionModal.selectTheUserForRecognition(0);
+      await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
+      const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
+      await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
+      await giveRecognitionModal.giftThePoints(1);
+      const [response] = await Promise.all([
+        recognitionHub.page.waitForResponse(resp => resp.url().includes('/recognition/create')),
+        giveRecognitionModal.recognizeButton.click({ force: true }),
+      ]);
+
+      const body = await response.json();
+      if (!body?.id) throw new Error(`No id in response: ${JSON.stringify(body)}`);
+      const recognitionPostUrl = String(body.id);
+
+      // Handle dialog box if it appears
+      const dialogBox = new DialogBox(appManagerFixture.page);
+      if (await recognitionHub.verifier.isTheElementVisible(dialogBox.container)) {
+        await dialogBox.container.waitFor({ state: 'visible' });
+        await dialogBox.skipButton.click();
+        await expect(dialogBox.container).not.toBeVisible();
+      }
+      await renamingPage.visit();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const recognitionTranslationsByLanguage: Map<string, string> =
+        await renamingPage.setTheManualTranslationValuesByLanguages('recognition');
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRecognitionAndPointsLabelInDeleteRecognitionModalWithin24hrs(
+          recognitionPostUrl,
+          recognitionTranslationsByLanguage
+        );
       } finally {
         await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
         await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });

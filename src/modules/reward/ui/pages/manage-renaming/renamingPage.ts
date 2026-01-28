@@ -1263,10 +1263,84 @@ export class RenamingPage extends BasePage {
       );
       await manageRewardsOverviewPage.page.goto(rewardData.resultAny?.URL!);
       await recognitionHub.clickOnTheFirstPostMoreOption(2);
-      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
+      const expectedRecognition = expectedMap.get('recognition') ?? '';
+      const expectedPoints = expectedMap.get('points') ?? '';
+      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toContainText(expectedRecognition.toLowerCase());
       await expect(recognitionHub.deleteRecognitionWithRevokePoints).not.toBeVisible();
-      await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
-      await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.first()).toContainText(
+        expectedRecognition.toLocaleLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.last()).toContainText(
+        // expectedRecognition.toLocaleLowerCase()
+        expectedRecognition.toLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.last()).toContainText(expectedPoints);
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Recognition label across languages, then resets to default language.
+   * This mirrors the RC-7125 approach (no basic-app-config mocking).
+   */
+  async validateRecognitionAndPointsLabelInDeleteRecognitionModalWithin24hrs(
+    recognitionPostUrl: string,
+    recognitionTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    const recognitionHub = new RecognitionHubPage(this.page);
+    await this.clickDialogCloseButton().catch(() => {});
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+
+    for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', translatedRecognitionValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      // Validate the Delete recognition and revoke points is enabled in the dialog box
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostUrl}`);
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.clickOnTheFirstPostMoreOption(2);
+      const expectedRecognition = expectedMap.get('recognition') ?? '';
+      const expectedPoints = expectedMap.get('points') ?? '';
+      await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
+      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toContainText(expectedRecognition.toLowerCase());
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.first()).toContainText(
+        expectedRecognition.toLocaleLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(1)).toContainText(
+        // expectedRecognition.toLocaleLowerCase()
+        expectedRecognition.toLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(1)).toContainText(expectedPoints);
+      // Delete recognition with revoke points validation;
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(3)).toContainText(
+        expectedRecognition.toLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(3)).toContainText(expectedPoints);
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(4)).toContainText(
+        expectedRecognition.toLocaleLowerCase()
+      );
+
+      //Delete recognition note validation
+      await expect(recognitionHub.deleteRecognitionNote.nth(0)).toContainText(expectedPoints);
+      await expect(recognitionHub.deleteRecognitionNote.nth(1)).toContainText(expectedPoints);
+      await expect(recognitionHub.deleteRecognitionNote.nth(2)).toContainText(expectedRecognition.toLocaleLowerCase());
+      await expect(recognitionHub.deleteRecognitionNote.nth(2)).toContainText(expectedPoints);
     }
   }
 }

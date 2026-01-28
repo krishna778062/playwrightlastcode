@@ -202,7 +202,7 @@ export class RecognitionHubPage extends BasePage {
       });
 
       // Navigate to the page
-
+      await this.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
       // Wait a bit for the response to be captured
       await this.page.waitForTimeout(2000);
 
