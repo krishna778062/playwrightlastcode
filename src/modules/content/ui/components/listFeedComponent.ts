@@ -1068,7 +1068,7 @@ export class ListFeedComponent extends BaseComponent {
 
   async clickShareButtonForPost(postText: string): Promise<void> {
     await test.step(`Click Share button for post: ${postText}`, async () => {
-      await this.clickOnElement(this.getShareButtonLocator(postText));
+      await this.clickByInjectingJavaScript(this.getShareButtonLocator(postText));
     });
   }
 
