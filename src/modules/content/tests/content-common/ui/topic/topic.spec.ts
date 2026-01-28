@@ -202,8 +202,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       console.log(`Created home feed via API: ${feedText} with ID: ${feedInfo.result.feedId}`);
 
-      await appManagerFixture.navigationHelper.openApplicationSettings();
-      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.loadPage();
       await manageTopicsPage.searchingTopicInSearchBar(topicName);
       await manageTopicsPage.openingSearchedTopic(topicName);
       await topicDetailsPage.clickOnFeedTab();
