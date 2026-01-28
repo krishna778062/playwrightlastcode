@@ -167,7 +167,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.rewardsTab = page.getByRole('tab', { name: 'Rewards', exact: true });
     this.rewardsTabHeading = page.locator('h2[class*="Typography-module__heading1"]');
     this.enableRewardsButton = page.locator('button[aria-label="Enable rewards"]');
-    this.insightBulbButton = page.getByRole('button', { name: 'Insight' });
+    this.insightBulbButton = page.locator('[class*="RewardsOverview_insight"] button');
     this.rewardTerminologyButton = page.locator('button[aria-label="Insight"]');
     this.insightModalContainer = page.locator('[id*="tippy"]');
     this.rewardsTerminologyHeading = this.insightModalContainer.getByRole('heading', { name: 'Rewards terminology' });
@@ -286,7 +286,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.activityTableNoResultText = this.activityContainer.locator(
       '[class*="Activity_container"] p[class*="Typography-module__paragraph"]'
     );
-    this.activityTableDownloadCSVButton = this.activityContainer.locator('//button/div[text()="Download CSV"]');
+    this.activityTableDownloadCSVButton = this.activityContainer.locator('button span[class*="Button-module__icon"]');
     this.activityPanelTableShowMoreButton = this.activityContainer.locator(
       '//button[@type="button" and text()="Show more"]'
     );
@@ -873,12 +873,12 @@ export class ManageRewardsOverviewPage extends BasePage {
   async getRecordOlderThan24Hrs(records: CSVRow[], gifterName?: string) {
     if (!Array.isArray(records) || records.length === 0) return null;
     let data = records.length > 150 ? records.slice(0, Math.ceil(records.length / 2)) : records;
-    data = data.filter(
-      r =>
-        String(r.URL ?? '')
-          .trim()
-          .toLowerCase() !== 'deleted'
-    );
+    data = data.filter(r => {
+      const url = String(r.URL ?? '')
+        .trim()
+        .toLowerCase();
+      return url !== 'deleted' && url !== 'import' && url !== 'imported';
+    });
     if (gifterName?.trim()) {
       const name = gifterName.trim().toLowerCase();
       data = data.filter(

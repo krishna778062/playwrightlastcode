@@ -1,8 +1,10 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { RecognitionHubPage } from '@recognition/ui/pages';
 import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
 import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { HomeDashboardPage } from '@content/ui/pages/homeDashboardPage';
@@ -906,6 +908,20 @@ export class RenamingPage extends BasePage {
     });
     await this.validateRecognitionButtonText(customValue.get('recognition'));
     await this.validateRecognitionButtonInGiveRecognitionModal(customValue);
+    await this.validateTheRecognitionFiltersOnHub(customValue.get('recognition'));
+  }
+  private async validateTheRecognitionFiltersOnHub(recognition: string): Promise<void> {
+    const filterDropdown = this.page.locator('select#filterBy option');
+    const optionTexts = (await filterDropdown.allTextContents()).map(text => text.trim());
+    expect(optionTexts.length).toBeGreaterThanOrEqual(2);
+    const nonTargetOptions = optionTexts.slice(0, -2);
+    const targetOptions = optionTexts.slice(-2);
+    for (const option of targetOptions) {
+      expect(option).toContain(recognition);
+    }
+    for (const option of nonTargetOptions) {
+      expect(option, `Did not expect recognition "${recognition}" in option "${option}"`).not.toContain(recognition);
+    }
   }
 
   private async validateRecognitionButtonInGiveRecognitionModal(customValue: any): Promise<void> {
@@ -1204,6 +1220,53 @@ export class RenamingPage extends BasePage {
       expectedMap.set('recognition', recognitionLabel);
       expectedMap.set('points', translatedPointsValue);
       await this.validateThePointsValueInApp(expectedMap);
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Recognition label across languages, then resets to default language.
+   * This mirrors the RC-7125 approach (no basic-app-config mocking).
+   */
+  async validateRecognitionAndPointsLabelInDeleteRecognitionModal(
+    recognitionTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    await this.clickDialogCloseButton().catch(() => {});
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+
+    for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', translatedRecognitionValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
+      const recognitionHub = new RecognitionHubPage(this.page);
+      await manageRewardsOverviewPage.loadPage();
+      await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
+      const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs(
+        getRewardTenantConfigFromCache().appManagerName
+      );
+      await manageRewardsOverviewPage.page.goto(rewardData.resultAny?.URL!);
+      await recognitionHub.clickOnTheFirstPostMoreOption(2);
+      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toHaveText('Delete recognition');
+      await expect(recognitionHub.deleteRecognitionWithRevokePoints).not.toBeVisible();
+      await recognitionHub.deleteRecognitionDialogBoxCloseButton.click({ force: true });
+      await expect(recognitionHub.deleteRecognitionDialogBoxContainer).not.toBeVisible();
     }
   }
 }

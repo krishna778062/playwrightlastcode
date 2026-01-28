@@ -109,6 +109,16 @@ export class RecognitionHubPage extends BasePage {
   }
 
   /**
+   * Navigate to Recognition Hub via endpoint
+   */
+  async navigateRecognitionHubViaEndpoint(endpoint: string): Promise<void> {
+    await test.step(`Navigating to ${endpoint} via endpoint`, async () => {
+      await this.page.goto(endpoint);
+      await this.verifyThePageIsLoaded();
+    });
+  }
+
+  /**
    * Click on the Give recognition Button
    */
   async clickOnGiveRecognition(): Promise<void> {
@@ -371,15 +381,49 @@ export class RecognitionHubPage extends BasePage {
   /**
    * Click on the first post more option
    */
-  async clickOnTheFirstPostMoreOption(optionText: string): Promise<void> {
+  async clickOnTheFirstPostMoreOption(optionText: string | number): Promise<void> {
+    // Ensure post + more button are visible
     await this.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 15000 });
     await this.rewardRecognitionFirstPostMoreButton.waitFor({ state: 'visible', timeout: 15000 });
-    await this.clickOnElement(this.rewardRecognitionFirstPostMoreButton, { stepInfo: 'Clicking on more button' });
-    const menu = this.page.getByRole('menu', { name: 'More' });
-    await menu.getByRole('menuitem').last().waitFor({ state: 'attached', timeout: 5000 });
-    const option = menu.getByRole('menuitem').locator(`div:has-text("${optionText}")`);
-    await option.first().waitFor({ state: 'attached', timeout: 15000 });
-    await this.clickOnElement(option.first(), { stepInfo: `Clicking on ${optionText} option`, force: true });
+
+    // Open menu
+    await this.clickOnElement(this.rewardRecognitionFirstPostMoreButton, {
+      stepInfo: 'Clicking on more button',
+    });
+
+    // Menu + items
+    const menu = this.page.getByRole('menu');
+    await menu.waitFor({ state: 'visible', timeout: 15000 });
+
+    const items = menu.getByRole('menuitem');
+    const count = await items.count();
+
+    let target: Locator;
+
+    if (typeof optionText === 'number') {
+      // Convert to 0-based index
+      const index = optionText - 1;
+
+      if (index < 0 || index >= count) {
+        throw new Error(`Invalid menu index: ${optionText}. Menu has ${count} items.`);
+      }
+
+      target = items.nth(index);
+    } else {
+      // Exact text match inside menuitem
+      target = items.filter({ hasText: optionText }).first();
+
+      if ((await target.count()) === 0) {
+        throw new Error(`Menu option with text "${optionText}" not found.`);
+      }
+    }
+
+    // Click the resolved target
+    await target.waitFor({ state: 'visible', timeout: 15000 });
+    await this.clickOnElement(target, {
+      stepInfo: `Clicking on menu option "${optionText}"`,
+      force: true,
+    });
   }
 
   /**

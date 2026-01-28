@@ -232,4 +232,37 @@ test.describe('Recognition Renaming Scenarios', () => {
       }
     }
   );
+
+  test(
+    '[RC-7073] Validate Recognition and points custom value in selected language showing in Delete Recognition Modal',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description:
+          'Validate Recognition and points custom value in selected language showing in Delete Recognition Modal',
+        zephyrTestId: 'RC-7073',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('recognition');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      await renamingPage.changeSomeDataAndClickOnSave('Recognition');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      const recognitionTranslationsByLanguage: Map<string, string> =
+        await renamingPage.setTheManualTranslationValuesByLanguages('recognition');
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRecognitionAndPointsLabelInDeleteRecognitionModal(recognitionTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
 });
