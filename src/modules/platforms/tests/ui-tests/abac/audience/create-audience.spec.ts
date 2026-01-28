@@ -583,7 +583,10 @@ test.describe(
         await audiencePage.verifyCategoryNotPresentInParentPicker(catNotCreated);
 
         // Delete the UI-created category via API (CleanUp
-        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoriesByName(categoryWithoutDescription,categoryWithDescription);
+        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoriesByName(
+          categoryWithoutDescription,
+          categoryWithDescription
+        );
       }
     );
   }

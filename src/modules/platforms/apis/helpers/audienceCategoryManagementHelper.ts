@@ -109,7 +109,10 @@ export class AudienceCategoryManagementHelper {
     // If a single argument contains commas, split it into multiple names
     const names: string[] =
       categoryNames.length === 1 && categoryNames[0].includes(',')
-        ? categoryNames[0].split(',').map((n) => n.trim()).filter(Boolean)
+        ? categoryNames[0]
+            .split(',')
+            .map(n => n.trim())
+            .filter(Boolean)
         : categoryNames;
     if (names.length === 0) return;
     await test.step('Deleting multiple categories by names via API', async () => {
