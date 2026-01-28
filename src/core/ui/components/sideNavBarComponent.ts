@@ -98,14 +98,14 @@ export class SideNavBarComponent extends BaseComponent {
     this.favoriteButton = page.getByRole('menuitem', { name: 'Favorites' });
 
     //recognition section
-    this.recognitionLink = page.locator('[data-testid="main-nav"] a[href="/recognition"]');
+    this.recognitionLink = page.locator('[href="/recognition"][data-testid="main-nav-item"]');
     this.recognitionFeature = page.getByRole('button', { name: 'Recognition' });
 
     //manage feature section
     this.clickOnSocialCampaignsUnderManageFeature = page
       .getByTestId('main-nav')
       .getByRole('link', { name: 'Social campaigns' });
-    this.homeNavMenu = page.locator('[data-testid="main-nav"] a[href="/home"]');
+    this.homeNavMenu = page.locator('[href="/home"][data-testid="main-nav-item"]');
     this.manageNavMenu = page.locator('[class*="primary-nav"] [aria-label="Manage"]');
   }
 

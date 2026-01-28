@@ -46,11 +46,7 @@ test.describe(
     test(
       'public | private | unlisted | SCM and Member see restriction message on dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          '@Public_Site_Permission_Restriction @Private_Site_Permission_Restriction @Unlisted_Site_Permission_Restriction',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-37172'],
       },
       async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
