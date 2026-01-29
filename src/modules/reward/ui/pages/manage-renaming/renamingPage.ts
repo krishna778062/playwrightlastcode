@@ -7,6 +7,7 @@ import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
+import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { HomeDashboardPage } from '@content/ui/pages/homeDashboardPage';
 import { TIMEOUTS } from '@core/constants/timeouts';
@@ -619,7 +620,7 @@ export class RenamingPage extends BasePage {
   }
 
   async setTheManualTranslationValuesByLanguages(
-    cardType: 'recognition' | 'points' | 'rewardStore'
+    cardType: 'recognition' | 'points' | 'rewardsStore'
   ): Promise<Map<string, string>> {
     const editModal = new EditLabelModal(this.page);
     const map = new Map<string, string>();
@@ -1400,6 +1401,48 @@ export class RenamingPage extends BasePage {
       await expect(recognitionHub.deleteRecognitionNote.nth(1)).toContainText(expectedPoints);
       await expect(recognitionHub.deleteRecognitionNote.nth(2)).toContainText(expectedRecognition.toLocaleLowerCase());
       await expect(recognitionHub.deleteRecognitionNote.nth(2)).toContainText(expectedPoints);
+    }
+  }
+
+  async validateValuesInUserProfile(points: any) {
+    const languageApi = new LanguageApiService();
+    const userProfilePage = new UserProfilePage(this.page);
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
+      await this.captureTranslationsForCard('recognition');
+
+    for (const [languageLabel, translatedPointsValue] of points.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set(
+        'recognition',
+        this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
+          defaultRecognitionLabel
+      );
+      expectedMap.set('points', translatedPointsValue);
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await userProfilePage.navigateToCurrentUserProfile();
+      await userProfilePage.verifyThePageIsLoaded();
+      await this.verifier.verifyTheElementIsVisible(userProfilePage.userProfileRecognitionAndRewardContainer);
+      await this.verifier.verifyTheElementIsVisible(userProfilePage.pointsToGiveLabel);
+      await this.verifier.verifyTheElementIsVisible(userProfilePage.pointsToRedeemLabel);
+      await expect(userProfilePage.recognitionHeading).toContainText(expectedMap.get('recognition')!);
+      await expect(userProfilePage.pointsToGiveLabel).toContainText(expectedMap.get('points')!);
+      await expect(userProfilePage.pointsToRedeemLabel).toContainText(expectedMap.get('points')!);
     }
   }
 }

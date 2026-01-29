@@ -9,8 +9,11 @@ export class UserProfilePage extends BasePage {
 
   // User profile page locators
   readonly userProfileRecognitionAndRewardContainer: Locator;
+  readonly recognitionHeading: Locator;
   readonly rewardIcons: Locator;
+  readonly pointsToGiveLabel: Locator;
   readonly pointsToGiveValue: Locator;
+  readonly pointsToRedeemLabel: Locator;
   readonly pointsToRedeemValue: Locator;
   readonly pointsRefreshingText: Locator;
   readonly viewOrderButton: Locator;
@@ -32,6 +35,7 @@ export class UserProfilePage extends BasePage {
     // User profile page locators
 
     this.userProfileRecognitionAndRewardContainer = page.locator('[class*="UserRecognition_container"]');
+    this.recognitionHeading = this.userProfileRecognitionAndRewardContainer.locator('h2');
     this.rewardIcons = this.userProfileRecognitionAndRewardContainer.locator('div[class*="RewardsWallet_icon"]');
     this.pointsToGiveContainer = this.userProfileRecognitionAndRewardContainer
       .locator('[class*="RewardsWallet_item"]')
@@ -41,9 +45,15 @@ export class UserProfilePage extends BasePage {
       .locator('[class*="RewardsWallet_item"]')
       .nth(1);
     this.pointsToRedeemValue = this.pointsToRedeemContainer.locator('div[class*="RewardsWallet_details"] > p');
+    this.pointsToGiveLabel = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
+      .nth(0);
     this.pointsRefreshingText = this.userProfileRecognitionAndRewardContainer
       .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
       .nth(1);
+    this.pointsToRedeemLabel = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
+      .nth(2);
     this.viewOrderButton = this.userProfileRecognitionAndRewardContainer.locator('a[href*="/order-history"]');
     this.allowanceRefreshingInfoIcon = this.userProfileRecognitionAndRewardContainer.locator(
       'button[aria-label="Allowance refreshing information"]'

@@ -226,7 +226,7 @@ test.describe('Reward Store renaming', () => {
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.clickEditButtonByCardType('rewardsStore');
       const rewardStoreTranslationsByLanguage: Map<string, string> =
-        await renamingPage.setTheManualTranslationValuesByLanguages('rewardStore');
+        await renamingPage.setTheManualTranslationValuesByLanguages('rewardsStore');
       const languageApi = new LanguageApiService();
       try {
         await renamingPage.validateRewardStoreManualTranslationsAcrossLanguages(rewardStoreTranslationsByLanguage);

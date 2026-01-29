@@ -1,4 +1,5 @@
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
 
@@ -92,4 +93,33 @@ test.describe('renaming page', () => {
       }
     );
   });
+
+  test(
+    '[RC-7085] Validate custom and manual translation values in the user profile page',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description: 'Validate custom and manual translation values in the user profile page',
+        zephyrTestId: 'RC-7085',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.loadPage();
+      await renamingPage.clickEditButtonByCardType('recognition');
+      await renamingPage.setTheManualTranslationValuesByLanguages('recognition');
+      await renamingPage.clickEditButtonByCardType('points');
+      const pointsTranslationsByLanguage: Map<string, string> =
+        await renamingPage.setTheManualTranslationValuesByLanguages('points');
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateValuesInUserProfile(pointsTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
 });
