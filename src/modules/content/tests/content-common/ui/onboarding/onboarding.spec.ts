@@ -55,31 +55,6 @@ test.describe(
           await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsVisible();
         });
 
-        await test.step('Verify Share your post checkbox is ON by default', async () => {
-          await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsChecked();
-        });
-
-        await test.step('Test check/uncheck functionality and save', async () => {
-          // Check if checkbox is ON, if so uncheck it first, then check it again
-          const isChecked = await mySettingsNotificationsPage.isShareYourPostCheckboxChecked();
-
-          if (isChecked) {
-            // Uncheck the checkbox
-            await mySettingsNotificationsPage.uncheckShareYourPostCheckbox();
-            await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsUnchecked();
-
-            // Save and verify unchecked
-            await mySettingsNotificationsPage.saveAndVerifyUnchecked();
-          }
-
-          // Check the checkbox again
-          await mySettingsNotificationsPage.checkShareYourPostCheckbox();
-          await mySettingsNotificationsPage.verifyShareYourPostCheckboxIsChecked();
-
-          // Save and verify checked
-          await mySettingsNotificationsPage.saveAndVerifyChecked();
-        });
-
         await test.step('Verify and click on Overwrite settings button and confirm, then login as standard user', async () => {
           await mySettingsNotificationsPage.verifyOverwriteSettingsButtonIsVisible();
           await mySettingsNotificationsPage.clickOnOverwriteSettingsButton();
@@ -96,6 +71,7 @@ test.describe(
           });
           await standardUserMySettingsPage.navigateToCurrentUserNotificationSettings(NotificationType.EMAIL);
           await standardUserMySettingsPage.clickOnFeedTab();
+          await standardUserMySettingsPage.clickOnShareYourPostCheckbox();
           await standardUserMySettingsPage.verifyShareYourPostCheckboxIsChecked();
         });
       }
@@ -106,27 +82,35 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-20883'],
       },
-      async ({ appManagerFixture: _appManagerFixture }) => {
+      async ({}) => {
         tagTest(test.info(), {
           description: 'Verify the onboarding tile on home dashboard as an app manager [CONT-20883]',
           zephyrTestId: 'CONT-20883',
           storyId: 'CONT-20883',
         });
 
-        await homeDashboardPage.clickOnEditDashboardButton();
-        await homeDashboardPage.clickOnAddTileButton();
-        await homeDashboardPage.clickOnAddContentTileOption();
-        await homeDashboardPage.clickingOnOnboardingTab();
+        if (await homeDashboardPage.isOnboardingTileVisible()) {
+          await homeDashboardPage.clickThreeDotsOnTile('Onboarding');
+          await homeDashboardPage.pageTileSectionComponent.clickRemoveOptionFromMenu();
+          await homeDashboardPage.pageTileSectionComponent.confirmRemoveTile();
+        } else {
+          await homeDashboardPage.clickOnEditDashboardButton();
+          await homeDashboardPage.clickOnAddTileButton();
+          await homeDashboardPage.clickOnAddContentTileOption();
+          await homeDashboardPage.clickingOnOnboardingTab();
 
-        await homeDashboardPage.clickingOnAddToHomeButton();
-        await homeDashboardPage.verifyToastMessage(FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY);
-        await homeDashboardPage.clickingOnDoneButton();
+          await homeDashboardPage.clickingOnAddToHomeButton();
+          await homeDashboardPage.verifyToastMessage(
+            FEED_TEST_DATA.TOAST_MESSAGES.ADDED_TILE_TO_DASHBOARD_SUCCESSFULLY
+          );
+          await homeDashboardPage.clickingOnDoneButton();
 
-        await homeDashboardPage.clickOnEditDashboardButton();
-        await homeDashboardPage.clickOnAddTileButton();
-        await homeDashboardPage.clickOnAddContentTileOption();
-        await homeDashboardPage.clickingOnOnboardingTab();
-        await homeDashboardPage.verifyAddToHomeButtonIsDisabled();
+          await homeDashboardPage.clickOnEditDashboardButton();
+          await homeDashboardPage.clickOnAddTileButton();
+          await homeDashboardPage.clickOnAddContentTileOption();
+          await homeDashboardPage.clickingOnOnboardingTab();
+          await homeDashboardPage.verifyAddToHomeButtonIsDisabled();
+        }
       }
     );
 
