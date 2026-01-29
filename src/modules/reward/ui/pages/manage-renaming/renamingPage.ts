@@ -1422,10 +1422,6 @@ export class RenamingPage extends BasePage {
       if (languageId === undefined) {
         throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
       }
-
-      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
-      await this.page.reload({ waitUntil: 'domcontentloaded' });
-
       const expectedMap = new Map<string, string>();
       expectedMap.set(
         'recognition',
