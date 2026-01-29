@@ -192,6 +192,12 @@ test.describe('Reward Store renaming', () => {
       });
       tagTest(test.info(), {
         description:
+          'Verify custom and manual translation for reward store on "Edit program name and translation" page',
+        zephyrTestId: 'RC-7123',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
           'Verify translation name on "Edit program name and translation" when custom option set to Enable for reward store',
         zephyrTestId: 'RC-7048',
         storyId: 'RC-6370',
@@ -200,6 +206,17 @@ test.describe('Reward Store renaming', () => {
         description:
           'Verify custom option enable along with "use the name in default languages" for different language for reward store',
         zephyrTestId: 'RC-7117',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Validate custom reward store name translation along with "use the name in default languages" in different languages showing in application',
+        zephyrTestId: 'RC-7119',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate custom reward store name translation in different languages showing in application',
+        zephyrTestId: 'RC-7054',
         storyId: 'RC-6370',
       });
 
@@ -235,6 +252,11 @@ test.describe('Reward Store renaming', () => {
       tagTest(test.info(), {
         description: 'Validate manual translation of reward store name in selected language showing in application',
         zephyrTestId: 'RC-7075',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate manual translation of reward store name in selected language showing in application',
+        zephyrTestId: 'RC-7085',
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {

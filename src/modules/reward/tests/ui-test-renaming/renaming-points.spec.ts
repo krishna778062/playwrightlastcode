@@ -39,6 +39,16 @@ test.describe('Points Renaming', () => {
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {
+        description: 'Verify home page of naming after saving the changes of points',
+        zephyrTestId: 'RC-7002',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify manual translation button on "edit program name and translation" for points',
+        zephyrTestId: 'RC-7074',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
         description:
           'Validate success message after saving the change on edit program name and translation page of points',
         zephyrTestId: 'RC-6999',
@@ -144,6 +154,12 @@ test.describe('Points Renaming', () => {
         zephyrTestId: 'RC-6977',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description:
+          'Verify option "Use the default language name for all languages" on edit program name and translation page for points',
+        zephyrTestId: 'RC-7104',
+        storyId: 'RC-6370',
+      });
       const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
@@ -176,6 +192,28 @@ test.describe('Points Renaming', () => {
       tagTest(test.info(), {
         description: 'Validate custom and manual translation for points in different languages showing in application',
         zephyrTestId: 'RC-7126',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify custom and manual translation for points on "Edit program name and translation" page',
+        zephyrTestId: 'RC-7122',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Validate custom points name translation along with "use the name in default languages" in different languages showing in application',
+        zephyrTestId: 'RC-7120',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify custom option enable along with "use the name in default languages" for different language for points',
+        zephyrTestId: 'RC-7116',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate custom points name translation in different languages showing in application',
+        zephyrTestId: 'RC-7055',
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);

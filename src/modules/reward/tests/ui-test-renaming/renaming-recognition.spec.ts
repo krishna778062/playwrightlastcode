@@ -43,6 +43,11 @@ test.describe('Recognition Renaming Scenarios', () => {
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {
+        description: 'Verify manual translation button on "edit program name and translation" for recognition',
+        zephyrTestId: 'RC-6981',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
         description:
           'Validate success message after saving the change on edit program name and translation page of recognition',
         zephyrTestId: 'RC-6988',
@@ -149,6 +154,12 @@ test.describe('Recognition Renaming Scenarios', () => {
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {
+        description:
+          'Verify option "Use the default language name for all languages" on edit program name and translation page for recognition',
+        zephyrTestId: 'RC-6978',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
         description: 'Verify home page of naming after saving the changes of recognition',
         zephyrTestId: 'RC-6989',
         storyId: 'RC-6370',
@@ -185,6 +196,28 @@ test.describe('Recognition Renaming Scenarios', () => {
         description:
           'Validate custom and manual translation for recognition in different languages showing in application',
         zephyrTestId: 'RC-7124',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Validate custom recognition name translation along with "use the name in default languages" in different languages showing in application',
+        zephyrTestId: 'RC-7118',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate custom recognition name translation in different languages showing in application',
+        zephyrTestId: 'RC-7053',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify custom and manual translation for recognition on "Edit program name and translation" page',
+        zephyrTestId: 'RC-6985',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify translation name on "Edit program name and translation" when custom option set to Enable for recognition',
+        zephyrTestId: 'RC-6992',
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {
@@ -225,6 +258,12 @@ test.describe('Recognition Renaming Scenarios', () => {
       tagTest(test.info(), {
         description: 'Validate manual translation of recognition name in selected language showing in application',
         zephyrTestId: 'RC-7073',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify recognition name translation in different languages on "Edit program name and translation" for recognition',
+        zephyrTestId: 'RC-6990',
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {
