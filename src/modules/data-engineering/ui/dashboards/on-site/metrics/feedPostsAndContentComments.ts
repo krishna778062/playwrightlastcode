@@ -8,7 +8,7 @@ import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engin
 
 export enum FeedPostsAndContentCommentsColumns {
   NAME = 'Name',
-  INTERACTIONS_COUNT = 'Interactions Count',
+  INTERACTIONS_COUNT = 'Count',
 }
 
 export class FeedPostsAndContentComments extends BaseOnSiteTabularMetricsComponent {
