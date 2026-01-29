@@ -95,15 +95,16 @@ test.describe('renaming page', () => {
   });
 
   test(
-    '[RC-7085] Validate custom and manual translation values in the user profile page',
+    '[RC-8386] Validate custom and manual translation for Recognition, points, and Reward Store in different languages showing in User Profile page',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
     },
     async ({ appManagerFixture }) => {
       test.setTimeout(360_000);
       tagTest(test.info(), {
-        description: 'Validate custom and manual translation values in the user profile page',
-        zephyrTestId: 'RC-7085',
+        description:
+          'Validate custom and manual translation for Recognition, points, and Reward Store in different languages showing in User Profile page',
+        zephyrTestId: 'RC-8386',
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);

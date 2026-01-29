@@ -145,6 +145,17 @@ test.describe('Reward Store renaming', () => {
         zephyrTestId: 'RC-6991',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description: 'Verify home page of naming after saving the changes of reward store',
+        zephyrTestId: 'RC-7003',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify option "Use the default language name for all languages" on edit program name and translation page for reward store',
+        zephyrTestId: 'RC-7105',
+        storyId: 'RC-6370',
+      });
       const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
@@ -179,6 +190,18 @@ test.describe('Reward Store renaming', () => {
         zephyrTestId: 'RC-7125',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description:
+          'Verify translation name on "Edit program name and translation" when custom option set to Enable for reward store',
+        zephyrTestId: 'RC-7048',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify custom option enable along with "use the name in default languages" for different language for reward store',
+        zephyrTestId: 'RC-7117',
+        storyId: 'RC-6370',
+      });
 
       const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
@@ -203,7 +226,7 @@ test.describe('Reward Store renaming', () => {
   );
 
   test(
-    '[RC-7085] Validate manual translation of reward store name in selected language showing in application',
+    '[RC-7075] Validate manual translation of reward store name in selected language showing in application',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
     },
@@ -211,7 +234,13 @@ test.describe('Reward Store renaming', () => {
       test.setTimeout(360_000);
       tagTest(test.info(), {
         description: 'Validate manual translation of reward store name in selected language showing in application',
-        zephyrTestId: 'RC-7085',
+        zephyrTestId: 'RC-7075',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify reward store name translation in different languages on "Edit program name and translation" for reward store',
+        zephyrTestId: 'RC-7035',
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);

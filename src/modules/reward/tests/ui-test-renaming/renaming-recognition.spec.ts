@@ -148,6 +148,11 @@ test.describe('Recognition Renaming Scenarios', () => {
         zephyrTestId: 'RC-7106',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description: 'Verify home page of naming after saving the changes of recognition',
+        zephyrTestId: 'RC-6989',
+        storyId: 'RC-6370',
+      });
       const renamingPage = new RenamingPage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
@@ -180,6 +185,11 @@ test.describe('Recognition Renaming Scenarios', () => {
         description:
           'Validate custom and manual translation for recognition in different languages showing in application',
         zephyrTestId: 'RC-7124',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify home page of naming after saving the changes of recognition',
+        zephyrTestId: 'RC-6989',
         storyId: 'RC-6370',
       });
 
@@ -215,6 +225,12 @@ test.describe('Recognition Renaming Scenarios', () => {
       tagTest(test.info(), {
         description: 'Validate manual translation of recognition name in selected language showing in application',
         zephyrTestId: 'RC-7073',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify custom option enable along with "use the name in default languages" for different language for recognition',
+        zephyrTestId: 'RC-6987',
         storyId: 'RC-6370',
       });
       const renamingPage = new RenamingPage(appManagerFixture.page);
