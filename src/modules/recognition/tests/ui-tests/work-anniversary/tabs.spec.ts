@@ -18,7 +18,14 @@ test.describe('Work Anniversary tab', { tag: [WorkAnniversaryFeatureTags.MANAGE_
   test(
     '[RC-4357] Verify Automated Awards tab visibility when ff is enabled',
     {
-      tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+      tag: [
+        WorkAnniversaryFeatureTags.WORK_ANNIVERSARY,
+        TestPriority.P0,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.REGRESSION,
+        TestGroupType.HEALTHCHECK,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -35,7 +42,7 @@ test.describe('Work Anniversary tab', { tag: [WorkAnniversaryFeatureTags.MANAGE_
   test(
     '[RC-4725] Validate if User is able to deactivate automated award',
     {
-      tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+      tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P1, TestGroupType.SANITY],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -54,7 +61,7 @@ test.describe('Work Anniversary tab', { tag: [WorkAnniversaryFeatureTags.MANAGE_
   test(
     '[RC-4365] Verify menu items for the Work Anniversary default award',
     {
-      tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P1, TestGroupType.REGRESSION],
+      tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

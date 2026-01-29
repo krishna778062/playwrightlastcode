@@ -120,6 +120,7 @@ test.describe(
         await manageFeaturesPage.clickOnContentCard();
         await manageContentPage.manageContent.clickSortByButton();
         await manageContentPage.selectSortOption(SortOptionLabels.PUBLISHED_NEWEST);
+        await appManagerFixture.page.reload();
         await manageContentPage.manageContent.clickSortByButton();
         await manageContentPage.manageContent.hoverOnFirstDropDownOption();
         await manageContentPage.manageContent.clickOnUnpublishButtonFromDropDown();
