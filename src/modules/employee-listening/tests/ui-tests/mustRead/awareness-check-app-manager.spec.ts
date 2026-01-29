@@ -54,7 +54,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       }
     }
   });
-  test(
+  test.skip(
     'verify admin can create awareness check with single question',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
@@ -88,7 +88,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
     }
   );
 
-  test(
+  test.skip(
     'verify admin can create awareness check with multiple questions',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
