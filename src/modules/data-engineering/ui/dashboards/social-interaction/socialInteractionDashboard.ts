@@ -11,6 +11,7 @@ import { ParticipantEngagementActivity } from './metrics/participantEngagementAc
 import { ReactionsOrLikes } from './metrics/reactionsOrLikes';
 import { Replies } from './metrics/replies';
 import { Shares } from './metrics/shares';
+import { SocialCampaigns } from './metrics/socialCampaigns';
 // Import dedicated metric components
 import { SocialCampaignShareDistribution } from './metrics/socialCampaignShareDistribution';
 
@@ -29,6 +30,7 @@ export class SocialInteractionDashboard extends BaseAnalyticsDashboardPage {
   readonly replies: Replies;
   readonly shares: Shares;
   readonly favorites: Favorites;
+  readonly socialCampaigns: SocialCampaigns;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.SOCIAL_INTERACTION_PAGE);
@@ -44,6 +46,7 @@ export class SocialInteractionDashboard extends BaseAnalyticsDashboardPage {
     this.replies = new Replies(page, this.thoughtSpotIframe);
     this.shares = new Shares(page, this.thoughtSpotIframe);
     this.favorites = new Favorites(page, this.thoughtSpotIframe);
+    this.socialCampaigns = new SocialCampaigns(page, this.thoughtSpotIframe);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
