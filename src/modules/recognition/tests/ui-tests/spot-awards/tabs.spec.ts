@@ -33,7 +33,9 @@ test.describe('Spot Awards Tab', () => {
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P0,
-        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -52,12 +54,7 @@ test.describe('Spot Awards Tab', () => {
   test(
     '[RC-4338] Verify when there is no spot awards available on tenant',
     {
-      tag: [
-        RecognitionSuitTags.REGRESSION_TEST,
-        RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
-        TestGroupType.REGRESSION,
-      ],
+      tag: [RecognitionSuitTags.REGRESSION_TEST, RecognitionFeatureTags.SPOT_AWARDS, TestPriority.P3],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
@@ -80,7 +77,9 @@ test.describe('Spot Awards Tab', () => {
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
-        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -101,7 +100,7 @@ test.describe('Spot Awards Tab', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
+        TestPriority.P2,
         TestGroupType.REGRESSION,
       ],
     },
@@ -157,8 +156,9 @@ test.describe('Spot Awards Tab', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P0,
+        TestPriority.P1,
         TestGroupType.SANITY,
+        TestGroupType.SMOKE,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -199,6 +199,7 @@ test.describe('Spot Awards Tab', () => {
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
+        TestGroupType.SANITY,
         TestGroupType.REGRESSION,
       ],
     },
