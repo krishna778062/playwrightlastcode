@@ -20,7 +20,7 @@ test.describe(
   () => {
     test(
       'verify the appearance of Create audience modal under manage audience',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35852'],
@@ -44,7 +44,7 @@ test.describe(
 
     test(
       'verify the text for No Results when user searched audience which is not present',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-33808'],
@@ -76,7 +76,7 @@ test.describe(
 
     test(
       'verify text No results found when user searched audience which is not present on main page',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-33796'],
@@ -100,7 +100,7 @@ test.describe(
 
     test(
       'verify the presence of all filters under Filters tab under audience page',
-      { tag: [TestPriority.P1, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P1, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-33931'],

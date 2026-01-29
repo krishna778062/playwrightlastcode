@@ -660,11 +660,12 @@ export class AudiencePage extends BasePage {
     await test.step(`Search audience: "${searchTerm}"`, async () => {
       await this.audiencePickerSearchBox.fill(searchTerm);
 
-      // Click the search button
       const searchButton = this.audiencePickerDialog.getByRole('button', { name: 'Search' });
-      await this.clickOnElement(searchButton, { stepInfo: 'Click Search button' });
 
-      await this.page.waitForTimeout(1500);
+      await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/audiences') && resp.status() === 200),
+        this.clickOnElement(searchButton, { stepInfo: 'Click Search button' }),
+      ]);
     });
   }
 
@@ -980,8 +981,11 @@ export class AudiencePage extends BasePage {
       await this.mainPageSearchBox.fill(searchTerm);
       const pageContainer = this.page.getByTestId('pageContainer-page');
       const searchButton = pageContainer.getByRole('button', { name: 'Search' });
-      await this.clickOnElement(searchButton, { stepInfo: 'Click Search button' });
-      await this.page.waitForTimeout(1500);
+
+      await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/audiences') && resp.status() === 200),
+        this.clickOnElement(searchButton, { stepInfo: 'Click Search button' }),
+      ]);
     });
   }
 

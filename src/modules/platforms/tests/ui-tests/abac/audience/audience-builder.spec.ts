@@ -12,7 +12,7 @@ import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audien
 test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, TestSuite.ABAC] }, () => {
   test(
     'verify the presence of createdBy filter under audience rules filter',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-34534'],
@@ -36,7 +36,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
   test(
     'verify the presence of Filters button under audience page',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33930'],
@@ -60,7 +60,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
   test(
     'verify the presence of cross Reset all and View results button under filters tab',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33932'],
