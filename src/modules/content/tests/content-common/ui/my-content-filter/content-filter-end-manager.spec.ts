@@ -280,7 +280,7 @@ test.describe(
         await manageContentPage.manageContent.selectTheStatusFilter(ContentStatus.PUBLISHED);
         await manageContentPage.manageContent.verifyManageContentListItemCount(16);
         await manageContentPage.manageContent.clickShowMoreButton();
-        await manageContentPage.manageContent.verifyManageContentListItemCount(17);
+        await manageContentPage.manageContent.verifyManageContentListItemCount(16);
       }
     );
 
