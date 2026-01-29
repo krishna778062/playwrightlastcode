@@ -71,10 +71,10 @@ export class RewardsStore extends BasePage {
     this.pointToSpend = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(0);
     this.pointToSpendText = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(1);
     this.pendingPoints = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(2);
-    this.giftCardsTab = page.getByRole('tab', { name: 'Gift cards' });
+    this.giftCardsTab = page.locator('div[role="tablist"] button[role="tab"]').first();
     this.prepaidCardsTab = page.getByRole('tab', { name: 'Prepaid cards' });
     this.charityDonationsTab = page.getByRole('tab', { name: 'Charity donations' });
-    this.orderHistoryTab = page.getByRole('tab', { name: 'Order history' });
+    this.orderHistoryTab = page.locator('div[role="tablist"] button[role="tab"]').last();
     this.searchField = page.locator('#q');
     this.searchButton = page.locator('[class^="UI_searchBar"] button');
     this.rewardCategory = page.locator('#categoryId');

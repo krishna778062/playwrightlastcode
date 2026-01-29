@@ -1032,9 +1032,9 @@ export class RenamingPage extends BasePage {
     const rewardStoreHeading = customValue.get('rewardsStore');
     const points = customValue.get('points');
     const rewardStore = new RewardsStore(this.page);
-    await rewardStore.loadPage();
     await this.validateAcrossPages([
       async () => {
+        await rewardStore.loadPage();
         await this.verifyPointsLabelText(
           this.page
             .getByTestId('i-coinsStacked')
@@ -1116,6 +1116,14 @@ export class RenamingPage extends BasePage {
         await this.clickOnElement(checkoutButton);
         await expect(rewardStore.rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(points);
         await this.clickOnElement(rewardStore.rewardsDialogBox.closeButton);
+      },
+
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.visitTheOrderHistory();
+        const orderCard = this.page.locator('[class*="Panel-module__panel"]').first();
+        const orderTotalValue = orderCard.locator('[class*="OrderHistory_details"] div:nth-child(2) p:nth-child(2)');
+        await this.verifyPointsLabelText(orderTotalValue, points);
       },
     ]);
   }
