@@ -22,7 +22,7 @@ test.describe(
   () => {
     test(
       'verify user is able to create audience without description under manage audience',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35862'],
@@ -51,7 +51,7 @@ test.describe(
 
     test(
       'verify user is able to create audience with description under manage audience',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35861'],
@@ -82,7 +82,7 @@ test.describe(
 
     test(
       'verify the maximum length limit of description field should be less than or equal to 1024 under Create audience modal',
-      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`, `@Meenu`] },
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           zephyrTestId: ['PS-35858'],

@@ -110,7 +110,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
   test(
     'verify the presence of Add category name option when user types something in Category dropdown field',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36307'],
@@ -138,7 +138,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
   test(
     'verify the order of filter name under Filters tab under Audience rules screen',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-35235'],
@@ -163,7 +163,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
   test(
     'verify the absence of search bar when options are less than 10 under createdBy filter',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-34538'],
@@ -191,7 +191,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
   test(
     'verify the presence and functionality of cross button under audience rule detail dialog',
-    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, `@Meenu`] },
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
     async ({ appManagerUiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-33995'],
