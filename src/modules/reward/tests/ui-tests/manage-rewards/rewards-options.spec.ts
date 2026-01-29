@@ -131,8 +131,12 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       const headersCount = rewardOptionsPage.rewardsOptionsTableHeaders;
       await expect(headersCount).toHaveCount(6);
-      const headers = await rewardOptionsPage.rewardsOptionsTableHeaders.allTextContents();
-      expect(headers).toEqual(['Name', 'Redeemable options', 'Countries', 'Currencies', 'Status', '']);
+      await expect(rewardOptionsPage.rewardsOptionsTableHeaders).toHaveText([
+        'Name',
+        'Redeemable options',
+        'Countries',
+        'Currencies',
+      ]);
 
       // Search for Zara to get specific results
       await rewardOptionsPage.searchInput.fill('Zara');
@@ -217,8 +221,14 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardOptionsPage.verifyThePageIsLoaded();
       const headersCount = rewardOptionsPage.rewardsOptionsTableHeaders;
       await expect(headersCount).toHaveCount(6);
-      const headers = await rewardOptionsPage.rewardsOptionsTableHeaders.allTextContents();
-      expect(headers).toEqual(['Name', 'Redeemable options', 'Countries', 'Currencies', 'Status', '']);
+      await expect(rewardOptionsPage.rewardsOptionsTableHeaders).toHaveText([
+        'Name',
+        'Redeemable options',
+        'Countries',
+        'Currencies',
+        'Status',
+        '',
+      ]);
     }
   );
 
