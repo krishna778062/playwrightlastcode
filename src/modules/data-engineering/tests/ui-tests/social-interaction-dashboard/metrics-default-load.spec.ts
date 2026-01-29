@@ -24,6 +24,9 @@ test.describe(
     tag: [DataEngineeringTestSuite.SOCIAL_INTERACTION, '@default-state'],
   },
   () => {
+    // Temporary: increase timeout to allow ThoughtSpot widgets to load on TEST env
+    test.setTimeout(180_000);
+
     let testEnvironment: {
       page: Page;
       socialInteractionDashboard: SocialInteractionDashboard;
@@ -195,6 +198,39 @@ test.describe(
         const favoritesMetric = testEnvironment.socialInteractionDashboard.favorites;
         await favoritesMetric.verifyMetricIsLoaded();
         await favoritesMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Active social campaigns metric data validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@social-campaigns',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Social campaigns in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-26016',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue =
+          await socialInteractionQueryHelper.getActiveSocialCampaignCountDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
+        const socialCampaignsMetric = testEnvironment.socialInteractionDashboard.socialCampaigns;
+        await socialCampaignsMetric.verifyMetricIsLoaded();
+        await socialCampaignsMetric.verifyMetricValue(expectedMetricValue);
       }
     );
 
@@ -398,6 +434,42 @@ test.describe(
 
         // Log the data for verification
         console.log('Participant Engagement Activity Data:', participantEngagementActivityData);
+      }
+    );
+
+    test(
+      'verify Participant engagement activity CSV download and validation with default period filter (Last 30 days)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.CSV_VALIDATION,
+          '@participant-engagement-activity-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Participant engagement activity in Social Interaction dashboard with default filter',
+          zephyrTestId: 'DE-26126',
+          storyId: 'DE-25775',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const participantEngagementActivity = testEnvironment.socialInteractionDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyCSVDataMatchesWithDBData(
+          participantEngagementActivityData,
+          testFiltersConfig
+        );
       }
     );
   }
