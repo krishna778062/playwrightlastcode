@@ -6,7 +6,7 @@ import { ON_SITE_METRICS } from '@/src/modules/data-engineering/constants/onSite
 
 export enum MostContentPublishedColumns {
   NAME = 'Name',
-  CONTENT_COUNT = 'Content count',
+  CONTENT_COUNT = 'Count',
 }
 
 export class MostContentPublished extends BaseOnSiteTabularMetricsComponent {
