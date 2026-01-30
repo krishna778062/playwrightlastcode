@@ -11,4 +11,5 @@ export const ALERT_NOTIFICATION_MESSAGES = {
   INVALID_PHONE_NUMBER_INPUTFIELD_ERROR: 'Please enter a valid phone number',
   MOBILE_PROMOTION_SENT_SUCCESSFULLY: 'App download link sent to ',
   CHAR_LIMIT_VALIDATION_ERROR: 'Custom subject cannot be longer than 120 characters',
+  NOTIFICATION_PREFERENCE_SAVED: 'Notification preference saved',
 } as const;

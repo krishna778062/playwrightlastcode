@@ -26,6 +26,8 @@ test.describe(
           description: 'Verify Celebration Smart Feed Block on Home and Site Feed',
           zephyrTestId: 'CONT-19570',
           storyId: 'CONT-19570',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44795',
         });
 
         // ==================== Login as App Manager and Update DOB ====================

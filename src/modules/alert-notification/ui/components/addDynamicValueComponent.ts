@@ -41,12 +41,31 @@ export class AddDynamicValueComponent {
         assertionMessage: 'Dynamic values picker should be visible',
         timeout: TIMEOUTS.SHORT,
       });
+    });
+  }
 
-      // Verify the picker contains the expected options
-      await this.verifier.verifyTheElementIsVisible(this.alertMessageOption, {
-        assertionMessage: 'Alert Message option should be visible in picker',
-        timeout: TIMEOUTS.VERY_SHORT,
+  /**
+   * Verifies that a specific dynamic value option is visible in the picker
+   * @param optionLabel - Visible label of the dynamic value (e.g., "Recipient First Name")
+   */
+  async verifyDynamicValueOptionVisible(optionLabel: string): Promise<void> {
+    await test.step(`Verify dynamic value option "${optionLabel}" is visible`, async () => {
+      const option = this.dynamicValuesPicker.getByText(optionLabel);
+      await this.verifier.verifyTheElementIsVisible(option, {
+        assertionMessage: `Dynamic value option "${optionLabel}" should be visible in picker`,
+        timeout: TIMEOUTS.SHORT,
       });
+    });
+  }
+
+  /**
+   * Selects a dynamic value option from the picker by its visible label
+   * @param optionLabel - Visible label of the dynamic value (e.g., "Recipient First Name")
+   */
+  async clickDynamicValueOption(optionLabel: string): Promise<void> {
+    await test.step(`Click dynamic value option "${optionLabel}"`, async () => {
+      const option = this.dynamicValuesPicker.getByText(optionLabel);
+      await this.action.clickOnElement(option, { stepInfo: `Click dynamic value option "${optionLabel}"` });
     });
   }
 
@@ -69,6 +88,15 @@ export class AddDynamicValueComponent {
       if (!textareaValue.includes(expectedToken)) {
         throw new Error(`Expected token "${expectedToken}" not found in textarea. Current value: "${textareaValue}"`);
       }
+    });
+  }
+
+  /**
+   * Returns the current value of the custom subject textarea
+   */
+  async getCustomSubjectValue(): Promise<string> {
+    return await test.step('Get current custom subject value', async () => {
+      return this.customSubjectTextarea.inputValue();
     });
   }
 

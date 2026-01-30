@@ -5,7 +5,9 @@ import { BaseComponent } from '@core/components/baseComponent';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 
 export class AwarenessCheckPage extends BaseComponent {
-  readonly awarenessCheckToggle: Locator;
+  readonly makeMustReadOption: Locator;
+  readonly mustReadHeading: Locator;
+  readonly awarenesscheckCheckbox: Locator;
   readonly browseButton: Locator;
   readonly searchField: Locator;
   readonly searchIcon: Locator;
@@ -30,7 +32,9 @@ export class AwarenessCheckPage extends BaseComponent {
   constructor(page: Page) {
     super(page);
 
-    this.awarenessCheckToggle = this.page.getByRole('checkbox', { name: 'Enable Awareness check' });
+    this.makeMustReadOption = this.page.getByText("Make 'must read'");
+    this.mustReadHeading = this.page.getByRole('heading', { name: "Make 'Must Read'" });
+    this.awarenesscheckCheckbox = this.page.getByRole('checkbox', { name: 'Enable Awareness check' });
     this.browseButton = this.page.getByRole('button', { name: 'Browse' });
     this.searchField = this.page.getByRole('textbox', { name: 'Search…' });
     this.searchIcon = this.page.getByRole('button', { name: 'Search' });
@@ -55,9 +59,20 @@ export class AwarenessCheckPage extends BaseComponent {
     this.updateAwarenessCheckButton = this.page.getByRole('button', { name: 'Update' });
   }
 
+  async selectMustReadFromMenuOptions(): Promise<void> {
+    await test.step('Click on make must read option', async () => {
+      await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      await this.makeMustReadOption.click({ timeout: TIMEOUTS.SHORT });
+      await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+      await this.verifier.verifyTheElementIsVisible(this.mustReadHeading, {
+        assertionMessage: 'Make must read heading should be visible',
+      });
+    });
+  }
+
   async enableAwarenessCheck(): Promise<void> {
     await test.step('Enable Awareness Check functionality', async () => {
-      await this.clickOnElement(this.awarenessCheckToggle, {
+      await this.checkElement(this.awarenesscheckCheckbox, {
         stepInfo: 'Click Awareness check checkbox to enable',
       });
     });

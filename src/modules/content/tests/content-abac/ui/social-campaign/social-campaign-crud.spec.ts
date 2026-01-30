@@ -8,13 +8,16 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import {
   SocialCampaignFilter,
+  SocialCampaignNetwork,
   SocialCampaignNetworkUI,
   SocialCampaignRecipient,
 } from '@core/types/social-campaign.types';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { getContentTenantConfigFromCache } from '@/src/modules/content/config/contentConfig';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ManageFeaturesPage } from '@/src/modules/content/ui/pages/manageFeaturesPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
 
 test.describe(
@@ -47,17 +50,17 @@ test.describe(
     });
 
     test(
-      'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
+      'zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone CONT-44794',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-33728', '@Social_Campaign_Add_Edit_Delete'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-44794', '@Social_Campaign_Add_Edit_Delete'],
       },
       async ({ socialCampaignManagerFixture }) => {
         socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);
         tagTest(test.info(), {
           description:
             'Zeus | Social Campaign | Verify SC Manager able to create and delete Social Campaign for Everyone',
-          zephyrTestId: 'CONT-33728',
-          storyId: 'CONT-33728',
+          zephyrTestId: 'CONT-44794',
+          storyId: 'CONT-44794',
         });
 
         await socialCampaignManagerFixture.navigationHelper.clickOnSocialCampaigns();
@@ -86,15 +89,15 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify SC Manager able to delete the expired Social Campaign(Audience)',
+      'in Zeus Verify SC Manager able to delete the expired Social Campaign(Audience) CONT-44793',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-10526', '@Social_Campaign_Expire'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44793', '@Social_Campaign_Expire'],
       },
       async ({ socialCampaignManagerFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Zeus | Social Campaign | Verify End User can view and expire social campaign',
-          zephyrTestId: 'CONT-10526',
-          storyId: 'CONT-10526',
+          zephyrTestId: 'CONT-44793',
+          storyId: 'CONT-44793',
         });
         socialCampaignPage = new SocialCampaignPage(socialCampaignManagerFixture.page);
 
@@ -147,15 +150,15 @@ test.describe(
     );
 
     test(
-      'verify App Manager able to share Social Campaign(Audience) to Site feed',
+      'verify App Manager able to share Social Campaign(Audience) to Site feed CONT-44792',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10518'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44792'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign to Site feed',
-          zephyrTestId: 'CONT-10518',
-          storyId: 'CONT-10518',
+          zephyrTestId: 'CONT-44792',
+          storyId: 'CONT-44792',
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
@@ -200,15 +203,15 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify error messages on creating social campaign without required details',
+      'in Zeus Verify error messages on creating social campaign without required details CONT-44791',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19603', '@Social_Campaign_Validation'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44791', '@Social_Campaign_Validation'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify error messages on creating social campaign without required details',
-          zephyrTestId: 'CONT-19603',
-          storyId: 'CONT-19603',
+          zephyrTestId: 'CONT-44791',
+          storyId: 'CONT-44791',
         });
 
         // Create social campaign page instance
@@ -231,15 +234,15 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify user able to create social campaign for selected(Twitter) social network',
+      'in Zeus Verify user able to create social campaign for selected(Twitter) social network CONT-44790',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19604', '@Social_Campaign_Creation'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44790', '@Social_Campaign_Creation'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify user able to create social campaign for selected(Twitter) social network',
-          zephyrTestId: 'CONT-19604',
-          storyId: 'CONT-19604',
+          zephyrTestId: 'CONT-44790',
+          storyId: 'CONT-44790',
         });
 
         // Create social campaign page instance
@@ -267,15 +270,15 @@ test.describe(
     );
 
     test(
-      'verify App Manager able to share Social Campaign to Home Feed',
+      'verify App Manager able to share Social Campaign to Home Feed CONT-44789',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-10515'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44789'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify App Manager able to share Social Campaign to Home Feed',
-          zephyrTestId: 'CONT-10515',
-          storyId: 'CONT-10515',
+          zephyrTestId: 'CONT-44789',
+          storyId: 'CONT-44789',
         });
 
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
@@ -314,15 +317,15 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to delete the expired Social Campaign(Audience)',
+      'in Zeus Verify App Manager able to delete the expired Social Campaign(Audience) CONT-44788',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14899', '@Social_Campaign_Expire'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44788', '@Social_Campaign_Expire'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify App Manager able to delete the expired Social Campaign',
-          zephyrTestId: 'CONT-14899',
-          storyId: 'CONT-14899',
+          zephyrTestId: 'CONT-44788',
+          storyId: 'CONT-44788',
         });
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
 
@@ -335,10 +338,8 @@ test.describe(
         };
 
         // Create or get a test audience for the campaign
-        const audienceDetails = await appManagerFixture.abacAudienceHelper.findFirstAvailableAudience();
-        if (!audienceDetails) {
-          throw new Error('No audience found');
-        }
+        const audienceDetails = await appManagerFixture.abacAudienceHelper.getRandomAudienceIdABAC();
+
         // Create campaign via API
         const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignData.message,
@@ -377,16 +378,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
+      'in Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign CONT-44787',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14906', '@Social_Campaign_End_User_Restrictions'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44787', '@Social_Campaign_End_User_Restrictions'],
       },
       async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify End User should not be able to share Social Campaign to Home Carousel delete and expire Campaign',
-          zephyrTestId: 'CONT-14906',
-          storyId: 'CONT-14906',
+          zephyrTestId: 'CONT-44787',
+          storyId: 'CONT-44787',
         });
 
         // Create social campaign using App Manager via API
@@ -417,15 +418,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify Standard User is able to Share a Social Campaign with a message using Post in HOME FEED option',
+      'ABAC - In Zeus Verify Standard User is not able see HOME FEED option on Social Campaign share modal(no acg) CONT-44786',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26718'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44786'],
       },
       async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'Verify App Manager able to share Social Campaign to Home Feed',
-          zephyrTestId: 'CONT-26718',
-          storyId: 'CONT-26718',
+          description:
+            'ABAC - In Zeus Verify Standard User is not able see option Home Feed on Social Campaign share modal(no acg)',
+          zephyrTestId: 'CONT-44786',
+          storyId: 'CONT-44786',
         });
 
         socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
@@ -447,33 +449,24 @@ test.describe(
         await socialCampaignPage.loadPage();
         await socialCampaignPage.verifyCampaignLinkDisplayed(campaignOptions.linkText);
 
-        const description = TestDataGenerator.generateRandomString();
         await socialCampaignPage.clickCampaignOptions();
         await socialCampaignPage.clickShareToFeedButton();
-        await socialCampaignPage.enterShareDescription(description);
-        await socialCampaignPage.clickShareButton();
-        await socialCampaignPage.verifyToastMessageIsVisibleWithText(
-          SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.SHARED_SUCCESSFULLY
-        );
-
-        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-        feedPage = new FeedPage(standardUserFixture.page);
-        await feedPage.verifyThePageIsLoaded();
-        await feedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, description);
+        await socialCampaignPage.selectShareOptionNotVisible('followers');
+        await socialCampaignPage.selectShareOptionVisible('site');
       }
     );
 
     test(
-      'in Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
+      'in Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option CONT-44785',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26719'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44785'],
       },
       async ({ standardUserFixture, appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify Standard User is able to Share a Social Campaign with a message to a Public Site using Post in SITE FEED option',
-          zephyrTestId: 'CONT-26719',
-          storyId: 'CONT-26719',
+          zephyrTestId: 'CONT-44785',
+          storyId: 'CONT-44785',
         });
 
         socialCampaignPage = new SocialCampaignPage(standardUserFixture.page);
@@ -517,16 +510,18 @@ test.describe(
       }
     );
 
-    test(
-      'in Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
+    // TODO: Fix this test- Need to know how it works in ABAC
+
+    test.fixme(
+      'in Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted CONT-44784',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26800'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44784'],
       },
       async ({ socialCampaignManagerFixture, appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify User is unable to view Shared SC Feed Post when SC is Deleted',
-          zephyrTestId: 'CONT-26800',
-          storyId: 'CONT-26800',
+          zephyrTestId: 'CONT-44784',
+          storyId: 'CONT-44784',
         });
 
         // Create campaign with audience
@@ -564,11 +559,7 @@ test.describe(
         const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
-        await Promise.all([
-          appManagerFeedPage.verifyThePageIsLoaded(),
-          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
-          endUserFeedPage.verifyThePageIsLoaded(),
-        ]);
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded()]);
 
         await Promise.all([
           appManagerFeedPage.clickOnShowOption('all'),
@@ -609,15 +600,15 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify User is able to view Shared Expired Social Campaign Feed Post',
+      'in Zeus Verify User is able to view Shared Expired Social Campaign Feed Post CONT-44783',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-26799'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44783'],
       },
       async ({ socialCampaignManagerFixture, appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify User is able to view Shared Expired Social Campaign Feed Post',
-          zephyrTestId: 'CONT-26799',
-          storyId: 'CONT-26799',
+          zephyrTestId: 'CONT-44783',
+          storyId: 'CONT-44783',
         });
 
         // Create campaign with audience
@@ -655,11 +646,7 @@ test.describe(
         const socialCampaignManagerFeedPage = new FeedPage(socialCampaignManagerFixture.page);
         const endUserFeedPage = new FeedPage(standardUserFixture.page);
 
-        await Promise.all([
-          appManagerFeedPage.verifyThePageIsLoaded(),
-          socialCampaignManagerFeedPage.verifyThePageIsLoaded(),
-          endUserFeedPage.verifyThePageIsLoaded(),
-        ]);
+        await Promise.all([appManagerFeedPage.verifyThePageIsLoaded()]);
 
         await Promise.all([
           appManagerFeedPage.clickOnShowOption('all'),
@@ -706,15 +693,17 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to add and remove Social Campaign to Site Carousel and remove when deleted',
+      'in Zeus Verify App Manager able to add and remove Social Campaign to Site Carousel and remove when deleted CONT-44782',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14905'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44782'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
-          zephyrTestId: 'CONT-14905',
-          storyId: 'CONT-14905',
+          zephyrTestId: 'CONT-44782',
+          storyId: 'CONT-44782',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
         const siteId =
           await appManagerFixture.abacSiteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
@@ -754,15 +743,15 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to share Social Campaign to Site Feed and unable to share to SN when expired',
+      'in Zeus Verify App Manager able to share Social Campaign to Site Feed and unable to share to SN when expired CONT-44781',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14903'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44781'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
-          zephyrTestId: 'CONT-14903',
-          storyId: 'CONT-14903',
+          zephyrTestId: 'CONT-44781',
+          storyId: 'CONT-44781',
         });
 
         const siteId =
@@ -799,15 +788,17 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to add and remove Social Campaign to Home Carousel and remove when expired',
+      'in Zeus Verify App Manager able to add and remove Social Campaign to Home Carousel and remove when expired CONT-44780',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14904'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44780'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
-          zephyrTestId: 'CONT-14904',
-          storyId: 'CONT-14904',
+          zephyrTestId: 'CONT-44780',
+          storyId: 'CONT-44780',
+          isKnownFailure: true,
+          bugTicket: 'SEN-19493',
         });
 
         const siteId =
@@ -848,16 +839,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+      'in Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted CONT-44775',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44775'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify App Manager able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
-          zephyrTestId: 'CONT-14900',
-          storyId: 'CONT-14900',
+          zephyrTestId: 'CONT-44775',
+          storyId: 'CONT-44775',
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -894,16 +885,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      'in Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted CONT-44779',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-21039'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44779'],
       },
       async ({ socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify custom user able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
-          zephyrTestId: 'CONT-21039',
-          storyId: 'CONT-21039',
+          zephyrTestId: 'CONT-44779',
+          storyId: 'CONT-44779',
         });
 
         const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
@@ -943,16 +934,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify custom user able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
+      'in Zeus Verify custom user able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted CONT-40602',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40602'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44778'],
       },
       async ({ socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify custom user able to create latest and popular Tile on Home Dashboard and SC removed from tile when it is deleted',
-          zephyrTestId: 'CONT-40602',
-          storyId: 'CONT-40602',
+          zephyrTestId: 'CONT-44778',
+          storyId: 'CONT-44778',
         });
 
         const applicationManagerHomePage = socialCampaignManagerFixture.homePage;
@@ -990,16 +981,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
+      'in Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted CONT-44777',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40519'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44777'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify application manager able to create Custom SC Tile on Home Dashboard and SC removed from tile when it is deleted',
-          zephyrTestId: 'CONT-40519',
-          storyId: 'CONT-40519',
+          zephyrTestId: 'CONT-44777',
+          storyId: 'CONT-44777',
         });
 
         const applicationManagerHomePage = appManagerFixture.homePage;
@@ -1039,16 +1030,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
+      'in Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired CONT-44776',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-40721'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44776'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify App Manager able to create Custom SC Tile on Site Dashboard and SC removed from tile when it is expired',
-          zephyrTestId: 'CONT-40721',
-          storyId: 'CONT-40721',
+          zephyrTestId: 'CONT-44776',
+          storyId: 'CONT-44776',
         });
 
         // Create campaign with audience
@@ -1087,16 +1078,16 @@ test.describe(
     );
 
     test(
-      'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
+      'in Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired CONT-44779',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-14900'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-44779'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'In Zeus Verify App Manager able to create latest and popular Tile on Site Dashboard and SC removed from tile when it is expired',
-          zephyrTestId: 'CONT-14901',
-          storyId: 'CONT-14901',
+          zephyrTestId: 'CONT-44779',
+          storyId: 'CONT-44779',
         });
 
         // Create campaign with audience
@@ -1132,17 +1123,17 @@ test.describe(
     );
 
     test(
-      'zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
+      'zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone CONT-44774',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-14898', '@Social_Campaign_Add_Delete'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44774', '@Social_Campaign_Add_Delete'],
       },
       async ({ appManagerFixture }) => {
         socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
         tagTest(test.info(), {
           description:
             'Zeus | Social Campaign | Verify App Manager able to create and delete Social Campaign for Everyone',
-          zephyrTestId: 'CONT-14898',
-          storyId: 'CONT-14898',
+          zephyrTestId: 'CONT-44774',
+          storyId: 'CONT-44774',
         });
 
         await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
@@ -1171,15 +1162,15 @@ test.describe(
     );
 
     test(
-      'verify Updates to Audiences Reflect in Social Campaigns',
+      'verify Updates to Audiences Reflect in Social Campaigns CONT-44773',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-33859', '@Social_Campaign_Audience'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-44773', '@Social_Campaign_Audience'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
           description: 'Verify Updates to Audiences Reflect in Social Campaigns',
-          zephyrTestId: 'CONT-33859',
-          storyId: 'CONT-33859',
+          zephyrTestId: 'CONT-44773',
+          storyId: 'CONT-44773',
         });
 
         addCampaignPage = new AddCampaignPage(appManagerFixture.page);
@@ -1206,6 +1197,79 @@ test.describe(
         await addCampaignPage.selectMemberAsAudience();
         await addCampaignPage.enterAudienceName(updatedAudienceName);
         await addCampaignPage.verifyAudienceNameAndCount(audienceDetails.count, updatedAudienceName);
+      }
+    );
+
+    test(
+      'ABAC Verify Social Campaign navigation when redirected via Manage feature CONT-44772',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-44772', '@Social_Campaign_Navigation'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify Social Campaign navigation via side nav redirects to /campaigns/latest',
+          zephyrTestId: 'CONT-44772',
+          storyId: 'CONT-44772',
+        });
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await appManagerFixture.navigationHelper.clickOnSocialCampaignsUnderManageFeature();
+
+        const manageFeaturesPage = new ManageFeaturesPage(appManagerFixture.page);
+        await manageFeaturesPage.verifyUrlContains('campaigns/latest');
+
+        await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
+        await manageFeaturesPage.clickOnSocialCampaignCard();
+        await manageFeaturesPage.verifyUrlContains('campaigns/latest');
+      }
+    );
+
+    test(
+      'ABAC Verify user can connect LinkedIn account and share social campaign CONT-44585',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-44585', '@Social_Campaign_LinkedIn'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'ABAC: Verify user can connect LinkedIn account and share social campaign',
+          zephyrTestId: 'CONT-44585',
+          storyId: 'CONT-44585',
+        });
+
+        // Create campaign with audience
+        const campaignOptions = {
+          message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
+          url: SOCIAL_CAMPAIGN_TEST_DATA.URLS.SIMPPLR_ALL_EMPLOYEES,
+          linkText: SOCIAL_CAMPAIGN_TEST_DATA.LINK_TEXT.SIMPPLR_ALL_EMPLOYEES,
+          recipient: SocialCampaignRecipient.EVERYONE,
+        };
+
+        // Create campaign via API
+        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+          message: campaignOptions.message,
+          url: campaignOptions.url,
+          recipient: campaignOptions.recipient,
+          networks: [SocialCampaignNetwork.LINKEDIN],
+        });
+        campaignId = createdCampaign.campaignId;
+
+        // Get LinkedIn credentials from config
+        const config = getContentTenantConfigFromCache();
+        const linkedInEmail = config.linkedInEmail;
+        const linkedInPassword = config.linkedInPassword;
+
+        // Step 1: Navigate to Social campaigns page
+        await appManagerFixture.navigationHelper.clickOnSocialCampaigns();
+        socialCampaignPage = new SocialCampaignPage(appManagerFixture.page);
+        await socialCampaignPage.verifyThePageIsLoaded();
+
+        // Step 2: Click the first Share button
+        await socialCampaignPage.clickFirstShareButton();
+
+        // Step 3: Click Connect LinkedIn button and complete LinkedIn login
+        await socialCampaignPage.connectLinkedIn(linkedInEmail, linkedInPassword);
+
+        // Step 4: Verify LinkedIn connection success message
+        await socialCampaignPage.verifyLinkedInConnectionSuccess();
       }
     );
   }

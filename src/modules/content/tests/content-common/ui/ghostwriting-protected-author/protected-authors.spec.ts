@@ -52,10 +52,7 @@ test.describe('protected Authors', () => {
     }
   );
 
-  /**
-   * It shows 2 matching name with same name sonali gupta
-   */
-  test.fixme(
+  test(
     'verify As an application manager, I should be able to add the users to protected authors - allow list) CONT-32769',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.ADD_USERS_TO_ALLOWLIST],
@@ -66,6 +63,8 @@ test.describe('protected Authors', () => {
           'Verify As an application manager, I should be able to add the users to protected authors - allow list',
         zephyrTestId: 'CONT-32769',
         storyId: 'CONT-32769',
+        isKnownFailure: true,
+        bugTicket: 'CONT-44795',
       });
       const loggedInUserName = await appManagerFixture.homePage.getCurrentLoggedInUserName(
         'Get current logged-in user name'

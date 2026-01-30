@@ -15,6 +15,14 @@ export class ManageSiteSetUpPage extends BasePage {
   readonly templateRowLocator: (templateName: string) => Locator;
   readonly threeDotsButtonInRow: (row: Locator) => Locator;
 
+  // Content Submissions locators
+  readonly contentSubmissionsHeading: Locator;
+  readonly contentSubmissionsToggle: Locator;
+  readonly editSubmissionProcessButton: Locator;
+  readonly editApprovalProcessButton: Locator;
+  readonly submissionProcessTooltip: Locator;
+  readonly approvalProcessTooltip: Locator;
+
   private updateSiteCategoryComponent: UpdateSiteCategoryComponent;
   private manageSitesComponent: ManageSitesComponent;
   private subscriptionComponent: SubscriptionComponent;
@@ -34,6 +42,28 @@ export class ManageSiteSetUpPage extends BasePage {
     this.templateRowLocator = (templateName: string) =>
       this.page.locator(`[data-testid^="dataGridRow-"]`).filter({ hasText: templateName }).first();
     this.threeDotsButtonInRow = (row: Locator) => row.getByRole('button', { name: 'Show more' });
+
+    // Content Submissions locators
+    this.contentSubmissionsHeading = page.getByRole('heading', { name: 'Content submissions' });
+    // Find the toggle switch - use a more direct approach
+    this.contentSubmissionsToggle = page
+      .getByRole('heading', { name: 'Content submissions' })
+      .locator('..')
+      .locator('..')
+      .getByRole('switch')
+      .first();
+    // Use direct page locators for buttons - they're more reliable
+    this.editSubmissionProcessButton = page.getByRole('button', { name: 'Edit submission process' });
+    this.editApprovalProcessButton = page.getByRole('button', { name: 'Edit approval process' });
+    // Tooltip locators - these appear on hover
+    this.submissionProcessTooltip = page.getByText(
+      "Submission process settings aren't available until target audience changes are saved",
+      { exact: false }
+    );
+    this.approvalProcessTooltip = page.getByText(
+      "Approval process settings aren't available until target audience changes are saved",
+      { exact: false }
+    );
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -275,5 +305,195 @@ export class ManageSiteSetUpPage extends BasePage {
   // Subscription assertions
   async verifyAddSubscriptionPageIsLoaded(): Promise<void> {
     await this.subscriptionComponent.verifyAddSubscriptionPageIsLoaded();
+  }
+
+  /**
+   * Verifies that Content Submissions toggle is displayed under "Content, questions & landing page" section
+   */
+  async verifyContentSubmissionsToggleIsDisplayed(): Promise<void> {
+    await test.step('Verify Content Submissions toggle is displayed', async () => {
+      // Verify the "Content, questions & landing page" heading is visible
+      const contentLandingPageHeading = this.page.getByRole('heading', { name: 'Content, questions & landing page' });
+      await this.verifier.verifyTheElementIsVisible(contentLandingPageHeading, {
+        assertionMessage: '"Content, questions & landing page" section should be visible',
+      });
+
+      // Verify Content Submissions heading is visible
+      await this.verifier.verifyTheElementIsVisible(this.contentSubmissionsHeading, {
+        assertionMessage: 'Content Submissions heading should be visible',
+      });
+
+      // Verify the toggle switch is visible
+      await this.verifier.verifyTheElementIsVisible(this.contentSubmissionsToggle, {
+        assertionMessage: 'Content Submissions toggle should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies user can toggle Content Submissions ON and OFF
+   */
+  async verifyContentSubmissionsToggleFunctionality(): Promise<void> {
+    await test.step('Verify user can toggle Content Submissions ON-OFF', async () => {
+      // Get initial state
+      const initialState = await this.contentSubmissionsToggle.isChecked();
+
+      // Toggle OFF if currently ON
+      if (initialState) {
+        await this.clickOnElement(this.contentSubmissionsToggle);
+        await this.verifier.verifyTheElementIsNotChecked(this.contentSubmissionsToggle, {
+          assertionMessage: 'Content Submissions toggle should be OFF after clicking',
+        });
+      }
+
+      // Toggle ON
+      await this.clickOnElement(this.contentSubmissionsToggle);
+      await this.verifier.verifyTheElementIsChecked(this.contentSubmissionsToggle, {
+        assertionMessage: 'Content Submissions toggle should be ON after clicking',
+      });
+
+      // Toggle OFF again
+      await this.clickOnElement(this.contentSubmissionsToggle);
+      await this.verifier.verifyTheElementIsNotChecked(this.contentSubmissionsToggle, {
+        assertionMessage: 'Content Submissions toggle should be OFF after clicking again',
+      });
+
+      // Restore to initial state
+      if (initialState) {
+        await this.clickOnElement(this.contentSubmissionsToggle);
+      }
+    });
+  }
+
+  /**
+   * Verifies "Who can submit content" edit option is non-interactable (disabled)
+   */
+  async verifyWhoCanSubmitContentEditIsDisabled(): Promise<void> {
+    await test.step('Verify "Who can submit content" edit option is disabled', async () => {
+      // First, ensure the toggle is ON so the button is visible
+      const isToggleOn = await this.contentSubmissionsToggle.isChecked();
+      if (!isToggleOn) {
+        await this.clickOnElement(this.contentSubmissionsToggle);
+        await this.page.waitForTimeout(500); // Wait for UI to update
+      }
+
+      // Wait for the button to be visible and attached to DOM
+      await this.verifier.verifyTheElementIsVisible(this.editSubmissionProcessButton, {
+        assertionMessage: '"Edit submission process" button should be visible',
+        timeout: 5000,
+      });
+
+      // Verify the button is disabled
+      await this.verifier.verifyTheElementIsDisabled(this.editSubmissionProcessButton, {
+        assertionMessage: '"Edit submission process" button should be disabled',
+        timeout: 5000,
+      });
+    });
+  }
+
+  /**
+   * Verifies tooltip appears on hover for "Who can submit content" edit button
+   * @param expectedMessage - The expected tooltip message
+   */
+  async verifySubmissionProcessTooltip(expectedMessage: string): Promise<void> {
+    await test.step(`Verify tooltip on hover for "Who can submit content" edit button: ${expectedMessage}`, async () => {
+      // First, ensure the toggle is ON so the button is visible
+      const isToggleOn = await this.contentSubmissionsToggle.isChecked();
+      if (!isToggleOn) {
+        await this.clickOnElement(this.contentSubmissionsToggle);
+        await this.page.waitForTimeout(500); // Wait for UI to update
+      }
+
+      // Wait for the button to be visible and attached to DOM
+      await this.verifier.verifyTheElementIsVisible(this.editSubmissionProcessButton, {
+        assertionMessage: '"Edit submission process" button should be visible',
+        timeout: 5000,
+      });
+
+      // Verify the button is disabled before hovering
+      await this.verifier.verifyTheElementIsDisabled(this.editSubmissionProcessButton, {
+        assertionMessage: '"Edit submission process" button should be disabled',
+        timeout: 5000,
+      });
+
+      // Try to find the tooltip container that wraps the button, or use force hover
+      const tooltipContainer = this.editSubmissionProcessButton
+        .locator('..')
+        .locator('span[class*="TooltipOnHover"]')
+        .first();
+      const containerExists = (await tooltipContainer.count()) > 0;
+
+      if (containerExists) {
+        // Hover on the tooltip container instead
+        await tooltipContainer.hover({ timeout: 5000 });
+      } else {
+        // Fallback: use force hover to bypass pointer event interception
+        await this.editSubmissionProcessButton.hover({ timeout: 5000, force: true });
+      }
+
+      // Wait a bit for tooltip to appear
+      await this.page.waitForTimeout(1000);
+
+      // Verify tooltip is visible with expected message
+      const tooltip = this.page.getByText(expectedMessage, { exact: false });
+      await this.verifier.verifyTheElementIsVisible(tooltip, {
+        assertionMessage: `Tooltip with message "${expectedMessage}" should be visible on hover`,
+        timeout: 5000,
+      });
+    });
+  }
+
+  /**
+   * Verifies tooltip appears on hover for "Approval process" edit button
+   * @param expectedMessage - The expected tooltip message
+   */
+  async verifyApprovalProcessTooltip(expectedMessage: string, disableToggle: boolean = false): Promise<void> {
+    await test.step(`Verify tooltip on hover for "Approval process" edit button: ${expectedMessage}`, async () => {
+      // First, ensure the toggle is ON so the button is visible
+      const isToggleOn = await this.contentSubmissionsToggle.isChecked();
+      if (!isToggleOn) {
+        await this.clickOnElement(this.contentSubmissionsToggle);
+        await this.page.waitForTimeout(500); // Wait for UI to update
+      }
+
+      // Wait for the button to be visible and attached to DOM
+      await this.verifier.verifyTheElementIsVisible(this.editApprovalProcessButton, {
+        assertionMessage: '"Edit approval process" button should be visible',
+        timeout: 5000,
+      });
+
+      if (!disableToggle) {
+        // Verify the button is disabled before hovering
+        await this.verifier.verifyTheElementIsDisabled(this.editApprovalProcessButton, {
+          assertionMessage: '"Edit approval process" button should be disabled',
+          timeout: 5000,
+        });
+      }
+
+      // Try to find the tooltip container that wraps the button, or use force hover
+      const tooltipContainer = this.editApprovalProcessButton
+        .locator('..')
+        .locator('span[class*="TooltipOnHover"]')
+        .first();
+      const containerExists = (await tooltipContainer.count()) > 0;
+
+      if (containerExists) {
+        // Hover on the tooltip container instead
+        await tooltipContainer.hover({ timeout: 5000 });
+      } else {
+        // Fallback: use force hover to bypass pointer event interception
+        await this.editApprovalProcessButton.hover({ timeout: 5000, force: true });
+      }
+
+      // Wait a bit for tooltip to appear
+      await this.page.waitForTimeout(1000);
+
+      // Verify tooltip is visible with expected message
+      const tooltip = this.page.getByText(expectedMessage, { exact: false });
+      await this.verifier.verifyTheElementIsVisible(tooltip, {
+        assertionMessage: `Tooltip with message "${expectedMessage}" should be visible on hover`,
+        timeout: 5000,
+      });
+    });
   }
 }

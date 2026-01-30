@@ -33,7 +33,7 @@ test.describe(
     test(
       '[RC-4458] Verify that Work anniversary award frequency can be changed from default to specific anniversaries',
       {
-        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P1, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -66,7 +66,7 @@ test.describe(
     test(
       '[RC-4461 RC-5414] Validate error handling when user tries to create anniversaries beyond 60 years, add duplicate entry and special characters, spaces',
       {
-        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P2, TestGroupType.REGRESSION],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
