@@ -12,7 +12,7 @@ import { QuickTaskPage } from '@platforms/ui/pages/quickTask/quickTaskPage';
 /**
  * Test suite for Quick Task functionality
  */
-test.describe.serial('quick Task', () => {
+test.describe('quick Task', () => {
   // Store task IDs, titles, and due dates for each test that needs them
   let testTaskIds: string[] = [];
   let testTaskTitles: string[] = [];
