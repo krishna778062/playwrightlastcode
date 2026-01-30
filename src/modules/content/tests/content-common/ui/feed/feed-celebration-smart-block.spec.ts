@@ -3,29 +3,25 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
-import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 
-/**
- * Query: Why does it say standard user? but we are using app manager fixture?
- */
 test.describe(
   'celebration Smart Feed Block Tests',
   {
     tag: [ContentTestSuite.FEED_STANDARD_USER, ContentTestSuite.FEED],
   },
   () => {
-    /**
-     * The save profile flow is not working, it stuck if hiring date is not selected
-     */
-    test.fixme(
+    test(
       'verify user displayed in Celebration smart feed block on Home and Site Feed CONT-19570',
       {
         tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19570'],
       },
-      async ({ appManagerFixture }) => {
+      async ({ standardUserFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
           description: 'Verify Celebration Smart Feed Block on Home and Site Feed',
           zephyrTestId: 'CONT-19570',
@@ -33,64 +29,59 @@ test.describe(
         });
 
         // ==================== Login as App Manager and Update DOB ====================
-        const appManagerHomePage = appManagerFixture.homePage;
-        const appManagerNavigationHelper = appManagerFixture.navigationHelper;
+        const standardUserHomePage = standardUserFixture.homePage;
+        const standardUserNavigationHelper = standardUserFixture.navigationHelper;
 
-        await appManagerHomePage.verifyThePageIsLoaded();
+        await standardUserHomePage.verifyThePageIsLoaded();
 
-        const appManagerUserId = await appManagerFixture.page.evaluate(() => {
-          return (window as any).Simpplr?.CurrentUser?.uid;
-        });
-
-        if (!appManagerUserId) {
-          throw new Error('Could not get app manager user ID from Simpplr.CurrentUser.uid');
-        }
-
-        // Get app manager user name for verification
-        const appManagerUserName = await appManagerHomePage.getCurrentLoggedInUserName();
+        const standardUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+          users.endUser.email
+        );
+        const standardUserId = standardUserInfo.userId;
+        const standardUserName = standardUserInfo.fullName;
 
         // Set birth month and day (using current month and a day)
-        const today = new Date();
-        const birthMonth = today.getMonth() + 1;
-        const birthDay = today.getDate() + 1;
+        const birthMonth = CONTENT_TEST_DATA.DATES.MONTH;
+        const birthDay = CONTENT_TEST_DATA.DATES.UPCOMING_DAY;
 
-        await appManagerNavigationHelper.topNavBarComponent.openViewProfile({
+        await standardUserNavigationHelper.topNavBarComponent.openViewProfile({
           stepInfo: 'Opening app manager view profile from profile icon',
         });
 
-        const appManagerProfileScreenPage = new ProfileScreenPage(appManagerFixture.page, appManagerUserId);
+        const standardUserProfileScreenPage = new ProfileScreenPage(standardUserFixture.page, standardUserId);
 
-        await appManagerProfileScreenPage.clickEditAbout();
+        await standardUserProfileScreenPage.clickEditAbout();
 
-        await appManagerProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
+        await standardUserProfileScreenPage.updateDateOfBirth(birthMonth, birthDay);
 
-        await appManagerProfileScreenPage.saveProfileChanges();
+        await standardUserProfileScreenPage.saveProfileChanges();
 
         // ==================== Verify Celebration Block as App Manager ====================
-        await appManagerNavigationHelper.clickOnGlobalFeed();
-        const feedPage = new FeedPage(appManagerFixture.page);
+        await standardUserNavigationHelper.clickOnHomeIconButton();
+        await standardUserNavigationHelper.clickOnGlobalFeed();
+        const feedPage = new FeedPage(standardUserFixture.page);
         // await feedPage.verifyThePageIsLoaded();
 
         await feedPage.reloadPage();
         await feedPage.verifyThePageIsLoaded();
 
-        await feedPage.verifyUserDisplayedInCelebrationBlock(appManagerUserName);
+        await feedPage.verifyUserDisplayedInCelebrationBlock(standardUserName);
 
-        const siteId = await appManagerFixture.siteManagementHelper.getSiteIdWithName('All Employees');
+        const siteId = await standardUserFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
 
-        const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.verifyThePageIsLoaded();
 
         await siteDashboardPage.clickOnFeedLink();
 
-        const siteFeedPage = new FeedPage(appManagerFixture.page);
+        const siteFeedPage = new FeedPage(standardUserFixture.page);
         await siteFeedPage.verifyThePageIsLoaded();
 
         await siteFeedPage.reloadPage();
         await siteFeedPage.verifyThePageIsLoaded();
 
-        await siteFeedPage.verifyUserDisplayedInCelebrationBlock(appManagerUserName);
+        await siteFeedPage.verifyUserDisplayedInCelebrationBlock(standardUserName);
       }
     );
   }

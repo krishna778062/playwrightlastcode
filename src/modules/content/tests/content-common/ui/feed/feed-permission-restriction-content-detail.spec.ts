@@ -22,7 +22,7 @@ test.describe(
     test(
       'verify Site Owner and Site Manager can comment on Content Detail Page of a Public Site when feed permission is set to "Only site owners and site managers can make feed posts" CONT-37171',
       {
-        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@Public_Site_Permission_Restriction'],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-37171'],
       },
       async ({ appManagerApiFixture, appManagerFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
@@ -145,12 +145,21 @@ test.describe(
         const { userId } = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
 
         // ==================== SCENARIO 1: Site Content Manager CAN post ====================
-        // Assign user as Site Content Manager
+        // Remove user as from the site
         await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
           siteId,
           userId,
-          SitePermission.CONTENT_MANAGER,
-          SiteMembershipAction.SET_PERMISSION
+          SitePermission.MEMBER,
+          SiteMembershipAction.REMOVE
+        );
+
+        // ==================== SCENARIO 1: Site Member CANNOT post ====================
+        // Add user as from the site
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          siteId,
+          userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
         );
 
         // Navigate to Content Detail Page as Site Content Manager
@@ -160,7 +169,22 @@ test.describe(
           pageContent.contentId,
           'page'
         );
+
         await contentPreviewPage.loadPage();
+
+        // Verify that Site Member sees the restriction message and cannot post
+        await contentPreviewPage.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
+
+        // ==================== SCENARIO 2: Site Content Manager CAN post ====================
+        // Assign user as Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          siteId,
+          userId,
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.SET_PERMISSION
+        );
+
+        await contentPreviewPage.reloadPage();
 
         // Verify that comment option is visible on content detail page feed form
         await contentPreviewPage.verifyCommentOptionIsVisible();
@@ -178,20 +202,6 @@ test.describe(
 
         // Verify Site Content Manager comment is successfully posted
         await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(scmCommentText);
-
-        // ==================== SCENARIO 2: Site Member CANNOT post ====================
-        // Change user role from Site Content Manager to Site Member
-        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-          siteId,
-          userId,
-          SitePermission.CONTENT_MANAGER,
-          SiteMembershipAction.REMOVE
-        );
-
-        await contentPreviewPage.loadPage();
-
-        // Verify that Site Member sees the restriction message and cannot post
-        await contentPreviewPage.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
       }
     );
   }

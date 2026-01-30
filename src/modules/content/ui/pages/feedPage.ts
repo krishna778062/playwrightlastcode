@@ -712,7 +712,7 @@ export class FeedPage extends BasePage {
 
   async clickSiteMentionInPost(postText: string, siteName: string, siteId: string): Promise<void> {
     await test.step(`Click site mention @${siteName} in post and verify navigation`, async () => {
-      const postContainer = this.feedList.postTextLocator(postText);
+      const postContainer = this.feedList.feedPostContainer.first();
       await this.verifier.verifyTheElementIsVisible(postContainer, {
         assertionMessage: `Post ${postText} should be visible`,
       });
