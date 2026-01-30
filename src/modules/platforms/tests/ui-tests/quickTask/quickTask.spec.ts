@@ -320,7 +320,7 @@ test.describe('quick Task', () => {
    */
   test(
     'verify that user can able to see counts getting increased under new when user adds new quick task',
-    { tag: [TestPriority.P0, '@quick-task', '@test-env-only'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36712'],
@@ -370,7 +370,7 @@ test.describe('quick Task', () => {
    */
   test(
     'verify that user can able to see counts getting increased under inProgress when user changes the status on the quick task to inprogress',
-    { tag: [TestPriority.P0, '@quick-task', '@test-env-only'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36714'],
@@ -426,7 +426,7 @@ test.describe('quick Task', () => {
    */
   test(
     'verify that user can able to see counts getting increased under Completed when user changes the status on the quick task to completed',
-    { tag: [TestPriority.P0, '@quick-task', '@test-env-only'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page, quickTaskApiFixture }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36713'],
@@ -488,7 +488,7 @@ test.describe('quick Task', () => {
    */
   test(
     'verify that user can assign a task to a single user they have access to',
-    { tag: [TestPriority.P0, '@quick-task', '@test-env-only'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36894'],
@@ -517,7 +517,7 @@ test.describe('quick Task', () => {
    */
   test(
     'verify that user can assign a task to multiple users simultaneously',
-    { tag: [TestPriority.P0, '@quick-task', '@test-env-only'] },
+    { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
         zephyrTestId: ['PS-36895'],

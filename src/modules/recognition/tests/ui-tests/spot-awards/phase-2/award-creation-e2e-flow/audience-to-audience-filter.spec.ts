@@ -45,8 +45,8 @@ test.describe('Spot award end to end flow - audience to audience', () => {
       selectAwardPeriodValue: 'Indefinitely',
       selectHowOftenAwardGivenValue: 'Unlimited',
       timesValue: undefined,
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
+      priority: TestPriority.P1,
+      testGroup: TestGroupType.SANITY,
     },
     {
       testId: 'RC-6499',
@@ -119,11 +119,11 @@ test.describe('Spot award end to end flow - audience to audience', () => {
           );
           await spotAwardPage.verifyToastMessage('New award created');
           await spotAwardPage.waitForToastToHide();
+          await spotAwardPage.subTabIndicator.clickOnColumnButton('Created', 2);
           await spotAwardPage.verifyAwardNameInTable(awardName);
           await spotAwardPage.subTabIndicator.checkRecentlyCreatedAwardStatus('Active', 3);
           await spotAwardPage.verifyAwardMenuOptions(awardName);
           await spotAwardPage.pressEscape();
-          await spotAwardPage.reloadPage();
 
           // Login as end-user who's a part of the audience and give the award to audience member
           await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
@@ -135,7 +135,7 @@ test.describe('Spot award end to end flow - audience to audience', () => {
           await spotAwardPage.navigateToRecognitionHubAndOpenDialog(giveRecognitionDialogBox);
           await giveRecognitionDialogBox.publishSpotAward(
             awardName,
-            'Test Message',
+            'spot award description for ' + awardName + ' ' + faker.string.alphanumeric(8),
             getRecognitionTenantConfigFromCache().appManagerName
           );
           await spotAwardPage.verifyToastMessage('Recognition published');

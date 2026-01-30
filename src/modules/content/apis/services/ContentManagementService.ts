@@ -29,7 +29,7 @@ const defaultBaseContentPayload = {
   isFeedEnabled: true,
   listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
-  isNewTiptap: false,
+  isNewTiptap: true,
 };
 
 const defaultPageContentPayload = () => {

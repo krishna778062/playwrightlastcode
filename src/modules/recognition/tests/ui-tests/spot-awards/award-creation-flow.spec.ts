@@ -27,7 +27,7 @@ test.describe('Awards Creation Flow', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
+        TestPriority.P3,
         TestGroupType.REGRESSION,
       ],
     },
@@ -131,6 +131,8 @@ test.describe('Awards Creation Flow', () => {
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
         TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
       ],
     },
     async ({ appManagerFixture }) => {

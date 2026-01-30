@@ -15,8 +15,10 @@ test.describe('timezone field validation', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        TestPriority.P0,
+        TestPriority.P1,
         TestGroupType.SANITY,
+        TestGroupType.REGRESSION,
+        TestGroupType.SMOKE,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -70,6 +72,7 @@ test.describe('timezone field validation', () => {
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
         TestPriority.P1,
+        TestGroupType.SANITY,
         TestGroupType.REGRESSION,
       ],
     },
@@ -123,7 +126,7 @@ test.describe('timezone field validation', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        TestPriority.P1,
+        TestPriority.P2,
         TestGroupType.REGRESSION,
       ],
     },
@@ -183,7 +186,7 @@ test.describe('timezone field validation', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.CUSTOM_RECURRING_AWARD,
-        TestPriority.P1,
+        TestPriority.P2,
         TestGroupType.REGRESSION,
       ],
     },

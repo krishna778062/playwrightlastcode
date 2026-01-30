@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/constants/testTags';
+import { RecognitionSuitTags, spotAwardsFeatureTags } from '@recognition/constants/testTags';
 import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
 import { SpotAwardPage } from '@recognition/ui/pages/manage/spotAwardPage';
@@ -26,9 +26,11 @@ test.describe('Spot award audience filter section', () => {
     {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
-        RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
-        TestGroupType.REGRESSION,
+        spotAwardsFeatureTags.SPOT_AWARDS_AUDIENCE,
+        TestPriority.P0,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -54,8 +56,8 @@ test.describe('Spot award audience filter section', () => {
     {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
-        RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
+        spotAwardsFeatureTags.SPOT_AWARDS_AUDIENCE,
+        TestPriority.P2,
         TestGroupType.REGRESSION,
       ],
     },
