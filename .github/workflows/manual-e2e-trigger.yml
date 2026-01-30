@@ -121,6 +121,12 @@ on:
         default: ''
         type: string
 
+      release_tag:
+        description: 'Release/build tag for BrowserStack (e.g., 25.01-qa.1). Empty = "latest"'
+        required: false
+        default: ''
+        type: string
+
 jobs:
   regression:
     uses: ./.github/workflows/regression-unified-template.yml
@@ -135,4 +141,5 @@ jobs:
       priority_filter: ${{ inputs.priority_filter }}
       test_type: ${{ inputs.test_type }}
       feature_tags: ${{ inputs.feature_tags }}
+      release_tag: ${{ inputs.release_tag || 'latest' }}
     secrets: inherit
