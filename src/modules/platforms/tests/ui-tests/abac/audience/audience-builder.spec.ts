@@ -20,17 +20,11 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to manage/audience/rules', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Click on Filters button', async () => {
-        await audienceBuilderPage.clickFiltersButton();
-      });
+      await audienceBuilderPage.clickFiltersButton();
 
-      await test.step('Verify presence of Created by filter', async () => {
-        await audienceBuilderPage.verifyFilterElementPresence('Created by');
-      });
+      await audienceBuilderPage.verifyFilterElementPresence('Created by');
     }
   );
 
@@ -44,17 +38,11 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to manage/audience/rules', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Verify presence of Filters button', async () => {
-        await audienceBuilderPage.verifyFiltersButtonPresence();
-      });
+      await audienceBuilderPage.verifyFiltersButtonPresence();
 
-      await test.step('Click on Filters button', async () => {
-        await audienceBuilderPage.clickFiltersButton();
-      });
+      await audienceBuilderPage.clickFiltersButton();
     }
   );
 
@@ -68,25 +56,15 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to Audience rules page', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Click on Filters button', async () => {
-        await audienceBuilderPage.clickFiltersButton();
-      });
+      await audienceBuilderPage.clickFiltersButton();
 
-      await test.step('Verify presence of Cross icon', async () => {
-        await audienceBuilderPage.verifyCloseButtonPresence();
-      });
+      await audienceBuilderPage.verifyCloseButtonPresence();
 
-      await test.step('Verify presence of Reset all button', async () => {
-        await audienceBuilderPage.verifyButtonTextPresence('Reset all');
-      });
+      await audienceBuilderPage.verifyButtonTextPresence('Reset all');
 
-      await test.step('Verify presence of View results button', async () => {
-        await audienceBuilderPage.verifyButtonTextPresence('View results');
-      });
+      await audienceBuilderPage.verifyButtonTextPresence('View results');
     }
   );
 
