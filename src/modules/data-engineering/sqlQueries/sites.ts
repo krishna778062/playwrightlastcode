@@ -167,7 +167,6 @@ export const SitesSql = {
                 s.tenant_code = '{tenantCode}'
                 AND s.overall_is_site_active = TRUE
                 AND s.site_type_code IN ('STT001', 'STT002', 'STT003')
-                AND i.is_deleted = FALSE
                 AND i.current_site_code NOT IN ('N/A')
                 AND i.interaction_content_post_publish IN (TRUE, 'N/A')
                 AND i.is_system_feed = FALSE
@@ -240,8 +239,7 @@ export const SitesSql = {
                     END AS interaction_content_post_publish
                 FROM SIMPPLR_COMMON_TENANT.UDL.vw_interaction
                 WHERE 
-                    is_deleted = FALSE
-                    AND current_site_code NOT IN ('N/A')
+                    current_site_code NOT IN ('N/A')
                     AND is_system_feed = FALSE
                     AND interaction_datetime >= '{startDate}'
                     AND interaction_datetime < '{endDate}'

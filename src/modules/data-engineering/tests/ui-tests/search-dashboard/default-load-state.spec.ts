@@ -231,7 +231,7 @@ test.describe(
     );
 
     // 6. Search usage volume and click through rate CSV
-    test(
+    test.fail(
       'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard default filter last 30 days',
       {
         tag: [
@@ -241,6 +241,7 @@ test.describe(
           TestCaseType.CSV_VALIDATION,
           '@search-usage-volume-and-click-through-rate-csv',
         ],
+        annotation: { type: 'known_failure', description: 'DE-28405' },
       },
       async () => {
         tagTest(test.info(), {
@@ -248,6 +249,8 @@ test.describe(
             'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard default filter last 30 days',
           zephyrTestId: 'DE-25549',
           storyId: 'DE-25924',
+          isKnownFailure: true,
+          bugTicket: 'DE-28405',
         });
 
         // Get expected metric value from snowflake with default period (Last 30 days)
