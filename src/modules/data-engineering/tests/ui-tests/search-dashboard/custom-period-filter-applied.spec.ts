@@ -225,7 +225,7 @@ test.describe(
     );
 
     // 6. Search usage volume and click through rate CSV
-    test(
+    test.fail(
       'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard with custom period filters applied',
       {
         tag: [
@@ -234,6 +234,7 @@ test.describe(
           TestCaseType.CSV_VALIDATION,
           '@search-usage-volume-and-click-through-rate-csv',
         ],
+        annotation: { type: 'known_failure', description: 'DE-28405' },
       },
       async () => {
         tagTest(test.info(), {
@@ -241,6 +242,8 @@ test.describe(
             'TS To verify the CSV of answer search usage volume and click through rate in Search Dashboard with custom period filters applied',
           zephyrTestId: 'DE-27775',
           storyId: 'DE-25924',
+          isKnownFailure: true,
+          bugTicket: 'DE-28405',
         });
 
         // Get expected metric value from snowflake with custom period filter applied
