@@ -234,15 +234,7 @@ export class AudienceBuilderPage extends BasePage {
     await test.step('Verify the order of filter names', async () => {
       // Get all accordion trigger buttons that contain h3 elements
       const filterHeaders = this.filterContainer.locator('button[data-state] h3');
-      const actualFilters: string[] = [];
-
-      const count = await filterHeaders.count();
-      for (let i = 0; i < count; i++) {
-        const text = await filterHeaders.nth(i).textContent();
-        if (text) {
-          actualFilters.push(text.trim());
-        }
-      }
+      const actualFilters = (await filterHeaders.allTextContents()).map(text => text.trim());
 
       expect(actualFilters).toEqual(expectedOrder);
     });

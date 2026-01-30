@@ -563,6 +563,47 @@ export class AudiencePage extends BasePage {
   }
 
   /**
+   * Click Add description button to reveal description field
+   */
+  async clickAddDescriptionButton(): Promise<void> {
+    await test.step('Click Add description button', async () => {
+      await this.clickOnElement(this.addAudienceDescriptionButton, { stepInfo: 'Click Add description' });
+    });
+  }
+
+  /**
+   * Verify description field has the expected maxlength attribute
+   */
+  async verifyDescriptionMaxLength(expectedMaxLength: number): Promise<void> {
+    await test.step(`Verify description field has maxlength attribute of ${expectedMaxLength}`, async () => {
+      await expect(this.audienceDescriptionInput).toHaveAttribute('maxlength', expectedMaxLength.toString());
+    });
+  }
+
+  /**
+   * Fill description with specified text and verify the input length
+   */
+  async fillDescriptionAndVerifyLength(description: string, expectedLength: number): Promise<void> {
+    await test.step(`Fill description with ${description.length} characters and verify length is ${expectedLength}`, async () => {
+      await this.audienceDescriptionInput.fill(description);
+      const inputValue = await this.audienceDescriptionInput.inputValue();
+      expect(inputValue.length).toBe(expectedLength);
+    });
+  }
+
+  /**
+   * Verify that description field enforces max length by truncating oversized input
+   */
+  async verifyDescriptionMaxLengthEnforced(maxAllowedLength: number): Promise<void> {
+    await test.step(`Verify description is truncated to max ${maxAllowedLength} characters`, async () => {
+      const oversizedText = 'a'.repeat(maxAllowedLength + 1);
+      await this.audienceDescriptionInput.fill(oversizedText);
+      const inputValue = await this.audienceDescriptionInput.inputValue();
+      expect(inputValue.length).toBeLessThanOrEqual(maxAllowedLength);
+    });
+  }
+
+  /**
    * Select a parent audience/category from the picker dialog
    */
   async selectParentAudienceByName(parentName: string): Promise<void> {

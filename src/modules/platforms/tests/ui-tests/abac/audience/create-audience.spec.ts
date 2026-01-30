@@ -1,11 +1,10 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@core/constants/testPriority';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 import {
   AD_GROUP_TYPES,
   AUDIENCE_TYPES,
+  FIELD_LIMITS,
   FIELD_TYPES,
   OPERATORS,
   PAGE_STATES,
@@ -92,28 +91,14 @@ test.describe(
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
 
-        await test.step('Click Add description button', async () => {
-          await audiencePage.addAudienceDescriptionButton.click();
-        });
+        await audiencePage.clickAddDescriptionButton();
 
-        await test.step('Verify description field has maxlength attribute of 1024', async () => {
-          const maxLength = audiencePage.audienceDescriptionInput;
-          await expect(maxLength).toHaveAttribute('maxlength', '1024');
-        });
+        await audiencePage.verifyDescriptionMaxLength(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
 
-        await test.step('Fill description with 1024 characters and verify it is accepted', async () => {
-          const description1024 = 'a'.repeat(1024);
-          await audiencePage.audienceDescriptionInput.fill(description1024);
-          const inputValue = await audiencePage.audienceDescriptionInput.inputValue();
-          expect(inputValue.length).toBe(1024);
-        });
+        const description1024 = 'a'.repeat(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+        await audiencePage.fillDescriptionAndVerifyLength(description1024, FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
 
-        await test.step('Try to add more than 1024 characters and verify it is truncated', async () => {
-          const description1025 = 'a'.repeat(1025);
-          await audiencePage.audienceDescriptionInput.fill(description1025);
-          const inputValue = await audiencePage.audienceDescriptionInput.inputValue();
-          expect(inputValue.length).toBeLessThanOrEqual(1024);
-        });
+        await audiencePage.verifyDescriptionMaxLengthEnforced(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
       }
     );
 

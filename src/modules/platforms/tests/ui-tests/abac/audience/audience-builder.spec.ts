@@ -5,6 +5,7 @@ import {
   AUDIENCE_BUILDER_BUTTONS,
   AUDIENCE_BUILDER_FILTER_OPTIONS,
   AUDIENCE_BUILDER_FILTERS,
+  TEST_DATA_VALUES,
 } from '@platforms/constants/audience';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audienceBuilderPage';
@@ -118,21 +119,13 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to manage/audience/rules', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Click Create button to open dialog', async () => {
-        await audienceBuilderPage.clickCreateButton();
-      });
+      await audienceBuilderPage.clickCreateButton();
 
-      await test.step('Type category name in dropdown', async () => {
-        await audienceBuilderPage.typeInCategoryDropdown('NewCategory');
-      });
+      await audienceBuilderPage.typeInCategoryDropdown(TEST_DATA_VALUES.NEW_CATEGORY_NAME);
 
-      await test.step('Verify Add category option appears', async () => {
-        await audienceBuilderPage.verifyAddCategoryOptionPresence('NewCategory');
-      });
+      await audienceBuilderPage.verifyAddCategoryOptionPresence(TEST_DATA_VALUES.NEW_CATEGORY_NAME);
     }
   );
 
@@ -146,18 +139,12 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to manage/audience/rules', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Click on Filters button', async () => {
-        await audienceBuilderPage.clickFiltersButton();
-      });
+      await audienceBuilderPage.clickFiltersButton();
 
-      await test.step('Verify the order of filter names', async () => {
-        const expectedOrder = ['Attributes', 'Created by', 'Created date'];
-        await audienceBuilderPage.verifyFilterOrder(expectedOrder);
-      });
+      const expectedOrder = ['Attributes', 'Created by', 'Created date'];
+      await audienceBuilderPage.verifyFilterOrder(expectedOrder);
     }
   );
 
@@ -171,13 +158,9 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to manage/audience/rules', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Click on Filters button', async () => {
-        await audienceBuilderPage.clickFiltersButton();
-      });
+      await audienceBuilderPage.clickFiltersButton();
 
       await test.step('Click on Created by filter', async () => {
         await audienceBuilderPage.clickButtonText('Created by');
@@ -199,13 +182,9 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
 
-      await test.step('Navigate to manage/audience/rules', async () => {
-        await audienceBuilderPage.loadPage();
-      });
+      await audienceBuilderPage.loadPage();
 
-      await test.step('Click Create button to open Create audience rule dialog', async () => {
-        await audienceBuilderPage.clickCreateButton();
-      });
+      await audienceBuilderPage.clickCreateButton();
 
       await test.step('Verify close button is present', async () => {
         await audienceBuilderPage.verifyCloseButtonInCreateDialog();
