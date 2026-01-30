@@ -21,9 +21,13 @@ export class AdoptionRateUserLoginMetrics extends VerticalBarChartComponent {
       // Verify chart has labels and bars (inherited from VerticalBarChartComponent)
       await this.verifyChartHasLabelsAndBars();
 
-      // Verify y-axis labels (hardcoded: always 0.0%, 50.0%, 100%)
+      // Verify y-axis labels (chart may show "0%" or "0.0%" etc. depending on ThoughtSpot/Highcharts formatting)
       await this.verifyYAxisLabelsAreAsExpected({
-        yAxisLabels: ['0.0%', '50.0%', '100.0%'],
+        yAxisLabels: [
+          ['0%', '0.0%'],
+          ['50%', '50.0%'],
+          ['100%', '100.0%'],
+        ],
       });
     });
   }
