@@ -135,7 +135,8 @@ jobs:
       trigger_type: manual
       slack_prefix: Manual E2E
       git_ref: ${{ inputs.git_ref || github.ref_name }}
-      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      # Pass explicit module list: full list when "all", single module otherwise (template uses this, not its manual default)
+      modules: ${{ inputs.module == 'all' && '["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","reward-workAnniversary","reward-renaming","recognition","recognition-abac","recognition-only-p2p","privateRecognition","frontline","newsletter","alert-notification","employee-listening","form-designer","comms-planner","integrations-primary","integrations-workday","integrations-azuresso","integrations-api"]' || format('["{0}"]', inputs.module) }}
       is_browserstack: ${{ inputs.is_browserstack }}
       workers: ${{ inputs.workers }}
       priority_filter: ${{ inputs.priority_filter }}
