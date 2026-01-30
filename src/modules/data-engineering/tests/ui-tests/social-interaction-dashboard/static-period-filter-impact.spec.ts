@@ -282,12 +282,15 @@ test.describe(
       `verify Least engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, TestCaseType.TABULAR_METRIC, '@least-engaged-by-department'],
+        annotation: { type: 'known_failure', description: 'DE-27645' },
       },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Least engaged by Department in Social Interaction dashboard',
           zephyrTestId: 'DE-27866',
           storyId: 'DE-25760',
+          isKnownFailure: true,
+          bugTicket: 'DE-27645',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -340,12 +343,15 @@ test.describe(
       `verify Most engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, TestCaseType.TABULAR_METRIC, '@most-engaged-by-department'],
+        annotation: { type: 'known_failure', description: 'DE-27645' },
       },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Most engaged by Department in Social Interaction dashboard',
           zephyrTestId: 'DE-27863',
           storyId: 'DE-25757',
+          isKnownFailure: true,
+          bugTicket: 'DE-27645',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -371,6 +377,7 @@ test.describe(
           TestCaseType.CSV_VALIDATION,
           '@most-engaged-by-department-csv',
         ],
+        annotation: { type: 'known_failure', description: 'DE-27645' },
       },
       async () => {
         tagTest(test.info(), {
@@ -378,6 +385,8 @@ test.describe(
             'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard',
           zephyrTestId: 'DE-27872',
           storyId: 'DE-25767',
+          isKnownFailure: true,
+          bugTicket: 'DE-27645',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;

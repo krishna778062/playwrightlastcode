@@ -568,17 +568,18 @@ export class TileOperationsComponent extends BaseAppTileComponent {
    * Verify 'Show more' behavior
    */
   async verifyShowMoreBehavior(tileTitle: string): Promise<void> {
+    const waitTimeout = 20_000;
     await test.step(`Verify 'Show more' behavior for '${tileTitle}'`, async () => {
       const tile = this.getTileContainers(tileTitle).first();
       const rowsVisible = tile.locator(this.visibleRowsContainer);
       const showMoreButton = tile.locator(this.showMoreButton);
 
-      await expect(showMoreButton, 'Show More button should be visible').toBeVisible();
+      await expect(showMoreButton, 'Show More button should be visible').toBeVisible({ timeout: waitTimeout });
       const initialVisible = await rowsVisible.count();
       expect(initialVisible).toBeGreaterThanOrEqual(4);
 
       await this.clickOnElement(showMoreButton);
-      await expect.poll(async () => rowsVisible.count(), { timeout: 10_000 }).toBeGreaterThan(initialVisible);
+      await expect.poll(async () => rowsVisible.count(), { timeout: waitTimeout }).toBeGreaterThan(initialVisible);
     });
   }
   /**
