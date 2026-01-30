@@ -116,6 +116,130 @@ export const GetBatchRunDetailsResponseSchema = z.object({
   metadata: BatchRunMetadataSchema,
 });
 
+/**
+ * Must Read Status schema and response
+ */
+export const MustReadStatusSchema = z.object({
+  content_code: z.string(),
+  site_name: z.string().nullable(),
+  is_must_read: z.boolean(),
+  was_must_read: z.boolean(),
+  is_must_read_expired: z.number(),
+  must_read_audience_type_code: z.string().nullable(),
+  must_read_start_datetime: z.string().nullable(),
+  must_read_end_datetime: z.string().nullable(),
+});
+
+export const GetMustReadStatusResponseSchema = z.object({
+  success: z.boolean(),
+  data: MustReadStatusSchema,
+  metadata: z.any().optional(),
+});
+
+/**
+ * Must Read Counts schema and response
+ */
+export const MustReadCountsSchema = z.object({
+  content_code: z.string(),
+  content_title: z.string().nullable(),
+  total_users: z.number(),
+  read_users: z.number(),
+});
+
+export const GetMustReadCountsResponseSchema = z.object({
+  success: z.boolean(),
+  data: MustReadCountsSchema,
+  metadata: z
+    .object({
+      tenantId: z.string(),
+      contentId: z.string(),
+      count: z.number().optional(),
+      readStatus: z.string().optional(),
+      search: z.string().optional(),
+      timestamp: z.string(),
+    })
+    .passthrough()
+    .optional(),
+});
+
+/**
+ * Must Read Audience List schema and response
+ */
+export const MustReadAudienceItemSchema = z.object({
+  audience_code: z.string(),
+  audience_name: z.string(),
+  display_name: z.string(),
+  audience_rule: z.string(),
+  audience_status: z.string().nullable(),
+  audience_type: z.string(),
+  description: z.string().nullable(),
+  audience_member_count: z.number(),
+});
+
+export const GetMustReadAudienceListResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(MustReadAudienceItemSchema),
+  metadata: z.object({
+    tenantId: z.string(),
+    contentId: z.string(),
+    count: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number(),
+    hasMore: z.boolean(),
+    timestamp: z.string(),
+  }),
+});
+
+/**
+ * Must Read User List schema and response
+ */
+export const MustReadUserListItemSchema = z.object({
+  user_code: z.string(),
+  full_name: z.string(),
+  department: z.string().nullable(),
+  profile_image_url_optimized: z.string().nullable(),
+  title: z.string().nullable(),
+  as_read_status: z.string(),
+  confirmation_datetime: z.string().nullable(),
+});
+
+export const GetMustReadUserListResponseSchema = z.object({
+  success: z.boolean(),
+  data: z.array(MustReadUserListItemSchema),
+  metadata: z.object({
+    tenantId: z.string(),
+    contentId: z.string(),
+    readStatus: z.string(),
+    search: z.string(),
+    count: z.number(),
+    page: z.number(),
+    limit: z.number(),
+    totalPages: z.number(),
+    hasMore: z.boolean(),
+    timestamp: z.string(),
+  }),
+});
+
+/**
+ * Must Read User Count schema and response
+ */
+export const MustReadUserCountSchema = z.object({
+  user_count: z.number(),
+});
+
+export const GetMustReadUserCountResponseSchema = z.object({
+  success: z.boolean(),
+  data: MustReadUserCountSchema,
+  metadata: z.object({
+    tenantId: z.string(),
+    contentId: z.string(),
+    readStatus: z.string(),
+    search: z.string(),
+    timestamp: z.string(),
+  }),
+});
+
 // Type exports
 export type FilterMetadataSchemaType = z.infer<typeof FilterMetadataSchema>;
 export type SegmentSchemaType = z.infer<typeof SegmentSchema>;
@@ -132,3 +256,13 @@ export type DivisionSchemaType = z.infer<typeof DivisionSchema>;
 export type GetDivisionsResponseSchemaType = z.infer<typeof GetDivisionsResponseSchema>;
 export type BatchRunDetailSchemaType = z.infer<typeof BatchRunDetailSchema>;
 export type GetBatchRunDetailsResponseSchemaType = z.infer<typeof GetBatchRunDetailsResponseSchema>;
+export type MustReadStatusSchemaType = z.infer<typeof MustReadStatusSchema>;
+export type GetMustReadStatusResponseSchemaType = z.infer<typeof GetMustReadStatusResponseSchema>;
+export type MustReadCountsSchemaType = z.infer<typeof MustReadCountsSchema>;
+export type GetMustReadCountsResponseSchemaType = z.infer<typeof GetMustReadCountsResponseSchema>;
+export type MustReadAudienceItemSchemaType = z.infer<typeof MustReadAudienceItemSchema>;
+export type GetMustReadAudienceListResponseSchemaType = z.infer<typeof GetMustReadAudienceListResponseSchema>;
+export type MustReadUserListItemSchemaType = z.infer<typeof MustReadUserListItemSchema>;
+export type GetMustReadUserListResponseSchemaType = z.infer<typeof GetMustReadUserListResponseSchema>;
+export type MustReadUserCountSchemaType = z.infer<typeof MustReadUserCountSchema>;
+export type GetMustReadUserCountResponseSchemaType = z.infer<typeof GetMustReadUserCountResponseSchema>;
