@@ -35,6 +35,12 @@ on:
         default: ''
         type: string
 
+      git_ref:
+        description: 'Git branch/tag to run (empty = auto from CURRENT_STAGE: main or release)'
+        required: false
+        default: ''
+        type: string
+
       environment:
         description: 'Environment'
         required: false
@@ -72,13 +78,21 @@ on:
           - 'reward'
           - 'reward-settings'
           - 'reward-workAnniversary'
+          - 'reward-renaming'
           - 'recognition'
+          - 'recognition-abac'
+          - 'recognition-only-p2p'
           - 'privateRecognition'
           - 'frontline'
+          - 'newsletter'
           - 'alert-notification'
           - 'employee-listening'
           - 'form-designer'
           - 'comms-planner'
+          - 'integrations-primary'
+          - 'integrations-workday'
+          - 'integrations-azuresso'
+          - 'integrations-api'
 
       is_browserstack:
         description: 'Enable BrowserStack'
@@ -94,7 +108,7 @@ jobs:
       environment: ${{ inputs.environment || 'qa' }}
       trigger_type: qa_release
       slack_prefix: QA Release Regression
-      git_ref: ''
+      git_ref: ${{ inputs.git_ref || '' }}
       # Scheduled or 'all': use template defaults (empty), Specific module: use JSON array
       modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
       # BrowserStack disabled by default (SDK not in main/release branches)

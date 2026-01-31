@@ -32,6 +32,12 @@ on:
 
   workflow_dispatch:
     inputs:
+      git_ref:
+        description: 'Git branch/tag to run (empty = auto from CURRENT_STAGE: main or release)'
+        required: false
+        default: ''
+        type: string
+
       environment:
         description: 'Environment (all = run all 4 UAT regions)'
         required: false
@@ -119,7 +125,7 @@ jobs:
       environment: ${{ matrix.environment }}
       trigger_type: uat_release
       slack_prefix: UAT Release Regression
-      git_ref: ''
+      git_ref: ${{ inputs.git_ref || '' }}
       modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
       is_browserstack: ${{ inputs.is_browserstack || false }}
     secrets: inherit
