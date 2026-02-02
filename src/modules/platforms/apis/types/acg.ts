@@ -126,3 +126,55 @@ export interface ACGSubjectStatsResponse {
   result: ACGSubjectStatsResult;
   apiName: string;
 }
+
+/**
+ * Payload for updating an existing ACG
+ */
+export interface ACGUpdatePayload {
+  id: string;
+  managers?: {
+    audiences?: string[];
+    users?: string[];
+  };
+  admins?: {
+    audiences?: string[];
+    users?: string[];
+  };
+  targets?: {
+    audiences?: string[];
+  };
+}
+
+/**
+ * Response from updating an ACG
+ */
+export interface ACGUpdateResponse {
+  status: string;
+  message: string;
+  result: AcgListResult;
+  responseTimeStamp: number;
+  apiName: string;
+}
+
+/**
+ * Payload for updating Feature Owners of ACGs
+ */
+export interface FeatureOwnerUpdatePayload {
+  featureCodes: string[];
+  usersToAdd: string[];
+  usersToRemove: string[];
+}
+
+/**
+ * Response from updating Feature Owners
+ */
+export interface FeatureOwnerUpdateResponse {
+  status: string;
+  message: string;
+  result: {
+    addedUsers: string[];
+    removedUsers: string[];
+  };
+  responseTimeStamp: number;
+  apiName: string;
+}
