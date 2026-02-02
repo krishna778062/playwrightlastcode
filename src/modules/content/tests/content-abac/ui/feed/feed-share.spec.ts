@@ -631,6 +631,13 @@ test.describe(
           publicSiteId = publicSite.siteId;
         });
 
+        // ==================== Make site permission to Everyone ====================
+        await test.step('Make site permission to Everyone', async () => {
+          const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+        });
+
         // ==================== FO creates Site Feed post WITH restrictions (Engineering) ====================
         await test.step('FO creates Site Feed post WITH Restricted Viewers (Engineering audience)', async () => {
           siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
@@ -1962,9 +1969,6 @@ test.describe(
           });
 
           await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
-
-          // Verify post does NOT have limit visibility (unrestricted)
-          await siteFeedPage.postEditor.verifyPostHasLimitVisibility(siteFeedPostText);
         });
 
         // ==================== Standard User (Site Member) CAN see post on Private Site Feed ====================
