@@ -20,6 +20,7 @@ import { EventCreationPage } from '@/src/modules/content/ui/pages/eventCreationP
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageTopicsPage } from '@/src/modules/content/ui/pages/manageTopicsPage';
 import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
+import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { TopicDetailsPage } from '@/src/modules/content/ui/pages/topicDetailsPage';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
