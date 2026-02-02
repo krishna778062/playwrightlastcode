@@ -94,7 +94,7 @@ function getCurrentEnvironment(): EnvironmentKey {
 export function initializeDbConfig(databaseType: DatabaseType): void {
   const caller = getCallerInfo();
 
-  if (dbConfigCache && dbConfigCache.currentDatabase === databaseType) {
+  if (dbConfigCache?.currentDatabase === databaseType) {
     return; // Already initialized for the same database
   }
 

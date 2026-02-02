@@ -453,7 +453,7 @@ function getCurrentEnvironment(): EnvironmentKey {
 export function initializeRewardConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return; // Already initialized for the same tenant
   }

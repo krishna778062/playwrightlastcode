@@ -197,7 +197,7 @@ function getCurrentEnvironment(): EnvironmentKey {
  * Call this at the start of your test suite
  */
 export function initializeDataEngineeringConfig(tenant: TenantKey): void {
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     return; // Already initialized for same tenant
   }
 
