@@ -27,6 +27,8 @@ test.describe('Recognition Page Flow', () => {
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
         TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -69,7 +71,7 @@ test.describe('Recognition Page Flow', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
+        TestPriority.P2,
         TestGroupType.REGRESSION,
       ],
     },
@@ -94,6 +96,7 @@ test.describe('Recognition Page Flow', () => {
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
         TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -118,6 +121,8 @@ test.describe('Recognition Page Flow', () => {
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
         TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
       ],
     },
     async ({ appManagerFixture }) => {

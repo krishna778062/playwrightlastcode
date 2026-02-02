@@ -36,7 +36,7 @@ on:
       module:
         description: 'Module to test'
         required: true
-        default: 'all'
+        default: 'chat'
         type: choice
         options:
           - 'all'
@@ -55,6 +55,8 @@ on:
           - 'reward-workAnniversary'
           - 'reward-renaming'
           - 'recognition'
+          - 'recognition-abac'
+          - 'recognition-only-p2p'
           - 'privateRecognition'
           - 'frontline'
           - 'newsletter'
@@ -119,6 +121,12 @@ on:
         default: ''
         type: string
 
+      release_tag:
+        description: 'Release/build tag for BrowserStack (e.g., 25.01-qa.1). Empty = "latest"'
+        required: false
+        default: ''
+        type: string
+
 jobs:
   regression:
     uses: ./.github/workflows/regression-unified-template.yml
@@ -127,10 +135,12 @@ jobs:
       trigger_type: manual
       slack_prefix: Manual E2E
       git_ref: ${{ inputs.git_ref || github.ref_name }}
-      modules: ${{ inputs.module != 'all' && format('["{0}"]', inputs.module) || '' }}
+      # Pass explicit module list: full list when "all", single module otherwise (template uses this, not its manual default)
+      modules: ${{ inputs.module == 'all' && '["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","reward-workAnniversary","reward-renaming","recognition","recognition-abac","recognition-only-p2p","privateRecognition","frontline","newsletter","alert-notification","employee-listening","form-designer","comms-planner","integrations-primary","integrations-workday","integrations-azuresso","integrations-api"]' || format('["{0}"]', inputs.module) }}
       is_browserstack: ${{ inputs.is_browserstack }}
       workers: ${{ inputs.workers }}
       priority_filter: ${{ inputs.priority_filter }}
       test_type: ${{ inputs.test_type }}
       feature_tags: ${{ inputs.feature_tags }}
+      release_tag: ${{ inputs.release_tag || 'latest' }}
     secrets: inherit

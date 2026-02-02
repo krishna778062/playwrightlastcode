@@ -353,4 +353,82 @@ test.describe('reward Dialog Box', { tag: [REWARD_SUITE_TAGS.REWARD_STORE] }, ()
       await rewardsStore.rewardsDialogBox.closeButton.click();
     }
   );
+
+  test(
+    'RC-7962 Validate the all "Select your reward value" dropdown options in the Checkout page for Fixed Gift cards',
+    {
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_STORE,
+        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate the all "Select your reward value" dropdown options in the Checkout page for Fixed Gift cards',
+        zephyrTestId: 'RC-7962',
+        storyId: 'RC-3464',
+      });
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
+      await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'India');
+      // Open 1 fixed reward with 10000 points
+      const fixedGiftCardName = 'Amazon';
+      await rewardsStore.mockTheAvailablePoints(Number(10000));
+      await rewardsStore.searchForGiftCard(fixedGiftCardName);
+      await rewardsStore.clickOnTheNthGiftCard(1);
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.rewardsDialogBox.container);
+      await rewardsStore.verifier.verifyElementContainsText(rewardsStore.rewardsDialogBox.title, fixedGiftCardName);
+      const selectYourRewardValueDropdownValues =
+        await rewardsStore.rewardsDialogBox.rewardValueOptions.allTextContents();
+      await rewardsStore.verifyTheAllOptionsAndTheValueInConfirmYourOrderModal(selectYourRewardValueDropdownValues);
+      await rewardsStore.rewardsDialogBox.closeButton.click();
+    }
+  );
+
+  test(
+    'RC-7963 Validate the custom "Enter your reward amount" dropdown options in the Checkout page for Variable Gift cards',
+    {
+      tag: [
+        REWARD_FEATURE_TAGS.REWARD_STORE,
+        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+        TestGroupType.HEALTHCHECK,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description:
+          'Validate the custom "Enter your reward amount" dropdown options in the Checkout page for Variable Gift cards',
+        zephyrTestId: 'RC-7963',
+        storyId: 'RC-3464',
+      });
+      const rewardsStore = new RewardsStore(appManagerFixture.page);
+      await rewardsStore.selectDropdownByLabel(rewardsStore.rewardCountry, 'United States');
+      // Open 1 variable reward with 10000 points
+      const fixedGiftCardName = 'Amazon';
+      await rewardsStore.mockTheAvailablePoints(Number(10000));
+      await rewardsStore.searchForGiftCard(fixedGiftCardName);
+      await rewardsStore.clickOnTheNthGiftCard(1);
+      await rewardsStore.verifier.verifyTheElementIsVisible(rewardsStore.rewardsDialogBox.container);
+      await rewardsStore.verifier.verifyElementContainsText(rewardsStore.rewardsDialogBox.title, fixedGiftCardName);
+      const limitText = await rewardsStore.rewardsDialogBox.rewardAmountsLimits.textContent();
+      let limits: number[] = [];
+      if (limitText) {
+        limits = limitText.match(/\d{1,3}(?:,\d{3})*|\d+/g)?.map((s: string) => Number(s.replace(/,/g, ''))) || [];
+      }
+      await rewardsStore.verifyRewardValueInConfirmYourOrderModal(limits[0]);
+      await rewardsStore.verifyRewardValueInConfirmYourOrderModal(limits[0] + 10);
+      await rewardsStore.verifyRewardValueInConfirmYourOrderModal(limits[0] + 20);
+      await rewardsStore.verifyRewardValueInConfirmYourOrderModal(limits[0] + 30);
+      await rewardsStore.rewardsDialogBox.closeButton.click();
+    }
+  );
 });

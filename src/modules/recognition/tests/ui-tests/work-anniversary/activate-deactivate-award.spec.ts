@@ -28,7 +28,7 @@ test.describe(
     test(
       '[RC-5087] Verify if user is able to activate automated award from award listing page',
       {
-        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -49,7 +49,14 @@ test.describe(
     test(
       '[RC-4367] Verify award activation post doing edits on work anniversary award from edit automated page',
       {
-        tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+        tag: [
+          WorkAnniversaryFeatureTags.WORK_ANNIVERSARY,
+          TestPriority.P0,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+        ],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -84,7 +91,12 @@ test.describe('Work anniversary award activation by Recognition Manager', () => 
   test(
     '[RC-4359] Verify Rec Managers Can Activate the Work Anniversary Award',
     {
-      tag: [WorkAnniversaryFeatureTags.WORK_ANNIVERSARY, TestPriority.P0, TestGroupType.SANITY],
+      tag: [
+        WorkAnniversaryFeatureTags.WORK_ANNIVERSARY,
+        TestPriority.P1,
+        TestGroupType.SANITY,
+        TestGroupType.REGRESSION,
+      ],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {

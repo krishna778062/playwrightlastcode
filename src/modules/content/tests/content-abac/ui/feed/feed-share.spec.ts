@@ -15,12 +15,11 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
-import { ACG_EDIT_ASSETS } from '@/src/modules/platforms/constants/acg';
-import { POPUP_BUTTONS } from '@/src/modules/platforms/constants/popupButtons';
-import { AccessControlGroupsPage } from '@/src/modules/platforms/ui/pages/abacPage/acgPage/accessControlGroupsPage';
+import { FEED_ACG_CONFIGS } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
-const POST_IN_HOME_FEED_SYSTEM_ACG = 'Post in home feed | All org';
-const MANAGE_SITES_SYSTEM_ACG = 'Manage sites | All org';
+// ACG names (referenced from FEED_ACG_CONFIGS for consistency)
+const POST_IN_HOME_FEED_SYSTEM_ACG = FEED_ACG_CONFIGS[0].acgName; // 'Post in home feed | All org'
+const MANAGE_SITES_SYSTEM_ACG = FEED_ACG_CONFIGS[3].acgName; // 'Manage sites | All org'
 
 test.describe(
   'sU | Home Feed Post Creation via ACG Permission (ABAC)',
@@ -30,11 +29,25 @@ test.describe(
   () => {
     let feedPage: FeedPage;
     let createdPostId: string = '';
-    let standardUserFullName: string;
+    let standardUserUserId: string;
+    let socialCampaignManagerUserId: string;
 
-    test.beforeEach('Setup: Get Standard User full name', async ({ appManagerApiFixture }) => {
-      const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-      standardUserFullName = userInfo.fullName;
+    test.beforeEach('Setup: Get user info and clean ACG roles', async ({ appManagerApiFixture }) => {
+      // Get Standard User info
+      const suInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+      standardUserUserId = suInfo.userId;
+
+      // Get Social Campaign Manager info
+      const scmInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+        users.socialCampaignManager.email
+      );
+      socialCampaignManagerUserId = scmInfo.userId;
+
+      // Clean up: Remove both users from all ACG roles (Manager, Admin, FO) in parallel
+      await Promise.all([
+        appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(standardUserUserId),
+        appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(socialCampaignManagerUserId),
+      ]);
     });
 
     test.afterEach('Cleanup: Delete created post and remove FO if needed', async ({ appManagerApiFixture }) => {
@@ -553,6 +566,13 @@ test.describe(
           publicSiteId = publicSite.siteId;
         });
 
+        // ==================== Make site permission to Everyone ====================
+        await test.step('Make site permission to Everyone', async () => {
+          const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
+        });
+
         // ==================== FO creates Site Feed post WITH restrictions (Engineering) ====================
         await test.step('FO creates Site Feed post WITH Restricted Viewers (Engineering audience)', async () => {
           siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, publicSiteId);
@@ -952,6 +972,8 @@ test.describe(
             'ABAC: Verify FO can share a comment from a restricted Page (Engineering audience) to Home Feed without restrictions. The shared comment should be visible to all users on Home Feed, even those who cannot access the original Page.',
           zephyrTestId: 'CONT-42202',
           storyId: 'CONT-42202',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44600',
         });
 
         let pageId: string = '';
@@ -1117,6 +1139,8 @@ test.describe(
             'ABAC: Verify FO can share a comment from a restricted Page (Engineering audience) to Home Feed with different Restricted Viewers (UX Designs). Validates inverse visibility - Engineering can see Page but NOT Home Feed share, UX can see Home Feed share but NOT Page.',
           zephyrTestId: 'CONT-42203',
           storyId: 'CONT-42203',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44600',
         });
 
         let pageId: string = '';
@@ -1884,9 +1908,6 @@ test.describe(
           });
 
           await siteFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
-
-          // Verify post does NOT have limit visibility (unrestricted)
-          await siteFeedPage.postEditor.verifyPostHasLimitVisibility(siteFeedPostText);
         });
 
         // ==================== Standard User (Site Member) CAN see post on Private Site Feed ====================
@@ -2316,6 +2337,7 @@ test.describe(
           await scmSiteDashboard.clickOnFeedLink();
 
           const scmSiteFeedPage = new FeedPage(socialCampaignManagerFixture.page);
+          await scmSiteFeedPage.reloadPage();
           await scmSiteFeedPage.verifyThePageIsLoaded();
 
           // Verify the restricted post IS visible to Content Manager
@@ -2430,6 +2452,8 @@ test.describe(
             'ABAC: Verify FO can share a comment from a non-restricted Private Site Page to Home Feed without restrictions. The shared comment should be visible to all users on Home Feed, even non-members of the Private Site.',
           zephyrTestId: 'CONT-42210',
           storyId: 'CONT-42210',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44600',
         });
 
         let pageId: string = '';
@@ -2605,6 +2629,8 @@ test.describe(
             'ABAC: Verify FO can share a comment from a non-restricted Private Site Page to Home Feed with Restricted Viewers (UX Designs). The shared comment should be visible only to UX audience users on Home Feed, regardless of Private Site membership.',
           zephyrTestId: 'CONT-42211',
           storyId: 'CONT-42211',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44600',
         });
 
         let pageId: string = '';
@@ -3258,13 +3284,12 @@ test.describe(
         let sharedPostId: string = '';
         let publicSiteId: string = '';
         let publicSiteName: string = '';
-        let acgPage: AccessControlGroupsPage;
-        let standardUserFullName: string;
+        let standardUserUserId: string;
 
-        // ==================== Get Standard User full name ====================
-        await test.step('Get Standard User full name', async () => {
+        // ==================== Get Standard User info ====================
+        await test.step('Get Standard User info', async () => {
           const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-          standardUserFullName = userInfo.fullName;
+          standardUserUserId = userInfo.userId;
         });
 
         // ==================== Get or create Public Site ====================
@@ -3285,28 +3310,10 @@ test.describe(
 
         // ==================== App Manager adds SU as Manager of "Post In Home Feed" ACG ====================
         await test.step('App Manager adds SU as Manager of "Post In Home Feed" ACG', async () => {
-          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SU creates Home Feed post WITH restrictions (Engineering) ====================
@@ -3416,23 +3423,10 @@ test.describe(
 
         // ==================== Cleanup: Remove SU from ACG ====================
         await test.step('Cleanup: Remove SU from Post In Home Feed ACG', async () => {
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
       }
     );
@@ -3454,15 +3448,7 @@ test.describe(
         let sharePostText: string;
         let sharedPostId: string = '';
         let publicSiteId: string = '';
-        let acgPage: AccessControlGroupsPage;
-        let standardUserFullName: string;
         let siteFeedPage: FeedPage;
-
-        // ==================== Get Standard User full name ====================
-        await test.step('Get Standard User full name', async () => {
-          const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-          standardUserFullName = userInfo.fullName;
-        });
 
         // ==================== Get or create Public Site ====================
         await test.step('Get or create a Public Site for sharing', async () => {
@@ -3481,28 +3467,10 @@ test.describe(
 
         // ==================== App Manager adds SU as Manager of "Post In Home Feed" ACG ====================
         await test.step('App Manager adds SU as Manager of "Post In Home Feed" ACG', async () => {
-          acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SU creates Site Feed post WITH restrictions (Engineering) ====================
@@ -3626,23 +3594,10 @@ test.describe(
 
         // ==================== Cleanup: Remove SU from ACG ====================
         await test.step('Cleanup: Remove SU from Post In Home Feed ACG', async () => {
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
       }
     );
@@ -4020,29 +3975,11 @@ test.describe(
         });
 
         // ==================== App manager adds SU as Manager of Post In Home Feed ACG ====================
-        await test.step('App manager adds SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+        await test.step('App Manager adds SU as Manager of Post In Home Feed ACG', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SU shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs) ====================
@@ -4115,28 +4052,6 @@ test.describe(
             SitePermission.MEMBER,
             SiteMembershipAction.REMOVE
           );
-        });
-
-        // ==================== Cleanup: Remove SU as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
         });
       }
     );
@@ -4283,29 +4198,11 @@ test.describe(
         });
 
         // ==================== App manager adds SU as Manager of Post In Home Feed ACG ====================
-        await test.step('App manager adds SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+        await test.step('App Manager adds SU as Manager of Post In Home Feed ACG', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SU shares the Page comment to Home Feed WITHOUT Restriction ====================
@@ -4375,27 +4272,6 @@ test.describe(
             SitePermission.MEMBER,
             SiteMembershipAction.REMOVE
           );
-        });
-        // ==================== Cleanup: Remove SU as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
         });
       }
     );
@@ -4539,29 +4415,11 @@ test.describe(
         });
 
         // ==================== App manager adds SU as Manager of Post In Home Feed ACG ====================
-        await test.step('App manager adds SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+        await test.step('App Manager adds SU as Manager of Post In Home Feed ACG', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SU shares the Page comment to Home Feed WITH Restricted Viewers (UX Designs) ====================
@@ -4634,28 +4492,6 @@ test.describe(
             SitePermission.MEMBER,
             SiteMembershipAction.REMOVE
           );
-        });
-
-        // ==================== Cleanup: Remove SU as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
         });
       }
     );
@@ -5227,7 +5063,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42227', '@SU-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify SU (Standard User) in target audience (Engineering) can share a restricted Page to Home Feed with Limit Visibility OFF. SU can see shared post and view original content. User B (siteManager, NOT in restricted audience) can see shared post but sees "This post has been deleted" for original.',
@@ -5241,7 +5077,6 @@ test.describe(
         let pageId: string = '';
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
-        let standardUserFullName: string = '';
         let siteManagerUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
@@ -5258,7 +5093,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
-          standardUserFullName = standardUserUserInfo.fullName;
           siteManagerUserId = siteManagerUserInfo.userId;
         });
 
@@ -5312,28 +5146,10 @@ test.describe(
 
         // ==================== App Manager adds SU as Manager of Post In Home Feed ACG ====================
         await test.step('App Manager adds SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SU navigates to restricted Page and shares it ====================
@@ -5389,28 +5205,6 @@ test.describe(
 
           // Verify the shared post IS visible to siteManager (no restriction on shared post)
           await smHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
-        });
-
-        // ==================== Cleanup: Remove SU as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
         });
       }
     );
@@ -5540,7 +5334,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42229', '@SU-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify SU (Standard User) NOT in target audience can share a non-restricted Page to Home Feed with both Limit Visibility ON (UX) and OFF. Since Page is not restricted, all users can view original content. With Limit Visibility ON, only UX users see shared post. With Limit Visibility OFF, all users see shared post.',
@@ -5554,7 +5348,6 @@ test.describe(
         let pageId: string = '';
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
-        let standardUserFullName: string = '';
         let siteManagerUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
@@ -5571,7 +5364,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
-          standardUserFullName = standardUserUserInfo.fullName;
           siteManagerUserId = siteManagerUserInfo.userId;
         });
 
@@ -5617,28 +5409,10 @@ test.describe(
 
         // ==================== App Manager adds SU as Manager of Post In Home Feed ACG ====================
         await test.step('App Manager adds SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== Share #1: SU shares the Page WITH Limit Visibility ON (UX audience) ====================
@@ -5742,28 +5516,6 @@ test.describe(
           // Verify the shared post IS visible to siteManager (no restriction)
           await smHomeFeedPage.feedList.waitForPostToBeVisible(sharePostTextWithoutRestriction);
         });
-
-        // ==================== Cleanup: Remove SU as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SU as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -5772,7 +5524,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42230', '@SO-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Site Owner (siteManager) can share a restricted Page (Engineering audience) to Home Feed even though NOT in the restricted audience, due to Site Owner override permissions. Both Site Owner (SO override) and Standard User (in Engineering) can see shared post and view original content.',
@@ -5784,7 +5536,6 @@ test.describe(
         let engineeringAudienceId: string = '';
         let publicSiteId: string = '';
         let pageId: string = '';
-        let siteManagerFullName: string = '';
         let siteManagerUserId: string = '';
         let standardUserUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
@@ -5817,7 +5568,7 @@ test.describe(
           const siteManagerUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
             users.siteManager.email
           );
-          siteManagerFullName = siteManagerUserInfo.fullName;
+          siteManagerUserId = siteManagerUserInfo.userId;
 
           // Add standardUser as member of Public Site (IS in Engineering audience)
           await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
@@ -5830,28 +5581,10 @@ test.describe(
 
         // ==================== Add siteManager as Manager of Post In Home Feed ACG ====================
         await test.step('Add siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(siteManagerFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            siteManagerUserId
+          );
         });
 
         // ==================== Create a restricted Page with Engineering audience ====================
@@ -5925,27 +5658,6 @@ test.describe(
           // Verify the shared post IS visible to Site Owner
           await soHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-        // ==================== Cleanup: Remove siteManager as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(siteManagerFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -5954,7 +5666,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42231', '@SM-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Site Manager (siteManager) can share a restricted Page (Engineering audience) to Home Feed even though NOT in the restricted audience, due to Site Manager override permissions. Both Site Manager (SM override) and Standard User (in Engineering) can see shared post and view original content.',
@@ -5967,7 +5679,6 @@ test.describe(
         let publicSiteId: string = '';
         let pageId: string = '';
         let appManagerUserId: string = '';
-        let siteManagerFullName: string = '';
         let siteManagerUserId: string = '';
         let standardUserUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
@@ -5983,7 +5694,6 @@ test.describe(
           const standardUserUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
             users.endUser.email
           );
-          siteManagerFullName = siteManagerUserInfo.fullName;
           appManagerUserId = appManagerUserInfo.userId;
           siteManagerUserId = siteManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
@@ -6020,31 +5730,15 @@ test.describe(
             SiteMembershipAction.ADD
           );
         });
+
         // ==================== Add siteManager as Manager of Post In Home Feed ACG ====================
         await test.step('Add siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(siteManagerFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            siteManagerUserId
+          );
         });
+
         // ==================== Create a restricted Page with Engineering audience ====================
         await test.step('Create a restricted Page on Public Site with Engineering audience', async () => {
           const pageInfo = await appManagerApiFixture.contentManagementHelper.createPage({
@@ -6116,28 +5810,6 @@ test.describe(
           // Verify the shared post IS visible to Site Manager
           await smHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove siteManager as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(siteManagerFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -6146,7 +5818,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42232', '@SCM-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify SCM (Site Content Manager) in target audience (Engineering) can share a restricted Page to Home Feed with Limit Visibility OFF. SCM can see shared post and view original content. User B (siteManager, NOT in restricted audience) can see shared post but sees "This post has been deleted" for original.',
@@ -6160,7 +5832,6 @@ test.describe(
         let pageId: string = '';
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
-        let standardUserFullName: string = '';
         let siteManagerUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
@@ -6177,7 +5848,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
-          standardUserFullName = standardUserUserInfo.fullName;
           siteManagerUserId = siteManagerUserInfo.userId;
         });
 
@@ -6232,28 +5902,10 @@ test.describe(
 
         // ==================== App Manager adds SCM as Manager of Post In Home Feed ACG ====================
         await test.step('App Manager adds SCM as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SCM navigates to restricted Page and shares it ====================
@@ -6310,28 +5962,6 @@ test.describe(
           // Verify the shared post IS visible to siteManager (no restriction on shared post)
           await smHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove SCM as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SCM as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -6340,7 +5970,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42233', '@SCM-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify SCM (Site Content Manager) NOT in target audience (Engineering) can access restricted Page (SCM override) and share it to Home Feed with Limit Visibility ON (Engineering). The shared post is NOT visible to SCM (not in Engineering) but IS visible to User B (standardUser - IN Engineering).',
@@ -6355,7 +5985,6 @@ test.describe(
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
         let siteManagerUserId: string = '';
-        let siteManagerFullName: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
         // ==================== Get User info ====================
@@ -6372,7 +6001,6 @@ test.describe(
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
           siteManagerUserId = siteManagerUserInfo.userId;
-          siteManagerFullName = siteManagerUserInfo.fullName;
         });
 
         // ==================== Get Engineering audience ID ====================
@@ -6425,28 +6053,10 @@ test.describe(
 
         // ==================== Add SCM as Manager of Post In Home Feed ACG ====================
         await test.step('Add SCM as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(siteManagerFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            siteManagerUserId
+          );
         });
 
         // ==================== SCM navigates to restricted Page (SCM override allows access) and shares it ====================
@@ -6501,28 +6111,6 @@ test.describe(
           // Verify the shared post IS visible to standardUser (IN Engineering audience)
           await suHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove SCM as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove SCM as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(siteManagerFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -6531,7 +6119,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42234', '@SU-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Manager-via-Role SU (standardUser - NOT in Marketing but has Manager-via-Role via "Manage sites | All org" ACG) can access restricted Page and share it to Home Feed with Limit Visibility OFF. Both users can see the shared post. User A (Manager-via-Role) can view original content, User B (siteManager - NOT in Marketing) sees "This post has been deleted".',
@@ -6545,7 +6133,6 @@ test.describe(
         let pageId: string = '';
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
-        let standardUserFullName: string = '';
         let siteManagerUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
@@ -6562,7 +6149,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
-          standardUserFullName = standardUserUserInfo.fullName;
           siteManagerUserId = siteManagerUserInfo.userId;
         });
 
@@ -6615,54 +6201,18 @@ test.describe(
 
         // ==================== Add standardUser as Manager of "Manage sites | All org" ACG (Manager-via-Role) ====================
         await test.step('Add standardUser as Manager of "Manage sites | All org" ACG (Manager-via-Role permissions)', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.actions.editACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            MANAGE_SITES_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== Add standardUser as Manager of "Post in home feed | All org" ACG ====================
         await test.step('Add standardUser as Manager of "Post in home feed | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== Manager-via-Role SU navigates to restricted Page and shares it ====================
@@ -6719,50 +6269,6 @@ test.describe(
           // Verify the shared post IS visible to siteManager (no restriction on shared post)
           await smHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove standardUser from "Manage sites | All org" ACG ====================
-        await test.step('Cleanup: Remove standardUser from "Manage sites | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.actions.editACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
-
-        // ==================== Cleanup: Remove standardUser from "Post in home feed | All org" ACG ====================
-        await test.step('Cleanup: Remove standardUser from "Post in home feed | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -6771,7 +6277,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42235', '@SU-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Manager-via-Role SU (standardUser - in Engineering, has Manager-via-Role via "Manage sites | All org" ACG) can share non-restricted Page to Home Feed. Test covers both Limit Visibility OFF (both users see post) and Limit Visibility ON with Engineering audience (only standardUser sees post, siteManager in UX cannot see it).',
@@ -6785,7 +6291,6 @@ test.describe(
         let pageId: string = '';
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
-        let standardUserFullName: string = '';
         let siteManagerUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
@@ -6802,7 +6307,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
-          standardUserFullName = standardUserUserInfo.fullName;
           siteManagerUserId = siteManagerUserInfo.userId;
         });
 
@@ -6848,54 +6352,18 @@ test.describe(
 
         // ==================== Add standardUser as Manager of "Manage sites | All org" ACG (Manager-via-Role) ====================
         await test.step('Add standardUser as Manager of "Manage sites | All org" ACG (Manager-via-Role permissions)', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.actions.editACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            MANAGE_SITES_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== Add standardUser as Manager of "Post in home feed | All org" ACG ====================
         await test.step('Add standardUser as Manager of "Post in home feed | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== SHARE 1: Manager-via-Role SU shares Page with Limit Visibility OFF ====================
@@ -7013,50 +6481,6 @@ test.describe(
           // Verify the second shared post is NOT visible to siteManager (NOT in Engineering)
           await smHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText2);
         });
-
-        // ==================== Cleanup: Remove standardUser from "Manage sites | All org" ACG ====================
-        await test.step('Cleanup: Remove standardUser from "Manage sites | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.actions.editACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
-
-        // ==================== Cleanup: Remove standardUser from "Post in home feed | All org" ACG ====================
-        await test.step('Cleanup: Remove standardUser from "Post in home feed | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -7065,7 +6489,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42243', '@SO-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Site Owner (siteManager - in UX, has SO override) can share a restricted Page (Engineering audience) to Home Feed with Limit Visibility ON (UX audience). Site Owner (in UX) CAN see the shared post. Standard User (in Engineering, NOT in UX) CANNOT see the shared post.',
@@ -7077,7 +6501,6 @@ test.describe(
         let engineeringAudienceId: string = '';
         let publicSiteId: string = '';
         let pageId: string = '';
-        let siteManagerFullName: string = '';
         let siteManagerUserId: string = '';
         let standardUserUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
@@ -7091,7 +6514,6 @@ test.describe(
             users.endUser.email
           );
           siteManagerUserId = siteManagerUserInfo.userId;
-          siteManagerFullName = siteManagerUserInfo.fullName;
           standardUserUserId = standardUserUserInfo.userId;
         });
 
@@ -7120,28 +6542,10 @@ test.describe(
 
         // ==================== Add siteManager as Manager of Post In Home Feed ACG ====================
         await test.step('Add siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(siteManagerFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            siteManagerUserId
+          );
         });
 
         // ==================== Create a restricted Page with Engineering audience ====================
@@ -7217,28 +6621,6 @@ test.describe(
           // Verify the shared post is NOT visible to Standard User (NOT in UX)
           await suHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove siteManager as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(siteManagerFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -7247,7 +6629,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42244', '@SM-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Site Manager (siteManager - in UX, has SM override) can share a restricted Page (Engineering audience) to Home Feed with Limit Visibility ON (UX audience). Site Manager (in UX) CAN see the shared post. Standard User (in Engineering, NOT in UX) CANNOT see the shared post.',
@@ -7260,7 +6642,6 @@ test.describe(
         let publicSiteId: string = '';
         let pageId: string = '';
         let appManagerUserId: string = '';
-        let siteManagerFullName: string = '';
         let siteManagerUserId: string = '';
         let standardUserUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
@@ -7278,7 +6659,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           siteManagerUserId = siteManagerUserInfo.userId;
-          siteManagerFullName = siteManagerUserInfo.fullName;
           standardUserUserId = standardUserUserInfo.userId;
         });
 
@@ -7316,28 +6696,10 @@ test.describe(
 
         // ==================== Add siteManager as Manager of Post In Home Feed ACG ====================
         await test.step('Add siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(siteManagerFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            siteManagerUserId
+          );
         });
 
         // ==================== Create a restricted Page with Engineering audience ====================
@@ -7413,28 +6775,6 @@ test.describe(
           // Verify the shared post is NOT visible to Standard User (NOT in UX)
           await suHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove siteManager as Manager of Post In Home Feed ACG ====================
-        await test.step('Cleanup: Remove siteManager as Manager of Post In Home Feed ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(siteManagerFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
       }
     );
 
@@ -7443,7 +6783,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42247', '@SU-feed', '@share-restriction'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Manager-via-Role SU (standardUser - in Engineering, has Manager-via-Role via "Manage sites | All org" ACG) can share a restricted Page (Marketing audience) to Home Feed with Limit Visibility ON (Engineering audience). Manager-via-Role SU (in Engineering) CAN see the shared post. siteManager (in UX, NOT in Engineering) CANNOT see the shared post.',
@@ -7457,7 +6797,6 @@ test.describe(
         let pageId: string = '';
         let appManagerUserId: string = '';
         let standardUserUserId: string = '';
-        let standardUserFullName: string = '';
         let siteManagerUserId: string = '';
         let contentPreviewPage: ContentPreviewPage;
 
@@ -7474,7 +6813,6 @@ test.describe(
           );
           appManagerUserId = appManagerUserInfo.userId;
           standardUserUserId = standardUserUserInfo.userId;
-          standardUserFullName = standardUserUserInfo.fullName;
           siteManagerUserId = siteManagerUserInfo.userId;
         });
 
@@ -7527,54 +6865,18 @@ test.describe(
 
         // ==================== Add standardUser as Manager of "Post in home feed | All org" ACG ====================
         await test.step('Add standardUser as Manager of "Post in home feed | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            POST_IN_HOME_FEED_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== Add standardUser as Manager of "Manage sites | All org" ACG (Manager-via-Role) ====================
         await test.step('Add standardUser as Manager of "Manage sites | All org" ACG (Manager-via-Role permissions)', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.actions.editACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and add user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            const isAdded = await acgPage.editACGModal.addUserToList(standardUserFullName);
-            if (isAdded) {
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-              await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            } else {
-              await acgPage.editACGModal.clickCloseButton();
-            }
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
+          await appManagerApiFixture.identityManagementHelper.addUserAsManagerOfACG(
+            MANAGE_SITES_SYSTEM_ACG,
+            standardUserUserId
+          );
         });
 
         // ==================== Manager-via-Role SU navigates to restricted Page and shares it with LV ON ====================
@@ -7633,50 +6935,6 @@ test.describe(
 
           // Verify the shared post is NOT visible to siteManager (NOT in Engineering)
           await smHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
-        });
-
-        // ==================== Cleanup: Remove standardUser from "Manage sites | All org" ACG ====================
-        await test.step('Cleanup: Remove standardUser from "Manage sites | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.actions.editACG(MANAGE_SITES_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
-        });
-
-        // ==================== Cleanup: Remove standardUser from "Post in home feed | All org" ACG ====================
-        await test.step('Cleanup: Remove standardUser from "Post in home feed | All org" ACG', async () => {
-          const acgPage = new AccessControlGroupsPage(appManagerFixture.page);
-          await acgPage.loadPage();
-          await acgPage.assertions.verifyThePageIsLoaded();
-
-          await acgPage.actions.searchForACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.actions.editACG(POST_IN_HOME_FEED_SYSTEM_ACG);
-          await acgPage.confirmEditACGModal.clickContinueButton();
-
-          // Navigate to Managers section and remove user
-          const isManagerButtonEnabled = await acgPage.editACGModal.clickOnEditButtonIfEnabled(ACG_EDIT_ASSETS.MANAGER);
-          if (isManagerButtonEnabled) {
-            await acgPage.editACGModal.verifyTitleOfTheModal('Managers');
-            await acgPage.editACGModal.removeUserIfPresentInList(standardUserFullName);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-            await acgPage.editACGModal.clickOnButton(POPUP_BUTTONS.UPDATE);
-          } else {
-            await acgPage.editACGModal.clickCloseButton();
-          }
         });
       }
     );

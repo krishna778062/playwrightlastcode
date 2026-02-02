@@ -29,7 +29,7 @@ const defaultBaseContentPayload = {
   isFeedEnabled: true,
   listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
-  isNewTiptap: false,
+  isNewTiptap: true,
 };
 
 const defaultPageContentPayload = () => {
@@ -269,7 +269,7 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
-        contentSubType: overrides.contentSubType || 'news',
+        contentSubType: overrides.contentSubType || 'News',
         contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,

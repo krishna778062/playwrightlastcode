@@ -40,7 +40,7 @@ export const PAGE_ENDPOINTS = {
 
   // Recognition pages
   FEED: '/feed',
-  SEARCH_SITE_FEED: 'sites/search?term=',
+  SEARCH_SITE_FEED: '/sites/search?term=',
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
   MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
@@ -113,7 +113,9 @@ export const PAGE_ENDPOINTS = {
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
   APPLICATION_GENERAL_SETTINGS_PAGE: '/manage/app/setup/general',
+  NOTIFICATION_SETTINGS_DEFAULT_PAGE: '/manage/app/defaults',
   MOBILE_APP_SETTINGS_PAGE: '/manage/app/setup/mobile-app',
+  DND_PAGE: '/manage/app/defaults/do-not-disturb',
 
   //analytics pages
   ANALYTICS_LANDING_PAGE: '/analytics-landing',

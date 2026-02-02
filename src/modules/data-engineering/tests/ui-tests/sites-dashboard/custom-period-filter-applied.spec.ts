@@ -91,6 +91,43 @@ test.describe(
     );
 
     test(
+      'tS To verify the answer Site created in last 90 days in Sites Dashboard (should show last 90 days data even with custom date range filter)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.HERO_METRIC,
+          '@sites-new-sites-last-90-days-metric',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer Site created in last 90 days in Sites Dashboard - verifies that this widget always shows last 90 days data regardless of custom date range filter',
+          zephyrTestId: 'DE-26336',
+          storyId: 'DE-26232',
+        });
+
+        const { sitesDashboardQueryHelper, sitesDashboard: _sitesDashboard } = testEnvironment;
+
+        // Query helper only uses tenantCode and ignores date filters - always returns last 90 days data
+        // Custom date range filter is still active in UI, but this widget always shows last 90 days
+        const dbValues = await sitesDashboardQueryHelper.getNewSitesLast90DaysDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        console.log('dbValues (last 90 days):', dbValues);
+
+        const newSitesLast90DaysMetrics = testEnvironment.sitesDashboard.newSitesLast90DaysMetrics;
+        //since it is a hero metric, it should return a single value and we are directly passing the value to the verifyMetricValue method
+        //verifyMetricValue has built-in retry logic, so we don't need to verify metric is loaded separately
+        //This verifies that the widget shows last 90 days data even though custom date range filter is applied
+        await newSitesLast90DaysMetrics.verifyMetricValue(dbValues.toString());
+      }
+    );
+
+    test(
       'verify Featured sites metric data validation with custom period filter applied (Custom Date Range)',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@sites-featured-sites-metric'],
@@ -208,6 +245,54 @@ test.describe(
         // Component handles CSV validation internally
         const totalSitesDistributionMetrics = testEnvironment.sitesDashboard.totalSitesDistributionMetrics;
         await totalSitesDistributionMetrics.verifyCSVDataMatchesWithSnowflakeData(dbData);
+      }
+    );
+
+    test(
+      'tS To verify the answer Total sites distribution (last 90 days) in Sites Dashboard (should show last 90 days data even with custom date range filter)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.BAR_CHART,
+          '@sites-total-sites-distribution-last-90-days-metric',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer Total sites distribution (last 90 days) in Sites Dashboard - verifies that this widget always shows last 90 days data regardless of custom date range filter',
+          zephyrTestId: 'DE-26340',
+          storyId: 'DE-26235',
+        });
+
+        const { sitesDashboardQueryHelper, sitesDashboard } = testEnvironment;
+
+        // Query helper only uses tenantCode and ignores date filters - always returns last 90 days data
+        // Custom date range filter is still active in UI, but this widget always shows last 90 days
+        const dbResults = await sitesDashboardQueryHelper.getTotalSitesDistributionLast90DaysDataFromDBWithFilters({
+          filterBy: testFiltersConfig,
+        });
+
+        console.log('dbResults (last 90 days):', dbResults);
+
+        const totalSitesDistributionLast90DaysMetrics = sitesDashboard.totalSitesDistributionLast90DaysMetrics;
+        await totalSitesDistributionLast90DaysMetrics.scrollToComponent();
+
+        // Verify number of bars matches DB results
+        // This verifies that the widget shows last 90 days data even though custom date range filter is applied
+        await totalSitesDistributionLast90DaysMetrics.verifyNumberOfBarsAreAsExpected({
+          numberOfBars: dbResults.length,
+        });
+
+        // Verify tooltip for each bar
+        for (const data of dbResults) {
+          await totalSitesDistributionLast90DaysMetrics.hoverOnBarWithLabelAs(data.siteType);
+          await totalSitesDistributionLast90DaysMetrics.waitForToolTipContainerToBeVisible();
+          // Note: Tooltip content validation is skipped as tooltip structure may differ
+          // The main validation is the number of bars matching DB results
+        }
       }
     );
 
@@ -462,6 +547,45 @@ test.describe(
           testFiltersConfig.customStartDate,
           testFiltersConfig.customEndDate
         );
+      }
+    );
+
+    test(
+      'tS To verify the answer Low activity sites in Sites Dashboard (should show last 90 days data even with custom date range filter)',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestGroupType.HEALTHCHECK,
+          TestCaseType.TABULAR_METRIC,
+          '@sites-low-activity-sites-metric',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'TS To verify the answer Low activity sites in Sites Dashboard - verifies that this widget always shows last 90 days data regardless of custom date range filter',
+          zephyrTestId: 'DE-26341',
+          storyId: 'DE-26236',
+        });
+
+        const { sitesDashboardQueryHelper, sitesDashboard } = testEnvironment;
+
+        // Query helper always uses last 90 days - doesn't take filterBy parameter
+        // Custom date range filter is still active in UI, but this widget always shows last 90 days
+        const dbResults = await sitesDashboardQueryHelper.getLowActivitySitesDataFromDB();
+
+        console.log('dbResults (last 90 days):', dbResults);
+
+        const lowActivitySitesMetrics = sitesDashboard.lowActivitySitesMetrics;
+        await lowActivitySitesMetrics.scrollToComponent();
+
+        // Verify tabular data is loaded
+        await lowActivitySitesMetrics.verifyDataIsLoaded();
+
+        // Verify UI data matches DB data
+        // This verifies that the widget shows last 90 days data even though custom date range filter is applied
+        await lowActivitySitesMetrics.verifyUIDataMatchesWithSnowflakeData(dbResults);
       }
     );
   }

@@ -12,8 +12,8 @@ export const SEARCH_METRICS = {
     subtitle: 'Number of search queries that returned zero results',
   },
   AVERAGE_SEARCHES_PER_LOGGED_IN_USER: {
-    title: 'Average searches per logged-in user',
-    subtitle: 'Average searches per logged-in user',
+    title: 'Average searches per logged in user',
+    subtitle: 'Average searches per logged in user',
   },
   SEARCH_USAGE_VOLUME_AND_CLICK_THROUGH_RATE: {
     title: 'Search usage volume and click through rate ',
