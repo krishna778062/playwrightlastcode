@@ -69,6 +69,20 @@ interface GetUserByIdResponse {
   additional_role_id: string[];
 }
 
+// ACG configuration for cleanup operations
+export interface ACGCleanupConfig {
+  acgName: string;
+  featureCode?: string; // Optional - not all ACGs have FO role (e.g., Custom ACGs)
+}
+
+// Pre-defined ACG configurations for Feed-related cleanup
+export const FEED_ACG_CONFIGS: ACGCleanupConfig[] = [
+  { acgName: 'Post in home feed | All org', featureCode: 'ADD_HOME_FEED' },
+  { acgName: 'Post in home feed | Engineering' }, // Custom ACG - no FO
+  { acgName: 'Manage home feed | All org', featureCode: 'MANAGE_HOME_FEED' },
+  { acgName: 'Manage sites | All org', featureCode: 'MANAGE_SITES' },
+];
+
 export class IdentityManagementHelper {
   public identityService: IdentityService;
 
@@ -248,5 +262,30 @@ export class IdentityManagementHelper {
    */
   async removeUserFromFeatureOwner(featureCode: string, userId: string): Promise<void> {
     await this.identityService.removeFeatureOwner(featureCode, userId);
+  }
+
+  // ==================== Bulk Cleanup Methods ====================
+
+  /**
+   * Removes a user from all roles (Manager, Admin, Feature Owner) across multiple ACGs
+   * Uses parallel execution for optimal performance
+   * @param userId - User ID to remove from all ACG roles
+   * @param acgConfigs - Array of ACG configurations to clean up (defaults to FEED_ACG_CONFIGS)
+   */
+  async cleanupUserFromAllACGRoles(userId: string, acgConfigs: ACGCleanupConfig[] = FEED_ACG_CONFIGS): Promise<void> {
+    const cleanupPromises: Promise<void>[] = [];
+
+    for (const config of acgConfigs) {
+      // Remove from Manager role
+      cleanupPromises.push(this.removeUserFromManagerOfACG(config.acgName, userId));
+      // Remove from Admin role
+      cleanupPromises.push(this.removeUserFromAdminOfACG(config.acgName, userId));
+      // Remove from Feature Owner if featureCode is defined
+      if (config.featureCode) {
+        cleanupPromises.push(this.removeUserFromFeatureOwner(config.featureCode, userId));
+      }
+    }
+
+    await Promise.all(cleanupPromises);
   }
 }

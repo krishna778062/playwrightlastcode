@@ -5,18 +5,14 @@ import { tagTest } from '@/src/core/utils/testDecorator';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
+import { FEED_ACG_CONFIGS } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
-const POST_IN_HOME_FEED_SYSTEM_ACG = 'Post in home feed | All org';
-const POST_IN_HOME_FEED_CUSTOM_ACG = 'Post in home feed | Engineering';
-
-// Feature codes for API calls
-const ADD_HOME_FEED_FEATURE_CODE = 'ADD_HOME_FEED';
-const MANAGE_HOME_FEED_FEATURE_CODE = 'MANAGE_HOME_FEED';
-
-// ACG names for API calls
-const MANAGE_HOME_FEED_SYSTEM_ACG = 'Manage home feed | All org';
-const MANAGE_SITES_SYSTEM_ACG = 'Manage sites | All org';
-const MANAGE_SITES_FEATURE_CODE = 'MANAGE_SITES';
+// ACG names and feature codes (referenced from FEED_ACG_CONFIGS for consistency)
+const POST_IN_HOME_FEED_SYSTEM_ACG = FEED_ACG_CONFIGS[0].acgName; // 'Post in home feed | All org'
+const ADD_HOME_FEED_FEATURE_CODE = FEED_ACG_CONFIGS[0].featureCode!; // 'ADD_HOME_FEED'
+const POST_IN_HOME_FEED_CUSTOM_ACG = FEED_ACG_CONFIGS[1].acgName; // 'Post in home feed | Engineering'
+const MANAGE_HOME_FEED_SYSTEM_ACG = FEED_ACG_CONFIGS[2].acgName; // 'Manage home feed | All org'
+const MANAGE_HOME_FEED_FEATURE_CODE = FEED_ACG_CONFIGS[2].featureCode!; // 'MANAGE_HOME_FEED'
 
 test.describe(
   'sU | Home Feed Post Creation via ACG Permission (ABAC)',
@@ -32,58 +28,8 @@ test.describe(
       const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
       standardUserUserId = userInfo.userId;
 
-      // Clean up: Remove user from all ACG roles to ensure clean state
-      // Post in home feed | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        POST_IN_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        POST_IN_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        ADD_HOME_FEED_FEATURE_CODE,
-        standardUserUserId
-      );
-
-      // Post in home feed | Engineering (Custom)
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        POST_IN_HOME_FEED_CUSTOM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        POST_IN_HOME_FEED_CUSTOM_ACG,
-        standardUserUserId
-      );
-
-      // Manage home feed | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_HOME_FEED_FEATURE_CODE,
-        standardUserUserId
-      );
-
-      // Manage sites | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_SITES_FEATURE_CODE,
-        standardUserUserId
-      );
+      // Clean up: Remove user from all ACG roles (Manager, Admin, FO) in parallel
+      await appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(standardUserUserId);
     });
 
     test.afterEach('Cleanup: Delete created post and remove FO if needed', async ({ appManagerApiFixture }) => {
@@ -443,58 +389,8 @@ test.describe(
       const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
       standardUserUserId = userInfo.userId;
 
-      // Clean up: Remove user from all ACG roles to ensure clean state
-      // Post in home feed | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        POST_IN_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        POST_IN_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        ADD_HOME_FEED_FEATURE_CODE,
-        standardUserUserId
-      );
-
-      // Post in home feed | Engineering (Custom)
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        POST_IN_HOME_FEED_CUSTOM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        POST_IN_HOME_FEED_CUSTOM_ACG,
-        standardUserUserId
-      );
-
-      // Manage home feed | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_HOME_FEED_FEATURE_CODE,
-        standardUserUserId
-      );
-
-      // Manage sites | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_SITES_FEATURE_CODE,
-        standardUserUserId
-      );
+      // Clean up: Remove user from all ACG roles (Manager, Admin, FO) in parallel
+      await appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(standardUserUserId);
     });
 
     test.afterEach('Cleanup: Delete created post if needed', async ({ appManagerApiFixture }) => {
@@ -799,14 +695,14 @@ test.describe(
     );
 
     test(
-      "verify FO can edit and remove limit visibility of End User's restricted Home Feed post",
+      "verify FO can not edit End User's restricted Home Feed post",
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42183', '@FO-feed'],
       },
-      async ({ appManagerApiFixture, standardUserFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can edit End User\'s restricted Home Feed post and remove the limit visibility restriction',
+            'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can not edit End User\'s restricted Home Feed post',
           zephyrTestId: 'CONT-42183',
           storyId: 'CONT-42183',
         });
@@ -849,60 +745,24 @@ test.describe(
           await feedPage.postEditor.verifyPostHasLimitVisibility(endUserPostText);
         });
 
-        // ==================== Remove End User as FO, Add SU as FO of "Manage Home Feed" ====================
-        await test.step('Remove End User as FO of "Post In Home Feed" and add as FO of "Manage Home Feed"', async () => {
+        // ==================== FO navigates to Home Feed and verifies Edit option is not visible on post ====================
+        await test.step('FO navigates to Home Feed and verifies Edit option is not visible on post', async () => {
+          await appManagerFixture.navigationHelper.clickOnHomeIconButton();
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          const FOFeedPage = new FeedPage(appManagerFixture.page);
+
+          await FOFeedPage.reloadPage();
+          await FOFeedPage.verifyThePageIsLoaded();
+
+          await FOFeedPage.feedList.waitForPostToBeVisible(endUserPostText);
+
+          await FOFeedPage.feedList.verifyEditOptionNotVisible(endUserPostText);
+        });
+
+        // ==================== Remove End User as FO of "Post In Home Feed" ====================
+        await test.step('Remove End User as FO of "Post In Home Feed"', async () => {
           await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
             ADD_HOME_FEED_FEATURE_CODE,
-            standardUserUserId
-          );
-          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
-            MANAGE_HOME_FEED_FEATURE_CODE,
-            standardUserUserId
-          );
-        });
-
-        // ==================== FO navigates to Home Feed and locates restricted post ====================
-        await test.step('FO navigates to Home Feed and locates the restricted post', async () => {
-          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-
-          await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
-
-          await feedPage.feedList.waitForPostToBeVisible(endUserPostText);
-        });
-
-        // ==================== FO clicks more options menu and selects Edit ====================
-        await test.step('FO clicks on more options menu and selects Edit - Edit Feed Post form opens successfully', async () => {
-          await feedPage.feedList.openPostOptionsMenu(endUserPostText);
-
-          await feedPage.postEditor.clickEditOption();
-
-          await feedPage.postEditor.verifyEditorVisible();
-        });
-
-        // ==================== FO turns OFF limit visibility, updates content and clicks Update ====================
-        let updatedPostText: string;
-        await test.step('FO turns OFF Limit visibility toggle, updates post content and clicks Update', async () => {
-          updatedPostText = TestDataGenerator.generateRandomText('ABAC Edited Unrestricted Post', 3, true);
-
-          await feedPage.toggleLimitVisibility();
-
-          await feedPage.postEditor.updatePostText(updatedPostText);
-
-          await feedPage.postEditor.clickUpdateButton();
-        });
-
-        // ==================== Verify post updated successfully with restriction removed ====================
-        await test.step('Verify post is updated successfully, limit visibility removed, and visible to default audience', async () => {
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
-
-          await feedPage.postEditor.verifyPostDoesNotHaveLimitVisibility(updatedPostText);
-        });
-
-        // ==================== Cleanup: Remove FO assignment ====================
-        await test.step('Cleanup: Remove End User as FO from "Manage Home Feed" ACG', async () => {
-          await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-            MANAGE_HOME_FEED_FEATURE_CODE,
             standardUserUserId
           );
         });
@@ -914,7 +774,7 @@ test.describe(
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42184', '@FO-feed'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
+      async ({ appManagerFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can edit restricted Home Feed post and change the audience from Engineering to UX team',
@@ -1119,6 +979,8 @@ test.describe(
           await SUFeedPage.clickOnShowOption('favourited');
 
           await SUFeedPage.feedList.verifyPostIsNotVisible(postText);
+
+          await SUFeedPage.clickOnShowOption('all');
         });
 
         // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================

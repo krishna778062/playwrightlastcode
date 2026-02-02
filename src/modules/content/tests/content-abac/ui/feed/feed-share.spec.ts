@@ -15,15 +15,10 @@ import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPrevie
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages/siteDashboardPage';
+import { FEED_ACG_CONFIGS } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
-const POST_IN_HOME_FEED_SYSTEM_ACG = 'Post in home feed | All org';
-const POST_IN_HOME_FEED_CUSTOM_ACG = 'Post in home feed | Engineering';
-const MANAGE_HOME_FEED_SYSTEM_ACG = 'Manage home feed | All org';
-const MANAGE_SITES_SYSTEM_ACG = 'Manage sites | All org';
-
-// Feature codes for API calls
-const MANAGE_HOME_FEED_FEATURE_CODE = 'MANAGE_HOME_FEED';
-const MANAGE_SITES_FEATURE_CODE = 'MANAGE_SITES';
+// ACG names (referenced from FEED_ACG_CONFIGS for consistency)
+const POST_IN_HOME_FEED_SYSTEM_ACG = FEED_ACG_CONFIGS[0].acgName; // 'Post in home feed | All org'
 
 test.describe(
   'sU | Home Feed Post Creation via ACG Permission (ABAC)',
@@ -35,6 +30,7 @@ test.describe(
     let createdPostId: string = '';
     let standardUserUserId: string;
     let socialCampaignManagerUserId: string;
+
     test.beforeEach('Setup: Get user info and clean ACG roles', async ({ appManagerApiFixture }) => {
       // Get Standard User info
       const suInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
@@ -46,73 +42,11 @@ test.describe(
       );
       socialCampaignManagerUserId = scmInfo.userId;
 
-      // Post in home feed | Engineering (Custom)
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        POST_IN_HOME_FEED_CUSTOM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        POST_IN_HOME_FEED_CUSTOM_ACG,
-        standardUserUserId
-      );
-
-      // Manage home feed | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_HOME_FEED_FEATURE_CODE,
-        standardUserUserId
-      );
-
-      // Manage sites | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        standardUserUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_SITES_FEATURE_CODE,
-        standardUserUserId
-      );
-
-      // Clean up: Remove Social Campaign Manager from all ACG roles
-
-      // Manage home feed | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        socialCampaignManagerUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_HOME_FEED_SYSTEM_ACG,
-        socialCampaignManagerUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_HOME_FEED_FEATURE_CODE,
-        socialCampaignManagerUserId
-      );
-
-      // Manage sites | All org
-      await appManagerApiFixture.identityManagementHelper.removeUserFromManagerOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        socialCampaignManagerUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromAdminOfACG(
-        MANAGE_SITES_SYSTEM_ACG,
-        socialCampaignManagerUserId
-      );
-      await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-        MANAGE_SITES_FEATURE_CODE,
-        socialCampaignManagerUserId
-      );
+      // Clean up: Remove both users from all ACG roles (Manager, Admin, FO) in parallel
+      await Promise.all([
+        appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(standardUserUserId),
+        appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(socialCampaignManagerUserId),
+      ]);
     });
 
     test.afterEach('Cleanup: Delete created post and remove FO if needed', async ({ appManagerApiFixture }) => {
