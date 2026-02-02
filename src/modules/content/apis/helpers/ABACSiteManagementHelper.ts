@@ -142,7 +142,7 @@ export class ABACSiteManagementHelper {
           siteName: siteName,
           category: {
             categoryId: '1',
-            name: 'Public',
+            name: 'Uncategorized',
           },
           targetAudience: [],
           subscription: [],
