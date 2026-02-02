@@ -97,7 +97,7 @@ test.describe(
         // Select leave dates starting tomorrow for the specified working days
         await leaveForm.clickRequestButton(RequestTimeOff);
         await leaveForm.selectLeaveDates(workingDays);
-        await leaveForm.selectRequestType(RequestType, VolunteerToLeaveRequest);
+        await leaveForm.selectRequestType(RequestType, 'G-Time Off Sick Only');
         await leaveForm.selectRequestType(Duration, Full);
         await leaveForm.selectRequestType(CommentType, TimeOffRequest);
         await leaveForm.enterCommentNote(comments);
@@ -169,7 +169,7 @@ test.describe(
         // Select leave dates starting tomorrow for the specified working days
         await leaveForm.clickRequestButton(RequestTimeOff);
         await leaveForm.selectLeaveDates(workingDays);
-        await leaveForm.selectRequestType(RequestType, VolunteerToLeaveRequest);
+        await leaveForm.selectRequestType(RequestType, 'G-Time Off Sick Only');
         await leaveForm.selectRequestType(Duration, Full);
         await leaveForm.selectRequestType(CommentType, TimeOffRequest);
         await leaveForm.enterCommentNote(comments);
