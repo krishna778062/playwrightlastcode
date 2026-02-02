@@ -344,16 +344,18 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   }
 
   /**
-   * Gets the benchmark reporting month
-   * @returns Promise<string> - Benchmark reporting month
-   * @example getBenchmarkReportingMonth() -> returns the benchmark reporting month for the current date
+   * Gets the benchmark reporting month in YYYY-MM-01 format.
+   * Before 3rd of month uses n-2 month; on or after 3rd uses n-1 month.
+   * @returns string - Benchmark reporting month (e.g. '2026-01-01')
    */
-  private getBenchmarkReportingMonth() {
+  private getBenchmarkReportingMonth(): string {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    return currentDay < 3 ? `${currentYear}-${currentMonth - 1}-01` : `${currentYear}-${currentMonth}-01`;
+    const monthsBack = currentDay < 3 ? 2 : 1;
+    const benchmarkDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - monthsBack, 1);
+    const year = benchmarkDate.getFullYear();
+    const month = String(benchmarkDate.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`;
   }
 
   /**

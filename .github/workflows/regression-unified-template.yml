@@ -246,14 +246,16 @@ jobs:
           # ================================================================
           # STEP 1: DETERMINE GIT REF (Branch Selection Logic)
           # ================================================================
+          # When caller passes non-empty git_ref, it ALWAYS wins (no stage logic).
+          # Only when git_ref is empty/not passed do we auto-determine from CURRENT_STAGE.
           echo "=========================================="
           echo "STEP 1: DETERMINING GIT REF"
           echo "=========================================="
 
-          # If git_ref was explicitly provided, use it
-          if [ -n "$GIT_REF_INPUT" ]; then
-            CHECKOUT_REF="$GIT_REF_INPUT"
-            echo "✅ Using explicitly provided git_ref: $CHECKOUT_REF"
+          GIT_REF_TRIMMED=$(echo "$GIT_REF_INPUT" | xargs)
+          if [ -n "$GIT_REF_TRIMMED" ]; then
+            CHECKOUT_REF="$GIT_REF_TRIMMED"
+            echo "✅ Using explicitly provided git_ref (caller branch): $CHECKOUT_REF"
           else
             # Auto-determine based on trigger_type, environment, and stage
             case "$TRIGGER_TYPE" in

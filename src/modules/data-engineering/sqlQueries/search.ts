@@ -148,7 +148,7 @@ WITH total_clicks AS (
       {departmentFilter}
 )
 SELECT
-    rt.description AS item_type,
+    case when rt.description='N/A' then 'Undefined' else rt.description end as item_type,
     COUNT(sc.code) AS click_count,
     t.total_clickthrough,
     CONCAT(ROUND((COUNT(sc.code) * 100.0 / NULLIF(t.total_clickthrough, 0)), 1), ' %') AS percentage
