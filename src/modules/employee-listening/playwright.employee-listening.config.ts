@@ -15,15 +15,14 @@ export default defineConfig({
     actionTimeout: 15_000, // 15 seconds auto-wait for actions
     navigationTimeout: 15_000, // 15 seconds auto-wait for navigation
   },
-  // Add em
-  //
-  // ployee-listening-specific overrides here
+  // Add employee-listening-specific overrides here
 
   projects: [
     {
       name: 'employee-listening',
       use: {
         ...devices['Desktop Chrome'],
+        headless: process.env.CI ? true : false,
       },
     },
   ],

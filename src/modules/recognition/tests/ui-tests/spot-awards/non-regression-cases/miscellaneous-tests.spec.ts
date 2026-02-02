@@ -29,8 +29,8 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
-        TestGroupType.SANITY,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -55,6 +55,7 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
         TestGroupType.SANITY,
+        TestGroupType.REGRESSION,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -83,8 +84,10 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
         TestGroupType.SANITY,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -112,8 +115,10 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
       tag: [
         RecognitionSuitTags.REGRESSION_TEST,
         RecognitionFeatureTags.SPOT_AWARDS,
-        TestPriority.P1,
+        TestPriority.P0,
+        TestGroupType.SMOKE,
         TestGroupType.SANITY,
+        TestGroupType.HEALTHCHECK,
       ],
     },
     async ({ appManagerFixture }) => {
@@ -143,6 +148,7 @@ test.describe('Spot Awards Miscellaneous Tests', () => {
         RecognitionFeatureTags.SPOT_AWARDS,
         TestPriority.P1,
         TestGroupType.SANITY,
+        TestGroupType.REGRESSION,
       ],
     },
     async ({ appManagerFixture }) => {
