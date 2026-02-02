@@ -30,11 +30,13 @@ export const PLATFORM_API_ENDPOINTS = {
       v2IdentityAudiencesHierarchy: '/v2/identity/audiences/hierarchy',
       v2IdentityAudiences: '/v2/identity/audiences',
       deleteAccessControlGroup: (acgId: string) => `/v2/identity/access-control/groups/${acgId}`,
+      updateAccessControlGroup: (acgId: string) => `/v2/identity/access-control/groups/${acgId}`,
       listOfAccessControlGroups: '/v2/identity/access-control/groups/list',
       createAccessControlGroup: '/v2/identity/access-control/groups',
       v1AccountSecurityIdpInternal: '/v1/account/security/idp/internal',
       v2IdentityAccessControlGroupsSubjectStatsACGId: (acgId: string) =>
         `/v2/identity/access-control/groups/subject-stats?acgIds=${acgId}`,
+      updateFeatureOwners: '/v2/identity/access-control/features/owners',
     },
   },
   identity: {

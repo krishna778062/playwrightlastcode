@@ -6,13 +6,12 @@ export const ContentSql = {
   TOTAL_CONTENT_VIEWS: `
     select TO_CHAR(count(i.code), '999,999,999') as count 
     from SIMPPLR_COMMON_TENANT.udl.vw_interaction i 
-    inner join SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c on c.code = i.content_code and c.tenant_code = i.tenant_code
     {userJoin}
     where i.tenant_code = '{tenantCode}'
       and i.interaction_datetime between '{startDate}' and '{endDate}'
       and i.interaction_type_code = 'IT001'
-      and c.content_type_code in ('CT001','CT002','CT003','CT004')
       and i.interaction_content_post_first_publish = 'true'
+      and i.interaction_entity_code = 'ET003'
       {locationFilter}
       {departmentFilter}
       {segmentFilter}
@@ -35,6 +34,7 @@ export const ContentSql = {
   /**
    * Unique Content View Query Template
    * Returns count of unique content views (aggregated at daily level) with filters applied
+   * Note: UI does not join with vw_content_as_is, so we don't filter by c.is_deleted or c.content_type_code
    */
   UNIQUE_CONTENT_VIEW: `
     SELECT 
@@ -44,24 +44,19 @@ export const ContentSql = {
             CAST(i.interaction_datetime AS DATE)
         ), '999,999,999') AS user_content_day_count
     FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i
-      LEFT JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_interaction_type_as_is it
-        ON i.interaction_type_code = it.code
-      RIGHT JOIN SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
-        ON i.tenant_code = c.tenant_code
-       AND i.content_code = c.code
-       AND i.tenant_code = c.tenant_code
-      JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_content_type_as_is ct
-        ON c.content_type_code = ct.code
-      LEFT JOIN SIMPPLR_COMMON_TENANT.udl.user as u 
-        ON i.interacted_by_user_code = u.code AND i.tenant_code = u.tenant_code
+      {userJoin}
     WHERE i.tenant_code = '{tenantCode}'
       AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
       AND i.interaction_type_code = 'IT001'
-      AND LOWER(ct.description) IN ('album', 'blog post', 'event', 'page')
-      AND i.is_deleted = false
       AND i.interaction_entity_code = 'ET003'
-      AND (i.CONTENT_CODE NOT IN ('N/A') OR i.CONTENT_CODE IS NOT NULL)
+      AND (i.content_code NOT IN ('N/A') OR i.content_code IS NOT NULL)
       AND i.interaction_content_post_first_publish = 'true'
+      AND i.is_deleted = FALSE
+      {locationFilter}
+      {departmentFilter}
+      {segmentFilter}
+      {userCategoryFilter}
+      {companyNameFilter}
   `,
 
   /**

@@ -10,6 +10,8 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { TOPIC_TEST_DATA } from '@/src/modules/content/test-data/topic.test-data';
 import { AlbumCreationPage } from '@/src/modules/content/ui/pages/albumCreationPage';
@@ -528,6 +530,57 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Cleanup is not needed as topics are deleted in the test
       manualCleanupNeeded = false;
+    }
+  );
+  test(
+    'Create Album with new and existing topic',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-42592'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Create Album with new and existing topic',
+        zephyrTestId: 'CONT-42592',
+        storyId: 'CONT-42592',
+      });
+      // Generate album data using TestDataGenerator
+      const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+      const attachmentPath = FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname);
+      const albumCreationOptions = TestDataGenerator.generateAlbum({
+        fileName: imagePath,
+        attachmentFileName: attachmentPath,
+        videoUrl: CONTENT_TEST_DATA.DEFAULT_ALBUM_CONTENT.videoUrls[0],
+        openAlbum: true,
+        topics: [faker.lorem.words(2)],
+      });
+
+      const topicsSection = [faker.lorem.words(2)];
+      const albumCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
+        ContentType.ALBUM
+      )) as AlbumCreationPage;
+      await albumCreationPage.verifyThePageIsLoaded();
+      // Create and publish the album
+      const { albumId, siteId } = await albumCreationPage.createWithTopicInDescriptionAndInTopicSectionAndPublish({
+        ...albumCreationOptions,
+        topicsSection: topicsSection,
+      });
+
+      const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, siteId, albumId, ContentType.ALBUM);
+      // Handle promotion step
+      await contentPreviewPage.handlePromotionPageStep();
+
+      // Verify content was published successfully
+      await contentPreviewPage.verifyContentPublishedSuccessfully(
+        albumCreationOptions.title,
+        "Created album successfully - it's published"
+      );
+
+      // Verify both topics are created:
+      // 1. Topic added in description (from albumCreationOptions.topics)
+      // 2. Topic added in topics section (from topicsSection)
+      const topics = [...topicsSection, ...(albumCreationOptions.topics || [])];
+      await manageTopicsPage.loadPage();
+      await manageTopicsPage.searchAndVerifyMultipleTopics(topics);
     }
   );
 });

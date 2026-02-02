@@ -1,8 +1,10 @@
 import { Browser, Page, test } from '@playwright/test';
 
 import { ContentDashboard } from '../ui/dashboards/content-dashboard/contentDashboard';
+import { ContentModerationAnalyticsDashboard } from '../ui/dashboards/content-moderation/contentModerationAnalyticsDashboard';
 
 import { AppAdoptionDashboardQueryHelper } from './appAdaptionQueryHelper';
+import { ContentModerationQueryHelper } from './contentModerationQueryHelper';
 import { MobileDashboardQueryHelper } from './mobileDashboardQueryHelper';
 import { MonthlyReportsQueryHelper } from './monthlyReportsQueryHelper';
 import { OnSiteQueryHelper } from './onSiteQueryHelper';
@@ -10,6 +12,7 @@ import { PeopleDashboardQueryHelper } from './peopleDashboardQueryHelper';
 import { SitesDashboardQueryHelper } from './sitesDashboardQueryHelper';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
+import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
 import { NewHomePage } from '@/src/core/ui/pages/newHomePage';
 import { getDataEngineeringConfigFromCache } from '@/src/modules/data-engineering/config/dataEngineeringConfig';
 import { PeriodFilterTimeRange } from '@/src/modules/data-engineering/constants/periodFilterTimeRange';
@@ -518,16 +521,58 @@ export async function setupOnSitePageForTest(
 }
 
 /**
+ * Sets up Content Moderation Analytics Dashboard for testing
+ * Navigation: Manage → Content Moderation → Analytics tab
+ */
+export async function setupContentModerationAnalyticsDashboardForTest(
+  browser: Browser,
+  userRole: UserRole = UserRole.APP_MANAGER
+): Promise<{
+  page: Page;
+  contentModerationAnalyticsDashboard: ContentModerationAnalyticsDashboard;
+  contentModerationQueryHelper: ContentModerationQueryHelper;
+  snowflakeHelper: SnowflakeHelper;
+}> {
+  // Login user
+  const page = await createAuthenticatedSession(browser, userRole);
+
+  // Create Snowflake connection
+  const snowflakeHelper = await createSnowflakeConnection();
+
+  // Create content moderation query helper
+  const orgId = getDataEngineeringConfigFromCache().orgId;
+  const contentModerationQueryHelper = new ContentModerationQueryHelper(snowflakeHelper, orgId);
+
+  // Navigate to Content Moderation Analytics via Manage → Content Moderation → Analytics
+  const navigationHelper = new NavigationHelper(page);
+  await navigationHelper.navigateToContentModerationAnalytics();
+
+  // Create content moderation analytics dashboard
+  const contentModerationAnalyticsDashboard = new ContentModerationAnalyticsDashboard(page);
+
+  console.log('Content Moderation Analytics Dashboard loaded successfully');
+
+  return {
+    page,
+    contentModerationAnalyticsDashboard,
+    contentModerationQueryHelper,
+    snowflakeHelper,
+  };
+}
+
+/**
  * Cleans up dashboard testing resources
  */
 export async function cleanupDashboardTesting(resources: {
-  snowflakeHelper: SnowflakeHelper;
+  snowflakeHelper?: SnowflakeHelper;
   page: Page;
 }): Promise<void> {
   return await test.step('Cleanup Dashboard Testing Resources', async () => {
     try {
       console.log('Destroying dashboard testing resources');
-      await resources.snowflakeHelper.destroy();
+      if (resources.snowflakeHelper) {
+        await resources.snowflakeHelper.destroy();
+      }
       await resources.page.context().close();
     } catch (error) {
       console.warn('Dashboard cleanup failed:', error);

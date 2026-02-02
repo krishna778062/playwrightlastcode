@@ -246,14 +246,16 @@ jobs:
           # ================================================================
           # STEP 1: DETERMINE GIT REF (Branch Selection Logic)
           # ================================================================
+          # When caller passes non-empty git_ref, it ALWAYS wins (no stage logic).
+          # Only when git_ref is empty/not passed do we auto-determine from CURRENT_STAGE.
           echo "=========================================="
           echo "STEP 1: DETERMINING GIT REF"
           echo "=========================================="
 
-          # If git_ref was explicitly provided, use it
-          if [ -n "$GIT_REF_INPUT" ]; then
-            CHECKOUT_REF="$GIT_REF_INPUT"
-            echo "✅ Using explicitly provided git_ref: $CHECKOUT_REF"
+          GIT_REF_TRIMMED=$(echo "$GIT_REF_INPUT" | xargs)
+          if [ -n "$GIT_REF_TRIMMED" ]; then
+            CHECKOUT_REF="$GIT_REF_TRIMMED"
+            echo "✅ Using explicitly provided git_ref (caller branch): $CHECKOUT_REF"
           else
             # Auto-determine based on trigger_type, environment, and stage
             case "$TRIGGER_TYPE" in
@@ -397,7 +399,7 @@ jobs:
               # Same modules, runs during UAT stage
               # ──────────────────────────────────────────────────────────
               "uat_release")
-                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
+                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","comms-planner"]'
                 echo "✅ UAT release: Full UI regression (all modules including content)"
                 ;;
               
@@ -406,7 +408,7 @@ jobs:
               # Excludes some modules that are less critical for healthcheck
               # ──────────────────────────────────────────────────────────
               "prod_healthcheck")
-                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening","form-designer"]'
+                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening"]'
                 echo "✅ Prod healthcheck: Core UI modules"
                 ;;
               
