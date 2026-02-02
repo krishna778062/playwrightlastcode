@@ -535,6 +535,7 @@ test.describe(
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
         await audiencePage.loadPage();
+        let categoriesName: string[] = [];
         await audiencePage.openCreateAudienceForm();
 
         // Verify + New category button is visible
@@ -582,11 +583,10 @@ test.describe(
         await audiencePage.addCategoryModal.clickCancelButton();
         await audiencePage.verifyCategoryNotPresentInParentPicker(catNotCreated);
 
+        categoriesName.push(categoryWithoutDescription, categoryWithDescription);
+
         // Delete the UI-created category via API (CleanUp
-        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoriesByName(
-          categoryWithoutDescription,
-          categoryWithDescription
-        );
+        await appManagerFixture.audienceCategoryManagementHelper.deleteCategoriesByName(categoriesName);
       }
     );
   }

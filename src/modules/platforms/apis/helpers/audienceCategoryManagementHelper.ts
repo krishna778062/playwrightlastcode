@@ -104,20 +104,12 @@ export class AudienceCategoryManagementHelper {
    * Accepts multiple names as separate args, or a single comma-separated string.
    * @param categoryNames - One or more category names (or a single comma-separated string)
    */
-  async deleteCategoriesByName(...categoryNames: string[]): Promise<void> {
+  async deleteCategoriesByName(categoryNames: string[]): Promise<void> {
     if (!categoryNames || categoryNames.length === 0) return;
     // If a single argument contains commas, split it into multiple names
-    const names: string[] =
-      categoryNames.length === 1 && categoryNames[0].includes(',')
-        ? categoryNames[0]
-            .split(',')
-            .map(n => n.trim())
-            .filter(Boolean)
-        : categoryNames;
-    if (names.length === 0) return;
     await test.step('Deleting multiple categories by names via API', async () => {
-      for (let i = 0; i < names.length; i++) {
-        await this.deleteCategoryByName(names[i]);
+      for (let i = 0; i < categoryNames.length; i++) {
+        await this.deleteCategoryByName(categoryNames[i]);
       }
     });
   }
