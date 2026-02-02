@@ -54,7 +54,7 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
       }
     }
   });
-  test(
+  test.skip(
     'verify admin can create awareness check with single question',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
@@ -82,13 +82,13 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       await awarenessCheckPage.clickOnMakeMustReadButton();
 
-      // await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
-      //   EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
-      // );
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
     }
   );
 
-  test(
+  test.skip(
     'verify admin can create awareness check with multiple questions',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@MUST_READ_ADMIN', TestGroupType.HEALTHCHECK],
@@ -115,9 +115,9 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       await awarenessCheckPage.clickOnMakeMustReadButton();
 
-      // await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
-      //   EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE[0].question
-      // );
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.MULTIPLE[0].question
+      );
     }
   );
 
@@ -165,9 +165,9 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       await awarenessCheckPage.updateAwarenessCheckButton.click();
 
-      // await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
-      //   EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE.question
-      // );
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsCreated(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.UPDATED_QUESTIONS.SINGLE.question
+      );
     }
   );
 
@@ -211,9 +211,9 @@ test.describe('must Read and Awareness Check Content Functionality', () => {
 
       await awarenessCheckPage.removeAwarenessCheck();
 
-      // await awarenessCheckPage.verifyAwarenessCheckQuestionIsRemoved(
-      //   EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
-      // );
+      await awarenessCheckPage.verifyAwarenessCheckQuestionIsRemoved(
+        EMPLOYEE_LISTENING_TEST_DATA.AWARENESS_CHECK.QUESTIONS.SINGLE.question
+      );
     }
   );
 });

@@ -11,6 +11,11 @@ import {
   GetLocationsResponse,
   GetSegmentsResponse,
   GetUserCategoriesResponse,
+  MustReadAudienceListResponse,
+  MustReadCountsResponse,
+  MustReadStatusResponse,
+  MustReadUserCountResponse,
+  MustReadUserListResponse,
 } from '@/src/modules/data-engineering/api/interfaces/analytics.interface';
 import { DATA_ENGINEERING_API_ENDPOINTS } from '@/src/modules/data-engineering/constants/apiEndpoints';
 
@@ -147,5 +152,116 @@ export class AnalyticsApiService extends HttpClient {
 
     const responseData = await response.json();
     return responseData as GetContentEngagementResponse;
+  }
+
+  /**
+   * Get must-read status for a specific content
+   * @param contentId - The content ID to fetch must-read status for
+   * @returns Promise with the must-read status response data
+   */
+  async getMustReadStatus(contentId: string): Promise<MustReadStatusResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.mustReadStatus, {
+      data: {
+        contentId,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as MustReadStatusResponse;
+  }
+
+  async getMustReadCounts(contentId: string): Promise<MustReadCountsResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.mustReadCounts, {
+      data: {
+        contentId,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as MustReadCountsResponse;
+  }
+
+  async getMustReadAudienceList(contentId: string, page: number = 1): Promise<MustReadAudienceListResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.mustReadAudienceList, {
+      data: {
+        contentId,
+        page,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as MustReadAudienceListResponse;
+  }
+
+  async getMustReadUserList(params: {
+    contentId: string;
+    readStatus: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<MustReadUserListResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.mustReadUserList, {
+      data: {
+        contentId: params.contentId,
+        readStatus: params.readStatus,
+        search: params.search ?? '',
+        page: params.page ?? 1,
+        limit: params.limit ?? 25,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as MustReadUserListResponse;
+  }
+
+  async getMustReadUserCount(params: {
+    contentId: string;
+    readStatus: string;
+    search?: string;
+  }): Promise<MustReadUserCountResponse> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.mustReadUserCount, {
+      data: {
+        contentId: params.contentId,
+        readStatus: params.readStatus,
+        search: params.search ?? '',
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    const responseData = await response.json();
+    return responseData as MustReadUserCountResponse;
+  }
+
+  async getMustReadUsersCsv(contentId: string): Promise<string> {
+    const response = await this.post(DATA_ENGINEERING_API_ENDPOINTS.analytics.mustReadUsersCsv, {
+      data: {
+        contentId,
+      },
+    });
+
+    await this.validateResponse(response, {
+      expectedStatusCodes: [200],
+    });
+
+    return await response.text();
   }
 }
