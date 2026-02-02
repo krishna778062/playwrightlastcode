@@ -210,7 +210,7 @@ test.describe(
           { siteName: DEFAULT_PUBLIC_SITE_NAME }
         )) as EventCreationPage;
 
-        const upcomingEventTitle = `Upcoming Event ${Date.now()}`;
+        const upcomingEventTitle = `Upcoming ${Date.now()} Event`;
         const upcomingEventOptions = TestDataGenerator.generateEvent(
           undefined,
           getUpcomingDate(1),
@@ -225,6 +225,8 @@ test.describe(
         // Publish the event
         const { eventId: upcomingEventId, siteId: upcomingEventSiteId } =
           await eventCreationPage.createAndPublishEvent(upcomingEventOptions);
+
+        await contentPreviewPageStandardUser.handlePromotionPageStep();
 
         // Store for cleanup
         publishedEventId = upcomingEventId;
@@ -262,6 +264,8 @@ test.describe(
         // Publish the event
         const { eventId: pastEventId, siteId: pastEventSiteId } =
           await eventCreationPage.createAndPublishEvent(pastEventOptions);
+
+        await contentPreviewPageStandardUser.handlePromotionPageStep();
 
         // Update cleanup to handle both events (cleanup the last one)
         publishedEventId = pastEventId;

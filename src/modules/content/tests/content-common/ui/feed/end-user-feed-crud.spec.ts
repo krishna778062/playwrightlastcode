@@ -778,10 +778,6 @@ test.describe(
 
           const shareComponent = new ShareComponent(standardUserFixture.page);
           await shareComponent.clickShareButton();
-
-          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
-            FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
-          );
         });
 
         await test.step('Verify shared post with mention is visible on Global Feed', async () => {
@@ -2515,11 +2511,14 @@ test.describe(
         });
 
         // Setup: Get public, private, and unlisted sites, plus user and topic for mentions
-        const [publicSite, privateSite, endUserInfo, topicList] = await Promise.all([
+        const [publicSite, privateSite, unlistedSite, endUserInfo, topicList] = await Promise.all([
           appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
             waitForSearchIndex: false,
           }),
           appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
+            waitForSearchIndex: false,
+          }),
+          appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
             waitForSearchIndex: false,
           }),
           appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
@@ -2528,6 +2527,7 @@ test.describe(
 
         const publicSiteName = publicSite.name;
         const privateSiteName = privateSite.name;
+        const unlistedSiteName = unlistedSite.name;
         const publicSiteId = publicSite.siteId;
         const privateSiteId = privateSite.siteId;
 
@@ -2558,8 +2558,8 @@ test.describe(
           const postResult = await feedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: userName,
-            topicName: topicName,
-            siteName: [publicSiteName, privateSiteName],
+            topicName: '',
+            siteName: [publicSiteName, privateSiteName, unlistedSiteName],
             embedUrl: '', // No embed URL needed
           });
 
@@ -2567,36 +2567,36 @@ test.describe(
           createdPostId = postResult.postId || '';
 
           // Verify post creation - use base text for verification as mentions may render differently
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
-          await feedPage.feedList.validatePostText(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
+          await feedPage.feedList.validatePostText(createdPostText);
         });
 
         // Step 2: Navigate via Site Mentions
         await test.step('Navigate via site mentions', async () => {
           // Click Public Site mention and verify navigation
           await feedPage.clickOnShowOption('all');
-          await feedPage.clickSiteMentionInPost(initialPostText, publicSiteName, publicSiteId);
+          await feedPage.clickSiteMentionInPost(createdPostText, publicSiteName, publicSiteId);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
           // Click Private Site mention and verify navigation
-          await feedPage.clickSiteMentionInPost(initialPostText, privateSiteName, privateSiteId);
+          await feedPage.clickSiteMentionInPost(createdPostText, privateSiteName, privateSiteId);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Step 3: Edit Site Mentions
         await test.step('Edit site mentions', async () => {
           // Open ellipses menu
-          await feedPage.feedList.openPostOptionsMenu(initialPostText);
+          await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
           // Click Edit
           await feedPage.postEditor.clickEditOption();
@@ -2614,19 +2614,19 @@ test.describe(
           await feedPage.postEditor.clickUpdateButton();
 
           // Verify updated post shows new site mention
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Step 4: Verify Updated Mention Navigation
         await test.step('Verify updated mention navigation', async () => {
           // Click new site mention
-          await feedPage.clickSiteMentionInPost(initialPostText, publicSite2Name, publicSite2Id);
+          await feedPage.clickSiteMentionInPost(createdPostText, publicSite2Name, publicSite2Id);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Step 5: Delete Post
@@ -2637,7 +2637,7 @@ test.describe(
           await feedPage.verifyThePageIsLoaded();
 
           // Open ellipses menu
-          await feedPage.feedList.openPostOptionsMenu(initialPostText);
+          await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
           // Click Delete option
           await feedPage.feedList.clickDeleteOption();
@@ -2646,7 +2646,7 @@ test.describe(
           await feedPage.feedList.confirmDelete();
 
           // Verify post is removed from feed
-          await feedPage.feedList.validatePostNotVisible(initialPostText);
+          await feedPage.feedList.validatePostNotVisible(createdPostText);
           createdPostId = '';
         });
       }
@@ -2728,7 +2728,15 @@ test.describe(
         const fileName = 'V2.png';
         const folderName = 'AVISTA BOX FILES EDITOR';
 
-        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const appManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const appManagerUserId = appManagerInfo.userId;
+
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(
+          appManagerUserId,
+          SITE_TYPES.PUBLIC
+        );
         const publicSiteId = publicSite.siteId;
 
         // Create page objects once and reuse

@@ -787,6 +787,15 @@ export class ListFeedComponent extends BaseComponent {
     });
   }
 
+  /**
+   * Clicks the Reply button without waiting for API response (e.g. for toxic content warning flow).
+   */
+  async clickSubmitReplyWithoutWaitingForResponse(): Promise<void> {
+    await test.step('Click Reply button without waiting for response', async () => {
+      await this.clickOnElement(this.submitReplyButton.first());
+    });
+  }
+
   async addEmbedUrlToReply(embedUrl: string): Promise<void> {
     if (embedUrl) {
       await test.step(`Adding embedded URL to reply: ${embedUrl}`, async () => {
