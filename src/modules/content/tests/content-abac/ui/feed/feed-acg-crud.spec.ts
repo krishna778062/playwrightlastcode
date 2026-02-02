@@ -613,8 +613,7 @@ test.describe(
           );
         });
 
-        // ==================== SU verifies Edit option is visible on other user's post ====================
-        let updatedPostText: string;
+        // ==================== SU verifies Edit option is not visible on other user's post ====================
         await test.step("SU navigates to Home Feed and verifies Edit option is not visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
@@ -678,8 +677,7 @@ test.describe(
           );
         });
 
-        // ==================== SU verifies Edit option is visible on other user's post ====================
-        let updatedPostText: string;
+        // ==================== SU verifies Edit option is not visible on other user's post ====================
         await test.step("SU navigates to Home Feed and verifies Edit option is not visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
@@ -710,13 +708,13 @@ test.describe(
           await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify the post is still visible
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
           // Open options menu on the post
-          await feedPage.feedList.openPostOptionsMenu(updatedPostText);
+          await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
           // Verify Edit option is NOT visible (ABAC permission revoked)
-          await feedPage.feedList.verifyEditOptionNotVisible(updatedPostText);
+          await feedPage.feedList.verifyEditOptionNotVisible(createdPostText);
         });
       }
     );
@@ -759,7 +757,6 @@ test.describe(
         });
 
         // ==================== SU verifies Edit option is not visible on other user's post ====================
-        let updatedPostText: string;
         await test.step("SU navigates to Home Feed and verifies Edit option is not visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
@@ -790,13 +787,13 @@ test.describe(
           await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
           // Verify the post is still visible
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
           // Open options menu on the post
-          await feedPage.feedList.openPostOptionsMenu(updatedPostText);
+          await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
           // Verify Edit option is NOT visible (ABAC permission revoked)
-          await feedPage.feedList.verifyEditOptionNotVisible(updatedPostText);
+          await feedPage.feedList.verifyEditOptionNotVisible(createdPostText);
         });
       }
     );
