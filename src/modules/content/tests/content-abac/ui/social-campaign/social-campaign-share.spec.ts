@@ -9,10 +9,10 @@ import { SocialCampaignFilter, SocialCampaignRecipient } from '@core/types/socia
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { FEATURE_OWNERS_TABS_OPTIONS } from '@/src/modules/platforms/constants/featureOwners';
-import { FeatureOwnersPage } from '@/src/modules/platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
+import { FEED_ACG_CONFIGS } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
-const POST_IN_HOME_FEED_FEATURE = 'Post in home feed';
+// Feature code for API-based Feature Owner operations
+const ADD_HOME_FEED_FEATURE_CODE = FEED_ACG_CONFIGS[0].featureCode!; // 'ADD_HOME_FEED'
 
 test.describe(
   `Social Campaign Sharing - ABAC Tests`,
@@ -24,17 +24,29 @@ test.describe(
     let feedPage: FeedPage;
     let manualCleanupNeeded: boolean = false;
     let campaignId: string;
-    let featureOwnersPage: FeatureOwnersPage;
-    let standardUserFullName: string;
+    let standardUserUserId: string;
+    let socialCampaignManagerUserId: string;
 
     test.beforeEach(async ({ appManagerFixture, appManagerApiFixture }) => {
       // Reset cleanup flag for each test
       await appManagerFixture.socialCampaignHelper.deleteAllCampaigns(SocialCampaignFilter.LATEST);
       manualCleanupNeeded = false;
 
-      // Get Standard User full name for ACG operations
-      const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
-      standardUserFullName = userInfo.fullName;
+      // Get Standard User info
+      const suInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+      standardUserUserId = suInfo.userId;
+
+      // Get Social Campaign Manager info
+      const scmInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
+        users.socialCampaignManager.email
+      );
+      socialCampaignManagerUserId = scmInfo.userId;
+
+      // Clean up: Remove both users from all ACG roles (Manager, Admin, FO) in parallel
+      await Promise.all([
+        appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(standardUserUserId),
+        appManagerApiFixture.identityManagementHelper.cleanupUserFromAllACGRoles(socialCampaignManagerUserId),
+      ]);
     });
 
     test.afterEach(async ({ appManagerFixture }) => {
@@ -442,7 +454,7 @@ test.describe(
           '@social-campaign-share-restriction',
         ],
       },
-      async ({ appManagerFixture, standardUserFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Standard User who is granted Feature Owner permission for "Post in Home Feed" can share a Social Campaign to Home Feed without restrictions (Limit Visibility OFF). The shared campaign should be visible on Home Feed.',
@@ -465,17 +477,12 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
 
-        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" ====================
-        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed"', async () => {
-          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
-          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" via API ====================
+        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed" via API', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
+            ADD_HOME_FEED_FEATURE_CODE,
+            standardUserUserId
+          );
         });
 
         // ==================== SU navigates to Social Campaign and shares to Home Feed ====================
@@ -520,18 +527,6 @@ test.describe(
           await feedPage.feedList.verifyCampaignLinkDisplayed(campaignOptions.linkText, shareDescription);
         });
 
-        // ==================== STEP 5: Cleanup - App Manager removes SU from Feature Owner role ====================
-        await test.step('Cleanup: App Manager removes SU from Feature Owner role', async () => {
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
-          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
-        });
-
         manualCleanupNeeded = true;
       }
     );
@@ -547,7 +542,7 @@ test.describe(
           '@social-campaign-share-restriction',
         ],
       },
-      async ({ appManagerFixture, standardUserFixture, socialCampaignManagerFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, socialCampaignManagerFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Standard User who is granted Feature Owner permission for "Post in Home Feed" can share a Social Campaign to Home Feed with Restricted Viewers (Limit Visibility ON + UX Designs audience). Users in selected audience CAN see the campaign, users NOT in audience CANNOT see it.',
@@ -570,17 +565,12 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
 
-        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" ====================
-        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed"', async () => {
-          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
-          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" via API ====================
+        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed" via API', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
+            ADD_HOME_FEED_FEATURE_CODE,
+            standardUserUserId
+          );
         });
 
         // ==================== SU shares Social Campaign to Home Feed WITH Restricted Viewers (UX Designs) ====================
@@ -628,18 +618,6 @@ test.describe(
           await feedPage.feedList.verifyPostIsNotVisible(shareDescription);
         });
 
-        // ==================== Cleanup - App Manager removes SU from Feature Owner role ====================
-        await test.step('Cleanup: App Manager removes SU from Feature Owner role', async () => {
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
-          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
-        });
-
         manualCleanupNeeded = true;
       }
     );
@@ -663,15 +641,6 @@ test.describe(
           storyId: 'CONT-42257',
         });
 
-        // Get Social Campaign Manager full name for FO operations (SU who belongs to UX Designs)
-        let socialCampaignManagerFullName: string;
-        await test.step('Get Social Campaign Manager full name', async () => {
-          const userInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
-            users.socialCampaignManager.email
-          );
-          socialCampaignManagerFullName = userInfo.fullName;
-        });
-
         // ==================== App Manager creates Social Campaign via API ====================
         const campaignOptions = {
           message: SOCIAL_CAMPAIGN_TEST_DATA.MESSAGES.BLOG,
@@ -687,17 +656,12 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
 
-        // ==================== App Manager adds Social Campaign Manager as Feature Owner of "Post in Home Feed" ====================
-        await test.step('App Manager adds Social Campaign Manager as Feature Owner of "Post in Home Feed"', async () => {
-          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
-          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([socialCampaignManagerFullName]);
+        // ==================== App Manager adds Social Campaign Manager as Feature Owner of "Post in Home Feed" via API ====================
+        await test.step('App Manager adds Social Campaign Manager as Feature Owner of "Post in Home Feed" via API', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
+            ADD_HOME_FEED_FEATURE_CODE,
+            socialCampaignManagerUserId
+          );
         });
 
         // ==================== Social Campaign Manager (in UX Designs) shares to UX Designs audience ====================
@@ -744,18 +708,6 @@ test.describe(
           await nonUxUserFeedPage.feedList.verifyPostIsNotVisible(shareDescription);
         });
 
-        // ==================== Cleanup - App Manager removes Social Campaign Manager from Feature Owner role ====================
-        await test.step('Cleanup: App Manager removes Social Campaign Manager from Feature Owner role', async () => {
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
-          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([socialCampaignManagerFullName]);
-        });
-
         manualCleanupNeeded = true;
       }
     );
@@ -781,11 +733,15 @@ test.describe(
 
         // Get UX Designs user (socialCampaignManager) full name for mention
         let uxUserFullName: string;
-        await test.step('Get UX Designs user full name for mention', async () => {
+        let standardUserFullName: string;
+        await test.step('Get user full names for mention and notification verification', async () => {
           const uxUserInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(
             users.socialCampaignManager.email
           );
           uxUserFullName = uxUserInfo.fullName;
+
+          const suInfo = await appManagerApiFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email);
+          standardUserFullName = suInfo.fullName;
         });
 
         // ==================== App Manager creates Social Campaign via API ====================
@@ -803,17 +759,12 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
 
-        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" ====================
-        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed"', async () => {
-          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
-          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" via API ====================
+        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed" via API', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
+            ADD_HOME_FEED_FEATURE_CODE,
+            standardUserUserId
+          );
         });
 
         // ==================== SU shares Social Campaign with Restricted Viewers (UX) and @mentions UX user ====================
@@ -879,18 +830,6 @@ test.describe(
           await feedPage.feedList.verifyPostIsNotVisible(shareDescription);
         });
 
-        // ==================== Cleanup - App Manager removes SU from Feature Owner role ====================
-        await test.step('Cleanup: App Manager removes SU from Feature Owner role', async () => {
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
-          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
-        });
-
         manualCleanupNeeded = true;
       }
     );
@@ -906,7 +845,7 @@ test.describe(
           '@social-campaign-share-restriction',
         ],
       },
-      async ({ appManagerFixture, standardUserFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
             'ABAC: Verify Standard User (granted FO permission) can see the Limit Visibility toggle in the Share to Home Feed modal. The toggle should be visible and enabled. Verify Cancel button closes the modal without sharing.',
@@ -929,17 +868,12 @@ test.describe(
         });
         campaignId = createdCampaign.campaignId;
 
-        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" ====================
-        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed"', async () => {
-          featureOwnersPage = new FeatureOwnersPage(appManagerFixture.page);
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.USERS);
-          await featureOwnersPage.featureOwnerModal.addUserAsFeatureOnwer([standardUserFullName]);
+        // ==================== App Manager adds SU as Feature Owner of "Post in Home Feed" via API ====================
+        await test.step('App Manager adds SU as Feature Owner of "Post in Home Feed" via API', async () => {
+          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
+            ADD_HOME_FEED_FEATURE_CODE,
+            standardUserUserId
+          );
         });
 
         // ==================== SU navigates to Social Campaign page ====================
@@ -980,18 +914,6 @@ test.describe(
 
           // Verify the campaign link is NOT visible on Home Feed (was not shared)
           await feedPage.feedList.verifyPostIsNotVisible(campaignOptions.linkText);
-        });
-
-        // ==================== Cleanup - App Manager removes SU from Feature Owner role ====================
-        await test.step('Cleanup: App Manager removes SU from Feature Owner role', async () => {
-          await featureOwnersPage.loadPage();
-          await featureOwnersPage.assertions.verifyThePageIsLoaded();
-
-          await featureOwnersPage.actions.searchForFeature(POST_IN_HOME_FEED_FEATURE);
-          await featureOwnersPage.actions.clickOnButtonForFeature(POST_IN_HOME_FEED_FEATURE, 'Edit');
-
-          await featureOwnersPage.featureOwnerModal.ClickOnTab(FEATURE_OWNERS_TABS_OPTIONS.ASSIGNED);
-          await featureOwnersPage.featureOwnerModal.removeUserFromFeatureOwnersList([standardUserFullName]);
         });
 
         manualCleanupNeeded = true;
