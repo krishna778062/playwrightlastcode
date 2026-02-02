@@ -43,16 +43,37 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       //  verify attributes filter options
       await audienceBuilderPage.clickFilterElement('Attributes');
+
+      await audienceBuilderPage.searchFilterOption('Business unit');
       await audienceBuilderPage.verifyFilterOptionPresence('Business unit');
+
+      await audienceBuilderPage.searchFilterOption('City');
       await audienceBuilderPage.verifyFilterOptionPresence('City');
+
+      await audienceBuilderPage.searchFilterOption('Company name');
       await audienceBuilderPage.verifyFilterOptionPresence('Company name');
+
+      await audienceBuilderPage.searchFilterOption('Department');
       await audienceBuilderPage.verifyFilterOptionPresence('Department');
+
+      await audienceBuilderPage.searchFilterOption('State');
       await audienceBuilderPage.verifyFilterOptionPresence('State');
+
+      await audienceBuilderPage.searchFilterOption('Country');
       await audienceBuilderPage.verifyFilterOptionPresence('Country');
+
+      await audienceBuilderPage.searchFilterOption('Division');
       await audienceBuilderPage.verifyFilterOptionPresence('Division');
+
+      await audienceBuilderPage.searchFilterOption('Is manager');
       await audienceBuilderPage.verifyFilterOptionPresence('Is manager');
+
+      await audienceBuilderPage.searchFilterOption('Job title');
       await audienceBuilderPage.verifyFilterOptionPresence('Job title');
+
+      await audienceBuilderPage.searchFilterOption('User type');
       await audienceBuilderPage.verifyFilterOptionPresence('User type');
+
       await audienceBuilderPage.clickFilterElement('Attributes');
 
       // Test close button functionality

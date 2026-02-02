@@ -15,9 +15,19 @@ import { HttpClient } from '@/src/core/api/clients/httpClient';
 import { TIMEOUTS } from '@/src/core/constants/timeouts';
 // @/src imports
 import { audienceCreationParams } from '@/src/core/types/audience.type';
+import { log } from '@/src/core/utils/logger';
 import { IIdentityAdminOperations } from '@/src/modules/platforms/apis/interfaces/IIdentityOperations';
 import { PLATFORM_API_ENDPOINTS as API_ENDPOINTS } from '@/src/modules/platforms/apis/platformApiEndpoints';
-import { ACGCreationAPI, ACGCreationResponse, ACGSubjectStatsResponse } from '@/src/modules/platforms/apis/types/acg';
+import {
+  ACGCreationAPI,
+  ACGCreationResponse,
+  ACGItemData,
+  ACGSubjectStatsResponse,
+  ACGUpdatePayload,
+  ACGUpdateResponse,
+  FeatureOwnerUpdatePayload,
+  FeatureOwnerUpdateResponse,
+} from '@/src/modules/platforms/apis/types/acg';
 
 interface ListRolesResponse {
   status: number;
@@ -927,6 +937,226 @@ export class IdentityService implements IIdentityAdminOperations {
       }, `Polling get total managers of ACG API for ACG ${acgName} until we get expected total managers`).toPass({
         timeout: TIMEOUTS.MEDIUM,
       });
+    });
+  }
+
+  /**
+   * Updates an existing ACG with new managers, admins, or targets
+   * @param payload - The update payload containing id and fields to update
+   * @returns The ACG update response
+   */
+  async updateACG(payload: ACGUpdatePayload): Promise<ACGUpdateResponse> {
+    return await test.step(`Updating ACG with id: ${payload.id}`, async () => {
+      const response = await this.httpClient.put(
+        API_ENDPOINTS.appManagement.identity.updateAccessControlGroup(payload.id),
+        {
+          data: payload,
+        }
+      );
+      expect(response.status(), 'ACG updated successfully').toBe(200);
+      return await this.httpClient.parseResponse<ACGUpdateResponse>(response);
+    });
+  }
+
+  /**
+   * Gets the full ACG details including current managers, admins, and targets
+   * @param acgName - Name of the ACG
+   * @returns The ACG item data
+   */
+  async getACGDetails(acgName: string): Promise<ACGItemData> {
+    return await test.step(`Getting ACG details for: ${acgName}`, async () => {
+      const listOfACGResponse = await this.getListOfACGs(acgName);
+      const listOfACGsJson = await listOfACGResponse.json();
+      expect(listOfACGsJson.status, 'Expecting status to be successful').toBe('success');
+      expect(listOfACGsJson.result.listOfItems.length, 'Expecting list of ACGs to be non-empty').toBe(1);
+      return listOfACGsJson.result.listOfItems[0].data;
+    });
+  }
+
+  /**
+   * Adds a user as manager to an existing ACG
+   * @param acgName - Name of the ACG
+   * @param userId - User ID to add as manager
+   */
+  async addManagerToACG(acgName: string, userId: string): Promise<void> {
+    await test.step(`Adding user ${userId} as manager to ACG: ${acgName}`, async () => {
+      // Get current ACG details
+      const acgDetails = await this.getACGDetails(acgName);
+      const currentManagerUserIds = acgDetails.managers.users.userIds;
+      const currentManagerAudienceIds = acgDetails.managers.audiences.audienceIds;
+
+      // Check if user is already a manager
+      if (currentManagerUserIds.includes(userId)) {
+        log.info(`User ${userId} is already a manager of ACG ${acgName}`);
+        return;
+      }
+
+      // Add the new user to the managers list
+      const updatedManagerUserIds = [...currentManagerUserIds, userId];
+
+      // Update the ACG
+      await this.updateACG({
+        id: acgDetails.id,
+        managers: {
+          audiences: currentManagerAudienceIds,
+          users: updatedManagerUserIds,
+        },
+      });
+
+      // Wait for ACG to sync
+      await this.waitUntilACGIsSynced(acgName);
+    });
+  }
+
+  /**
+   * Removes a user from managers of an existing ACG
+   * @param acgName - Name of the ACG
+   * @param userId - User ID to remove from managers
+   */
+  async removeManagerFromACG(acgName: string, userId: string): Promise<void> {
+    await test.step(`Removing user ${userId} from managers of ACG: ${acgName}`, async () => {
+      // Get current ACG details
+      const acgDetails = await this.getACGDetails(acgName);
+      const currentManagerUserIds = acgDetails.managers.users.userIds;
+      const currentManagerAudienceIds = acgDetails.managers.audiences.audienceIds;
+
+      // Check if user is a manager
+      if (!currentManagerUserIds.includes(userId)) {
+        log.info(`User ${userId} is not a manager of ACG ${acgName}`);
+        return;
+      }
+
+      // Remove the user from the managers list
+      const updatedManagerUserIds = currentManagerUserIds.filter(id => id !== userId);
+
+      // Update the ACG
+      await this.updateACG({
+        id: acgDetails.id,
+        managers: {
+          audiences: currentManagerAudienceIds,
+          users: updatedManagerUserIds,
+        },
+      });
+
+      // Wait for ACG to sync
+      await this.waitUntilACGIsSynced(acgName);
+    });
+  }
+
+  /**
+   * Adds a user as admin to an existing ACG
+   * @param acgName - Name of the ACG
+   * @param userId - User ID to add as admin
+   */
+  async addAdminToACG(acgName: string, userId: string): Promise<void> {
+    await test.step(`Adding user ${userId} as admin to ACG: ${acgName}`, async () => {
+      // Get current ACG details
+      const acgDetails = await this.getACGDetails(acgName);
+      const currentAdminUserIds = acgDetails.admins.users.userIds;
+      const currentAdminAudienceIds = acgDetails.admins.audiences.audienceIds;
+
+      // Check if user is already an admin
+      if (currentAdminUserIds.includes(userId)) {
+        log.info(`User ${userId} is already an admin of ACG ${acgName}`);
+        return;
+      }
+
+      // Add the user to the admins list
+      const updatedAdminUserIds = [...currentAdminUserIds, userId];
+
+      // Update the ACG
+      await this.updateACG({
+        id: acgDetails.id,
+        admins: {
+          audiences: currentAdminAudienceIds,
+          users: updatedAdminUserIds,
+        },
+      });
+
+      // Wait for ACG to sync
+      await this.waitUntilACGIsSynced(acgName);
+    });
+  }
+
+  /**
+   * Removes a user from admins of an existing ACG
+   * @param acgName - Name of the ACG
+   * @param userId - User ID to remove from admins
+   */
+  async removeAdminFromACG(acgName: string, userId: string): Promise<void> {
+    await test.step(`Removing user ${userId} from admins of ACG: ${acgName}`, async () => {
+      // Get current ACG details
+      const acgDetails = await this.getACGDetails(acgName);
+      const currentAdminUserIds = acgDetails.admins.users.userIds;
+      const currentAdminAudienceIds = acgDetails.admins.audiences.audienceIds;
+
+      // Check if user is an admin
+      if (!currentAdminUserIds.includes(userId)) {
+        log.info(`User ${userId} is not an admin of ACG ${acgName}`);
+        return;
+      }
+
+      // Remove the user from the admins list
+      const updatedAdminUserIds = currentAdminUserIds.filter(id => id !== userId);
+
+      // Update the ACG
+      await this.updateACG({
+        id: acgDetails.id,
+        admins: {
+          audiences: currentAdminAudienceIds,
+          users: updatedAdminUserIds,
+        },
+      });
+
+      // Wait for ACG to sync
+      await this.waitUntilACGIsSynced(acgName);
+    });
+  }
+
+  // ==================== Feature Owner Methods ====================
+
+  /**
+   * Updates Feature Owners for ACGs
+   * @param payload - Payload containing featureCodes, usersToAdd, and usersToRemove
+   * @returns - Response with addedUsers and removedUsers
+   */
+  async updateFeatureOwners(payload: FeatureOwnerUpdatePayload): Promise<FeatureOwnerUpdateResponse> {
+    const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.updateFeatureOwners, {
+      data: payload,
+    });
+    expect(response.ok(), `Feature Owners update API should succeed`).toBeTruthy();
+    return response.json();
+  }
+
+  /**
+   * Adds a user as Feature Owner for a specific feature
+   * @param featureCode - Feature code (e.g., 'ADD_HOME_FEED')
+   * @param userId - User ID to add as feature owner
+   */
+  async addFeatureOwner(featureCode: string, userId: string): Promise<void> {
+    await test.step(`Adding user ${userId} as Feature Owner for feature: ${featureCode}`, async () => {
+      const response = await this.updateFeatureOwners({
+        featureCodes: [featureCode],
+        usersToAdd: [userId],
+        usersToRemove: [],
+      });
+      expect(response.status, `Feature Owner add should succeed`).toBe('success');
+    });
+  }
+
+  /**
+   * Removes a user from Feature Owners for a specific feature
+   * @param featureCode - Feature code (e.g., 'ADD_HOME_FEED')
+   * @param userId - User ID to remove from feature owners
+   */
+  async removeFeatureOwner(featureCode: string, userId: string): Promise<void> {
+    await test.step(`Removing user ${userId} from Feature Owners for feature: ${featureCode}`, async () => {
+      const response = await this.updateFeatureOwners({
+        featureCodes: [featureCode],
+        usersToAdd: [],
+        usersToRemove: [userId],
+      });
+      expect(response.status, `Feature Owner remove should succeed`).toBe('success');
     });
   }
 }
