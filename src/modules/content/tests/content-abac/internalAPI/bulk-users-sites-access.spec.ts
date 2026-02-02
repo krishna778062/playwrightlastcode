@@ -88,26 +88,6 @@ test.describe(
           throw new Error('Not enough users found in the people list. Need at least 2 users.');
         }
 
-        // Call the bulk users sites access API
-        // cURL equivalent:
-        // curl --location 'https://abac-api.test.simpplr.xyz/v1/content/internal/sites/bulkUsersSitesAccess' \
-        //   --header 'accept: application/json, text/plain, */*' \
-        //   --header 'accept-language: en-US,en;q=0.9' \
-        //   --header 'content-type: application/json' \
-        //   --header 'origin: https://abac.test.simpplr.xyz' \
-        //   --header 'priority: u=1, i' \
-        //   --header 'referer: https://abac.test.simpplr.xyz/' \
-        //   --header 'sec-ch-ua: "Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"' \
-        //   --header 'sec-ch-ua-mobile: ?0' \
-        //   --header 'sec-ch-ua-platform: "macOS"' \
-        //   --header 'sec-fetch-dest: empty' \
-        //   --header 'sec-fetch-mode: cors' \
-        //   --header 'sec-fetch-site: same-site' \
-        //   --header 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36' \
-        //   --header 'x-smtip-csrfid: <CSRF_TOKEN>' \
-        //   --header 'Cookie:
-        // <COOKIE_STRING>' \
-        //   --data '{"siteIds": ["<SITE_ID_1>", "<SITE_ID_2>", "<SITE_ID_3>"], "userIds": ["<USER_ID_1>", "<USER_ID_2>"]}'
         const bulkUsersSitesAccessResponse =
           await appManagerApiFixture.siteManagementHelper.siteManagementService.getBulkUsersSitesAccess(
             siteIds,

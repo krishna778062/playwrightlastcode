@@ -784,9 +784,13 @@ export class SiteManagementService implements ISiteManagementOperations {
     result: Array<{ userId: string; siteId: string; hasAccess: boolean }>;
   }> {
     return await test.step(`Getting bulk users sites access for ${siteIds.length} sites and ${userIds.length} users`, async () => {
-      // Get orgId from content config
+      // Get orgId and internalApiBaseUrl from content config
       const tenantConfig = getContentTenantConfigFromCache();
       const orgId = tenantConfig.orgId;
+      const internalApiBaseUrl = tenantConfig.internalApiBaseUrl;
+
+      // Create a separate HttpClient for internal APIs (similar to B2B service)
+      const internalApiClient = new HttpClient(this.httpClient.context, internalApiBaseUrl);
 
       const headers: Record<string, string> = {};
       headers['x-smtip-tid'] = orgId;
@@ -796,7 +800,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         userIds: userIds,
       };
 
-      const response = await this.httpClient.post(API_ENDPOINTS.site.bulkUsersSitesAccess, {
+      const response = await internalApiClient.post(API_ENDPOINTS.site.bulkUsersSitesAccess, {
         data: payload,
         headers: headers,
       });
