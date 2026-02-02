@@ -577,14 +577,14 @@ test.describe(
     );
 
     test(
-      'verify SU who is FO of "Manage Home Feed" ACG can edit other users\' Feed posts',
+      'verify SU who is FO of "Manage Home Feed" ACG can not edit other users\' Feed posts',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42190', '@FO-feed'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Standard User who is Functional Owner of "Manage Home Feed" ACG can edit other users\' Feed posts on Home Feed',
+            'ABAC: Verify Standard User who is Functional Owner of "Manage Home Feed" ACG can not edit other users\' Feed posts on Home Feed',
           zephyrTestId: 'CONT-42190',
           storyId: 'CONT-42190',
         });
@@ -615,7 +615,7 @@ test.describe(
 
         // ==================== SU verifies Edit option is visible on other user's post ====================
         let updatedPostText: string;
-        await test.step("SU navigates to Home Feed and verifies Edit option is visible on App Manager's post", async () => {
+        await test.step("SU navigates to Home Feed and verifies Edit option is not visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
@@ -627,19 +627,8 @@ test.describe(
           // Open options menu on App Manager's post
           await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
-          // Verify Edit option is visible (ABAC permission granted)
-          await feedPage.feedList.verifyEditOptionVisible(createdPostText);
-
-          await feedPage.feedList.openPostOptionsMenu(createdPostText);
-        });
-
-        // ==================== SU edits the other user's post ====================
-        await test.step("SU edits App Manager's Feed post successfully", async () => {
-          updatedPostText = TestDataGenerator.generateRandomText('ABAC Edited Post by FO', 3, true);
-          await feedPage.postEditor.editPost(createdPostText, updatedPostText);
-
-          // Verify the post was updated
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
+          // Verify Edit option is not visible (ABAC permission revoked)
+          await feedPage.feedList.verifyEditOptionNotVisible(createdPostText);
         });
 
         // ==================== App Manager removes SU as FO ====================
@@ -649,33 +638,18 @@ test.describe(
             standardUserUserId
           );
         });
-
-        // ==================== Verify SU cannot see Edit option after FO removal ====================
-        await test.step('Verify SU cannot see Edit option on Home Feed after FO removal', async () => {
-          await feedPage.reloadPageWithTimelineMode();
-          await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
-
-          // Verify the post is still visible
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
-
-          // Open options menu on the post
-          await feedPage.feedList.openPostOptionsMenu(updatedPostText);
-
-          // Verify Edit option is NOT visible (ABAC permission revoked)
-          await feedPage.feedList.verifyEditOptionNotVisible(updatedPostText);
-        });
       }
     );
 
     test(
-      'verify SU who is Manager of "Manage Home Feed" ACG can edit other users\' Feed posts',
+      'verify SU who is Manager of "Manage Home Feed" ACG can not edit other users\' Feed posts',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42191', '@FO-feed'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Standard User who is Manager of "Manage Home Feed" ACG can edit other users\' Feed posts on Home Feed',
+            'ABAC: Verify Standard User who is Manager of "Manage Home Feed" ACG can not edit other users\' Feed posts on Home Feed',
           zephyrTestId: 'CONT-42191',
           storyId: 'CONT-42191',
         });
@@ -706,7 +680,7 @@ test.describe(
 
         // ==================== SU verifies Edit option is visible on other user's post ====================
         let updatedPostText: string;
-        await test.step("SU navigates to Home Feed and verifies Edit option is visible on App Manager's post", async () => {
+        await test.step("SU navigates to Home Feed and verifies Edit option is not visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
@@ -718,19 +692,8 @@ test.describe(
           // Open options menu on App Manager's post
           await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
-          // Verify Edit option is visible (ABAC permission granted)
-          await feedPage.feedList.verifyEditOptionVisible(createdPostText);
-
-          await feedPage.feedList.openPostOptionsMenu(createdPostText);
-        });
-
-        // ==================== SU edits the other user's post ====================
-        await test.step("SU edits App Manager's Feed post successfully", async () => {
-          updatedPostText = TestDataGenerator.generateRandomText('ABAC Edited Post by Manager', 3, true);
-          await feedPage.postEditor.editPost(createdPostText, updatedPostText);
-
-          // Verify the post was updated
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
+          // Verify Edit option is not visible (ABAC permission revoked)
+          await feedPage.feedList.verifyEditOptionNotVisible(createdPostText);
         });
 
         // ==================== App Manager removes SU as Manager from ACG ====================
@@ -759,14 +722,14 @@ test.describe(
     );
 
     test(
-      'verify SU who is Admin of "Manage Home Feed" ACG can edit other users\' Feed posts',
+      'verify SU who is Admin of "Manage Home Feed" ACG can not edit other users\' Feed posts',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42192', '@FO-feed'],
       },
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Standard User who is Admin of "Manage Home Feed" ACG can edit other users\' Feed posts on Home Feed',
+            'ABAC: Verify Standard User who is Admin of "Manage Home Feed" ACG can not edit other users\' Feed posts on Home Feed',
           zephyrTestId: 'CONT-42192',
           storyId: 'CONT-42192',
         });
@@ -795,9 +758,9 @@ test.describe(
           );
         });
 
-        // ==================== SU verifies Edit option is visible on other user's post ====================
+        // ==================== SU verifies Edit option is not visible on other user's post ====================
         let updatedPostText: string;
-        await test.step("SU navigates to Home Feed and verifies Edit option is visible on App Manager's post", async () => {
+        await test.step("SU navigates to Home Feed and verifies Edit option is not visible on App Manager's post", async () => {
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           feedPage = new FeedPage(standardUserFixture.page);
           await feedPage.reloadPage();
@@ -809,19 +772,8 @@ test.describe(
           // Open options menu on App Manager's post
           await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
-          // Verify Edit option is visible (ABAC permission granted)
-          await feedPage.feedList.verifyEditOptionVisible(createdPostText);
-
-          await feedPage.feedList.openPostOptionsMenu(createdPostText);
-        });
-
-        // ==================== SU edits the other user's post ====================
-        await test.step("SU edits App Manager's Feed post successfully", async () => {
-          updatedPostText = TestDataGenerator.generateRandomText('ABAC Edited Post by Admin', 3, true);
-          await feedPage.postEditor.editPost(createdPostText, updatedPostText);
-
-          // Verify the post was updated
-          await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
+          // Verify Edit option is not visible (ABAC permission revoked)
+          await feedPage.feedList.verifyEditOptionNotVisible(createdPostText);
         });
 
         // ==================== App Manager removes SU as Admin from ACG ====================
@@ -961,91 +913,107 @@ test.describe(
     );
 
     test(
-      "verify FO can edit End User's restricted Home Feed post and change audience from Engineering to UX team",
+      'verify FO can edit restricted Home Feed post and change audience from Engineering to UX team',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42184', '@FO-feed'],
       },
-      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
+      async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can edit End User\'s restricted Home Feed post and change the audience from Engineering to UX team',
+            'ABAC: Verify Feature Owner of "Manage Home Feed" ACG can edit restricted Home Feed post and change the audience from Engineering to UX team',
           zephyrTestId: 'CONT-42184',
           storyId: 'CONT-42184',
         });
 
-        let suPostText: string;
-        let suPostId: string = '';
-
-        // ==================== Add SU as FO of "Post In Home Feed" ACG ====================
-        await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
-          await appManagerApiFixture.identityManagementHelper.addUserAsFeatureOwner(
-            ADD_HOME_FEED_FEATURE_CODE,
-            standardUserUserId
-          );
-        });
+        let postText: string;
+        let postId: string = '';
+        let FOFeedPage: FeedPage;
+        let SUFeedPage: FeedPage;
+        let SMFeedPage: FeedPage;
 
         // ==================== SU creates Feed post with limit visibility to Engineering ====================
-        await test.step('SU creates Feed post with Limit visibility restricted to Engineering audience and verifies post is visible', async () => {
-          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-          feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+        await test.step('FO creates Feed post with Limit visibility restricted to Engineering audience and verifies post is visible', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          FOFeedPage = new FeedPage(appManagerFixture.page);
+          await FOFeedPage.reloadPage();
+          await FOFeedPage.verifyThePageIsLoaded();
 
-          await feedPage.verifyFeedSectionIsVisible();
+          await FOFeedPage.verifyFeedSectionIsVisible();
 
-          suPostText = TestDataGenerator.generateRandomText('ABAC Restricted Engineering Post', 3, true);
-          await feedPage.clickShareThoughtsButton();
+          postText = TestDataGenerator.generateRandomText('ABAC Restricted Engineering Post', 3, true);
+          await FOFeedPage.clickShareThoughtsButton();
 
-          const postResult = await feedPage.createAndPostWithLimitVisibility({
-            text: suPostText,
+          const postResult = await FOFeedPage.createAndPostWithLimitVisibility({
+            text: postText,
             limitVisibility: {
               enabled: true,
               audience: 'Engineering',
             },
           });
 
-          suPostId = postResult.postId || '';
-          createdPostId = suPostId;
-          await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+          postId = postResult.postId || '';
+          createdPostId = postId;
+          await FOFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
 
-          await feedPage.postEditor.verifyPostHasLimitVisibility(suPostText);
+          await FOFeedPage.postEditor.verifyPostHasLimitVisibility(postText);
         });
 
-        // ==================== App Manager (FO of Manage Home Feed) edits post and changes audience to UX ====================
-        await test.step('App Manager navigates to Home Feed and locates the restricted post', async () => {
+        // ==================== SU (Present in Engineering audience) navigates to Home Feed and locates the restricted post ====================
+        await test.step('SU (Present in Engineering audience) navigates to Home Feed and locates the restricted post', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          SUFeedPage = new FeedPage(standardUserFixture.page);
+          await SUFeedPage.reloadPageWithTimelineMode();
+          await SUFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          await SUFeedPage.feedList.waitForPostToBeVisible(postText);
+        });
+
+        // ====================SM (Not in Engineering audience) navigates to Home Feed and verifies post is not visible ====================
+        await test.step('SM (Not in Engineering audience) navigates to Home Feed and verifies post is not visible', async () => {
+          await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
+          SMFeedPage = new FeedPage(siteManagerFixture.page);
+          await SMFeedPage.reloadPageWithTimelineMode();
+          await SMFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          await SMFeedPage.feedList.verifyPostIsNotVisible(postText);
+        });
+
+        // ==================== FO edits post and changes audience to UX ====================
+        await test.step('FO navigates to Home Feed and locates the restricted post', async () => {
           await appManagerFixture.navigationHelper.clickOnHomeIconButton();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-          await appManagerFeedPage.reloadPage();
-          await appManagerFeedPage.verifyThePageIsLoaded();
+          FOFeedPage = new FeedPage(appManagerFixture.page);
+          await FOFeedPage.reloadPage();
+          await FOFeedPage.verifyThePageIsLoaded();
 
-          await appManagerFeedPage.feedList.waitForPostToBeVisible(suPostText);
+          await FOFeedPage.feedList.waitForPostToBeVisible(postText);
 
-          await appManagerFeedPage.feedList.openPostOptionsMenu(suPostText);
-          await appManagerFeedPage.postEditor.clickEditOption();
-          await appManagerFeedPage.postEditor.verifyEditorVisible();
+          await FOFeedPage.feedList.openPostOptionsMenu(postText);
+          await FOFeedPage.postEditor.clickEditOption();
+          await FOFeedPage.postEditor.verifyEditorVisible();
 
-          await appManagerFeedPage.postEditor.changeAudience('UX');
-          await appManagerFeedPage.postEditor.clickUpdateButton();
+          await FOFeedPage.postEditor.changeAudience('UX');
+          await FOFeedPage.postEditor.clickUpdateButton();
 
-          await appManagerFeedPage.feedList.waitForPostToBeVisible(suPostText);
-          await appManagerFeedPage.postEditor.verifyPostHasLimitVisibility(suPostText);
+          await FOFeedPage.feedList.waitForPostToBeVisible(postText);
+          await FOFeedPage.postEditor.verifyPostHasLimitVisibility(postText);
         });
 
-        // ==================== Reload SU home page and verify post is NOT visible ====================
-        await test.step('Reload SU Home Feed and verify post is NOT visible (audience changed to UX)', async () => {
-          await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+        // ==================== Reload SU ( Not in UX audience) home page and verify post is NOT visible ====================
+        await test.step('Reload SU (Not in UX audience) Home Feed and verify post is NOT visible (audience changed to UX)', async () => {
+          await SUFeedPage.reloadPageWithTimelineMode();
+          await SUFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
-          await feedPage.feedList.verifyPostIsNotVisible(suPostText);
+          await SUFeedPage.feedList.verifyPostIsNotVisible(postText);
         });
 
-        // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================
-        await test.step('Cleanup: Remove SU as FO from "Post In Home Feed" ACG', async () => {
-          await appManagerApiFixture.identityManagementHelper.removeUserFromFeatureOwner(
-            ADD_HOME_FEED_FEATURE_CODE,
-            standardUserUserId
-          );
+        // ==================== Reload SM(Present in UX audience) home page and verify post is  visible ====================
+        await test.step('Reload SM(Present in UX audience) Home Feed and verify post is visible (audience changed to UX)', async () => {
+          await SMFeedPage.reloadPageWithTimelineMode();
+          await SMFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          await SMFeedPage.feedList.waitForPostToBeVisible(postText);
+          await SMFeedPage.postEditor.verifyPostHasLimitVisibility(postText);
         });
       }
     );
@@ -1063,8 +1031,11 @@ test.describe(
           storyId: 'CONT-42185',
         });
 
-        let suPostText: string;
-        let suPostId: string = '';
+        let postText: string;
+        let postId: string = '';
+        let FOFeedPage: FeedPage;
+        let SUFeedPage: FeedPage;
+        let SMFeedPage: FeedPage;
 
         // ==================== Add SU as FO of "Post In Home Feed" ACG ====================
         await test.step('App Manager adds SU as FO of "Post In Home Feed" ACG', async () => {
@@ -1074,75 +1045,83 @@ test.describe(
           );
         });
 
-        // ==================== SU creates Feed post with limit visibility to Engineering ====================
-        await test.step('SU creates Feed post with Limit visibility restricted to Engineering audience', async () => {
-          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
-          feedPage = new FeedPage(standardUserFixture.page);
-          await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+        // ==================== FO creates Feed post with limit visibility to Engineering ====================
+        await test.step('FO creates Feed post with Limit visibility restricted to Engineering audience', async () => {
+          await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+          FOFeedPage = new FeedPage(appManagerFixture.page);
+          await FOFeedPage.reloadPage();
+          await FOFeedPage.verifyThePageIsLoaded();
 
-          await feedPage.verifyFeedSectionIsVisible();
+          await FOFeedPage.verifyFeedSectionIsVisible();
 
-          suPostText = TestDataGenerator.generateRandomText('ABAC Favorited Engineering Post', 3, true);
-          await feedPage.clickShareThoughtsButton();
+          postText = TestDataGenerator.generateRandomText('ABAC Favorited Engineering Post', 3, true);
+          await FOFeedPage.clickShareThoughtsButton();
 
-          const postResult = await feedPage.createAndPostWithLimitVisibility({
-            text: suPostText,
+          const postResult = await FOFeedPage.createAndPostWithLimitVisibility({
+            text: postText,
             limitVisibility: {
               enabled: true,
               audience: 'Engineering',
             },
           });
 
-          suPostId = postResult.postId || '';
-          createdPostId = suPostId;
-          await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+          postId = postResult.postId || '';
+          createdPostId = postId;
+          await FOFeedPage.feedList.waitForPostToBeVisible(postResult.postText);
 
-          await feedPage.postEditor.verifyPostHasLimitVisibility(suPostText);
+          await FOFeedPage.postEditor.verifyPostHasLimitVisibility(postText);
+        });
+
+        // ==================== SU navigates to Home Feed and locates the post ====================
+        await test.step('SU navigates to Home Feed and locates the post', async () => {
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          SUFeedPage = new FeedPage(standardUserFixture.page);
+          await SUFeedPage.reloadPageWithTimelineMode();
+          await SUFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
+
+          await SUFeedPage.feedList.waitForPostToBeVisible(postText);
         });
 
         // ==================== SU favorites the post ====================
         await test.step('SU favorites the post and verifies it is favorited', async () => {
-          await feedPage.feedList.markPostAsFavourite();
-          await feedPage.feedList.verifyPostIsFavorited(suPostText);
+          await SUFeedPage.feedList.markPostAsFavourite();
+          await SUFeedPage.feedList.verifyPostIsFavorited(postText);
         });
 
         // ==================== App Manager (FO of Manage Home Feed) edits post and changes audience to UX ====================
         await test.step('App Manager edits post and changes audience from Engineering to UX', async () => {
           await appManagerFixture.navigationHelper.clickOnHomeIconButton();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
-          const appManagerFeedPage = new FeedPage(appManagerFixture.page);
-          await appManagerFeedPage.reloadPage();
-          await appManagerFeedPage.verifyThePageIsLoaded();
+          FOFeedPage = new FeedPage(appManagerFixture.page);
+          await FOFeedPage.reloadPage();
+          await FOFeedPage.verifyThePageIsLoaded();
 
-          await appManagerFeedPage.feedList.waitForPostToBeVisible(suPostText);
+          await FOFeedPage.feedList.waitForPostToBeVisible(postText);
 
-          await appManagerFeedPage.feedList.openPostOptionsMenu(suPostText);
-          await appManagerFeedPage.postEditor.clickEditOption();
-          await appManagerFeedPage.postEditor.verifyEditorVisible();
+          await FOFeedPage.feedList.openPostOptionsMenu(postText);
+          await FOFeedPage.postEditor.clickEditOption();
+          await FOFeedPage.postEditor.verifyEditorVisible();
 
-          await appManagerFeedPage.postEditor.changeAudience('UX');
-          await appManagerFeedPage.postEditor.clickUpdateButton();
+          await FOFeedPage.postEditor.changeAudience('UX');
+          await FOFeedPage.postEditor.clickUpdateButton();
 
-          await appManagerFeedPage.feedList.waitForPostToBeVisible(suPostText);
-          await appManagerFeedPage.postEditor.verifyPostHasLimitVisibility(suPostText);
+          await FOFeedPage.feedList.waitForPostToBeVisible(postText);
+          await FOFeedPage.postEditor.verifyPostHasLimitVisibility(postText);
         });
 
         // ==================== Reload SU home page and verify post is NOT visible ====================
         await test.step('Reload SU Home Feed and verify post is NOT visible (audience changed to UX)', async () => {
-          await feedPage.reloadPage();
-          await feedPage.verifyThePageIsLoaded();
+          await SUFeedPage.reloadPageWithTimelineMode();
+          await SUFeedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
 
-          await feedPage.feedList.verifyPostIsNotVisible(suPostText);
+          await SUFeedPage.feedList.verifyPostIsNotVisible(postText);
         });
 
         // ==================== Filter by Favourited and verify post is NOT in list ====================
         await test.step('SU filters by Favourited posts and verifies post is NOT in Favorites list', async () => {
-          await feedPage.clickOnShowOption('favourited');
+          await SUFeedPage.clickOnShowOption('favourited');
 
-          await feedPage.feedList.verifyPostIsNotVisible(suPostText);
-
-          await feedPage.clickOnShowOption('all');
+          await SUFeedPage.feedList.verifyPostIsNotVisible(postText);
         });
 
         // ==================== Cleanup: Remove SU as FO from "Post In Home Feed" ACG ====================

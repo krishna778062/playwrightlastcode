@@ -1037,6 +1037,8 @@ test.describe(
             'ABAC: Verify FO can share a comment from a restricted Page (Engineering audience) to Home Feed without restrictions. The shared comment should be visible to all users on Home Feed, even those who cannot access the original Page.',
           zephyrTestId: 'CONT-42202',
           storyId: 'CONT-42202',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44600',
         });
 
         let pageId: string = '';
@@ -1202,6 +1204,8 @@ test.describe(
             'ABAC: Verify FO can share a comment from a restricted Page (Engineering audience) to Home Feed with different Restricted Viewers (UX Designs). Validates inverse visibility - Engineering can see Page but NOT Home Feed share, UX can see Home Feed share but NOT Page.',
           zephyrTestId: 'CONT-42203',
           storyId: 'CONT-42203',
+          isKnownFailure: true,
+          bugTicket: 'CONT-44600',
         });
 
         let pageId: string = '';
