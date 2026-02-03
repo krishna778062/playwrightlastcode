@@ -30,13 +30,19 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove time off requests workday user auth apptile on home dashboard',
       {
-        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayUserAuth',
+        ],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21415, INT-21561',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-30122, INT-30126',
+          storyId: 'INT-29427',
         });
 
         createdTileTitle = `workday time off requests user auth apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -59,13 +65,19 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove time off requests workday user auth apptile on site dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.SMOKE,
+          IntegrationsSuiteTags.HEALTH_CHECK,
+          '@workdayUserAuth',
+        ],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-21417',
-          storyId: 'INT-20803',
+          zephyrTestId: 'INT-30123, INT-30127',
+          storyId: 'INT-29427',
         });
 
         createdTileTitle = `workday time off requests user auth apptile ${faker.string.alphanumeric({ length: 6 })}`;
