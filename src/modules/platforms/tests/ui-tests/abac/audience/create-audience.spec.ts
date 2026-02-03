@@ -3,6 +3,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 import {
   AD_GROUP_TYPES,
+  AUDIENCE_BUILDER_FILTERS,
   AUDIENCE_TYPES,
   FIELD_LIMITS,
   FIELD_TYPES,
@@ -90,15 +91,87 @@ test.describe(
 
         await audiencePage.loadPage();
         await audiencePage.openCreateAudienceForm();
-
         await audiencePage.clickAddDescriptionButton();
-
         await audiencePage.verifyDescriptionMaxLength(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
-
-        const description1024 = 'a'.repeat(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
-        await audiencePage.fillDescriptionAndVerifyLength(description1024, FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
-
+        await audiencePage.fillDescriptionAndVerifyLength(
+          'a'.repeat(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH),
+          FIELD_LIMITS.DESCRIPTION_MAX_LENGTH
+        );
         await audiencePage.verifyDescriptionMaxLengthEnforced(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+      }
+    );
+
+    test(
+      'verify the appearance of Create audience modal under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35852'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.verifyCreateAudienceModalAppearance();
+      }
+    );
+
+    test(
+      'verify the text for No Results when user searched audience which is not present',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33808'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.clickParentEditIcon();
+        await audiencePage.searchAudienceInPicker('ewugdwebih');
+        await audiencePage.verifyNoResultsMessage();
+      }
+    );
+
+    test(
+      'verify text No results found when user searched audience which is not present on main page',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33796'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.searchAudienceOnMainPage('edhfbwekjsf');
+        await audiencePage.verifyNoResultsOnMainPage();
+      }
+    );
+
+    test(
+      'verify the presence of all filters under Filters tab under audience page',
+      { tag: [TestPriority.P1, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33931'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.clickFiltersButton();
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.AUDIENCE_CATEGORY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.AUDIENCE_MEMBER);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ACCESS_CONTROL);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.FEATURE);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.MODIFIED_BY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.MODIFIED_DATE);
       }
     );
 
