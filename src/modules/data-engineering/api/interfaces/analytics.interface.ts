@@ -125,3 +125,112 @@ export interface GetContentEngagementResponse {
   data: ContentEngagementData;
   metadata: ContentEngagementMetadata;
 }
+
+// Must Read Status
+export interface MustReadStatusData {
+  content_code: string;
+  site_name: string | null;
+  is_must_read: boolean;
+  was_must_read: boolean;
+  is_must_read_expired: number;
+  must_read_audience_type_code: string | null;
+  must_read_start_datetime: string | null;
+  must_read_end_datetime: string | null;
+}
+
+export interface MustReadStatusResponse {
+  success: boolean;
+  data: MustReadStatusData;
+}
+
+// Must Read Counts
+export interface MustReadCountsData {
+  content_code: string;
+  content_title: string | null;
+  total_users: number;
+  read_users: number;
+}
+
+export interface MustReadCountsResponse {
+  success: boolean;
+  data: MustReadCountsData;
+  metadata?: {
+    tenantId: string;
+    contentId: string;
+    count?: number;
+    readStatus?: string;
+    search?: string;
+    timestamp: string;
+    [key: string]: any;
+  };
+}
+
+// Must Read Audience List
+export interface MustReadAudienceItem {
+  audience_code: string;
+  audience_name: string;
+  display_name: string;
+  audience_rule: string;
+  audience_status: string | null;
+  audience_type: string;
+  description: string | null;
+  audience_member_count: number;
+}
+
+export interface MustReadAudienceListResponse {
+  success: boolean;
+  data: MustReadAudienceItem[];
+  metadata: {
+    tenantId: string;
+    contentId: string;
+    count: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasMore: boolean;
+    timestamp: string;
+  };
+}
+
+// Must Read User List
+export interface MustReadUserListItem {
+  user_code: string;
+  full_name: string;
+  department: string | null;
+  profile_image_url_optimized: string | null;
+  title: string | null;
+  as_read_status: string;
+  confirmation_datetime: string | null;
+}
+
+export interface MustReadUserListResponse {
+  success: boolean;
+  data: MustReadUserListItem[];
+  metadata: {
+    tenantId: string;
+    contentId: string;
+    readStatus: string;
+    search: string;
+    count: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasMore: boolean;
+    timestamp: string;
+  };
+}
+
+// Must Read User Count
+export interface MustReadUserCountResponse {
+  success: boolean;
+  data: {
+    user_count: number;
+  };
+  metadata: {
+    tenantId: string;
+    contentId: string;
+    readStatus: string;
+    search: string;
+    timestamp: string;
+  };
+}

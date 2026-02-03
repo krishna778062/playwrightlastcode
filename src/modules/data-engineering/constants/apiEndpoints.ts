@@ -13,6 +13,12 @@ export const DATA_ENGINEERING_API_ENDPOINTS = {
     divisions: '/v2/analytics/divisions',
     batchRunDetails: '/v2/analytics/batchRunDetails',
     contentEngagement: '/v2/analytics/contentEngagement',
+    mustReadStatus: '/v2/analytics/mustReadStatus',
+    mustReadCounts: '/v2/analytics/mustReadCounts',
+    mustReadAudienceList: '/v2/analytics/mustReadAudienceList',
+    mustReadUserList: '/v2/analytics/mustReadUserList',
+    mustReadUserCount: '/v2/analytics/mustReadUserCount',
+    mustReadUsersCsv: '/v2/analytics/mustReadUsersCsv',
   },
 } as const;
 
