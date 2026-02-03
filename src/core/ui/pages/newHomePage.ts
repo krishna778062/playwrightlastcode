@@ -21,7 +21,7 @@ export interface INewHomePageActions {
   clickAddToHomeButton: () => Promise<string>;
   enterTileTitle: (tileTitle: string) => Promise<void>;
   clickOnCustomSCTile: () => Promise<void>;
-  setCustomSCTitle: (title: string) => Promise<void>;
+  setCustomSCTitle: (title: string, message: string) => Promise<void>;
   clickOnChangeLayout: () => Promise<void>;
   clickExcludeFeed: () => Promise<void>;
   clickIncludeFeed: () => Promise<void>;
@@ -37,9 +37,9 @@ export interface INewHomePageAssertions {
   verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
   verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
-  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
-  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
-  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
+  verifySocialCampaignInCarouselModal: (text: string) => Promise<void>;
+  verifySocialCampaignInCarouselItem: (text: string) => Promise<void>;
+  verifySocialCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
   verifyContentIsNotVisibleInCarousel: (contentName: string) => Promise<void>;
   verifyRecentlyVisitedSiteIsDisplayed: (siteName: string) => Promise<void>;
 }
@@ -80,6 +80,14 @@ export class NewHomePage extends BasePage {
     this.carouselText = (text: string) => page.locator('#page-content').getByRole('link', { name: text, exact: true });
     this.recentlyVisitedSite = (siteName: string) => page.getByRole('link', { name: siteName }).first();
     this.profileSettingsButton = page.getByRole('button', { name: 'Profile settings' });
+  }
+
+  get actions(): INewHomePageActions {
+    return this;
+  }
+
+  get assertions(): INewHomePageAssertions {
+    return this;
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
