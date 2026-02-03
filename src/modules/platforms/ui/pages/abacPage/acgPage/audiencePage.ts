@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { AUDIENCE_MESSAGES } from '@platforms/constants/audience';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -15,6 +16,9 @@ export class AudiencePage extends BasePage {
   createAudience: Locator;
   createCategory: Locator;
   createAudienceWithCSV: Locator;
+  mainPageSearchBox: Locator;
+  filtersButton: Locator;
+  filterContainer: Locator;
 
   // Legacy category dialog elements - now handled by CategoryModalComponent
   // These are kept for backward compatibility but should be removed eventually
@@ -74,6 +78,9 @@ export class AudiencePage extends BasePage {
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
     this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
+    this.mainPageSearchBox = pageContainer.getByRole('textbox', { name: /search|filter/i });
+    this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
+    this.filterContainer = page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
     this.nameAlreadyUsedError = page.getByText('Category name already exists');
     this.deleteCategoryOption = page.getByText('Delete category');
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
@@ -551,6 +558,52 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  async verifyCreateAudienceModalAppearance(): Promise<void> {
+    await test.step('Verify Create audience modal appearance', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createAudienceDialog, {
+        assertionMessage: 'Verify Create audience dialog is visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const dialogTitle = this.createAudienceDialog.getByRole('heading', { name: 'Create audience' });
+      await this.verifier.verifyTheElementIsVisible(dialogTitle, {
+        assertionMessage: 'Verify dialog title "Create audience" is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.audienceNameInput, {
+        assertionMessage: 'Verify Name input field is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.addAudienceDescriptionButton, {
+        assertionMessage: 'Verify "Add description" button is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.selectParentTile, {
+        assertionMessage: 'Verify "Select parent" section is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.typeSelectInput, {
+        assertionMessage: 'Verify "Type" dropdown is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.createAudienceBtn, {
+        assertionMessage: 'Verify "Create" button is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      const closeButton = this.createAudienceDialog.getByRole('button', { name: 'Close' });
+      await this.verifier.verifyTheElementIsVisible(closeButton, {
+        assertionMessage: 'Verify Close button is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
   /**
    * Fill basic audience fields
    */
@@ -626,6 +679,55 @@ export class AudiencePage extends BasePage {
       await this.clickOnElement(itemExact, { stepInfo: `Choose parent: ${parentName}` });
 
       await this.clickOnElement(this.audiencePickerDoneButton, { stepInfo: 'Confirm parent selection' });
+    });
+  }
+
+  async clickParentEditIcon(): Promise<void> {
+    await test.step('Click on Edit icon of parent', async () => {
+      // Find the pencil/edit icon button next to "Select parent"
+      const editIconButton = this.createAudienceDialog
+        .locator(
+          'xpath=//p[contains(text(), "Select parent")]/ancestor::div[contains(@class, "ParentAudience")]//button[contains(@class, "IconButton")]'
+        )
+        .or(
+          this.createAudienceDialog
+            .locator('button[class*="IconButton"][class*="primary"]')
+            .filter({ has: this.page.locator('svg') })
+        )
+        .first();
+
+      await this.clickOnElement(editIconButton, { stepInfo: 'Click Edit icon (pencil) of parent' });
+      await expect(this.audiencePickerDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  async searchAudienceInPicker(searchTerm: string): Promise<void> {
+    await test.step(`Search audience: "${searchTerm}"`, async () => {
+      await this.audiencePickerSearchBox.fill(searchTerm);
+
+      const searchButton = this.audiencePickerDialog.getByRole('button', { name: 'Search' });
+
+      await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/audiences') && resp.status() === 200),
+        this.clickOnElement(searchButton, { stepInfo: 'Click Search button' }),
+      ]);
+    });
+  }
+
+  async verifyNoResultsMessage(): Promise<void> {
+    await test.step('Verify No Results messages', async () => {
+      const noResultsText = this.audiencePickerDialog.getByText(AUDIENCE_MESSAGES.NO_RESULTS_FOUND);
+      await this.verifier.verifyTheElementIsVisible(noResultsText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.NO_RESULTS_FOUND}" message is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const adjustSearchText = this.audiencePickerDialog.getByText(AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH);
+      await this.verifier.verifyTheElementIsVisible(adjustSearchText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH}" message is visible`,
+        timeout: TIMEOUTS.SHORT,
+      });
     });
   }
 
@@ -953,6 +1055,59 @@ export class AudiencePage extends BasePage {
           timeout: TIMEOUTS.SHORT,
         });
       }
+    });
+  }
+
+  /**
+   * Search for an audience on the main Audiences page
+   */
+  async searchAudienceOnMainPage(searchTerm: string): Promise<void> {
+    await test.step(`Search for audience: "${searchTerm}" on main page`, async () => {
+      await this.mainPageSearchBox.fill(searchTerm);
+      const pageContainer = this.page.getByTestId('pageContainer-page');
+      const searchButton = pageContainer.getByRole('button', { name: 'Search' });
+
+      await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/audiences') && resp.status() === 200),
+        this.clickOnElement(searchButton, { stepInfo: 'Click Search button' }),
+      ]);
+    });
+  }
+
+  /**
+   * Verify No Results messages on main Audiences page
+   */
+  async verifyNoResultsOnMainPage(): Promise<void> {
+    await test.step('Verify No Results messages on main page', async () => {
+      const pageContainer = this.page.getByTestId('pageContainer-page');
+      const noResultsText = pageContainer.getByText(AUDIENCE_MESSAGES.NO_RESULTS_FOUND);
+      await this.verifier.verifyTheElementIsVisible(noResultsText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.NO_RESULTS_FOUND}" message is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      const adjustSearchText = pageContainer.getByText(AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH);
+      await this.verifier.verifyTheElementIsVisible(adjustSearchText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH}" message is visible`,
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  // ========== FILTERS METHODS ==========
+
+  async clickFiltersButton(): Promise<void> {
+    await test.step('Click Filters button', async () => {
+      await this.clickOnElement(this.filtersButton, { stepInfo: 'Click Filters button' });
+    });
+  }
+
+  async verifyFilterElementPresence(filterName: string): Promise<void> {
+    await test.step(`Verify presence of "${filterName}" filter`, async () => {
+      const filterElement = this.filterContainer.locator('button h3', { hasText: filterName });
+      await this.verifier.verifyTheElementIsVisible(filterElement, {
+        assertionMessage: `Verify "${filterName}" filter is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 }
