@@ -99,3 +99,13 @@ export const AUDIENCE_BUILDER_BUTTONS = {
   RESET_ALL: 'Reset all',
   CLEAR: 'Clear',
 } as const;
+
+// Test Data Values
+export const TEST_DATA_VALUES = {
+  NEW_CATEGORY_NAME: 'NewCategory',
+} as const;
+
+// Field Limits
+export const FIELD_LIMITS = {
+  DESCRIPTION_MAX_LENGTH: 1024,
+} as const;
