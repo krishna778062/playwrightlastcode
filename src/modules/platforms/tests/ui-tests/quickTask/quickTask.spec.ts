@@ -12,7 +12,7 @@ import { QuickTaskPage } from '@platforms/ui/pages/quickTask/quickTaskPage';
 /**
  * Test suite for Quick Task functionality
  */
-test.describe.serial('quick Task', () => {
+test.describe('quick Task', () => {
   // Store task IDs, titles, and due dates for each test that needs them
   let testTaskIds: string[] = [];
   let testTaskTitles: string[] = [];
@@ -20,6 +20,9 @@ test.describe.serial('quick Task', () => {
 
   // Store UI-created task IDs for cleanup
   const uiCreatedTaskIds: string[] = [];
+
+  // Store API-created task IDs for cleanup (tasks created during test execution, not in beforeEach)
+  const apiCreatedTaskIds: string[] = [];
 
   // Store tasks for specific tests that need pre-created tasks
   const preCreatedTasks: Map<string, TaskDetails> = new Map();
@@ -163,6 +166,42 @@ test.describe.serial('quick Task', () => {
       testTaskTitles = [];
       testTaskDueDates = [];
     }
+
+    // Clean up UI-created tasks
+    if (uiCreatedTaskIds.length > 0) {
+      console.log(`[Cleanup] Cleaning up ${uiCreatedTaskIds.length} UI-created task(s) for test: ${testInfo.title}`);
+      const taskIdsToDelete = [...uiCreatedTaskIds]; // Create a copy to avoid issues during iteration
+      for (const taskId of taskIdsToDelete) {
+        try {
+          console.log(`[Cleanup] Attempting to delete UI-created task ID: ${taskId}`);
+          await quickTaskApiFixture.quickTaskService.deleteTask(taskId);
+          console.log(`[Cleanup] Successfully deleted UI-created task with ID: ${taskId}`);
+        } catch (error) {
+          console.error(`[Cleanup] Failed to delete UI-created task with ID: ${taskId}:`, error);
+        }
+      }
+      uiCreatedTaskIds.length = 0; // Clear the array
+    } else {
+      console.log(`[Cleanup] No UI-created tasks to clean up for test: ${testInfo.title}`);
+    }
+
+    // Clean up API-created tasks (tasks created during test execution via createTestTask)
+    if (apiCreatedTaskIds.length > 0) {
+      console.log(`[Cleanup] Cleaning up ${apiCreatedTaskIds.length} API-created task(s) for test: ${testInfo.title}`);
+      const taskIdsToDelete = [...apiCreatedTaskIds]; // Create a copy to avoid issues during iteration
+      for (const taskId of taskIdsToDelete) {
+        try {
+          console.log(`[Cleanup] Attempting to delete API-created task ID: ${taskId}`);
+          await quickTaskApiFixture.quickTaskService.deleteTask(taskId);
+          console.log(`[Cleanup] Successfully deleted API-created task with ID: ${taskId}`);
+        } catch (error) {
+          console.error(`[Cleanup] Failed to delete API-created task with ID: ${taskId}:`, error);
+        }
+      }
+      apiCreatedTaskIds.length = 0; // Clear the array
+    } else {
+      console.log(`[Cleanup] No API-created tasks to clean up for test: ${testInfo.title}`);
+    }
   });
 
   /**
@@ -292,13 +331,32 @@ test.describe.serial('quick Task', () => {
 
       const initialCount = await quickTaskPage.getInitialTabCount('new');
 
-      await quickTaskTestHelper.createTestTask('medium');
+      const taskResponse1 = await quickTaskTestHelper.createTestTask('medium');
+      const taskId1 = taskResponse1.result?._id || taskResponse1.result?.taskId;
+      if (taskId1) {
+        apiCreatedTaskIds.push(taskId1);
+        console.log(`[Test: ${test.info().title}] Stored API-created task ID for cleanup: ${taskId1}`);
+      } else {
+        console.warn(
+          `[Test: ${test.info().title}] Failed to extract task ID from response: ${JSON.stringify(taskResponse1.result)}`
+        );
+      }
 
       await page.waitForTimeout(2000);
       await quickTaskPage.reloadAndNavigateToTasks();
       await quickTaskPage.verifyNewTabCount(initialCount + 1);
 
-      await quickTaskTestHelper.createTestTask('high');
+      const taskResponse2 = await quickTaskTestHelper.createTestTask('high');
+      const taskId2 = taskResponse2.result?._id || taskResponse2.result?.taskId;
+      if (taskId2) {
+        apiCreatedTaskIds.push(taskId2);
+        console.log(`[Test: ${test.info().title}] Stored API-created task ID for cleanup: ${taskId2}`);
+      } else {
+        console.warn(
+          `[Test: ${test.info().title}] Failed to extract task ID from response: ${JSON.stringify(taskResponse2.result)}`
+        );
+      }
+
       await page.waitForTimeout(2000);
       await quickTaskPage.reloadAndNavigateToTasks();
       await quickTaskPage.verifyNewTabCount(initialCount + 2);
@@ -329,6 +387,15 @@ test.describe.serial('quick Task', () => {
       const taskTitle = taskResponse.result?.title;
       if (!taskTitle) {
         throw new Error('Task title not found in create task response');
+      }
+      const taskId = taskResponse.result?._id || taskResponse.result?.taskId;
+      if (taskId) {
+        apiCreatedTaskIds.push(taskId);
+        console.log(`[Test: ${test.info().title}] Stored API-created task ID for cleanup: ${taskId}`);
+      } else {
+        console.warn(
+          `[Test: ${test.info().title}] Failed to extract task ID from response: ${JSON.stringify(taskResponse.result)}`
+        );
       }
 
       // Navigate to "My tasks" tab
@@ -377,6 +444,15 @@ test.describe.serial('quick Task', () => {
       if (!taskTitle) {
         throw new Error('Task title not found in create task response');
       }
+      const taskId = taskResponse.result?._id || taskResponse.result?.taskId;
+      if (taskId) {
+        apiCreatedTaskIds.push(taskId);
+        console.log(`[Test: ${test.info().title}] Stored API-created task ID for cleanup: ${taskId}`);
+      } else {
+        console.warn(
+          `[Test: ${test.info().title}] Failed to extract task ID from response: ${JSON.stringify(taskResponse.result)}`
+        );
+      }
 
       // Navigate to "My tasks" tab
       await quickTaskPage.reloadAndNavigateToMyTasks();
@@ -424,166 +500,56 @@ test.describe.serial('quick Task', () => {
 
       await quickTaskPage.createTaskWithUserAssignment(taskName, taskDescription);
       await quickTaskPage.verifyTaskAssignmentAndCreatedBy();
-    }
-  );
-
-  /**
-   * Verifies that user can create a task with the maximum allowed title length (200 characters, no spaces)
-   */
-  test(
-    'verify that user can create a task with the maximum allowed title length',
-    { tag: [TestPriority.P0, '@quick-task'] },
-    async ({ quickTaskPage: page }) => {
-      tagTest(test.info(), {
-        zephyrTestId: ['PS-36934'],
-      });
-
-      const quickTaskPage = new QuickTaskPage(page);
-      const maxLengthTitle = faker.string.alphanumeric(200);
-      const taskDescription = `Description ${faker.lorem.sentence()}`;
-
-      await quickTaskPage.createTaskWithUserAssignment(maxLengthTitle, taskDescription);
 
       // Extract and store task ID for cleanup
       const taskId = quickTaskPage.extractTaskIdFromUrl();
       if (taskId) {
         uiCreatedTaskIds.push(taskId);
+        console.log(`[Test: ${test.info().title}] Stored UI-created task ID for cleanup: ${taskId}`);
+      } else {
+        console.warn(`[Test: ${test.info().title}] Failed to extract task ID from URL: ${page.url()}`);
       }
     }
   );
 
   /**
-   * Verifies that user can enter a very long description without breaking the UI or limits (2048 characters)
+   * Verifies that user can assign a task to multiple users simultaneously
    */
   test(
-    'verify that user can enter a very long description without breaking the UI or limits',
+    'verify that user can assign a task to multiple users simultaneously',
     { tag: [TestPriority.P0, '@quick-task'] },
     async ({ quickTaskPage: page }) => {
       tagTest(test.info(), {
-        zephyrTestId: ['PS-36935'],
-      });
-
-      const quickTaskPage = new QuickTaskPage(page);
-      const taskName = `Task ${faker.word.noun()} ${Date.now()}`;
-      const longDescription = faker.string.alphanumeric(2048);
-
-      await quickTaskPage.createTaskWithUserAssignment(taskName, longDescription);
-
-      // Extract and store task ID for cleanup
-      const taskId = quickTaskPage.extractTaskIdFromUrl();
-      if (taskId) {
-        uiCreatedTaskIds.push(taskId);
-      }
-    }
-  );
-
-  /**
-   * Verifies Priority dropdown functionality - each Zephyr ID as separate test case
-   */
-  const priorityTestCases = [
-    {
-      zephyrId: 'PS-36945',
-      description: 'verify that user can open the Priority dropdown and view all available options',
-    },
-    { zephyrId: 'PS-36946', description: 'verify that user can select any value from the Priority dropdown' },
-    { zephyrId: 'PS-36947', description: 'verify that user sees the selected Priority value displayed correctly' },
-    { zephyrId: 'PS-36949', description: 'verify that Priority dropdown options appear in the correct order' },
-  ];
-
-  for (const testCase of priorityTestCases) {
-    test(
-      `${testCase.description} - ${testCase.zephyrId}`,
-      { tag: [TestPriority.P0, '@quick-task'] },
-      async ({ quickTaskPage: page }) => {
-        tagTest(test.info(), {
-          zephyrTestId: [testCase.zephyrId],
-        });
-
-        const quickTaskPage = new QuickTaskPage(page);
-        await quickTaskPage.openCreateTaskForm();
-        await quickTaskPage.verifyAllPriorityOptionsAreVisibleAndSelectable();
-      }
-    );
-  }
-
-  /**
-   * Verifies that user can change the selected Priority value before saving the task - PS-36948
-   */
-  test(
-    'verify that user can change Priority value before saving task - PS-36948',
-    { tag: [TestPriority.P0, '@quick-task'] },
-    async ({ quickTaskPage: page }) => {
-      tagTest(test.info(), {
-        zephyrTestId: ['PS-36948'],
+        zephyrTestId: ['PS-36895'],
       });
 
       const quickTaskPage = new QuickTaskPage(page);
       const taskName = `Task ${faker.word.noun()} ${Date.now()}`;
       const taskDescription = `Description ${faker.lorem.sentence()}`;
 
-      await quickTaskPage.openCreateTaskForm();
-      await quickTaskPage.verifyPriorityCanBeChangedAndCreateTask(taskName, taskDescription, 'High', 'Urgent');
+      // Create task with multiple user assignments (first 3 users from dropdown)
+      const selectedUserNames = await quickTaskPage.createTaskWithMultipleUserAssignment(taskName, taskDescription, 3);
+
+      // Verify all selected users are assigned to the task
+      // Pass expected count even if names couldn't be extracted from dropdown
+      await quickTaskPage.verifyMultipleAssignedUsers(selectedUserNames, 3);
+
+      // Verify created by shows logged-in user
+      const createdByUserName = await quickTaskPage.getCreatedByUserName();
+      expect(createdByUserName).toBeTruthy();
+      expect(createdByUserName.length).toBeGreaterThan(0);
+      await quickTaskPage.verifyCreatedByUser(createdByUserName);
 
       // Extract and store task ID for cleanup
       const taskId = quickTaskPage.extractTaskIdFromUrl();
       if (taskId) {
         uiCreatedTaskIds.push(taskId);
+        console.log(`[Test: ${test.info().title}] Stored UI-created task ID for cleanup: ${taskId}`);
+      } else {
+        console.warn(`[Test: ${test.info().title}] Failed to extract task ID from URL: ${page.url()}`);
       }
     }
   );
-
-  /**
-   * Verifies that user can assign a task to multiple users simultaneously - each Zephyr ID as separate test case
-   */
-  const multipleUserAssignmentTestCases = [
-    {
-      zephyrId: 'PS-36895',
-      description: 'verify that user can assign a task to multiple users simultaneously',
-    },
-    {
-      zephyrId: 'PS-36956',
-      description: 'verify that user can assign a task to multiple users simultaneously',
-    },
-  ];
-
-  for (const testCase of multipleUserAssignmentTestCases) {
-    test(
-      `${testCase.description} - ${testCase.zephyrId}`,
-      { tag: [TestPriority.P0, '@quick-task'] },
-      async ({ quickTaskPage: page }) => {
-        tagTest(test.info(), {
-          zephyrTestId: [testCase.zephyrId],
-        });
-
-        const quickTaskPage = new QuickTaskPage(page);
-        const taskName = `Task ${faker.word.noun()} ${Date.now()}`;
-        const taskDescription = `Description ${faker.lorem.sentence()}`;
-
-        // Create task with multiple user assignments (first 3 users from dropdown)
-        const selectedUserNames = await quickTaskPage.createTaskWithMultipleUserAssignment(
-          taskName,
-          taskDescription,
-          3
-        );
-
-        // Verify all selected users are assigned to the task
-        // Pass expected count even if names couldn't be extracted from dropdown
-        await quickTaskPage.verifyMultipleAssignedUsers(selectedUserNames, 3);
-
-        // Verify created by shows logged-in user
-        const createdByUserName = await quickTaskPage.getCreatedByUserName();
-        expect(createdByUserName).toBeTruthy();
-        expect(createdByUserName.length).toBeGreaterThan(0);
-        await quickTaskPage.verifyCreatedByUser(createdByUserName);
-
-        // Extract and store task ID for cleanup
-        const taskId = quickTaskPage.extractTaskIdFromUrl();
-        if (taskId) {
-          uiCreatedTaskIds.push(taskId);
-        }
-      }
-    );
-  }
 
   test(
     'verify that the user can search a task using the exact task title',

@@ -188,6 +188,68 @@ test.describe(
       }
     );
 
+    test(
+      `verify Active social campaigns metric data validation for period as ${periodFilterTimeRange}`,
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@social-campaigns'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'To verify the answer of Social campaigns in Social Interaction dashboard',
+          zephyrTestId: 'DE-27795',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue =
+          await socialInteractionQueryHelper.getActiveSocialCampaignCountDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
+        const socialCampaignsMetric = testEnvironment.socialInteractionDashboard.socialCampaigns;
+        await socialCampaignsMetric.verifyMetricIsLoaded();
+        await socialCampaignsMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      `verify Participant engagement activity CSV download and validation for period as ${periodFilterTimeRange}`,
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.REGRESSION,
+          TestCaseType.CSV_VALIDATION,
+          '@participant-engagement-activity-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Participant engagement activity in Social Interaction dashboard',
+          zephyrTestId: 'DE-27869',
+          storyId: 'DE-25775',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const participantEngagementActivity = testEnvironment.socialInteractionDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyCSVDataMatchesWithDBData(
+          participantEngagementActivityData,
+          testFiltersConfig
+        );
+      }
+    );
+
     // Tabular data validations
     test(
       `verify social campaign shares tabular data validation for period as ${periodFilterTimeRange}`,
@@ -220,12 +282,15 @@ test.describe(
       `verify Least engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, TestCaseType.TABULAR_METRIC, '@least-engaged-by-department'],
+        annotation: { type: 'known_failure', description: 'DE-27645' },
       },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Least engaged by Department in Social Interaction dashboard',
           zephyrTestId: 'DE-27866',
           storyId: 'DE-25760',
+          isKnownFailure: true,
+          bugTicket: 'DE-27645',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -278,12 +343,15 @@ test.describe(
       `verify Most engaged by Department tabular data validation for period as ${periodFilterTimeRange}`,
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, TestCaseType.TABULAR_METRIC, '@most-engaged-by-department'],
+        annotation: { type: 'known_failure', description: 'DE-27645' },
       },
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Most engaged by Department in Social Interaction dashboard',
           zephyrTestId: 'DE-27863',
           storyId: 'DE-25757',
+          isKnownFailure: true,
+          bugTicket: 'DE-27645',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -309,6 +377,7 @@ test.describe(
           TestCaseType.CSV_VALIDATION,
           '@most-engaged-by-department-csv',
         ],
+        annotation: { type: 'known_failure', description: 'DE-27645' },
       },
       async () => {
         tagTest(test.info(), {
@@ -316,6 +385,8 @@ test.describe(
             'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard',
           zephyrTestId: 'DE-27872',
           storyId: 'DE-25767',
+          isKnownFailure: true,
+          bugTicket: 'DE-27645',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;

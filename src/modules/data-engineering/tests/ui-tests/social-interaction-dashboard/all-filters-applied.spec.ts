@@ -199,6 +199,69 @@ test.describe(
       }
     );
 
+    test(
+      'verify Active social campaigns metric data validation with all filters applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@social-campaigns'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Social campaigns in Social Interaction dashboard with all filters applied',
+          zephyrTestId: 'DE-27793',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue =
+          await socialInteractionQueryHelper.getActiveSocialCampaignCountDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
+        const socialCampaignsMetric = testEnvironment.socialInteractionDashboard.socialCampaigns;
+        await socialCampaignsMetric.verifyMetricIsLoaded();
+        await socialCampaignsMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Participant engagement activity CSV download and validation with all filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@participant-engagement-activity-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Participant engagement activity in Social Interaction dashboard with all filters applied',
+          zephyrTestId: 'DE-27867',
+          storyId: 'DE-25775',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const participantEngagementActivity = testEnvironment.socialInteractionDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyCSVDataMatchesWithDBData(
+          participantEngagementActivityData,
+          testFiltersConfig
+        );
+      }
+    );
+
     // Tabular data validations
     test(
       'verify social campaign shares tabular data validation with all filters applied',
