@@ -43,6 +43,7 @@ export enum IntegrationsSuiteTags {
   JIRA_APPTILES = '@jiraAppTiles',
   GOOGLE_CALENDAR_NATIVE_TILES = '@googleCalendarNativeTiles',
   APPS_PAGE = '@appsPage',
+  CONTAINER = '@containerComponent',
 }
 
 export enum IntegrationsFeatureTags {
