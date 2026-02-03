@@ -8,75 +8,36 @@ import { AddTopicComponent } from '@/src/modules/content/ui/components/addTopicC
 import { EditTopicComponent } from '@/src/modules/content/ui/components/editTopicComponent';
 import { ManageTopicsComponent } from '@/src/modules/content/ui/components/manageTopicsComponent';
 
-export interface IManageTopicsPageActions {
-  clickOnAddTopic: () => Promise<void>;
-  createTopic: (topicName: string) => Promise<string>;
-  createDuplicateTopic: (topicName: string) => Promise<void>;
-  clickOnEditTopic: () => Promise<void>;
-  fillTopicName: (topicName: string) => Promise<void>;
-  clickOnAddButton: () => Promise<string>;
-  editTopicName: (topicName: string) => Promise<void>;
-  clickOnUpdateButton: () => Promise<void>;
-  searchingTopicInSearchBar: (topicName: string) => Promise<void>;
-  openingSearchedTopic: (topicName: string) => Promise<void>;
-  clickOnDeleteTopic: () => Promise<void>;
-  clickCancelButton: () => Promise<void>;
-  clickDeleteConfirmButton: () => Promise<void>;
-  getTopicNameFromList: () => Promise<string>;
-  clickOnFollowTopic: () => Promise<void>;
-  clickOnUnfollowTopic: () => Promise<void>;
-  openTopicOptionsDropdown: () => Promise<void>;
-  editTopic: (topicName: string) => Promise<void>;
-  deleteTopic: () => Promise<void>;
-  clickOnMergeTopic: () => Promise<void>;
-  fillMergeTopicName: (topicName: string) => Promise<void>;
-  clickMergeConfirmButton: () => Promise<void>;
-  mergeTopic: (targetTopicName: string) => Promise<void>;
-}
-
-export interface IManageTopicsPageAssertions {
-  verifyErroToastMessage: () => Promise<void>;
-  verifyToastMessage: (expectedMessage: string) => Promise<void>;
-  verifyingTheSearhcedTopicIsVisible: (topicName: string) => Promise<void>;
-  verifyingNothingToShowHereText: () => Promise<void>;
-  verifyDeleteTopicPopupIsVisible: () => Promise<void>;
-  verifyTopicIsVisible: (topicName: string) => Promise<void>;
-  verifyTopicIsNotVisible: (topicName: string) => Promise<void>;
-  verifyFollowOptionIsVisible: () => Promise<void>;
-  verifyUnfollowOptionIsVisible: () => Promise<void>;
-  verifyTopicListIsVisible: () => Promise<void>;
-  verifyTopicAppearsAtTop: (topicName: string) => Promise<void>;
-  searchAndVerifyMultipleTopics: (topicNames: string[]) => Promise<void>;
-}
-export class ManageTopicsPage extends BasePage implements IManageTopicsPageActions, IManageTopicsPageAssertions {
+export class ManageTopicsPage extends BasePage {
   private manageTopicsComponent: ManageTopicsComponent;
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
-  readonly searchingTopic: Locator = this.page.locator('[aria-label="Search topics…"]');
-  readonly verifiedTheSearhcedTopic: Locator = this.page.locator('[data-testid="dataGridRow"]').first();
-  readonly clickingOnSearchButton: Locator = this.page.locator('.SearchField-submit');
-  readonly nothingToShowHereText: Locator = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
-  readonly clickingOnCrossSearchButton: Locator = this.page.locator('[aria-label="Clear"]');
-  readonly paginationControls: Locator = this.page
-    .locator('[aria-label*="pagination"], [data-testid*="pagination"], .Pagination, button[aria-label*="page"]')
-    .first();
-  readonly listOfTopic: Locator = this.page.locator('td.Table-cell div a');
+  readonly searchingTopic: Locator;
+  readonly verifiedTheSearhcedTopic: (topicName: string) => Locator;
+  readonly clickingOnSearchButton: Locator;
+  readonly nothingToShowHereText: Locator;
+  readonly clickingOnCrossSearchButton: Locator;
+  readonly paginationControls: Locator;
+  readonly listOfTopic: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.MANAGE_TOPICS_SCREEN);
     this.manageTopicsComponent = new ManageTopicsComponent(page);
     this.addTopicComponent = new AddTopicComponent(page);
     this.editTopicComponent = new EditTopicComponent(page);
-  }
 
-  get actions(): IManageTopicsPageActions {
-    return this;
+    // Initialize locators
+    this.searchingTopic = this.page.locator('[aria-label="Search topics…"]');
+    this.verifiedTheSearhcedTopic = (topicName: string) =>
+      this.page.locator('[data-testid="dataGridRow"]').filter({ hasText: topicName }).first();
+    this.clickingOnSearchButton = this.page.locator('.SearchField-submit');
+    this.nothingToShowHereText = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
+    this.clickingOnCrossSearchButton = this.page.locator('[aria-label="Clear"]');
+    this.paginationControls = this.page
+      .locator('[aria-label*="pagination"], [data-testid*="pagination"], .Pagination, button[aria-label*="page"]')
+      .first();
+    this.listOfTopic = this.page.locator('td.Table-cell div a');
   }
-
-  get assertions(): IManageTopicsPageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify manage topics page is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.manageTopicsComponent.manageTopicsHeading, {
@@ -135,6 +96,9 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
     );
   }
 
+  async clearSearchBar(): Promise<void> {
+    await this.clickOnElement(this.clickingOnCrossSearchButton);
+  }
   async fillTopicName(topicName: string): Promise<void> {
     await this.addTopicComponent.fillTopicName(topicName);
   }
@@ -167,7 +131,7 @@ export class ManageTopicsPage extends BasePage implements IManageTopicsPageActio
 
   async verifyingTheSearhcedTopicIsVisible(topicName: string): Promise<void> {
     await test.step(`Verifying topic "${topicName}" is visible in search results`, async () => {
-      const topicLocator = this.verifiedTheSearhcedTopic.filter({ hasText: topicName });
+      const topicLocator = this.verifiedTheSearhcedTopic(topicName);
       await this.verifier.verifyTheElementIsVisible(topicLocator, {
         assertionMessage: `Topic "${topicName}" should be visible in search results`,
       });

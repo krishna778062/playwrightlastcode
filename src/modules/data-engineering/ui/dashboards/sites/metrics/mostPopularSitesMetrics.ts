@@ -12,8 +12,8 @@ import { FileUtil } from '@/src/core/utils/fileUtil';
 
 export enum MostPopularSitesColumns {
   SITE_NAME = 'Site name',
-  SITE_TYPE = 'Site Type',
-  POPULARITY_SCORE = 'Popularity Score',
+  SITE_TYPE = 'Site type',
+  POPULARITY_SCORE = 'Popularity score',
 }
 
 // Re-export the type for convenience
@@ -43,10 +43,14 @@ export class MostPopularSitesMetrics extends BaseSitesTabularMetric {
    * Handles all CSV validation logic internally including data transformation
    * @param snowflakeDataArray - Raw database data from Snowflake
    * @param selectedPeriod - Selected period filter for validation
+   * @param customStartDate - Optional custom start date (required for CUSTOM period)
+   * @param customEndDate - Optional custom end date (required for CUSTOM period)
    */
   async verifyCSVDataMatchesWithSnowflakeData(
     snowflakeDataArray: MostPopularSitesData[],
-    selectedPeriod: string
+    selectedPeriod: string,
+    customStartDate?: string,
+    customEndDate?: string
   ): Promise<void> {
     await this.verifyDataIsLoaded();
     const { filePath } = await this.downloadDataAsCSV();
@@ -109,6 +113,8 @@ export class MostPopularSitesMetrics extends BaseSitesTabularMetric {
         expectedDBData: transformedDataForValidation as any,
         metricName: 'Most popular',
         selectedPeriod: selectedPeriod,
+        customStartDate: customStartDate,
+        customEndDate: customEndDate,
         expectedHeaders: ['Site name', 'Popularity score', 'Views', 'Likes', 'Replies', 'Shares', 'Posts'],
         transformations: {
           headerMapping: {

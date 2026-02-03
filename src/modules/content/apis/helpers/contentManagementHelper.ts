@@ -12,11 +12,11 @@ import {
 } from '@/src/modules/content/apis/services/ContentManagementService';
 import { ImageUploaderService } from '@/src/modules/content/apis/services/ImageUploaderService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
-import { ContentSortBy, DateField } from '@/src/modules/content/constants';
+import { ContentSortBy } from '@/src/modules/content/constants';
 import { MustReadAudienceType, MustReadDuration } from '@/src/modules/content/constants/enums/mustRead';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { MANAGE_CONTENT_TEST_DATA } from '@/src/modules/content/test-data/manage-content.test-data';
 import { EnterpriseSearchHelper } from '@/src/modules/global-search/apis/helpers/enterpriseSearchHelper';
-import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 interface Content {
   siteId: string;
@@ -46,18 +46,19 @@ export class ContentManagementHelper {
    * @returns Promise with siteId and contentId
    */
   async getContentId(options?: {
+    siteId?: string;
     size?: number;
     status?: string;
     sortBy?: string;
     accessType?: SITE_TYPES;
-  }): Promise<{ siteId: string; contentId: string; contentType: string }> {
+  }): Promise<{ siteId: string; contentId: string; contentType: string; pageName?: string }> {
     // Default to 'public' if not specified
     const accessType = options?.accessType || SITE_TYPES.PUBLIC;
     const response = await this.contentManagementService.getContentList(options);
 
     if (response.result?.listOfItems && response.result.listOfItems.length > 0) {
       // Filter content by site access type
-      const filteredContent = response.result.listOfItems.filter((content: any) => {
+      let filteredContent = response.result.listOfItems.filter((content: any) => {
         const site = content.site;
         const siteAccess = site.access?.toLowerCase() || '';
 
@@ -71,6 +72,10 @@ export class ContentManagementHelper {
         return true; // If accessType doesn't match, return all content
       });
 
+      if (options?.siteId) {
+        filteredContent = response.result.listOfItems.filter((content: any) => content.site.siteId === options.siteId);
+      }
+
       if (filteredContent.length > 0) {
         const randomIndex = Math.floor(Math.random() * filteredContent.length);
         const randomContent = filteredContent[randomIndex];
@@ -78,6 +83,7 @@ export class ContentManagementHelper {
           siteId: randomContent.site.siteId,
           contentId: randomContent.contentId || randomContent.id,
           contentType: randomContent.type,
+          pageName: randomContent.title,
         };
       }
     }
@@ -110,7 +116,7 @@ export class ContentManagementHelper {
       siteId,
       contentInfo: {
         contentType: 'page',
-        contentSubType: 'general',
+        contentSubType: 'news',
       },
       options: {
         waitForSearchIndex: false,
@@ -121,6 +127,7 @@ export class ContentManagementHelper {
       siteId: pageResult.siteId,
       contentId: pageResult.contentId,
       contentType: 'page',
+      pageName: pageResult.pageName,
     };
   }
 
@@ -226,7 +233,7 @@ export class ContentManagementHelper {
         siteId,
         contentInfo: {
           contentType: 'page',
-          contentSubType: 'general',
+          contentSubType: 'news',
         },
         options: {
           waitForSearchIndex: false,
@@ -261,101 +268,59 @@ export class ContentManagementHelper {
     sortBy: ContentSortBy,
     options?: { size?: number; filter?: string; status?: string; contribution?: string }
   ): Promise<string[] | null> {
-    const size = options?.size || 1000;
+    const size = options?.size || 16;
     const filter = options?.filter || 'owned';
     const status = options?.status || 'published';
     const contribution = options?.contribution || 'all';
 
     const siteListResponse = await this.contentManagementService.getContentList({
-      sortBy: sortBy,
-      size: size,
-      filter: filter, // Match curl command parameter
-      status: status, // Match curl command parameter
-      contribution: contribution,
+      sortBy,
+      size,
+      filter,
+      status,
+      contribution,
     });
 
-    // Determine which date field to use based on sort type
-    let dateField: DateField;
-    if (sortBy === ContentSortBy.PUBLISHED_NEWEST || sortBy === ContentSortBy.PUBLISHED_OLDEST) {
-      dateField = DateField.PUBLISH_AT; // API returns publishAt field
-    } else if (sortBy === ContentSortBy.MODIFIED_NEWEST || sortBy === ContentSortBy.MODIFIED_OLDEST) {
-      dateField = DateField.MODIFIED_AT; // Use 'modifiedAt' for modified sorts
-    } else {
-      dateField = DateField.CREATED_AT;
-    }
+    // Map sort type to date field
+    const dateFieldMap: Record<string, 'publishAt' | 'modifiedAt' | 'createdAt'> = {
+      [ContentSortBy.PUBLISHED_NEWEST]: 'publishAt',
+      [ContentSortBy.PUBLISHED_OLDEST]: 'publishAt',
+      [ContentSortBy.MODIFIED_NEWEST]: 'modifiedAt',
+      [ContentSortBy.MODIFIED_OLDEST]: 'modifiedAt',
+    };
+    const dateField = dateFieldMap[sortBy] || 'createdAt';
 
-    // Get all items from the API response
-    const items = siteListResponse.result.listOfItems;
+    // Get items from API response (limit to 16 to match UI page size)
+    const items = siteListResponse.result.listOfItems.slice(0, 16);
 
-    // Extract dates from items (limit to last 16-17 items)
-    const dates: string[] = [];
-    const maxItems = Math.min(items.length, 17); // Get up to 17 items
+    // Helper to format date to local YYYY-MM-DD string
+    const toLocalDateString = (date: Date): string =>
+      `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-    for (let i = 0; i < maxItems; i++) {
-      const item = items[i];
-      let targetDate: string;
+    // Calculate today and yesterday strings once (using local timezone to match UI)
+    const now = new Date();
+    const todayStr = toLocalDateString(now);
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = toLocalDateString(yesterday);
 
-      if (dateField === DateField.CREATED_AT) {
-        targetDate = item.createdAt;
-      } else if (dateField === DateField.PUBLISH_AT) {
-        targetDate = item.publishAt;
-      } else if (dateField === DateField.MODIFIED_AT) {
-        targetDate = item.modifiedAt;
-      } else {
-        continue;
-      }
+    const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
 
-      if (targetDate) {
-        // Extract date directly from ISO string (YYYY-MM-DD) to avoid timezone conversion
-        // API returns: "2025-11-30T23:59:00.000Z" -> extract "2025-11-30"
-        const dateUTCString = targetDate.split('T')[0];
-
-        // Validate the date string format
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateUTCString)) {
-          console.warn(`Invalid date string format: ${targetDate}`);
-          continue;
-        }
-
-        // Get today and yesterday dates using local timezone to match UI behavior
-        // The UI uses the browser's local timezone to determine "Today" vs "Yesterday"
-        const now = new Date();
-        // Convert API UTC date to local date for comparison
+    // Extract and format dates from items
+    const dates = items
+      .map(item => item[dateField] as string)
+      .filter((date): date is string => !!date)
+      .map(targetDate => {
         const apiDate = new Date(targetDate);
-        const apiLocalDateString = `${apiDate.getFullYear()}-${String(apiDate.getMonth() + 1).padStart(2, '0')}-${String(apiDate.getDate()).padStart(2, '0')}`;
+        const apiDateStr = toLocalDateString(apiDate);
 
-        // Get today's local date string
-        const todayLocalDateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        // Check for Today/Yesterday using local timezone (matches UI behavior)
+        if (apiDateStr === todayStr) return 'Today';
+        if (apiDateStr === yesterdayStr) return 'Yesterday';
 
-        // Get yesterday's local date string
-        const yesterday = new Date(now);
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayLocalDateString = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
-
-        // Debug: Log comparison for debugging
-        console.log(
-          `Item ${i}: Comparing apiLocalDateString="${apiLocalDateString}" with todayLocalDateString="${todayLocalDateString}" and yesterdayLocalDateString="${yesterdayLocalDateString}" (UTC: dateUTCString="${dateUTCString}")`
-        );
-
-        // Check if the date is today using local date string comparison
-        // This matches the UI behavior which uses local timezone
-        if (apiLocalDateString === todayLocalDateString) {
-          dates.push('Today');
-        }
-        // Check if the date is yesterday using local date string comparison
-        else if (apiLocalDateString === yesterdayLocalDateString) {
-          dates.push('Yesterday');
-        }
-        // For other dates, return formatted date using UTC components
-        else {
-          const monthNames = MANAGE_CONTENT_TEST_DATA.MONTH_NAMES;
-          // Parse the UTC date string (YYYY-MM-DD) to get exact date components
-          const [year, month, day] = dateUTCString.split('-').map(Number);
-          const formattedDate = `${monthNames[month - 1]} ${day}, ${year}`;
-          dates.push(formattedDate);
-        }
-      } else {
-      }
-    }
+        // Format other dates using local timezone to match UI display
+        return `${monthNames[apiDate.getMonth()]} ${apiDate.getDate()}, ${apiDate.getFullYear()}`;
+      });
 
     return dates.length > 0 ? dates : null;
   }
@@ -452,6 +417,8 @@ export class ContentManagementHelper {
       publishAt?: string;
       publishTo?: string;
       listOfTopics?: string[];
+      isRestricted?: boolean;
+      targetAudience?: string[];
     };
   }) {
     const { siteId, contentInfo, options = {} } = params;
@@ -486,6 +453,8 @@ export class ContentManagementHelper {
       ...(topicObjects.length > 0 && { listOfTopics: topicObjects }),
       ...(options.publishAt && { publishAt: options.publishAt }),
       ...(options.publishTo && { publishTo: options.publishTo }),
+      ...(options.isRestricted !== undefined && { isRestricted: options.isRestricted }),
+      ...(options.targetAudience && { targetAudience: options.targetAudience }),
     });
 
     if (options.waitForSearchIndex) {
@@ -705,6 +674,20 @@ export class ContentManagementHelper {
    */
   async getTopicList(size: number = 16, term: string = '', nextPageToken: number = 0) {
     return await this.contentManagementService.getTopicList();
+  }
+  async getTopicIdByName(topicName: string): Promise<string> {
+    const topicList = await this.contentManagementService.getTopicList();
+    const topic = topicList.result.listOfItems.find(t => t.name === topicName);
+    return topic?.topic_id || '';
+  }
+
+  async getTopicListWithName(topicName: string) {
+    const topicList = await this.contentManagementService.getTopicList();
+    const topic = topicList.result.listOfItems.find(t => t.name === topicName);
+    if (!topic) {
+      return topicList.result.listOfItems[0];
+    }
+    return topic;
   }
 
   /**
@@ -1155,14 +1138,12 @@ export class ContentManagementHelper {
   /**
    * Finds a site with a page category that has more than 16 pages, or creates pages to reach that count
    * @param options - Optional parameters
-   * @param options.minPageCount - Minimum page count required (default: 17)
-   * @param options.maxSitesToCheck - Maximum number of sites to check (default: 10)
+   * @param options.minPageCount - Minimum page count required (default: 18)
    * @returns Promise with site info, category info, and page count
    */
   async getSiteWithPageCategoryHavingMoreThan16Pages(
     options: {
       minPageCount?: number;
-      maxSitesToCheck?: number;
     } = {}
   ): Promise<{
     siteId: string;
@@ -1171,15 +1152,14 @@ export class ContentManagementHelper {
     categoryName: string;
     pageCount: number;
   }> {
-    const minPageCount = options.minPageCount ?? 17;
-    const maxSitesToCheck = options.maxSitesToCheck ?? 10;
+    const minPageCount = options.minPageCount ?? 18;
 
-    return await test.step(`Finding site with page category having more than ${minPageCount - 1} pages`, async () => {
+    return await test.step(`Finding site with page category having maximum pages (minimum required: ${minPageCount})`, async () => {
       // Get list of sites
       const sitesResponse = await this.siteManagementService.getListOfSites({
-        size: maxSitesToCheck,
+        size: 40,
         canManage: true,
-        filter: 'active',
+        filter: 'mySites',
       });
 
       if (!sitesResponse.result?.listOfItems || sitesResponse.result.listOfItems.length === 0) {
@@ -1193,7 +1173,7 @@ export class ContentManagementHelper {
         categoryName: string;
         pageCount: number;
       } | null = null;
-      let highestPageCount = 0;
+      let maxPageCount = 0;
 
       // Iterate through sites
       for (const site of sitesResponse.result.listOfItems) {
@@ -1217,25 +1197,13 @@ export class ContentManagementHelper {
             continue;
           }
 
-          // Find category with pageCount > minPageCount, or track the highest
+          // Find category with maximum page count across all sites and categories
           for (const category of categoriesResponse.result.listOfItems) {
             const pageCount = category.pageCount || 0;
 
-            // If we find one with more than minPageCount, use it immediately
-            if (pageCount >= minPageCount) {
-              log.info(`Found category with ${pageCount} pages in site ${siteName}`);
-              return {
-                siteId,
-                siteName,
-                categoryId: category.id,
-                categoryName: category.name,
-                pageCount,
-              };
-            }
-
-            // Track the category with highest page count
-            if (pageCount > highestPageCount) {
-              highestPageCount = pageCount;
+            // Track the category with maximum page count
+            if (pageCount > maxPageCount) {
+              maxPageCount = pageCount;
               bestCategory = {
                 siteId,
                 siteName,
@@ -1251,39 +1219,48 @@ export class ContentManagementHelper {
         }
       }
 
-      // If we found a category but it has <= minPageCount, create more pages
+      log.info(`Best category: ${JSON.stringify(bestCategory)}`);
+
       if (bestCategory) {
-        const pagesToCreate = minPageCount - bestCategory.pageCount;
-        log.info(
-          `Category "${bestCategory.categoryName}" in site "${bestCategory.siteName}" has ${bestCategory.pageCount} pages. Creating ${pagesToCreate} more pages.`
-        );
+        //now check published pages count inside the category
+        const publishedPages = await this.contentManagementService.getContentList({
+          siteId: bestCategory.siteId,
+          pageCategoryId: bestCategory.categoryId,
+          status: 'published',
+          type: 'page',
+          filter: 'managing',
+          sortBy: 'activityNewest',
+          contribution: 'all',
+        });
+        const publishedPagesCount = publishedPages.result?.listOfItems?.length || 0;
 
-        // Get the category info for creating pages
-        const pageCategory = {
-          categoryId: bestCategory.categoryId,
-          name: bestCategory.categoryName,
-        };
+        log.info(`Published pages count: ${publishedPagesCount}`);
 
-        // Create pages to reach minPageCount
-        for (let i = 0; i < pagesToCreate; i++) {
-          await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
-            title: `Test Page ${Date.now()}_${i}`,
-            bodyHtml: `<p>Auto-generated page for testing category with >16 pages</p>`,
-            contentType: 'page',
-            contentSubType: 'knowledge',
-            category: {
-              id: pageCategory.categoryId,
-              name: pageCategory.name,
-            },
-          });
+        if (publishedPagesCount < minPageCount) {
+          const pagesToCreate = minPageCount - publishedPagesCount;
+          log.info(
+            `Creating ${pagesToCreate} more pages for category ${bestCategory.categoryName} in site ${bestCategory.siteName}`
+          );
+          const pageCategory = {
+            categoryId: bestCategory.categoryId,
+            name: bestCategory.categoryName,
+          };
+
+          for (let i = 0; i < pagesToCreate; i++) {
+            await this.contentManagementService.addNewPageContent(bestCategory.siteId, {
+              title: `Test Page ${Date.now()}_${i}`,
+              bodyHtml: `<p>Auto-generated page for testing category with >18 pages</p>`,
+              contentType: 'page',
+              contentSubType: 'knowledge',
+              category: {
+                id: pageCategory.categoryId,
+                name: pageCategory.name,
+              },
+            });
+          }
+
+          bestCategory.pageCount = minPageCount;
         }
-
-        // Update page count
-        bestCategory.pageCount = minPageCount;
-
-        log.info(
-          `Created ${pagesToCreate} pages. Category "${bestCategory.categoryName}" now has ${bestCategory.pageCount} pages.`
-        );
 
         return bestCategory;
       }
@@ -1292,5 +1269,25 @@ export class ContentManagementHelper {
         `No page category found with at least ${minPageCount} pages after checking ${sitesResponse.result.listOfItems.length} sites.`
       );
     });
+  }
+
+  /**
+   * Uploads an intranet file to a site
+   * This method handles the complete file upload flow: getting signed URL, uploading file, and getting file details
+   * @param siteId - The site ID to upload the file to
+   * @param fileName - The name of the file to upload
+   * @param filePath - The local path to the file
+   * @param mimeType - The MIME type of the file (e.g., 'image/jpeg')
+   * @returns Promise with file details including fileInfo
+   */
+  async uploadIntranetFile(
+    siteId: string,
+    fileName: string,
+    filePath: string,
+    mimeType: string
+  ): Promise<{
+    fileInfo: any;
+  }> {
+    return await this.imageUploaderService.uploadIntranetFile(siteId, fileName, filePath, mimeType);
   }
 }

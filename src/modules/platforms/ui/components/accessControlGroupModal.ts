@@ -7,6 +7,7 @@ import {
   ACG_TOOLTIPS,
 } from '../../constants/acg';
 
+import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 
 export type AccessControlGroupModalMode = 'create' | 'edit' | 'view';
@@ -28,6 +29,13 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private featureSection: Locator;
   private targetAudienceSection: Locator;
   private backButton: Locator;
+  private browseUsersButton: Locator;
+  private addUsersButton: Locator;
+  private addUserDialog: Locator;
+  private userSearchInput: Locator;
+  private userSearchResult: (userName: string) => Locator;
+  private userRow: (userName: string) => Locator;
+  private doneButton: Locator;
 
   constructor(page: Page, accessControlGroupModalMode: AccessControlGroupModalMode) {
     super(page);
@@ -54,6 +62,14 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .locator('[class*="Spacing-module__divider"]')
       .filter({ hasText: 'Target audience' });
     this.backButton = this.acgDialog.getByRole('button', { name: 'Back' });
+    this.addUsersButton = this.acgDialog.getByRole('button', { name: 'Add users' });
+    this.browseUsersButton = this.acgDialog.getByRole('button', { name: 'Browse' });
+    this.addUserDialog = this.page.getByRole('dialog', { name: 'Users' });
+    this.userSearchInput = this.page.getByRole('combobox').first();
+    this.userSearchResult = (userName: string) => this.page.getByRole('menuitem', { name: `profile icon ${userName}` });
+    this.userRow = (userName: string) =>
+      this.page.locator('[class*="Spacing-module__divider__bvKBb"]').filter({ hasText: userName });
+    this.doneButton = this.addUserDialog.getByRole('button', { name: 'Done' });
   }
 
   /**
@@ -104,6 +120,18 @@ export class AccessControlGroupModalComponent extends BaseComponent {
       .locator('[class*="Spacing-module__row"]')
       .filter({ hasText: audienceName })
       .getByRole('button', { name: 'Remove audience' });
+    await this.clickOnElement(removeButtonElement);
+  }
+
+  /**
+   * Clicks the remove button for a specific audience or user on the access control group modal
+   *@param userName - The name of the user for which remove button need to be clicked
+   */
+  async clickOnRemoveButtonForUser(userName: string): Promise<void> {
+    const removeButtonElement = this.page
+      .locator('[class*="Spacing-module__row"]')
+      .filter({ hasText: userName })
+      .getByRole('button', { name: 'Remove user' });
     await this.clickOnElement(removeButtonElement);
   }
 
@@ -262,5 +290,61 @@ export class AccessControlGroupModalComponent extends BaseComponent {
    */
   async clickOnBackButton(): Promise<void> {
     await this.clickOnElement(this.backButton);
+  }
+
+  async isUserVisibleInList(userName: string): Promise<boolean> {
+    return await this.verifier.isTheElementVisible(this.userRow(userName), { timeout: TIMEOUTS.VERY_SHORT });
+  }
+
+  async removeUserIfPresentInList(userName: string): Promise<boolean> {
+    return await test.step(`Remove ${userName} from list if present`, async () => {
+      const isUserVisible = await this.isUserVisibleInList(userName);
+      if (isUserVisible) {
+        console.log('User is visible, removing user from list');
+        await this.clickOnRemoveButtonForUser(userName);
+        return true;
+      }
+      return false;
+    });
+  }
+
+  async isSummaryScreenAssetButtonEnabled(buttonName: string): Promise<boolean> {
+    return await this.verifier.isTheElementEnabled(this.summaryScreenAssetButtons(buttonName), {
+      timeout: TIMEOUTS.VERY_SHORT,
+    });
+  }
+
+  async clickOnEditButtonIfEnabled(assetName: string): Promise<boolean> {
+    return await test.step(`Click on ${assetName} edit button if enabled`, async () => {
+      const isEnabled = await this.isSummaryScreenAssetButtonEnabled(assetName);
+      if (isEnabled) {
+        await this.clickOnEditButtonOnSummaryScreen(assetName);
+        return true;
+      }
+      return false;
+    });
+  }
+
+  async addUserToList(userName: string): Promise<boolean> {
+    return await test.step(`Add ${userName} to list`, async () => {
+      const isUserAlreadyAdded = await this.isUserVisibleInList(userName);
+      if (isUserAlreadyAdded) {
+        return false;
+      }
+      const isBrowseButtonEnabled = await this.isSummaryScreenAssetButtonEnabled('Browse');
+      if (isBrowseButtonEnabled) {
+        await this.clickOnElement(this.browseUsersButton);
+      } else {
+        await this.clickOnElement(this.addUsersButton);
+      }
+
+      // Search for user in the user picker
+      await this.typeInElement(this.userSearchInput, userName);
+
+      await this.clickOnElement(this.userSearchResult(userName));
+
+      await this.clickOnElement(this.doneButton);
+      return true;
+    });
   }
 }

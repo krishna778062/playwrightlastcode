@@ -3,6 +3,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
+import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
@@ -16,7 +17,7 @@ import { SiteDashboardPage, SiteFeedPage } from '@/src/modules/content/ui/pages/
 test.describe(
   'feed Comments/Replies Visibility - Verify User can view 10 comments or replies on Feed detail page',
   {
-    tag: [ContentTestSuite.FEED_COMMENTS_REPLIES_VISIBILITY],
+    tag: [ContentTestSuite.FEED_COMMENTS_REPLIES_VISIBILITY, ContentTestSuite.FEED],
   },
   () => {
     let homeFeedPage: FeedPage;
@@ -73,7 +74,7 @@ test.describe(
     });
 
     test(
-      'home Dashboard Flow - Verify user can view 10 replies on Feed detail page',
+      'home Dashboard Flow - Verify user can view 10 replies on Feed detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -90,7 +91,7 @@ test.describe(
         await homeFeedPage.verifyThePageIsLoaded();
 
         // Click "Share your thoughts or questions"
-        await homeFeedPage.actions.clickShareThoughtsButton();
+        await homeFeedPage.clickShareThoughtsButton();
 
         // Create feed post via UI
         const feedTestData = TestDataGenerator.generateFeed({
@@ -99,14 +100,14 @@ test.describe(
           withAttachment: false,
           waitForSearchIndex: false,
         });
-        const postResult = await homeFeedPage.actions.createAndPost({
+        const postResult = await homeFeedPage.postEditor.createAndPost({
           text: feedTestData.text,
         });
         homeDashboardFeedId = postResult.postId || '';
         const createdPostText = feedTestData.text;
 
         // Wait for post to be visible
-        await homeFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await homeFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Add 11 replies via API
         const replyTexts: string[] = [];
@@ -120,30 +121,32 @@ test.describe(
 
         // Perform hard refresh
         await homeFeedPage.reloadPage();
-        await homeFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await homeFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Verify only 1 reply is visible
-        await homeFeedPage.assertions.verifyReplyCount(createdPostText, 1);
+        await homeFeedPage.feedList.verifyReplyCount(createdPostText, 1);
 
         // Click post timestamp to navigate to feed detail page
-        await homeFeedPage.actions.clickPostTimestamp(createdPostText);
+        await homeFeedPage.feedList.clickPostTimestamp(createdPostText);
 
         // Wait for feed detail page to load
-        await homeFeedPage.assertions.validatePostText(createdPostText);
+        await homeFeedPage.feedList.validatePostText(createdPostText);
 
         // Verify 10 replies visible + "Show more replies" button
-        await homeFeedPage.assertions.verifyReplyCount(createdPostText, 10);
+        await homeFeedPage.feedList.verifyReplyCount(createdPostText, 10);
 
         // Click "Show more replies"
-        await homeFeedPage.actions.clickLoadMoreRepliesButton();
+        await homeFeedPage.feedList.clickLoadMoreRepliesButton();
+
+        await homeFeedPage.feedList.waitForPostToBeVisible(replyTexts[0]);
 
         // Verify all 11 replies are visible
-        await homeFeedPage.assertions.verifyReplyCount(createdPostText, 11);
+        await homeFeedPage.feedList.verifyReplyCount(createdPostText, 11);
       }
     );
 
     test(
-      'site Dashboard Flow - Verify user can view 10 replies on Feed detail page',
+      'site Dashboard Flow - Verify user can view 10 replies on Feed detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -163,7 +166,7 @@ test.describe(
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
 
         // Click "Share your thoughts or questions"
-        await siteDashboardPage.actions.clickShareThoughtsButton();
+        await siteDashboardPage.clickShareThoughtsButton();
 
         // Create feed post via UI
         const feedTestData = TestDataGenerator.generateFeed({
@@ -172,14 +175,14 @@ test.describe(
           withAttachment: false,
           waitForSearchIndex: false,
         });
-        const postResult = await siteFeedPage.actions.createAndPost({
+        const postResult = await siteFeedPage.postEditor.createAndPost({
           text: feedTestData.text,
         });
         siteDashboardFeedId = postResult.postId || '';
         const createdPostText = feedTestData.text;
 
         // Wait for post to be visible
-        await siteFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Add 11 replies via API
         const replyTexts: string[] = [];
@@ -193,25 +196,26 @@ test.describe(
 
         // Perform hard refresh
         await siteFeedPage.reloadPage();
-        await siteFeedPage.assertions.waitForPostToBeVisible(createdPostText);
+        await siteFeedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Verify only 1 reply visible
-        await siteFeedPage.assertions.verifyReplyCount(createdPostText, 1);
+        await siteFeedPage.feedList.verifyReplyCount(createdPostText, 1);
 
         // Click timestamp to navigate to feed detail page
-        await siteFeedPage.actions.clickPostTimestamp(createdPostText);
+        await siteFeedPage.feedList.clickPostTimestamp(createdPostText);
 
         // Wait for feed detail page to load
-        await siteFeedPage.assertions.validatePostText(createdPostText);
+        await siteFeedPage.feedList.validatePostText(createdPostText);
 
         // Verify 10 replies + "Show more replies" button
-        await siteFeedPage.assertions.verifyReplyCount(createdPostText, 10);
+        await siteFeedPage.feedList.verifyReplyCount(createdPostText, 10);
 
         // Click "Show more replies"
-        await siteFeedPage.actions.clickLoadMoreRepliesButton();
+        await siteFeedPage.feedList.clickLoadMoreRepliesButton();
 
+        await siteFeedPage.feedList.waitForPostToBeVisible(replyTexts[0]);
         // Verify all replies visible
-        await siteFeedPage.assertions.verifyReplyCount(createdPostText, 11);
+        await siteFeedPage.feedList.verifyReplyCount(createdPostText, 11);
 
         // Navigate to Home feed dashboard
         await appManagerFixture.homePage.loadPage();
@@ -220,13 +224,13 @@ test.describe(
         await homeFeedPage.verifyThePageIsLoaded();
 
         // Verify site feed post appears with only 1 visible reply
-        await homeFeedPage.assertions.waitForPostToBeVisible(createdPostText);
-        await homeFeedPage.assertions.verifyReplyCount(createdPostText, 1);
+        await homeFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+        await homeFeedPage.feedList.verifyReplyCount(createdPostText, 1);
       }
     );
 
     test(
-      'content Feed Flow - Verify user can view comments on Content detail page',
+      'content Feed Flow - Verify user can view comments on Content detail page CONT-27691',
       {
         tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-27691'],
       },
@@ -292,33 +296,36 @@ test.describe(
         //  Verify feed post from content appears on home feed dashboard
         // Wait for the feed to appear by waiting for the most recent comment
         const mostRecentComment = commentTexts[commentTexts.length - 1];
-        await homeFeedPage.assertions.waitForPostToBeVisible(mostRecentComment);
+        await homeFeedPage.feedList.waitForPostToBeVisible(mostRecentComment);
 
         const secondRecentComment = commentTexts[commentTexts.length - 2];
 
         // Verify only 1 feed post (recent) is visible
         // The most recent comment should already be visible from step 5
-        await homeFeedPage.assertions.verifyPostIsNotVisible(secondRecentComment);
+        await homeFeedPage.feedList.verifyPostIsNotVisible(secondRecentComment);
 
         // Click "All Comments" from home feed dashboard
-        await contentPreviewPage.actions.clickAllCommentsLink();
+        await contentPreviewPage.clickAllCommentsLink();
 
         // Verify navigation to Content Detail Page
-        await contentPreviewPage.assertions.waitForPostToBeVisible(commentTexts[commentTexts.length - 1]);
+        await contentPreviewPage.waitForPostToBeVisible(commentTexts[commentTexts.length - 1]);
 
         // Verify 16 recent comments displayed
-        await contentPreviewPage.assertions.verifyCommentCount(16);
+        await contentPreviewPage.verifyCommentCount(16);
 
         // Click "Show more" button
-        await contentPreviewPage.actions.clickShowMoreCommentsButton();
+        await contentPreviewPage.clickShowMoreCommentsButton();
 
         // Verify User is able view the other Comments added to the Content (all 18 should be visible now)
-        await contentPreviewPage.assertions.verifyCommentCount(18);
+        await contentPreviewPage.verifyCommentCount(18);
       }
     );
 
+    /**
+     * Getting 400 error when user trying to create new site
+     */
     test(
-      'content Comments with Unpublish - Verify comments disappear after content unpublish',
+      'content Comments with Unpublish - Verify comments disappear after content unpublish CONT-19566',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-19566'],
       },
@@ -340,7 +347,8 @@ test.describe(
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.homePage.verifyThePageIsLoaded();
 
-        testSiteId = await standardUserApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        testSiteId =
+          await standardUserApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         const contentListResponse =
           await standardUserApiFixture.contentManagementHelper.contentManagementService.getContentList({
@@ -367,7 +375,7 @@ test.describe(
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
         await contentPreviewPage.verifyThePageIsLoaded();
 
-        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.clickShareThoughtsButton();
         const feedTestData1 = TestDataGenerator.generateFeed({
           scope: 'site',
           siteId: testSiteId,
@@ -378,7 +386,7 @@ test.describe(
         firstCommentText = feedTestData1.text;
 
         const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
-        await createFeedPostComponent.actions.createAndPost({
+        await createFeedPostComponent.createAndPost({
           text: firstCommentText,
           attachments: {
             files: [image1Path],
@@ -390,20 +398,20 @@ test.describe(
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         const homeFeedPage = new FeedPage(standardUserFixture.page);
         await homeFeedPage.verifyThePageIsLoaded();
-        await homeFeedPage.assertions.waitForPostToBeVisible(firstCommentText);
+        await homeFeedPage.feedList.waitForPostToBeVisible(firstCommentText);
 
         const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
         await siteFeedPage.loadPage({ stepInfo: 'Load site feed page' });
         await siteFeedPage.verifyThePageIsLoaded();
         const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
-        await siteFeedPageForAssertions.assertions.waitForPostToBeVisible(firstCommentText);
+        await siteFeedPageForAssertions.feedList.waitForPostToBeVisible(firstCommentText);
 
         // Click "All Comments" from site dashboard to open content detail page
-        await contentPreviewPage.actions.clickAllCommentsLink();
+        await contentPreviewPage.clickAllCommentsLink();
         await contentPreviewPage.verifyThePageIsLoaded();
 
         // Post 2nd comment with attachment on content detail page, then verify on home and site
-        await contentPreviewPage.actions.clickShareThoughtsButton();
+        await contentPreviewPage.clickShareThoughtsButton();
         const feedTestData2 = TestDataGenerator.generateFeed({
           scope: 'site',
           siteId: testSiteId,
@@ -413,7 +421,7 @@ test.describe(
         });
         secondCommentText = feedTestData2.text;
 
-        await createFeedPostComponent.actions.createAndPost({
+        await createFeedPostComponent.createAndPost({
           text: secondCommentText,
           attachments: {
             files: [image1Path],
@@ -424,11 +432,11 @@ test.describe(
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await homeFeedPage.verifyThePageIsLoaded();
-        await homeFeedPage.assertions.waitForPostToBeVisible(secondCommentText);
+        await homeFeedPage.feedList.waitForPostToBeVisible(secondCommentText);
 
         // Verify second comment on Site Feed
         await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed' });
-        await siteFeedPageForAssertions.assertions.waitForPostToBeVisible(secondCommentText);
+        await siteFeedPageForAssertions.feedList.waitForPostToBeVisible(secondCommentText);
 
         // As app manager, unpublish the content
         const adminContentPreviewPage = new ContentPreviewPage(
@@ -439,8 +447,8 @@ test.describe(
         );
         await adminContentPreviewPage.loadPage({ stepInfo: 'Admin: Load content preview page' });
         await adminContentPreviewPage.verifyThePageIsLoaded();
-        await adminContentPreviewPage.actions.unpublishingTheContent();
-        await adminContentPreviewPage.assertions.verifyUnpublishedContentToastMessage(
+        await adminContentPreviewPage.unpublishingTheContent();
+        await adminContentPreviewPage.verifyUnpublishedContentToastMessage(
           FEED_TEST_DATA.TOAST_MESSAGES.CONTENT_UNPUBLISHED
         );
 
@@ -448,12 +456,150 @@ test.describe(
         await standardUserFixture.homePage.loadPage();
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
         await homeFeedPage.verifyThePageIsLoaded();
-        await homeFeedPage.assertions.verifyPostIsNotVisible(firstCommentText);
-        await homeFeedPage.assertions.verifyPostIsNotVisible(secondCommentText);
+        await homeFeedPage.feedList.verifyPostIsNotVisible(firstCommentText);
+        await homeFeedPage.feedList.verifyPostIsNotVisible(secondCommentText);
 
         await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed after unpublish' });
-        await siteFeedPageForAssertions.assertions.verifyPostIsNotVisible(firstCommentText);
-        await siteFeedPageForAssertions.assertions.verifyPostIsNotVisible(secondCommentText);
+        await siteFeedPageForAssertions.feedList.verifyPostIsNotVisible(firstCommentText);
+        await siteFeedPageForAssertions.feedList.verifyPostIsNotVisible(secondCommentText);
+      }
+    );
+
+    test(
+      'content Comments and Replies with Deletion - Verify comments and replies disappear after content deletion',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19567'],
+      },
+      async ({ standardUserFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user can create comments with inline images and replies on content, validate visibility in feeds, and verify comments and replies disappear after content deletion',
+          zephyrTestId: 'CONT-19567',
+          storyId: 'CONT-19567',
+        });
+
+        let testSiteId: string = '';
+        let testContentId: string = '';
+        let testContentType: string = '';
+        let commentText: string = '';
+        let replyWithImageText: string = '';
+        let replyWithTextOnlyText: string = '';
+        let commentPostId: string = '';
+        const image1Path = FILE_TEST_DATA.IMAGES.IMAGE1.getPath(__dirname);
+
+        await test.step('Setup: Get site and content', async () => {
+          const publicSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+          testSiteId = publicSite.siteId;
+
+          const pageResponse = await appManagerApiFixture.contentManagementHelper.createPage({
+            siteId: testSiteId,
+            contentInfo: { contentType: 'page', contentSubType: 'news' },
+            options: { waitForSearchIndex: false },
+          });
+
+          testContentId = pageResponse.contentId;
+          testContentType = 'page';
+        });
+
+        // ==================== COMMENT CREATION WITH INLINE IMAGE ====================
+        await test.step('Create comment with inline image on content detail page', async () => {
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          await contentPreviewPage.clickShareThoughtsButton();
+          const feedTestData = TestDataGenerator.generateFeed({
+            scope: 'site',
+            siteId: testSiteId,
+            contentId: testContentId,
+            withAttachment: false,
+            waitForSearchIndex: false,
+          });
+          commentText = feedTestData.text;
+
+          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
+          const commentResult = await createFeedPostComponent.createAndPost({
+            text: commentText,
+            attachments: {
+              files: [image1Path],
+            },
+          });
+          commentPostId = commentResult.postId || '';
+
+          // Verify comment is visible on content detail page
+          await contentPreviewPage.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== VERIFY COMMENT IN FEEDS ====================
+        await test.step('Verify comment appears in and Site Feed', async () => {
+          // Verify comment on Site Feed
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Load site feed page' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.feedList.waitForPostToBeVisible(commentText);
+        });
+
+        // ==================== REPLY CREATION ====================
+        await test.step('Add replies to comment (one with image, one text-only)', async () => {
+          // Navigate back to content detail page
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page to add replies' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+          await contentPreviewPage.waitForPostToBeVisible(commentText);
+
+          // Generate reply texts
+          replyWithImageText = FEED_TEST_DATA.POST_TEXT.REPLY_WITH_IMAGE;
+          replyWithTextOnlyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+          // Add first reply with image
+          await contentPreviewPage.addReplyToCommentWithFile(replyWithImageText, commentPostId, image1Path);
+
+          // Verify first reply is visible
+          await contentPreviewPage.verifyReplyIsVisible(replyWithImageText);
+
+          // Add second reply with text only
+          await contentPreviewPage.clickReplyEditorForPost(commentText);
+          await contentPreviewPage.addReplyToContentComment(replyWithTextOnlyText);
+
+          // Verify second reply is visible
+          await contentPreviewPage.verifyReplyIsVisible(replyWithTextOnlyText);
+        });
+
+        // ==================== VERIFY REPLIES IN FEEDS ====================
+        await test.step('Verify replies appear in Site Feed, Home Feed, and content detail page', async () => {
+          // First verify replies on content detail page (where they were created)
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            testSiteId,
+            testContentId,
+            testContentType
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Navigate to content detail page to verify replies' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+          await contentPreviewPage.waitForPostToBeVisible(commentText);
+          await contentPreviewPage.clickLoadMoreRepliesButton();
+          await contentPreviewPage.verifyReplyIsVisible(replyWithImageText);
+          await contentPreviewPage.verifyReplyIsVisible(replyWithTextOnlyText);
+
+          // Verify replies on Site Feed
+          const siteFeedPage = new SiteFeedPage(standardUserFixture.page, testSiteId);
+          await siteFeedPage.loadPage({ stepInfo: 'Navigate to site feed to verify replies' });
+          await siteFeedPage.verifyThePageIsLoaded();
+          const siteFeedPageForAssertions = new FeedPage(standardUserFixture.page);
+          await siteFeedPageForAssertions.reloadPage();
+          await siteFeedPageForAssertions.feedList.waitForPostToBeVisible(commentText);
+        });
       }
     );
   }

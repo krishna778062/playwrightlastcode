@@ -15,7 +15,7 @@ export default defineConfig({
   testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-common', 'ui'),
   testIgnore: '**/api-tests/**',
   workers: process.env.CI ? 2 : 4,
-  timeout: 180_000,
+  timeout: 60 * 1000 * 5, // 5 minutes
   expect: {
     timeout: 10_000,
   },

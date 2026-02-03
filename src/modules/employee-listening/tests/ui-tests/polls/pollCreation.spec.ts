@@ -89,9 +89,9 @@ test.describe('aI Poll Creation Tests', () => {
       await aiPollCreationPage.enterManualPrompt('I want to ask my team what they want for team lunch');
       await aiPollCreationPage.generateButton.click();
 
+      await aiPollCreationPage.verifyPollQuestionAndOptionsLoadingState();
       await aiPollCreationPage.verifyLoadingStateIsShown();
       await aiPollCreationPage.verifyGenerateButtonLoadingState();
-      await aiPollCreationPage.verifyPollQuestionAndOptionsLoadingState();
       await aiPollCreationPage.verifyGeneratedPollLabelIsDisplayed();
       await aiPollCreationPage.verifyPollQuestionAndOptionsGenerated();
     }
@@ -283,7 +283,8 @@ test.describe('aI Poll Creation Tests', () => {
         storyId: 'EL-UI Automation',
       });
 
-      const futureDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
+      // Use current date + 15 days for testing purposes
+      const futureDate = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000); // Current date + 15 days
 
       await pollsListeningPage.clickCreatePollButton();
       await pollsHelper.addPoll({
@@ -457,7 +458,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
       await pollsListeningPage.clickCreatePollButton();
       await aiPollCreationPage.enterManualPrompt('e tt yu');
-      await aiPollCreationPage.generateButton.click();
+      await aiPollCreationPage.clickGenerateButton();
       await aiPollCreationPage.verifyInlineErrorMessage();
     }
   );
@@ -535,7 +536,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await aiPollCreationPage.verifyCharacterLimitCounter();
       await aiPollCreationPage.verifyCharacterCounterText('0/250');
 
@@ -575,7 +576,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await aiPollCreationPage.enterManualPollQuestion('What is your preferred work schedule?');
       await aiPollCreationPage.enterPollOption(0, 'Option A');
 
@@ -607,7 +608,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What is your favorite team event activity?',
         pollOptions: ['Escape Room', 'Cooking Class', 'Outdoor Adventure'],
@@ -634,7 +635,7 @@ test.describe('aI Poll Creation Tests', () => {
       });
 
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What is your preferred development methodology?',
         pollOptions: ['Scrum', 'Kanban', 'Waterfall', 'Agile'],
@@ -738,7 +739,6 @@ test.describe('aI Poll Creation Tests', () => {
       await aiPollCreationPage.verifyActivePollIsVisible();
       await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
       await aiPollCreationPage.verifyPresentOptionIsVisible();
-      await pollsListeningPage.page.click('body');
       await aiPollCreationPage.selectDraftPollsState();
       await aiPollCreationPage.verifyDraftPollIsVisible();
       await aiPollCreationPage.clickThreeDotMenuForFirstPoll();
@@ -846,7 +846,7 @@ test.describe('aI Poll Creation Tests', () => {
         storyId: 'EL-UI Automation',
       });
       await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.clickOrCreateManuallyButton();
+      await aiPollCreationPage.clickCreateManuallyButton();
       await pollsHelper.addPoll({
         pollQuestion: 'What are you thinking for lunch?',
         pollOptions: ['Pizza', 'Pasta', 'Salad', 'Biryani'],
@@ -857,25 +857,6 @@ test.describe('aI Poll Creation Tests', () => {
       await pollsListeningPage.loadPage({ stepInfo: 'Navigate back to Polls listing page' });
       await pollsListeningPage.verifyThePageIsLoaded();
       await aiPollCreationPage.verifyPollMetadataDisplay('What are you thinking for lunch?');
-    }
-  );
-
-  test(
-    'verify Tooltip on Hover Over Generate Button',
-    {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, '@POLLS', '@AI_POLLS'],
-    },
-    async () => {
-      tagTest(test.info(), {
-        description:
-          'Verify that when user hovers over the Generate button, it shows proper visual feedback and maintains accessibility. Test validates button hover state, cursor changes, and any tooltip or visual indicators that appear on hover.',
-        zephyrTestId: 'LS-7395',
-        storyId: 'EL-UI Automation',
-      });
-
-      await pollsListeningPage.clickCreatePollButton();
-      await aiPollCreationPage.enterManualPrompt('What are the best team collaboration tools?');
-      await aiPollCreationPage.verifyGenerateButtonHoverBehavior();
     }
   );
 });

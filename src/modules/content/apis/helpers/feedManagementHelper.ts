@@ -4,6 +4,7 @@ import { APIRequestContext, test } from '@playwright/test';
 import { FeedMode } from '@core/types/feedManagement.types';
 import { log } from '@core/utils/logger';
 
+import type { SiteManagementHelper } from '@/src/modules/content/apis/helpers/siteManagementHelper';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import {
   buildFeedTextJsonAndTextHtml,
@@ -126,6 +127,9 @@ export class FeedManagementHelper {
         textHtml = baseTextHtml;
       }
 
+      // Determine uploadContext based on scope
+      const uploadContext = params.scope === 'public' ? 'home-feed' : 'site-feed';
+
       // Use Playwright's polling mechanism for retry
       const response = await this.createFeedWithRetry(async () => {
         if (params.withAttachment) {
@@ -134,6 +138,7 @@ export class FeedManagementHelper {
             params.fileSize,
             params.mimeType,
             params.filePath,
+            uploadContext,
             {
               textJson,
               textHtml,
@@ -334,6 +339,17 @@ export class FeedManagementHelper {
   async getAppConfig() {
     return await test.step('Getting app configuration', async () => {
       const response = await this.feedManagementService.getAppConfig();
+      return response;
+    });
+  }
+
+  /**
+   * Gets the Recognition tenant configuration
+   * @returns Promise with the recognition configuration response
+   */
+  async getRecognitionConfig() {
+    return await test.step('Getting recognition configuration', async () => {
+      const response = await this.feedManagementService.getRecognitionConfig();
       return response;
     });
   }
@@ -891,15 +907,17 @@ export class FeedManagementHelper {
     fileName: string,
     size: number,
     mimeType: string,
+    uploadContext: string,
     options?: {
       altText?: string | null;
       fileId?: string;
       siteId?: string | null;
       contentId?: string | null;
+      type?: string;
     }
   ): Promise<any> {
     return await test.step(`Uploading image "${fileName}" via helper`, async () => {
-      return await this.feedManagementService.uploadImage(fileName, size, mimeType, options);
+      return await this.feedManagementService.uploadImage(fileName, size, mimeType, uploadContext, options);
     });
   }
 
@@ -913,6 +931,80 @@ export class FeedManagementHelper {
     return await test.step(`Updating feed post ${postId} via helper`, async () => {
       // Note: updatePost returns FeedResult (responseBody.result) despite being typed as FeedPostResponse
       return await this.feedManagementService.updatePost(postId, postData);
+    });
+  }
+
+  /**
+   * Gets a site that is NOT in alertsControlSite and content that is NOT in mustReadsControlSite
+   * This is useful for testing Manage Application Must Read or Alert section functionality
+   * @param siteManagementHelper - The site management helper instance
+   * @param contentManagementHelper - The content management helper instance
+   * @returns Promise with site and content that are not in the control arrays
+   */
+  async getSiteAndContentNotInControl(siteManagementHelper: SiteManagementHelper): Promise<{
+    site: { siteId: string; name: string; access: string };
+    mustReadSite: { siteId: string; name: string; access: string };
+  }> {
+    return await test.step('Get sites not in control arrays', async () => {
+      // Get app config to check existing control arrays
+      const appConfig = await this.getAppConfig();
+      const alertsControlSiteIds = (appConfig.result.alertsControlSite || []).map(
+        (site: { siteId: string }) => site.siteId
+      );
+      const mustReadsControlSiteIds = (appConfig.result.mustReadsControlSite || []).map(
+        (site: { siteId: string }) => site.siteId
+      );
+
+      // Get list of all sites
+      const sitesResponse = await siteManagementHelper['siteManagementService'].getListOfSites({
+        size: 5000,
+        canManage: true,
+      });
+
+      // Filter for active sites that are NOT in alertsControlSite
+      const availableSitesForAlerts = sitesResponse.result.listOfItems.filter(
+        (site: { siteId: string; isActive?: boolean }) => site.isActive && !alertsControlSiteIds.includes(site.siteId)
+      );
+      // Use the first available site for alerts
+      const selectedSiteForAlerts = availableSitesForAlerts[0];
+      log.debug(`Selected site for alerts: ${selectedSiteForAlerts.name} (${selectedSiteForAlerts.siteId})`);
+
+      // Filter for active sites that are NOT in mustReadsControlSite
+      const availableSitesForMustRead = sitesResponse.result.listOfItems.filter(
+        (site: { siteId: string; isActive?: boolean }) =>
+          site.isActive && !mustReadsControlSiteIds.includes(site.siteId)
+      );
+      // Use the first available site for must read
+      const selectedSiteForMustRead = availableSitesForMustRead[0];
+      log.debug(`Selected site for must read: ${selectedSiteForMustRead.name} (${selectedSiteForMustRead.siteId})`);
+
+      return {
+        site: {
+          siteId: selectedSiteForAlerts.siteId,
+          name: selectedSiteForAlerts.name,
+          access: selectedSiteForAlerts.access,
+        },
+        mustReadSite: {
+          siteId: selectedSiteForMustRead.siteId,
+          name: selectedSiteForMustRead.name,
+          access: selectedSiteForMustRead.access,
+        },
+      };
+    });
+  }
+
+  /**
+   * Changes the dashboard layout
+   * @param layout - The layout value to set (e.g., 'a', 'b', 'c', etc.)
+   * @param type - The type of dashboard ('home' for home dashboard, 'site' for site dashboard)
+   * @param siteId - Optional site ID (required for site dashboard, null for home dashboard)
+   * @returns Promise with the API response
+   */
+  async layoutChange(layout: string, type: string = 'home', siteId: string | null = null): Promise<any> {
+    return await test.step(`Changing dashboard layout to "${layout}"`, async () => {
+      const response = await this.feedManagementService.updateDashboardLayout(type, layout, siteId);
+      log.debug('Layout change completed', { layout, type, siteId, response });
+      return response;
     });
   }
 }

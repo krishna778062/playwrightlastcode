@@ -12,7 +12,7 @@ import { FeedPage, FeedPostOptions } from '@/src/modules/content/ui/pages/feedPa
 test.describe(
   '@FeedPostCreationWithEmbedURL - Feed Post Creation With Embed URL Tests',
   {
-    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL],
+    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL, ContentTestSuite.FEED],
   },
   () => {
     let createdPostText: string;
@@ -42,7 +42,7 @@ test.describe(
     });
 
     test(
-      'verify user is able to Add Edit Delete Embedded URL on Home Feed Post',
+      'verify user is able to Add Edit Delete Embedded URL on Home Feed Post CONT-24123',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24123'],
       },
@@ -66,7 +66,7 @@ test.describe(
             embedUrl: embedUrl,
           };
           // Use the Page Object Model to create the post
-          const postResult = await feedPage.createAndPost(feedPostOptions);
+          const postResult = await feedPage.postEditor.createAndPost(feedPostOptions);
 
           // Store the created post details
           createdPostText = postText;
@@ -74,8 +74,8 @@ test.describe(
 
         await test.step('Verify post is created with embedded URL', async () => {
           // Use existing functions to verify the post is visible with full content including URL
-          await feedPage.assertions.validatePostText(postText);
-          await feedPage.assertions.verifyEmbededUrlIsVisible(embedUrl);
+          await feedPage.feedList.validatePostText(postText);
+          await feedPage.feedList.verifyEmbededUrlIsVisible(embedUrl);
         });
 
         const editText = TestDataGenerator.generateRandomText();
@@ -83,11 +83,11 @@ test.describe(
           const newEmbedUrl = TestDataGenerator.generateYouTubeEmbedUrl2();
 
           // Use the Page Object Model to edit the post
-          await feedPage.editPost(postText, editText, newEmbedUrl);
+          await feedPage.postEditor.editPost(postText, editText, newEmbedUrl);
 
           // Verify updated content is visible
-          await feedPage.assertions.validatePostText(editText);
-          await feedPage.assertions.verifyEmbededUrlIsVisible(embedUrl);
+          await feedPage.feedList.validatePostText(editText);
+          await feedPage.feedList.verifyEmbededUrlIsVisible(newEmbedUrl);
         });
 
         await test.step('Delete the post', async () => {
@@ -103,6 +103,71 @@ test.describe(
         if (createdPostText) {
           // Note: API cleanup might not be available, but UI deletion already handled in test
           console.log(`Post with text "${createdPostText}" was deleted via UI in the test`);
+        }
+      } catch (error) {
+        console.warn('Cleanup failed:', error);
+      }
+    });
+  }
+);
+
+test.describe(
+  '@FeedPostCreationWithEmbedURL - Feed Post and Reply With Embed Video URL Tests',
+  {
+    tag: [ContentTestSuite.FEED_POST_CREATION_WITH_EMBED_URL, ContentTestSuite.FEED],
+  },
+  () => {
+    let createdPostId: string;
+    const youtubeUrl = FEED_TEST_DATA.URLS.EMBED_YOUTUBE_URL;
+    const vimeoUrl = FEED_TEST_DATA.URLS.EMBED_VIMEO_URL;
+
+    test(
+      'verify user is able to add embed video with text on Home Feed Post and reply',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19558'],
+      },
+      async ({ standardUserFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'CONT-19558',
+          description: 'Verify user able to add embed video with text on Home Feed Post and reply',
+          storyId: 'CONT-19558',
+        });
+
+        await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const feedPage = new FeedPage(standardUserFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+
+        // Generate test data
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+
+        await feedPage.clickShareThoughtsButton();
+
+        await test.step(`And Enter the text with video url "${youtubeUrl}" on the Feed Editor section`, async () => {
+          const feedPostOptions: FeedPostOptions = {
+            text: postText,
+            embedUrl: youtubeUrl,
+          };
+          const postResult = await feedPage.postEditor.createAndPost(feedPostOptions);
+          createdPostId = postResult.postId || '';
+        });
+
+        await feedPage.feedList.waitForPostToBeVisible(postText);
+        await feedPage.feedList.verifyEmbedUrlPreviewIsVisible(youtubeUrl);
+
+        await feedPage.feedList.addReplyToPostWithEmbedUrl(replyText, createdPostId, vimeoUrl);
+
+        await feedPage.feedList.verifyReplyIsVisible(replyText);
+        await feedPage.feedList.verifyEmbedUrlPreviewIsVisibleInReply(vimeoUrl, replyText);
+      }
+    );
+
+    test.afterEach('Cleanup test data', async ({ standardUserFixture }) => {
+      try {
+        // Clean up created post if it exists (using API method)
+        if (createdPostId) {
+          await standardUserFixture.feedManagementHelper.deleteFeed(createdPostId);
+          createdPostId = '';
         }
       } catch (error) {
         console.warn('Cleanup failed:', error);

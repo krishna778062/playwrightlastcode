@@ -35,29 +35,29 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       const siteCreationPage = new SiteCreationPageAbac(appManagerFixture.page);
 
       // Verify form structure
-      await siteCreationPage.assertions.verifySiteCreationFormStructure();
+      await siteCreationPage.verifySiteCreationFormStructure();
 
       // STEP 3: Setup specific audience (reuse existing or create new)
-      let audienceName = await appManagerFixture.siteAudienceHelper.getAudienceName();
+      let audienceDetails = await appManagerFixture.abacAudienceHelper.findFirstAvailableAudience();
 
       // If no audience exists, create a new one
-      if (!audienceName) {
-        audienceName = await appManagerFixture.siteAudienceHelper.createAudienceName();
+      if (!audienceDetails) {
+        audienceDetails = await appManagerFixture.abacAudienceHelper.createAudienceName();
       }
 
-      console.log(`Audience name is ${audienceName}`);
+      console.log(`Audience name is ${audienceDetails.audienceName}`);
 
       // STEP 4: Create the site with specific audience and capture siteId from URL
       siteId = await siteCreationPage.createSite({
         name: SITE_CREATION_TEST_DATA.PUBLIC_SITE.name,
         category: SITE_CREATION_TEST_DATA.PUBLIC_SITE.category,
         type: SITE_TYPES.PUBLIC,
-        audienceName: audienceName,
+        audienceName: audienceDetails.audienceName,
       });
       console.log('INFO: The created siteId', siteId);
 
       // STEP 6: Verify site creation success toast and that siteId is present
-      await siteCreationPage.assertions.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PUBLIC_SITE.name);
+      await siteCreationPage.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PUBLIC_SITE.name);
     }
   );
 
@@ -79,29 +79,29 @@ test.describe('site Creation by Application Manager', { tag: [ContentFeatureTags
       const siteCreationPage = new SiteCreationPageAbac(appManagerFixture.page);
 
       // Verify form structure
-      await siteCreationPage.assertions.verifySiteCreationFormStructure();
+      await siteCreationPage.verifySiteCreationFormStructure();
 
       // STEP 2: Setup specific audience (reuse existing or create new)
-      let audienceName = await appManagerFixture.siteAudienceHelper.getAudienceName();
+      let audienceDetails = await appManagerFixture.abacAudienceHelper.findFirstAvailableAudience();
 
       // If no audience exists, create a new one
-      if (!audienceName) {
-        audienceName = await appManagerFixture.siteAudienceHelper.createAudienceName();
+      if (!audienceDetails) {
+        audienceDetails = await appManagerFixture.abacAudienceHelper.createAudienceName();
       }
 
-      console.log(`Audience name is ${audienceName}`);
+      console.log(`Audience name is ${audienceDetails.audienceName}`);
 
       // STEP 3: Create the site with specific audience and capture siteId from URL
       siteId = await siteCreationPage.createSite({
         name: SITE_CREATION_TEST_DATA.PRIVATE_SITE.name,
         category: SITE_CREATION_TEST_DATA.PRIVATE_SITE.category,
         type: SITE_TYPES.PRIVATE,
-        audienceName: audienceName,
+        audienceName: audienceDetails.audienceName,
       });
       console.log('INFO: The created siteId', siteId);
 
       // STEP 6: Verify site creation success toast and that siteId is present
-      await siteCreationPage.assertions.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PRIVATE_SITE.name);
+      await siteCreationPage.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PRIVATE_SITE.name);
     }
   );
 });

@@ -12,8 +12,8 @@ export const SEARCH_METRICS = {
     subtitle: 'Number of search queries that returned zero results',
   },
   AVERAGE_SEARCHES_PER_LOGGED_IN_USER: {
-    title: 'Average searches per logged-in user',
-    subtitle: 'Average searches per logged-in user',
+    title: 'Average searches per logged in user',
+    subtitle: 'Average searches per logged in user',
   },
   SEARCH_USAGE_VOLUME_AND_CLICK_THROUGH_RATE: {
     title: 'Search usage volume and click through rate ',
@@ -26,6 +26,10 @@ export const SEARCH_METRICS = {
   MOST_SEARCHES_PERFORMED_BY_DEPARTMENT: {
     title: 'Most searches performed by Department',
     subtitle: 'Shows the top searches (up to 5) performed based on the Department',
+  },
+  MOST_SEARCHES_PERFORMED_BY_LOCATION: {
+    title: 'Most searches performed by Location',
+    subtitle: 'Shows the top searches (up to 5) performed based on the Location',
   },
   NO_RESULT_SEARCH_QUERIES: {
     title: 'No result search queries',

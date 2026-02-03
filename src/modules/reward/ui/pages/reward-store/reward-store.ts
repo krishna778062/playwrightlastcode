@@ -8,6 +8,8 @@ import path from 'path';
 import { PAGE_ENDPOINTS, PAGE_ENDPOINTS as rewardsEndpoint } from '@core/constants/pageEndpoints';
 import { BasePage } from '@core/pages/basePage';
 
+import { TIMEOUTS } from '@/src/core';
+
 export class RewardsStore extends BasePage {
   readonly rewardStorePageNotFound: Locator;
   readonly header: Locator;
@@ -135,13 +137,20 @@ export class RewardsStore extends BasePage {
     });
   }
 
+  async verifyThePageIsLoaded(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.giftCardNames.last(), { timeout: 20000 });
+  }
+
   async selectDropdownByLabel(locator: Locator, optionTextLabel: string) {
     await locator.selectOption(optionTextLabel);
   }
 
   async searchForGiftCard(searchTerm: string) {
-    await this.searchField.waitFor({ state: 'visible', timeout: 15000 });
-    await this.searchField.fill(''); // clear any previous input
+    await this.verifier.waitUntilElementIsVisible(this.searchField, {
+      timeout: TIMEOUTS.MEDIUM,
+      stepInfo: 'Waiting for search field to be visible',
+    });
+    await this.searchField.clear(); // clear any previous input
     await this.searchField.fill(searchTerm);
     await this.searchButton.click({ force: true });
   }
@@ -151,10 +160,6 @@ export class RewardsStore extends BasePage {
     await this.giftCardNames.last().waitFor({ state: 'visible', timeout: 20000 });
     const selectedOption = await this.rewardCountry.locator('option:checked').textContent();
     console.log('selected country:', selectedOption);
-  }
-
-  async verifyThePageIsLoaded(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.giftCardNames.last(), { timeout: 20000 });
   }
 
   async verifyGiftCardVisibility(giftCardName: string, visibility: 'Active' | 'Inactive') {
@@ -196,34 +201,31 @@ export class RewardsStore extends BasePage {
    * This method checks the current state via API and enables both features if needed
    */
   async enableTheRewardStoreAndPeerGiftingIfDisabled() {
-    const manageRewards = new ManageRewardsOverviewPage(this.page);
-    await manageRewards.enableTheRewardsAndPeerGiftingIfDisabled();
     const rewardStore = new RewardsStore(this.page);
-    // const [apiResponse] = await Promise.all([
-    //   this.page.waitForResponse(
-    //     res =>
-    //       res.url().endsWith('/recognition/v1/tenant/config') &&
-    //       res.request().resourceType() === 'xhr' &&
-    //       res.status() === 200 &&
-    //       res.request().method() === 'GET'
-    //   ),
-    //   rewardStore.loadPage(), // action that triggers API
-    //   rewardStore.verifyThePageIsLoaded(),
-    // ]);
-    // const body = await apiResponse.json();
-    // console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
-    // const isRewardEnabled = body.rewardConfig?.enabled;
-    // const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
-    // console.log(
-    //   `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    // );
-    // if (!isPeerGiftingDisabled || !isRewardEnabled) {
-    //   const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
-    //   await manageRecognitionPage.loadPage();
-    //   await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
-    // }
-    await rewardStore.visit();
-    await rewardStore.verifyThePageIsLoaded();
+    const [apiResponse] = await Promise.all([
+      this.page.waitForResponse(
+        res =>
+          res.url().endsWith('/recognition/v1/tenant/config') &&
+          res.request().resourceType() === 'xhr' &&
+          res.status() === 200 &&
+          res.request().method() === 'GET'
+      ),
+      rewardStore.loadPage(), // action that triggers API
+      rewardStore.verifyThePageIsLoaded(),
+    ]);
+    const body = await apiResponse.json();
+    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
+    const isRewardEnabled = body.rewardConfig?.enabled;
+    const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
+    console.log(
+      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
+    );
+    if (!isPeerGiftingDisabled || !isRewardEnabled) {
+      const manageRewards = new ManageRewardsOverviewPage(this.page);
+      await manageRewards.enableTheRewardsAndPeerGiftingIfDisabled();
+      await rewardStore.visit();
+      await rewardStore.verifyThePageIsLoaded();
+    }
   }
 
   async selectAndRedeemGiftCard(giftCardName: string) {
@@ -753,5 +755,53 @@ export class RewardsStore extends BasePage {
       });
     });
     await this.page.reload();
+  }
+
+  async openGiftCardModal(index: number = 0): Promise<void> {
+    await this.giftCardItems.nth(index).click();
+    await this.verifier.waitUntilElementIsVisible(this.rewardsDialogBox.container, {
+      stepInfo: 'Waiting for gift card modal to be visible',
+    });
+  }
+
+  async verifyTheAllOptionsAndTheValueInConfirmYourOrderModal(selectYourRewardValueDropdownValues: string[]) {
+    for (let i = 0; i < selectYourRewardValueDropdownValues.length; i++) {
+      const dropdownValue = selectYourRewardValueDropdownValues[i];
+      const match = dropdownValue.match(/₹([\d,]+)\s*\(([\d,]+)\s*points\)/);
+      if (!match) {
+        throw new Error(`Unable to parse dropdown value: ${dropdownValue}`);
+      }
+      const amount = Number(match[1].replace(/,/g, ''));
+      const points = Number(match[2].replace(/,/g, ''));
+      const expectedAmountText = `₹${amount.toLocaleString()}.00 INR`;
+      const expectedPointsText = `(${points.toLocaleString()} points)`;
+      await this.selectDropdownOption(
+        this.rewardsDialogBox.selectRewardValueDropdown,
+        { index: i },
+        { stepInfo: `Select ${i + 1}th reward value` }
+      );
+      await this.rewardsDialogBox.checkoutButton.click();
+      await expect(this.rewardsDialogBox.confirmOrderModalRedeemValue.locator('p')).toHaveText(expectedAmountText);
+      await expect(this.rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(expectedPointsText);
+      await this.clickOnElement(this.rewardsDialogBox.confirmOrderBackButton);
+    }
+  }
+
+  async verifyRewardValueInConfirmYourOrderModal(inputAmount: number) {
+    await this.fillInElement(this.rewardsDialogBox.rewardAmountInputBox, String(inputAmount), {
+      stepInfo: 'Filling reward amount input box',
+    });
+    await this.rewardsDialogBox.rewardAmountInputBox.blur();
+    const calculatedInrText = await this.rewardsDialogBox.rewardAmountCalculatedValue.inputValue();
+    if (!calculatedInrText) {
+      throw new Error('INR value is not displayed after entering points');
+    }
+    const trimmedInrValue = calculatedInrText.trim();
+    const expectedAmountText = `$${trimmedInrValue.toLocaleString()} USD`;
+    const expectedPointsText = `(${inputAmount.toLocaleString()} ${inputAmount === 1 ? 'point' : 'points'})`;
+    await this.clickOnElement(this.rewardsDialogBox.checkoutButton);
+    await expect(this.rewardsDialogBox.confirmOrderModalRedeemValue.locator('p')).toHaveText(expectedAmountText);
+    await expect(this.rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(expectedPointsText);
+    await this.clickOnElement(this.rewardsDialogBox.confirmOrderBackButton);
   }
 }

@@ -1,3 +1,4 @@
+import { test } from '@playwright/test';
 import { format, parseISO } from 'date-fns';
 
 import { GroupByOnUserParameter } from '../constants/filters';
@@ -14,6 +15,14 @@ export interface AppWebPageViewsData {
   totalPeople: number;
   pageViewCount: number;
   percentageContributionToTotalPageViews: number;
+}
+
+/**
+ * Extended interface for CSV validation - includes pageTitle for granular comparison
+ * CSV exports include page_title breakdown while UI table aggregates without it
+ */
+export interface AppWebPageViewsDataForCSV extends AppWebPageViewsData {
+  pageTitle: string;
 }
 
 // Generic interface for adoption leaders data
@@ -335,16 +344,18 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
   }
 
   /**
-   * Gets the benchmark reporting month
-   * @returns Promise<string> - Benchmark reporting month
-   * @example getBenchmarkReportingMonth() -> returns the benchmark reporting month for the current date
+   * Gets the benchmark reporting month in YYYY-MM-01 format.
+   * Before 3rd of month uses n-2 month; on or after 3rd uses n-1 month.
+   * @returns string - Benchmark reporting month (e.g. '2026-01-01')
    */
-  private getBenchmarkReportingMonth() {
+  private getBenchmarkReportingMonth(): string {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
-    return currentDay < 3 ? `${currentYear}-${currentMonth - 1}-01` : `${currentYear}-${currentMonth}-01`;
+    const monthsBack = currentDay < 3 ? 2 : 1;
+    const benchmarkDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - monthsBack, 1);
+    const year = benchmarkDate.getFullYear();
+    const month = String(benchmarkDate.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`;
   }
 
   /**
@@ -404,6 +415,7 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
   /**
    * Gets app web page views data from database with filters.
+   * Used for UI table validation (aggregated without page_title)
    * @param filterBy - Filter options including time period and user filters
    * @returns Promise<AppWebPageViewsData[]> - App web page views data with proper typing
    */
@@ -419,6 +431,44 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
 
     const rawResults = await this.executeQuery(finalQuery);
     return this.transformAppWebPageViewsResults(rawResults);
+  }
+
+  /**
+   * Transforms raw database results to typed AppWebPageViewsDataForCSV objects
+   * Includes pageTitle field for CSV validation
+   * @param rawResults - Raw results from database query
+   * @returns AppWebPageViewsDataForCSV[] - Properly typed and transformed data with pageTitle
+   */
+  private transformAppWebPageViewsResultsForCSV(rawResults: any[]): AppWebPageViewsDataForCSV[] {
+    return rawResults.map(result => ({
+      webPageProduct: result['Product'],
+      webPageFeature: result['Page feature'],
+      webPageGroup: result['Page group'],
+      pageTitle: result['Page title'],
+      totalPeople: Number(result['Total people']),
+      pageViewCount: Number(result['Page view count']),
+      percentageContributionToTotalPageViews: result['Percentage contribution to total page views'],
+    }));
+  }
+
+  /**
+   * Gets app web page views data from database with filters for CSV validation.
+   * This query includes page_title in GROUP BY for granular data matching CSV export.
+   * @param filterBy - Filter options including time period and user filters
+   * @returns Promise<AppWebPageViewsDataForCSV[]> - App web page views data with pageTitle
+   */
+  async getAppWebPageViewsDataForCSVValidation({
+    filterBy,
+  }: {
+    filterBy: FilterOptions;
+  }): Promise<AppWebPageViewsDataForCSV[]> {
+    const finalQuery = await this.transformAppWebPageViewsQuery({
+      baseQuery: AdoptionSql.APP_WEB_PAGE_VIEWS_FOR_CSV,
+      filterBy,
+    });
+
+    const rawResults = await this.executeQuery(finalQuery);
+    return this.transformAppWebPageViewsResultsForCSV(rawResults);
   }
 
   /**
@@ -598,24 +648,31 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
    * @param rawResults - Raw results from database query
    * @returns Transformed data in UI format
    */
-  private transformAdoptionRateUserLoginResults(rawResults: any[]): AdoptionRateUserLoginData[] {
-    return rawResults.map(result => {
-      // Convert LOGIN_DATE from YYYY-MM-DD to MM/DD/YYYY format
-      const loginDate = parseISO(result.LOGIN_DATE);
-      const reportingDate = format(loginDate, 'MM/dd/yyyy');
+  private async transformAdoptionRateUserLoginResults(rawResults: any[]): Promise<AdoptionRateUserLoginData[]> {
+    return await test.step(`Transform adoption rate user login results`, async stepInfo => {
+      await stepInfo.attach('rawResults', { body: JSON.stringify(rawResults), contentType: 'application/json' });
+      const transformedResults = rawResults.map(result => {
+        // Convert LOGIN_DATE from YYYY-MM-DD to MM/DD/YYYY format
+        const loginDate = parseISO(result.LOGIN_DATE);
+        const reportingDate = format(loginDate, 'MM/dd/yyyy');
 
-      // Extract numeric value from PERCENT string (e.g., '5.714300%' -> 5.7143)
-      const percentString = result.PERCENT || '0%';
-      const percentValue = parseFloat(percentString.replace('%', ''));
+        // Extract numeric value from PERCENT string (e.g., '5.714300%' -> 5.7143)
+        const percentString = result.PERCENT || '0%';
+        const percentValue = parseFloat(percentString.replace('%', ''));
 
-      // Round to 2 decimal places and format as percentage string
-      const adoptionRate = `${Math.round(percentValue * 100) / 100}%`;
-
-      return {
-        reportingDate,
-        userLogins: Number(result.USERS_WHO_LOGGED_IN_AT_LEAST_ONCE),
-        adoptionRate,
-      };
+        // Round to 2 decimal places and format as percentage string
+        const adoptionRate = `${Math.round(percentValue * 100) / 100}%`;
+        return {
+          reportingDate,
+          userLogins: Number(result.USERS_WHO_LOGGED_IN_AT_LEAST_ONCE),
+          adoptionRate,
+        };
+      });
+      await stepInfo.attach('transformedResults', {
+        body: JSON.stringify(transformedResults),
+        contentType: 'application/json',
+      });
+      return transformedResults;
     });
   }
 
@@ -660,7 +717,7 @@ export class AppAdoptionDashboardQueryHelper extends BaseAnalyticsQueryHelper {
     });
 
     const rawResults = await this.executeQuery(finalQuery);
-    const transformedResults = this.transformAdoptionRateUserLoginResults(rawResults);
+    const transformedResults = await this.transformAdoptionRateUserLoginResults(rawResults);
     console.log(`----> The adoption rate user login data is  `, transformedResults);
     return transformedResults;
   }

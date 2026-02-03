@@ -28,6 +28,7 @@ export class CustomAppsComponent extends BaseComponent {
   readonly prebuiltAppDialog: Locator;
   readonly prebuiltAppSearchInput: Locator;
   readonly addCustomAppDropdownButton: Locator;
+  readonly addCustomAppMenu: Locator;
   readonly addPrebuiltAppMenuItem: Locator;
   readonly connectorOptionsButton: Locator;
   readonly connectorOptionsMenu: Locator;
@@ -92,6 +93,7 @@ export class CustomAppsComponent extends BaseComponent {
     this.prebuiltAppDialog = page.getByRole('dialog', { name: APP_LABELS.PREBUILT_APP_LABEL });
     this.prebuiltAppSearchInput = page.getByRole('textbox', { name: 'Search…', exact: true });
     this.addCustomAppDropdownButton = page.locator('button[aria-label="Add custom app dropdown"]');
+    this.addCustomAppMenu = page.getByRole('menu', { name: 'Add custom app dropdown' });
     this.addPrebuiltAppMenuItem = page.locator('[role="menuitem"]:has-text("Add prebuilt app")');
     this.connectorOptionsButton = page.getByRole('button', { name: 'connector options', exact: true });
     this.connectorOptionsMenu = page.getByRole('menu');
@@ -110,7 +112,7 @@ export class CustomAppsComponent extends BaseComponent {
     this.showNextItemsButton = page.getByRole('button', { name: 'Show next items' });
     this.sortDropdownButton = page.locator('button').filter({ hasText: /^Sort:/ });
     this.menuContainer = page.locator('div[role="menu"]');
-    this.sortByLastUsedMenuItem = page.getByRole('menuitem', { name: 'Last used' });
+    this.sortByLastUsedMenuItem = page.getByRole('menuitem', { name: 'Last updated' });
     this.sortByDateCreatedMenuItem = page.getByRole('menuitem', { name: 'Date created' });
     this.sortByNameMenuItem = page.getByRole('menuitem', { name: 'Name' });
     this.sortOrderNewestFirstMenuItem = page.getByRole('menuitem', { name: 'Newest first' });
@@ -373,8 +375,21 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async verifyToastMessageIsVisibleWithText(message: string): Promise<void> {
     await test.step(`Verify toast message: "${message}"`, async () => {
-      const toast = this.toastAlert.filter({ hasText: message });
-      await expect(toast, `Expected toast message "${message}" to be visible`).toBeVisible({ timeout: 10000 });
+      // Wait for save operation to complete and toast to appear
+      await Promise.race([
+        this.toastAlert
+          .first()
+          .waitFor({ state: 'visible', timeout: 30_000 })
+          .catch(() => {}),
+        this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+      ]);
+
+      // Find toast with the message text (hasText does partial matching)
+      const toast = this.toastAlert.filter({ hasText: message }).first();
+      await toast.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(toast, `Expected toast message containing "${message}" to be visible`).toBeVisible({
+        timeout: 10_000,
+      });
     });
   }
 
@@ -661,7 +676,17 @@ export class CustomAppsComponent extends BaseComponent {
   async clickMenuItem(itemText: string, stepName?: string): Promise<void> {
     const step = stepName || `Click ${itemText} menu item`;
     await test.step(step, async () => {
-      await this.clickOnElement(this.getMenuItem(itemText), { timeout: 30_000 });
+      // Try to find menu item in any visible menu
+      const menuItem = this.page.getByRole('menuitem', { name: itemText }).first();
+
+      // Wait for menu item to be visible and enabled
+      await expect(menuItem).toBeVisible({ timeout: 10_000 });
+      await expect(menuItem).toBeEnabled({ timeout: 5_000 });
+
+      // Small wait to ensure menu is fully rendered
+      await this.page.waitForTimeout(200);
+
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
     });
   }
 
@@ -680,8 +705,15 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async selectConnectorOption(option: AppConnectorOptions): Promise<void> {
     await test.step(`Select connector option: ${option}`, async () => {
+      await this.connectorOptionsButton.waitFor({ state: 'visible', timeout: 30_000 });
+      await expect(this.connectorOptionsButton).toBeEnabled({ timeout: 10_000 });
       await this.clickOnElement(this.connectorOptionsButton, { timeout: 30_000 });
-      await this.clickMenuItem(option);
+      await this.connectorOptionsMenu.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.page.waitForTimeout(300); // Wait for menu items to render
+      const menuItem = this.connectorOptionsMenu.getByRole('menuitem', { name: option });
+      await expect(menuItem).toBeVisible({ timeout: 10_000 });
+      await expect(menuItem).toBeEnabled({ timeout: 5_000 });
+      await this.clickOnElement(menuItem, { timeout: 30_000 });
     });
   }
 
@@ -701,9 +733,47 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async clickAddCustomAppOption(option: string): Promise<void> {
     await test.step(`Add custom app → ${option}`, async () => {
-      await this.clickOnElement(this.getButton(APP_LABELS.ADD_CUSTOM_APP_LABEL), { timeout: 30_000 });
-      await this.page.waitForTimeout(2000);
-      await this.clickMenuItem(option);
+      await this.addCustomAppDropdownButton.waitFor({ state: 'visible', timeout: 30_000 });
+      await expect(this.addCustomAppDropdownButton).toBeEnabled({ timeout: 10_000 });
+      await this.clickOnElement(this.addCustomAppDropdownButton, { timeout: 30_000 });
+
+      // Wait for menu to be visible and menu items to be rendered
+      await this.addCustomAppMenu.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(this.addCustomAppMenu).toBeVisible({ timeout: 10_000 });
+
+      // Wait for at least one menu item to be visible
+      await this.addCustomAppMenu.getByRole('menuitem').first().waitFor({ state: 'visible', timeout: 10_000 });
+
+      // Wait a bit for menu items to be fully rendered
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 2_000 }).catch(() => {});
+
+      // Find menu item - hasText does case-insensitive partial matching by default
+      // Wait for the menu item to appear before trying to interact with it
+      const menuItemLocator = this.addCustomAppMenu.getByRole('menuitem').filter({ hasText: option });
+
+      // Wait for at least one matching menu item to be visible
+      await menuItemLocator.first().waitFor({ state: 'visible', timeout: 15_000 });
+
+      // Get the first matching menu item
+      const menuItem = menuItemLocator.first();
+
+      // Verify it's visible
+      await expect(menuItem).toBeVisible({ timeout: 10_000 });
+
+      // Scroll into view and ensure element is stable
+      await menuItem.scrollIntoViewIfNeeded();
+
+      // Wait for element to be in a stable state
+      await expect(menuItem).toBeAttached({ timeout: 5_000 });
+
+      // Verify element is enabled and clickable
+      await expect(menuItem).toBeEnabled({ timeout: 10_000 });
+
+      // Wait for any animations/transitions to complete
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 1_000 }).catch(() => {});
+
+      // Use direct click with actionability checks
+      await menuItem.click({ timeout: 30_000 });
     });
   }
 
@@ -725,10 +795,16 @@ export class CustomAppsComponent extends BaseComponent {
    */
   async openConnectorOptions(service: string): Promise<void> {
     await test.step(`Open ${service} connector options`, async () => {
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 30_000 });
       const btn = this.connectorOptionsButton.last();
+      await btn.waitFor({ state: 'visible', timeout: 30_000 });
+      await expect(btn).toBeEnabled({ timeout: 10_000 });
       await btn.click();
+      await this.connectorOptionsMenu.waitFor({ state: 'visible', timeout: 10_000 });
+      await this.page.waitForTimeout(300);
       await this.clickMenuItem(APP_LABELS.ENABLE_LABEL, 'Enable connector');
-      if (await this.enableConfirmButton.isVisible()) {
+      if (await this.enableConfirmButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+        await expect(this.enableConfirmButton).toBeEnabled({ timeout: 5_000 });
         await this.clickButton(APP_LABELS.ENABLE_LABEL, 'Confirm enable');
       }
     });
@@ -848,12 +924,16 @@ export class CustomAppsComponent extends BaseComponent {
   /**
    * Select a sort by option
    */
-  async selectSortBy(sortBy: 'Last used' | 'Date created' | 'Name'): Promise<void> {
+  async selectSortBy(sortBy: 'Last updated' | 'Date created' | 'Name'): Promise<void> {
     await test.step(`Select sort by: ${sortBy}`, async () => {
       await this.clickSortDropdown();
+
+      // Wait for menu to be visible
+      await this.menuContainer.waitFor({ state: 'visible', timeout: 15_000 });
+
       let menuItem: Locator;
       switch (sortBy) {
-        case 'Last used':
+        case 'Last updated':
           menuItem = this.sortByLastUsedMenuItem;
           break;
         case 'Date created':
@@ -863,7 +943,11 @@ export class CustomAppsComponent extends BaseComponent {
           menuItem = this.sortByNameMenuItem;
           break;
       }
-      await this.clickOnElement(menuItem, { timeout: 10000 });
+
+      // Wait for menu item to be visible and enabled
+      await menuItem.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(menuItem).toBeEnabled({ timeout: 10_000 });
+      await this.clickOnElement(menuItem, { timeout: 10_000 });
     });
   }
 

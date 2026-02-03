@@ -13,7 +13,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
   });
 
   test(
-    '[RC-3227] Validate Variable amount gift card redemptions',
+    'RC-3227 Validate Variable amount gift card redemptions',
     {
       tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.HEALTHCHECK],
     },
@@ -61,7 +61,7 @@ test.describe('rewards Variable Gift Card Redemption', { tag: [REWARD_FEATURE_TA
         giftCardName,
         limits[0] + 10,
         limits[0] - 1,
-        `This reward has a minimum redemption amount of ${limits[0]} points.`
+        `This reward has a minimum redemption amount of ${limits[0].toLocaleString()} points.`
       );
       await rewardsStore.verifyInsufficientFundsError(giftCardName, limits[0] + 10);
       await rewardsStore.verifyErrorScenario(

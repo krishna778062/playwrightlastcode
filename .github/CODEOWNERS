@@ -7,10 +7,10 @@
 
 # Module-specific ownership
 # Chat Module
-/src/modules/chat/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30 @Shivam-kalkhanday
+/src/modules/chat/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30
 
 # Frontline Module
-/src/modules/frontline/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30  @Shivam-kalkhanday
+/src/modules/frontline/ @prateek-sqa @arvindsingh15992 @JoshiMeenakshi30
 
 # Content Module
 /src/modules/content/ @prateek-sqa @SonaliGupta0608
@@ -38,7 +38,7 @@
 /src/modules/data-engineering/ @prateek-sqa @dkSimpplr @adil-shamim @Greyhat1991 @rsys-rohan-jain @vaibhavchauhan-simpplr
 
 # Alert Notification Module
-/src/modules/alert-notification/ @prateek-sqa @krishnasingh7780 @ruhimirza-simpplr
+/src/modules/alert-notification/ @prateek-sqa @krishnasingh7780 @ruhimirza-simpplr @chauhan03shivani
 
 
 # Employee Listening Module

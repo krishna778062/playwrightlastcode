@@ -14,6 +14,7 @@ import {
   ACG_EDIT_ASSETS_SUMMARY_SCREEN,
   ACG_FEATURE_FOR_API,
   ACG_STATUS,
+  ACG_TOAST_MESSAGES,
   ACG_TOOLTIPS,
 } from '@platforms/constants/acg';
 import { POPUP_BUTTONS } from '@platforms/constants/popupButtons';
@@ -23,6 +24,7 @@ import { AccessControlGroupsPage, ACGFeature } from '@platforms/ui/pages/abacPag
 import { FeatureOwnersPage } from '@platforms/ui/pages/abacPage/featureOwnersPage/featureOwnersPage';
 
 import { Roles } from '@/src/core/constants/roles';
+import { USER_STATUS } from '@/src/core/constants/status';
 import { TestSuite } from '@/src/core/constants/testSuite';
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 import { audienceCreationParams } from '@/src/core/types/audience.type';
@@ -48,10 +50,14 @@ test.describe(
     const createAdminsAudienceParams: audienceCreationParams[] = [];
     const targetAudienceUser: User[] = [];
     const managersAudienceUser: User[] = [];
+    const managersUser: User[] = [];
     const adminsAudienceUser: User[] = [];
+    const adminsUser: User[] = [];
     const targetAudienceUserId: string[] = [];
     const managersAudienceUserId: string[] = [];
+    const managersUserUserId: string[] = [];
     const adminsAudienceUserId: string[] = [];
+    const adminsUserUserId: string[] = [];
 
     test.beforeEach(async ({ appManagerApiFixture }) => {
       const { userManagementService, apiContext, identityManagementHelper } = appManagerApiFixture;
@@ -82,11 +88,25 @@ test.describe(
         emp: `UMA00${Date.now()}`,
       });
 
+      managersUser[0] = TestDataGenerator.generateUserWithEmp({
+        first_name: 'UserToBeAdded',
+        last_name: `AsManagersUser${Date.now()}`,
+        username: 'UserToBeAdded' + ' ' + `AsManagersUser${Date.now()}`,
+        emp: `UMU00${Date.now()}`,
+      });
+
       adminsAudienceUser[0] = TestDataGenerator.generateUserWithEmp({
         first_name: 'UserToBeAdded',
         last_name: `AsAdminsAudience${Date.now()}`,
         username: 'UserToBeAdded' + ' ' + `AsAdminsAudience${Date.now()}`,
         emp: `UAA00${Date.now()}`,
+      });
+
+      adminsUser[0] = TestDataGenerator.generateUserWithEmp({
+        first_name: 'UserToBeAdded',
+        last_name: `AsAdminsUser${Date.now()}`,
+        username: 'UserToBeAdded' + ' ' + `AsAdminsUser${Date.now()}`,
+        emp: `UAU00${Date.now()}`,
       });
 
       targetAudienceUserId[0] = await userManagementService.addUserIfNotAddedAlready(
@@ -107,11 +127,17 @@ test.describe(
       );
       await userManagementService.waitForUserToBeAddedInIdentity(managersAudienceUser[0].emp);
 
+      managersUserUserId[0] = await userManagementService.addUserIfNotAddedAlready(managersUser[0], Roles.END_USER);
+      await userManagementService.waitForUserToBeAddedInIdentity(managersUser[0].emp);
+
       adminsAudienceUserId[0] = await userManagementService.addUserIfNotAddedAlready(
         adminsAudienceUser[0],
         Roles.END_USER
       );
       await userManagementService.waitForUserToBeAddedInIdentity(adminsAudienceUser[0].emp);
+
+      adminsUserUserId[0] = await userManagementService.addUserIfNotAddedAlready(adminsUser[0], Roles.END_USER);
+      await userManagementService.waitForUserToBeAddedInIdentity(adminsUser[0].emp);
 
       categoryId.push(await identityManagementHelper.identityService.createCategory(categoryToCreate));
 
@@ -186,7 +212,7 @@ test.describe(
     test(
       'verify that single ACG can be created and deleted without any issue',
       {
-        tag: [TestPriority.P0, `@ABAC`, `@acg`, '@healthcheck'],
+        tag: [TestPriority.P0, `@ABAC`, `@acg`, '@healthcheck', '@this-one'],
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
@@ -315,7 +341,7 @@ test.describe(
       },
       async ({ userManagerFixture, appManagerApiFixture }) => {
         tagTest(test.info(), {
-          zephyrTestId: ['PS-33248', 'PS-33250'],
+          zephyrTestId: ['PS-33248', 'PS-33250', 'PS-33249'],
         });
         const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(userManagerFixture.page);
         // Test Scenario
@@ -324,9 +350,32 @@ test.describe(
         acgName.push(await accessControlGroupsPage.createACGWithTargetAudienceOnly(targetAudienceToCreate[0]));
         await appManagerApiFixture.identityManagementHelper.identityService.waitUntilACGIsSynced(acgName[0]);
         await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
-          'Access control group was successfully updated'
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
         );
-        await accessControlGroupsPage.dismissTheToastMessage();
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.ADMIN);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.BROWSE);
+        await accessControlGroupsPage.searchAndSelectUserWithEnter(adminsAudienceUser[0].username);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.DONE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS,
+        });
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
         await accessControlGroupsPage.deleteACG(acgName.pop() as string);
       }
     );
@@ -725,7 +774,7 @@ test.describe(
     test(
       `verify the state of different edit buttons when Admin is editing an Active Custom ACG`,
       {
-        tag: [TestPriority.P1, `@ABAC`, `@acg`, `@this-one`],
+        tag: [TestPriority.P1, `@ABAC`, `@acg`],
       },
       async ({ appManagerFixture, browser }) => {
         tagTest(test.info(), {
@@ -799,6 +848,144 @@ test.describe(
         await accessControlGroupsPage.editACGModal.clickCloseButton();
         while (acgName.length > 0) {
           await accessControlGroupsPageAM.deleteACG(acgName.pop() as string);
+        }
+      }
+    );
+
+    test(
+      `Verify that single ACG can be updated without any issue`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@this-one'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-29971', 'PS-35171'],
+        });
+
+        const ACGCreationParams: ACGCreationParams = {
+          targetAudience: [targetAudienceToCreate[0]],
+          managerUser: [],
+          managerAudience: [],
+          adminUser: [adminsAudienceUser[0].username],
+          adminAudience: [],
+          acgStatus: ACG_STATUS.ACTIVE,
+          acgFeature: ACGFeature.ALERTS,
+        };
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
+        await accessControlGroupsPage.loadPage();
+        acgName.push(await accessControlGroupsPage.createACGWithAllParams(ACGCreationParams));
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        // Test Scenario
+        const targetAudienceUserId = await appManagerFixture.userManagementService.getUserId(
+          targetAudienceUser[0].username
+        );
+        await appManagerFixture.userManagementService.updateUserStatus(targetAudienceUserId, USER_STATUS.INACTIVE);
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        // Verify the initial assets count
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 0);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 1);
+        // Edit the ACG and remove the admin
+        await accessControlGroupsPage.editACG(acgName[0]);
+        await accessControlGroupsPage.confirmEditACGModal.clickContinueButton();
+        await accessControlGroupsPage.editACGModal.clickOnEditButtonOnSummaryScreen(ACG_EDIT_ASSETS.ADMIN);
+        await accessControlGroupsPage.editACGModal.clickOnRemoveButtonForUser(adminsAudienceUser[0].username);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.clickOnButtonWithName(POPUP_BUTTONS.UPDATE);
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.UPDATING_ACCESS_CONTROL_GROUPS_AND_AUDIENCE_RELATIONSHIPS,
+        });
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        // Verify the updated assets count after removing the admin
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 0);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 0);
+        await appManagerFixture.identityService.waitForTargetAudienceChangeToTakeEffectInACG(acgName[0], 0);
+        await accessControlGroupsPage.reloadPage();
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.TARGET_AUDIENCE, 0);
+        await appManagerFixture.userManagementService.updateUserStatus(targetAudienceUserId, USER_STATUS.ACTIVE);
+        // Clean up: Delete the above created ACG
+        while (acgName.length > 0) {
+          await accessControlGroupsPage.deleteACG(acgName.pop() as string);
+        }
+      }
+    );
+
+    test(
+      `Verify that count under admins column of an ACG should be decreased on deactivating the user added as admin`,
+      {
+        tag: [TestPriority.P1, `@ABAC`, `@acg`, '@this-one'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35170', 'PS-35169'],
+        });
+
+        const ACGCreationParams: ACGCreationParams = {
+          targetAudience: [targetAudienceToCreate[0]],
+          managerUser: [managersAudienceUser[0].username, managersUser[0].username],
+          managerAudience: [],
+          adminUser: [adminsAudienceUser[0].username, adminsUser[0].username],
+          adminAudience: [],
+          acgStatus: ACG_STATUS.ACTIVE,
+          acgFeature: ACGFeature.ALERTS,
+        };
+
+        const accessControlGroupsPage: AccessControlGroupsPage = new AccessControlGroupsPage(appManagerFixture.page);
+        await accessControlGroupsPage.loadPage();
+        acgName.push(await accessControlGroupsPage.createACGWithAllParams(ACGCreationParams));
+        await accessControlGroupsPage.verifyToastMessageIsVisibleWithText(
+          ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED
+        );
+        await accessControlGroupsPage.dismissTheToastMessage({
+          toastText: ACG_TOAST_MESSAGES.ACCESS_CONTROL_GROUP_UPDATED,
+        });
+        // Test Scenario
+        await accessControlGroupsPage.searchForACG(acgName[0]);
+        // Check the initial admins and managers count
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 2);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 2);
+        // Deactivate the user added as admin (Inactive status)
+        await appManagerFixture.userManagementService.updateUserStatus(adminsAudienceUserId[0], USER_STATUS.INACTIVE);
+        // Deactivate the user added as manager (Inactive status)
+        await appManagerFixture.userManagementService.updateUserStatus(managersAudienceUserId[0], USER_STATUS.INACTIVE);
+        // Wait for the admins and managers count to be updated
+        await appManagerFixture.identityService.waitForAdminsChangeToTakeEffectInACG(acgName[0], 1);
+        await appManagerFixture.identityService.waitForManagersChangeToTakeEffectInACG(acgName[0], 1);
+        // Check the updated admins and managers count
+        await accessControlGroupsPage.reloadPage();
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 1);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 1);
+        // Deactivate the user added as admin (Frozen status)
+        await appManagerFixture.userManagementService.updateUserStatus(adminsUserUserId[0], USER_STATUS.FROZEN);
+        // Deactivate the user added as manager (Frozen status)
+        await appManagerFixture.userManagementService.updateUserStatus(managersUserUserId[0], USER_STATUS.FROZEN);
+        // Wait for the admins and managers count to be updated
+        await appManagerFixture.identityService.waitForAdminsChangeToTakeEffectInACG(acgName[0], 0);
+        await appManagerFixture.identityService.waitForManagersChangeToTakeEffectInACG(acgName[0], 0);
+        // Check the updated admins and managers count
+        await accessControlGroupsPage.reloadPage();
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.ADMINS, 0);
+        await accessControlGroupsPage.compareACGAssetsCount(acgName[0], ACG_COLUMNS.MANAGERS, 0);
+        // Clean up: Reactivate all the users who were deactivated during the test
+        await appManagerFixture.userManagementService.updateUserStatus(adminsAudienceUserId[0], USER_STATUS.ACTIVE);
+        await appManagerFixture.userManagementService.updateUserStatus(adminsUserUserId[0], USER_STATUS.ACTIVE);
+        await appManagerFixture.userManagementService.updateUserStatus(managersAudienceUserId[0], USER_STATUS.ACTIVE);
+        await appManagerFixture.userManagementService.updateUserStatus(managersUserUserId[0], USER_STATUS.ACTIVE);
+        // Clean up: Delete the above created ACG
+        while (acgName.length > 0) {
+          await accessControlGroupsPage.deleteACG(acgName.pop() as string);
         }
       }
     );

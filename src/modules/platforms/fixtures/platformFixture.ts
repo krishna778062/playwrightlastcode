@@ -9,6 +9,9 @@ import { getEnvConfig } from '@core/utils/getEnvConfig';
 
 import { AudienceCategoryManagementHelper, IdentityManagementHelper } from '../apis/helpers';
 import { AudienceTestDataHelper } from '../apis/helpers/audienceTestDataHelper';
+import { QuickTaskTestHelper } from '../apis/helpers/quickTaskTestHelper';
+import { IdentityService } from '../apis/services/IdentityService';
+import { QuickTaskService } from '../apis/services/QuickTaskService';
 import { UserManagementService } from '../apis/services/UserManagementService';
 
 import { NavigationHelper } from '@/src/core/helpers/navigationHelper';
@@ -107,6 +110,7 @@ export interface PlatformApiFixture {
   audienceTestDataHelper: AudienceTestDataHelper;
   identityManagementHelper: IdentityManagementHelper;
   userManagementService: UserManagementService;
+  identityService: IdentityService;
 }
 
 // UI-only fixture type for browser and page components
@@ -115,6 +119,13 @@ export interface PlatformUiFixture {
   page: Page;
   homePage: NewHomePage;
   navigationHelper: NavigationHelper;
+}
+
+// Quick Task API-only fixture type
+export interface QuickTaskApiFixture {
+  apiContext: APIRequestContext;
+  quickTaskService: QuickTaskService;
+  quickTaskTestHelper: QuickTaskTestHelper;
 }
 
 // Combined user fixture type that extends both API and UI fixtures
@@ -139,6 +150,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
   const audienceTestDataHelper = new AudienceTestDataHelper(apiContext, getEnvConfig().apiBaseUrl);
   const identityManagementHelper = new IdentityManagementHelper(apiContext, getEnvConfig().apiBaseUrl);
   const userManagementService = new UserManagementService(apiContext, getEnvConfig().apiBaseUrl);
+  const identityService = new IdentityService(apiContext, getEnvConfig().apiBaseUrl);
 
   return {
     apiContext,
@@ -146,6 +158,7 @@ async function createPlatformApiFixture(apiContext: APIRequestContext): Promise<
     audienceTestDataHelper,
     identityManagementHelper,
     userManagementService,
+    identityService,
   };
 }
 
@@ -178,6 +191,7 @@ export const platformTestFixture = test.extend<
     // API-only fixtures - fast, no browser overhead
     appManagerApiFixture: PlatformApiFixture;
     userManagerApiFixture: PlatformApiFixture;
+    quickTaskApiFixture: QuickTaskApiFixture;
 
     // UI-only fixtures - browser and page components
     appManagerUiFixture: PlatformUiFixture;
@@ -196,6 +210,7 @@ export const platformTestFixture = test.extend<
     // Worker-scoped fixtures
     appManagerApiContext: APIRequestContext;
     userManagerApiContext: APIRequestContext;
+    quickTaskApiContext: APIRequestContext;
   }
 >({
   // Worker-scoped API contexts - shared across all tests in worker
@@ -216,6 +231,26 @@ export const platformTestFixture = test.extend<
       const context = await RequestContextFactory.createAuthenticatedContext(getEnvConfig().apiBaseUrl, {
         email: getEnvConfig().userManagerEmail!,
         password: getEnvConfig().appManagerPassword,
+      });
+      await use(context);
+      await context.dispose();
+    },
+    { scope: 'worker' },
+  ],
+
+  quickTaskApiContext: [
+    async ({}, use) => {
+      const quickTaskApiUrl = process.env.QUICK_TASK_API_URL;
+      const quickTaskUsername = process.env.QUICK_TASK_APP_MANAGER_USERNAME;
+      const quickTaskPassword = process.env.QUICK_TASK_APP_MANAGER_PASSWORD;
+
+      if (!quickTaskApiUrl || !quickTaskUsername || !quickTaskPassword) {
+        throw new Error('Quick Task API credentials not configured in environment variables');
+      }
+
+      const context = await RequestContextFactory.createAuthenticatedContext(quickTaskApiUrl, {
+        email: quickTaskUsername,
+        password: quickTaskPassword,
       });
       await use(context);
       await context.dispose();
@@ -358,16 +393,44 @@ export const platformTestFixture = test.extend<
 
   quickTaskPage: [
     async ({ page }, use) => {
-      const _quickTaskHomePage = await loginToQuickTask(page, {
+      const quickTaskHomePage = await loginToQuickTask(page, {
         email: process.env.QUICK_TASK_APP_MANAGER_USERNAME!,
         password: process.env.QUICK_TASK_APP_MANAGER_PASSWORD!,
       });
+
+      // Verify the home page is loaded after login
+      await quickTaskHomePage.verifyThePageIsLoaded();
+
       await use(page);
 
       // Logout after each test case
       const quickTaskUrl = process.env.QUICK_TASK_BASE_URL;
       if (quickTaskUrl) {
         await page.goto(`${quickTaskUrl}/logout`);
+      }
+    },
+    { scope: 'test' },
+  ],
+
+  quickTaskApiFixture: [
+    async ({ quickTaskApiContext }, use) => {
+      const quickTaskApiUrl = process.env.QUICK_TASK_API_URL;
+      if (!quickTaskApiUrl) {
+        throw new Error('QUICK_TASK_API_URL not configured in environment variables');
+      }
+      const quickTaskService = new QuickTaskService(quickTaskApiContext, quickTaskApiUrl);
+      const quickTaskTestHelper = new QuickTaskTestHelper(quickTaskService);
+      await use({
+        apiContext: quickTaskApiContext,
+        quickTaskService,
+        quickTaskTestHelper,
+      });
+
+      // Cleanup: Delete all tracked tasks
+      try {
+        await quickTaskTestHelper.cleanup();
+      } catch (error) {
+        console.warn('Quick Task API fixture cleanup failed:', error);
       }
     },
     { scope: 'test' },

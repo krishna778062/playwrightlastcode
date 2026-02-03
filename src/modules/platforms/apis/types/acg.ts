@@ -89,3 +89,92 @@ export interface ACGCreationAPI {
   adminAudience?: string[];
   acgStatus?: string;
 }
+
+export interface ACGSubjectStatsAudienceInfo {
+  audienceCount: number;
+  combinedUserCount: number | string;
+}
+
+export interface ACGSubjectStatsUserInfo {
+  count: number;
+}
+
+export interface ACGSubjectStatsAdminManager {
+  totalUsers: number | string;
+  audiences: ACGSubjectStatsAudienceInfo;
+  users: ACGSubjectStatsUserInfo;
+}
+
+export interface ACGSubjectStatsTargets {
+  totalUsers: number | string;
+  audiences: ACGSubjectStatsAudienceInfo;
+}
+
+export interface ACGSubjectStats {
+  admins: ACGSubjectStatsAdminManager;
+  managers: ACGSubjectStatsAdminManager;
+  targets: ACGSubjectStatsTargets;
+}
+
+export interface ACGSubjectStatsResult {
+  acgs: Record<string, ACGSubjectStats>;
+}
+
+export interface ACGSubjectStatsResponse {
+  status: string;
+  message: string;
+  result: ACGSubjectStatsResult;
+  apiName: string;
+}
+
+/**
+ * Payload for updating an existing ACG
+ */
+export interface ACGUpdatePayload {
+  id: string;
+  managers?: {
+    audiences?: string[];
+    users?: string[];
+  };
+  admins?: {
+    audiences?: string[];
+    users?: string[];
+  };
+  targets?: {
+    audiences?: string[];
+  };
+}
+
+/**
+ * Response from updating an ACG
+ */
+export interface ACGUpdateResponse {
+  status: string;
+  message: string;
+  result: AcgListResult;
+  responseTimeStamp: number;
+  apiName: string;
+}
+
+/**
+ * Payload for updating Feature Owners of ACGs
+ */
+export interface FeatureOwnerUpdatePayload {
+  featureCodes: string[];
+  usersToAdd: string[];
+  usersToRemove: string[];
+}
+
+/**
+ * Response from updating Feature Owners
+ */
+export interface FeatureOwnerUpdateResponse {
+  status: string;
+  message: string;
+  result: {
+    addedUsers: string[];
+    removedUsers: string[];
+  };
+  responseTimeStamp: number;
+  apiName: string;
+}

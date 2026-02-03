@@ -426,7 +426,7 @@ export class BaseActionUtil {
   /**
    * Dismisses the toast message.
    */
-  async dismissTheToastMessage(options?: { toastText?: string }): Promise<void> {
+  async dismissTheToastMessage(options?: { toastText?: string; timeout?: number }): Promise<void> {
     await test.step(
       options?.toastText
         ? `Dismissing the toast message having text ${options?.toastText}`
@@ -434,7 +434,7 @@ export class BaseActionUtil {
       async () => {
         options?.toastText
           ? await this.clickOnElement(this.dismissToastMessageByText(options?.toastText))
-          : await this.clickOnElement(this.dismissToastMessage);
+          : await this.clickOnElement(this.dismissToastMessage, { timeout: options?.timeout ?? 5_000 });
       }
     );
   }
@@ -580,7 +580,6 @@ export class BaseActionUtil {
       // 5. Save to downloads folder
       const filePath = FileUtil.getDownloadsFilePath(fileName);
       await download.saveAs(filePath);
-
       console.log(`Downloaded file: ${fileName}`);
 
       return {
@@ -588,5 +587,55 @@ export class BaseActionUtil {
         fileName,
       };
     });
+  }
+
+  /**
+   *  Select the value in the Dropdown
+   * @param dropdownSelectorOrLocator : Locator of Dropdown
+   * @param option: {index: number or value: string or visibleText:strng}
+   * @param options
+   */
+  async selectDropdownOption(
+    dropdownSelectorOrLocator: string | Locator,
+    option: { index?: number; value?: string; visibleText?: string },
+    options?: { stepInfo?: string }
+  ) {
+    const dropdown =
+      typeof dropdownSelectorOrLocator === 'string'
+        ? this.page.locator(dropdownSelectorOrLocator)
+        : dropdownSelectorOrLocator;
+
+    await test.step(
+      options?.stepInfo ||
+        `Select dropdown option ${
+          option.index !== undefined
+            ? `by index ${option.index}`
+            : option.value
+              ? `by value ${option.value}`
+              : `by visible text ${option.visibleText}`
+        }`,
+      async () => {
+        try {
+          if (option.index !== undefined) {
+            await dropdown.selectOption({ index: option.index });
+            return;
+          }
+
+          if (option.value !== undefined) {
+            await dropdown.selectOption({ value: option.value });
+            return;
+          }
+
+          if (option.visibleText !== undefined) {
+            await dropdown.selectOption({ label: option.visibleText });
+            return;
+          }
+
+          throw new Error('selectDropdownOption requires one of: index | value | visibleText');
+        } catch (error) {
+          throw new Error(`Unable to select elements ${error}`);
+        }
+      }
+    );
   }
 }

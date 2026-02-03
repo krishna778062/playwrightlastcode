@@ -1,5 +1,15 @@
-export type TenantKey = 'primary' | 'onlyPeerToPeer';
-export type EnvironmentKey = 'qa' | 'test';
+export type TenantKey = 'primary' | 'onlyPeerToPeer' | 'ABACEnabled';
+export type EnvironmentKey =
+  | 'qa'
+  | 'test'
+  | 'uat'
+  | 'uatAU'
+  | 'uatCA'
+  | 'uatEU'
+  | 'prodUS'
+  | 'prodAU'
+  | 'prodCA'
+  | 'prodEU';
 
 /**
  * Get caller function information for debugging
@@ -37,6 +47,9 @@ export interface RecognitionTenantConfig {
   tenantName: string;
   frontendBaseUrl: string;
   apiBaseUrl: string;
+  siteName?: string;
+  siteId?: string;
+  audience?: string;
   appManagerEmail: string;
   appManagerName: string;
   appManagerUserId: string;
@@ -62,8 +75,50 @@ export const config = {
   primary: {
     qa: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco-auto.qa.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-auto-api.qa.simpplr.xyz/',
+      frontendBaseUrl: 'https://reco-auto.qa.simpplr.xyz',
+      apiBaseUrl: 'https://reco-auto-api.qa.simpplr.xyz',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: '9b2312c3-66d4-4662-b37b-f60626ee393f',
+      appManagerPassword: 'simpplr123',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: '29b876a8-e690-4a7c-bd6d-370179a051af',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: 'cb2222c7-69b0-42ea-97b4-20bb126713a6',
+      endUserPassword: 'simpplr123',
+      siteName: 'recognition_automation_site',
+      siteId: '8f87117a-8f62-47e8-9a17-34cf90179880',
+      audience: 'recognition_automation_audience_do_not_delete',
+      newUxEnabled: true,
+    },
+    test: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://reco-automation.test.simpplr.xyz',
+      apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'f12a51ca-528c-4236-9f15-343901d489db',
+      appManagerPassword: 'simpplr123',
+      recognitionManagerEmail: 'aishma.gupta+5@simpplr.com',
+      recognitionManagerName: 'Recognition User',
+      recognitionManagerUserId: '27f7f0df-2783-49f2-b989-c170f520421f',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: 'd4d82341-04e6-459a-b9ae-cda3e9a17ed8',
+      endUserPassword: 'simpplr123',
+      siteName: 'recognition_automation_site',
+      siteId: '8f87117a-8f62-47e8-9a17-34cf90179880',
+      audience: 'recognition_automation_audience_do_not_delete',
+      newUxEnabled: true,
+    },
+    uat: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://reco.uat.simpplr.xyz',
+      apiBaseUrl: 'https://reco-api.uat.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
@@ -72,25 +127,133 @@ export const config = {
       recognitionManagerName: 'Aishma RecoManager',
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
       recognitionManagerPassword: 'simpplr123',
-      endUserEmail: 'arbind.kumar@simpplr.com',
-      endUserName: 'arbind appmanager',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
       endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
       endUserPassword: 'simpplr123',
       newUxEnabled: true,
     },
-    test: {
+    uatEU: {
       tenantName: 'Recognition Primary',
-      frontendBaseUrl: 'https://reco-automation.test.simpplr.xyz/',
-      apiBaseUrl: 'https://reco-automation-api.test.simpplr.xyz/',
+      frontendBaseUrl: 'https://rewards.uat-eu.simpplr.xyz',
+      apiBaseUrl: 'https://rewards-api.uat-eu.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
       appManagerPassword: 'simpplr123',
-      recognitionManagerEmail: 'aishma.gupta+5@simpplr.com',
-      recognitionManagerName: 'Recognition User',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
       recognitionManagerPassword: 'simpplr123',
-      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserPassword: 'simpplr123',
+      newUxEnabled: true,
+    },
+    uatAU: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://king-in-the-north.uat-au.simpplr.com',
+      apiBaseUrl: 'https://king-in-the-north-api.uat-au.simpplr.com',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: '4b2bf839-c7ff-4b5f-a766-f2333b5e46dd',
+      appManagerPassword: 'Simpplr@1234',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: 'f1aedfe7-d908-4d4a-a5d5-2d57faf0e80f',
+      endUserPassword: 'Simpplr@1234',
+      newUxEnabled: true,
+    },
+    uatCA: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://the-maze-runner-1.uat-ca.simpplr.com',
+      apiBaseUrl: 'https://the-maze-runner-1-api.uat-ca.simpplr.com',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: '74fed0ff-4bd4-4003-b51c-2d017168a494',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '9615aed4-d65b-45bd-9de5-0cc84d60d89e',
+      endUserPassword: 'Simpplr@12345',
+      newUxEnabled: true,
+    },
+    prodUS: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://recognitiontest.app.simpplr.com',
+      apiBaseUrl: 'https://recognitiontest-api.app.simpplr.com',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'simpplr123',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserPassword: 'simpplr123',
+      newUxEnabled: true,
+    },
+    prodEU: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://zeus.eu.simpplr.com',
+      apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserPassword: 'Simpplr@12345',
+      newUxEnabled: true,
+    },
+    prodCA: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'simpplr123',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserPassword: 'simpplr123',
+      newUxEnabled: true,
+    },
+    prodAU: {
+      tenantName: 'Recognition Primary',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com',
+      apiBaseUrl: 'https://au-5-api.au.simpplr.com',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'simpplr123',
+      recognitionManagerEmail: 'sonu.kumar@simpplr.com',
+      recognitionManagerName: 'Aishma RecoManager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'simpplr123',
+      endUserEmail: 'aishma.gupta+2@simpplr.com',
       endUserName: 'aishma enduser',
       endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
       endUserPassword: 'simpplr123',
@@ -105,7 +268,7 @@ export const config = {
       appManagerEmail: 'charan.b@simpplr.com',
       appManagerName: 'Sonu Kumar',
       appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
-      appManagerPassword: 'Simpplr@1234',
+      appManagerPassword: 'Simpplr@12345',
       recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
       recognitionManagerName: 'Recognition Manager',
       recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
@@ -116,36 +279,102 @@ export const config = {
       endUserPassword: 'Simpplr123',
       newUxEnabled: true,
     },
+    qa: {
+      tenantName: 'Recognition P2P Primary',
+      frontendBaseUrl: 'https://p2p-only-testing.qa.simpplr.xyz',
+      apiBaseUrl: 'https://p2p-only-testing-api.qa.simpplr.xyz',
+      appManagerEmail: 'charan.b@simpplr.com',
+      appManagerName: 'Simpplr@1234',
+      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerPassword: 'Simpplr@1234',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'sonu.kumar+3@simpplr.com',
+      endUserName: 'Priya Singh',
+      endUserUserId: 'c1fed284-175c-4384-a3b2-5564fa1c4901',
+      endUserPassword: 'Simpplr123',
+      newUxEnabled: true,
+    },
+  },
+  ABACEnabled: {
+    test: {
+      tenantName: 'Recognition ABAC Enabled',
+      frontendBaseUrl: 'https://abac.test.simpplr.xyz',
+      apiBaseUrl: 'https://abac-api.test.simpplr.xyz',
+      appManagerEmail: 'aishma.gupta@simpplr.com',
+      appManagerName: 'Aishma Gupta',
+      appManagerUserId: 'debe8950-bca5-41d0-9aa9-4fe65afebca7',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: 'b46a7791-55f7-4d31-b902-b9710951ee48',
+      endUserPassword: 'Simpplr@12345',
+      newUxEnabled: true,
+    },
+    qa: {
+      tenantName: 'Recognition ABAC Enabled',
+      frontendBaseUrl: 'https://abac.qa.simpplr.xyz',
+      apiBaseUrl: 'https://abac.qa.simpplr.xyz',
+      appManagerEmail: 'keerthana.ks@simpplr.com',
+      appManagerName: 'Keerthana Ks',
+      appManagerUserId: '02e75451-4ff6-42e8-ac17-2ee52cb04407',
+      appManagerPassword: 'Simpplr@12345',
+      recognitionManagerEmail: 'sonu.kumar+2@simpplr.com',
+      recognitionManagerName: 'Recognition Manager',
+      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerPassword: 'Simpplr123',
+      endUserEmail: 'aishma.gupta+1@simpplr.com',
+      endUserName: 'aishma enduser',
+      endUserUserId: '9489122f-089e-4cd3-9b7f-ccc6bdc19b80',
+      endUserPassword: 'Simpplr@12345',
+      newUxEnabled: true,
+    },
   },
   appConfig: {
     staticFolderPath: '',
   },
 };
 
+// Environment resolution helpers ------------------------------------------------
+
 /**
- * Get current environment from TEST_ENV (required)
- * Throws error if TEST_ENV is not set or invalid
+ * Get current environment from TEST_ENV (required).
+ * Throws an error if TEST_ENV is not set or invalid.
  */
-function getCurrentEnvironment(): EnvironmentKey {
+export function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  if (!testEnv) {
-    throw new Error(
-      `❌ TEST_ENV environment variable is required!\n` +
-        `Please set TEST_ENV before running tests:\n` +
-        `  TEST_ENV=qa npm run test\n` +
-        `  TEST_ENV=uat npm run test\n` +
-        `  TEST_ENV=prod npm run test`
-    );
-  }
+  const allowedEnvs: EnvironmentKey[] = [
+    'qa',
+    'test',
+    'uat',
+    'uatAU',
+    'uatCA',
+    'uatEU',
+    'prodUS',
+    'prodAU',
+    'prodCA',
+    'prodEU',
+  ];
 
-  if (!['qa', 'uat', 'prod', 'test'].includes(testEnv)) {
+  if (!allowedEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `❌ Invalid TEST_ENV value: '${testEnv}'\n` +
-        `Valid values are: qa, uat, test, prod\n` +
+        `Valid values are: ${allowedEnvs.join(', ')}\n` +
         `Example: TEST_ENV=qa npm run test\n` +
         `Example: TEST_ENV=uat npm run test\n` +
-        `Example: TEST_ENV=prod npm run test\n` +
+        `Example: TEST_ENV=prodUS npm run test\n` +
+        `Example: TEST_ENV=prodAU npm run test\n` +
+        `Example: TEST_ENV=prodCA npm run test\n` +
+        `Example: TEST_ENV=prodEU npm run test\n` +
+        `Example: TEST_ENV=uatAU npm run test\n` +
+        `Example: TEST_ENV=uatCA npm run test\n` +
         `Example: TEST_ENV=test npm run test\n`
     );
   }
@@ -154,16 +383,15 @@ function getCurrentEnvironment(): EnvironmentKey {
 }
 
 /**
- * Initialize config cache for specific tenant once per test run
- * This is the equivalent of loading properties file in Java
- * Call this at the start of your test suite with the tenant you're testing
+ * Initialize config cache for specific tenant once per test run.
+ * Call this at the start of your test suite with the tenant you're testing.
  */
 export function initializeRecognitionConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
   if (configCache && configCache.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
-    return; // Already initialized for the same tenant
+    return;
   }
 
   // Allow tenant switching - clear cache if different tenant
@@ -198,9 +426,7 @@ export function initializeRecognitionConfig(tenant: TenantKey): void {
 }
 
 /**
- * Get tenant configuration for current environment (from cache)
- * No need to pass tenant - uses the initialized tenant
- * @returns Tenant configuration object
+ * Get tenant configuration for current environment (from cache).
  */
 export function getRecognitionTenantConfigFromCache(): RecognitionTenantConfig {
   if (!configCache) {

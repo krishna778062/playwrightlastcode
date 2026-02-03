@@ -6,6 +6,7 @@ INNER JOIN udl.user u ON s.search_performed_by_user_code = u.code
 WHERE s.tenant_code = '{tenantCode}'
   AND DATE(s.search_performed_datetime) >= '{startDate}' 
   AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter};
     `,
@@ -25,6 +26,7 @@ LEFT JOIN udl.vw_search_result_click sr ON s.code = sr.search_code
 WHERE s.tenant_code = '{tenantCode}'
   AND DATE(s.search_performed_datetime) >= '{startDate}'
   AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter};
     `,
@@ -46,6 +48,7 @@ INNER JOIN udl.user u ON s.search_performed_by_user_code = u.code
 WHERE s.tenant_code = '{tenantCode}'
   AND DATE(s.search_performed_datetime) >= '{startDate}'
   AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter};
 `,
@@ -61,6 +64,7 @@ INNER JOIN UDL.VW_USER_AS_IS AS u
 WHERE u.TENANT_CODE = '{tenantCode}'
   AND dua.REPORTING_DATE >= DATE(SPLIT_PART('{startDate}', ' ', 1))
   AND dua.REPORTING_DATE < DATE(SPLIT_PART('{endDate}', ' ', 1))
+  {segmentFilter}
   {locationFilter}
   {departmentFilter};
 `,
@@ -84,6 +88,7 @@ LEFT JOIN udl.vw_search_result_click sr
 WHERE s.tenant_code = '{tenantCode}'
   AND s.search_performed_datetime >= '{startDate}'
   AND s.search_performed_datetime <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter}
 GROUP BY s.search_term
@@ -100,6 +105,7 @@ WITH search_data AS (
   WHERE s.tenant_code = '{tenantCode}'
     AND s.search_performed_datetime >= '{startDate}'
     AND s.search_performed_datetime <= '{endDate}'
+    {segmentFilter}
     {locationFilter}
     {departmentFilter}
 ),
@@ -137,11 +143,12 @@ WITH total_clicks AS (
     WHERE sc.tenant_code = '{tenantCode}'
       AND DATE(sc.search_result_datetime) >= '{startDate}'
       AND DATE(sc.search_result_datetime) <= '{endDate}'
+      {segmentFilter}
       {locationFilter}
       {departmentFilter}
 )
 SELECT
-    rt.description AS item_type,
+    case when rt.description='N/A' then 'Undefined' else rt.description end as item_type,
     COUNT(sc.code) AS click_count,
     t.total_clickthrough,
     CONCAT(ROUND((COUNT(sc.code) * 100.0 / NULLIF(t.total_clickthrough, 0)), 1), ' %') AS percentage
@@ -153,6 +160,7 @@ CROSS JOIN total_clicks t
 WHERE sc.tenant_code = '{tenantCode}'
   AND DATE(sc.search_result_datetime) >= '{startDate}'
   AND DATE(sc.search_result_datetime) <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter}
 GROUP BY rt.description, t.total_clickthrough
@@ -168,6 +176,7 @@ SELECT
      WHERE s2.tenant_code = '{tenantCode}'
        AND s2.search_performed_datetime >= '{startDate}'
        AND s2.search_performed_datetime <= '{endDate}'
+       {segmentFilter}
        {locationFilter}
        {departmentFilter}
     ) AS total_search_count,
@@ -178,6 +187,7 @@ SELECT
            WHERE s3.tenant_code = '{tenantCode}'
              AND s3.search_performed_datetime >= '{startDate}'
              AND s3.search_performed_datetime <= '{endDate}'
+             {segmentFilter}
              {locationFilter}
              {departmentFilter}
           )
@@ -188,6 +198,7 @@ WHERE s.tenant_code = '{tenantCode}'
   AND s.search_performed_datetime >= '{startDate}'
   AND s.search_performed_datetime <= '{endDate}'
   AND s.has_search_result = false
+  {segmentFilter}
   {locationFilter}
   {departmentFilter}
 GROUP BY s.search_term
@@ -204,9 +215,27 @@ INNER JOIN udl.user AS u ON s.search_performed_by_user_code = u.code
 WHERE s.tenant_code = '{tenantCode}'
   AND DATE(s.search_performed_datetime) >= '{startDate}'
   AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter}
 GROUP BY u.department
+ORDER BY total_searches DESC;
+`,
+  Most_Searches_Performed_By_Location: `
+SELECT
+  u.location,
+  COUNT(s.code) AS total_searches,
+  COUNT(DISTINCT u.code) AS distinct_users,
+  (COUNT(s.code) / NULLIF(COUNT(DISTINCT u.code), 0)) AS avg_searches_per_user
+FROM udl.search AS s
+INNER JOIN udl.user AS u ON s.search_performed_by_user_code = u.code
+WHERE s.tenant_code = '{tenantCode}'
+  AND DATE(s.search_performed_datetime) >= '{startDate}'
+  AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
+  {locationFilter}
+  {departmentFilter}
+GROUP BY u.location
 ORDER BY total_searches DESC;
 `,
   Search_Usage_Volume_And_Click_Through_Rate: `
@@ -220,6 +249,7 @@ LEFT JOIN udl.search_result_click sr ON s.code = sr.search_code
 WHERE s.tenant_code = '{tenantCode}'
   AND DATE(s.search_performed_datetime) >= '{startDate}'
   AND DATE(s.search_performed_datetime) <= '{endDate}'
+  {segmentFilter}
   {locationFilter}
   {departmentFilter}
 GROUP BY DATE(s.search_performed_datetime)

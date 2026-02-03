@@ -4,36 +4,59 @@ export const OnSiteSql = {
 
   /** Replies from other users-IT007, Feed post and content comments-IT004','IT008 */
   REACTIONS_MADE: `SELECT 
-            u.code,
+            u.code as "Interacted by user code",
             u.full_name AS "Full name",
-            COUNT(i.interacted_by_user_code) AS "Interaction count"
+            COUNT(i.receiver_user_code) AS "Interaction count",
+            u.city as "City",
+            u.country as "Country",
+            u.department as "Department",
+            u.email as "Email",
+            u.phone_number as "Phone number",
+            u.title as "Job title",
+            u.state as "State",
+            s.site_name as "Site name",
+            sp.member_role as "Site role",
+            sp.site_role_name as "Audience role"
         FROM UDL.VW_INTERACTION i
         INNER JOIN UDL.VW_USER_AS_IS u 
             ON i.interacted_by_user_code = u.code
         INNER JOIN UDL.VW_SITE_AS_IS s
             ON i.site_code=s.code AND s.tenant_code=u.tenant_code
+        INNER JOIN udl.vw_member_follower_other sp
+        ON sp.user_code=u.code and sp.tenant_code=u.tenant_code and sp.site_code=s.code
         WHERE 
             u.tenant_code = '{tenantCode}'
             AND i.is_deleted = FALSE
             AND i.is_system_feed = FALSE
-            AND i.interaction_type_code IN ('{interactionTypeCode}')
+            AND i.interaction_type_code IN ({interactionTypeCode})
             AND date(i.INTERACTION_DATETIME)>= '{startDate}' AND date(i.INTERACTION_DATETIME)<= '{endDate}' 
             AND i.site_code='{siteCode}'
         GROUP BY 
-            u.code, 
-            u.full_name
+            u.full_name,u.code,u.city,u.country,u.department,u.email,u.phone_number,u.title,u.state,s.site_name,sp.member_role,sp.site_role_name
         ORDER BY 
             COUNT(i.interacted_by_user_code) DESC;`,
   /** Replies to others-IT007, Shares received-IT003*/
   REACTIONS_RECEIVED: `SELECT 
-        u.code,
+        u.code as "Interacted by user code",
         u.full_name AS "Full name",
         COUNT(i.receiver_user_code) AS "Interaction count",
+        u.city as "City",
+        u.country as "Country",
+        u.department as "Department",
+        u.email as "Email",
+        u.phone_number as "Phone number",
+        u.title as "Job title",
+        u.state as "State",
+        s.site_name as "Site name",
+        sp.member_role as "Site role",
+        sp.site_role_name as "Audience role"
     FROM UDL.VW_INTERACTION i
     INNER JOIN UDL.VW_USER_AS_IS u 
         ON i.receiver_user_code = u.code
-    INNER JOIN UDL.VW_SITE_AS_IS s
-        ON i.site_code=s.code
+    INNER JOIN UDL.VW_SITE_AS_IS s 
+        ON i.site_code=s.code AND s.tenant_code=u.tenant_code
+    INNER JOIN udl.vw_member_follower_other sp
+        ON sp.user_code=u.code and sp.tenant_code=u.tenant_code and sp.site_code=s.code
     WHERE 
         u.tenant_code = '{tenantCode}'
         AND i.is_deleted = FALSE
@@ -42,8 +65,7 @@ export const OnSiteSql = {
         AND date(i.INTERACTION_DATETIME)>= '{startDate}' AND date(i.INTERACTION_DATETIME)<= '{endDate}' 
         AND i.site_code='{siteCode}'
     GROUP BY 
-        u.code,
-        u.full_name
+        u.full_name,u.code,u.city,u.country,u.department,u.email,u.phone_number,u.title,u.state,s.site_name,sp.member_role,sp.site_role_name
     ORDER BY 
         COUNT(i.receiver_user_code) DESC;`,
 
@@ -159,4 +181,100 @@ GROUP BY
 
 ORDER BY 
     "Popularity score" DESC;`,
+
+  CONTENT_REFERRALS: `SELECT 
+    u.description AS "UTM source name",
+    COUNT(DISTINCT i.content_code) AS "Content items",
+    COUNT(
+        CASE 
+            WHEN i.interaction_type_code NOT IN ('IT000', 'ITCP') 
+            THEN i.content_code 
+        END
+    ) AS "Referrals",
+    ROUND(
+        ("Referrals" * 100.0) / NULLIF(SUM("Referrals") OVER (), 0),
+        2
+    ) AS "Referrals contribution",
+    ROUND(
+        "Referrals" / NULLIF("Content items", 0),
+        1
+    ) AS "Avg referrals per item"
+FROM SIMPPLR_COMMON_TENANT.udl.vw_interaction i
+INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_ref_utm_source_as_is u
+    ON i.utm_source_code = u.code
+WHERE 
+    i.tenant_code = '{tenantCode}'
+    AND i.site_code LIKE '{siteCode}'
+    AND DATE(i.interaction_datetime) >= '{startDate}'
+    AND DATE(i.interaction_datetime) <= '{endDate}'
+    AND i.interaction_type_code = 'IT001'
+    AND i.INTERACTION_CONTENT_POST_FIRST_PUBLISH
+GROUP BY 
+    u.description
+ORDER BY 
+    COUNT(i.code) DESC;`,
+
+  MOST_CONTENT_PUBLISHED: `SELECT
+    u.full_name AS "Name",
+    COUNT(c.code) AS "Content count"
+FROM SIMPPLR_COMMON_TENANT.udl.vw_content_as_is AS c
+INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_user_as_is AS u
+    ON c.primary_author_code = u.code
+WHERE
+    u.tenant_code = '{tenantCode}'
+    AND c.site_code LIKE '{siteCode}'
+    AND DATE(c.content_first_published_date) >= '{startDate}'
+    AND DATE(c.content_first_published_date) <= '{endDate}'
+GROUP BY
+    u.full_name
+ORDER BY
+    "Content count" DESC;`,
+
+  MOST_VIEWED_CONTENT: `SELECT
+    c.title AS "Content",
+    COUNT(i.code) AS "Views"
+FROM SIMPPLR_COMMON_TENANT.udl.vw_content_as_is c
+INNER JOIN SIMPPLR_COMMON_TENANT.udl.vw_interaction i
+    ON i.content_code = c.code
+WHERE
+    c.site_code = '{siteCode}'
+    AND i.tenant_code = '{tenantCode}'
+    AND i.is_deleted = FALSE
+    AND i.interaction_type_code = 'IT001'
+    AND DATE(i.interaction_datetime) >= '{startDate}'
+    AND DATE(i.interaction_datetime) <= '{endDate}'
+GROUP BY
+    c.code,
+    c.title
+ORDER BY
+    "Views" DESC;`,
+
+  GET_SITE_CODE: `Select site_code from (
+SELECT 
+    i.site_code,
+    COUNT(*) AS total_interactions
+FROM udl.interaction AS i
+INNER JOIN udl.site s
+    ON s.code = i.site_code
+   AND s.tenant_code = i.tenant_code
+WHERE 
+    s.tenant_code = '{tenantCode}'
+    AND i.interaction_datetime BETWEEN '{startDate}' AND '{endDate}'
+    AND s.overall_is_site_active = TRUE
+    AND i.is_system_feed = FALSE
+    AND i.interaction_content_post_first_publish = TRUE
+    AND i.is_deleted = FALSE
+    AND i.current_site_code IS NOT NULL
+    AND i.current_site_code <> 'N/A'
+GROUP BY 
+    i.site_code
+HAVING
+    COUNT(CASE WHEN i.interaction_type_code = 'IT001' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT002' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT003' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT004' THEN 1 END) > 0
+AND COUNT(CASE WHEN i.interaction_type_code = 'IT006' THEN 1 END) > 0
+ORDER BY 
+    total_interactions DESC 
+LIMIT 1);`,
 };

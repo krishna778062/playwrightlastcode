@@ -167,7 +167,6 @@ export const SitesSql = {
                 s.tenant_code = '{tenantCode}'
                 AND s.overall_is_site_active = TRUE
                 AND s.site_type_code IN ('STT001', 'STT002', 'STT003')
-                AND i.is_deleted = FALSE
                 AND i.current_site_code NOT IN ('N/A')
                 AND i.interaction_content_post_publish IN (TRUE, 'N/A')
                 AND i.is_system_feed = FALSE
@@ -240,8 +239,7 @@ export const SitesSql = {
                     END AS interaction_content_post_publish
                 FROM SIMPPLR_COMMON_TENANT.UDL.vw_interaction
                 WHERE 
-                    is_deleted = FALSE
-                    AND current_site_code NOT IN ('N/A')
+                    current_site_code NOT IN ('N/A')
                     AND is_system_feed = FALSE
                     AND interaction_datetime >= '{startDate}'
                     AND interaction_datetime < '{endDate}'
@@ -368,5 +366,46 @@ export const SitesSql = {
         AND i.interaction_datetime < CURRENT_DATE + INTERVAL '1 day'
     GROUP BY s.code, s.site_name, st.description
     ORDER BY total_views ASC
+  `,
+
+  /**
+   * Total Sites Distribution CSV Query Template
+   * Returns detailed site data for CSV validation matching the pie chart CSV export format
+   * Columns: Site code, Site name, Site category name, User name, Role, Site type, Email, Broadcast only, Is featured
+   * Note: This query returns all sites with their participants (managers/owners) for CSV validation.
+   */
+  TOTAL_SITES_DISTRIBUTION_CSV: `
+    SELECT
+        s.code AS site_code,
+        site_name,
+        site_category_name,
+        st.description AS site_type,
+        is_feature_site,
+        is_broadcast_only,
+        spr.description AS role,
+        u.full_name AS user_name,
+        u.email
+    FROM SIMPPLR_COMMON_TENANT.UDL.VW_SITE_AS_IS S
+    INNER JOIN SIMPPLR_COMMON_TENANT.UDL.site_category SC 
+        ON sc.code = s.site_category_code
+        AND sc.tenant_code = s.tenant_code
+    INNER JOIN SIMPPLR_COMMON_TENANT.UDL.site_participants SP 
+        ON s.code = sp.site_code
+        AND s.tenant_code = sp.tenant_code
+    INNER JOIN SIMPPLR_COMMON_TENANT.UDL.user U 
+        ON u.code = sp.user_code
+        AND u.tenant_code = sp.tenant_code
+    INNER JOIN SIMPPLR_COMMON_TENANT.UDL.ref_site_participant_role spr
+        ON spr.code = sp.site_participant_role_code
+    INNER JOIN SIMPPLR_COMMON_TENANT.UDL.ref_site_type ST 
+        ON st.code = s.site_type_code
+    WHERE 
+        s.tenant_code = '{tenantCode}'
+        AND overall_is_site_active
+        AND sp.is_deleted = FALSE
+        AND site_type_code IN ('STT001', 'STT002', 'STT003')
+        AND sp.site_participant_role_code IN ('SPR001', 'SPR002', 'SPR003')
+        AND sp.relationship_via_code = 'SPRV001'
+    GROUP BY s.code, site_name, site_category_name, st.description, is_feature_site, is_broadcast_only, spr.description, u.full_name, u.email
   `,
 };

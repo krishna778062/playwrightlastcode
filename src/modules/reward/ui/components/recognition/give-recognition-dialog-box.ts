@@ -10,7 +10,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly dialogCloseButton: Locator;
   readonly recipientInput: Locator;
   readonly pointsInput: Locator;
-  readonly messageInput: Locator;
 
   // Additional properties for recognition functionality
   readonly profilePicture: Locator;
@@ -54,7 +53,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.dialogCloseButton = this.dialog.locator('button[aria-label="Close"]');
     this.recipientInput = this.dialog.locator('input[data-testid="recipient-input"]');
     this.pointsInput = this.dialog.locator('input[data-testid="points-input"]');
-    this.messageInput = this.dialog.locator('textarea[data-testid="message-input"]');
 
     // Additional locators for recognition functionality
     this.profilePicture = this.container.locator('[src*="data:image"]');
@@ -67,7 +65,6 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.suggesterContainer = this.container.getByRole('listbox');
     this.selectOptions = this.container.getByRole('menuitem');
     this.recipientsInput = this.container.locator('[data-testid*="awarding this"] input[type="text"]');
-    this.messageInput = this.container.getByRole('textbox');
     this.descriptionTextArea = this.container.locator('[class*="tiptap ProseMirror"]');
     this.companyValues = this.container.getByTestId('field-Company values');
     this.companyValuesInput = this.container.getByTestId('field-Company values').locator('input[type="text"]');
@@ -192,20 +189,28 @@ export class GiveRecognitionDialogBox extends DialogBox {
     await this.recognitionRecipientsInput.click();
     if (typeof userName === 'string') {
       await this.recognitionRecipientsInput.fill(userName);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(userName).click();
     } else {
-      await this.recognitionRecipientsInput.click();
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(userName).first().click();
     }
-    await this.suggesterContainer.waitFor({ state: 'visible' });
-    await this.getOption(userName).click();
   }
 
   /**
    * Select the peer recognition award for recognition
    */
   async selectThePeerRecognitionAwardForRecognition(awardName: string | number): Promise<string> {
-    await this.selectPeerRecognitionInput.click();
-    await this.suggesterContainer.waitFor();
-    await this.getOption(awardName).click();
+    if (typeof awardName === 'string') {
+      await this.selectPeerRecognitionInput.click();
+      await this.recognitionRecipientsInput.fill(awardName);
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(awardName).click();
+    } else {
+      await this.selectPeerRecognitionInput.click();
+      await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.getOption(awardName).first().click();
+    }
     const text = await this.selectedAwardInRecognition.textContent();
     return text || '';
   }

@@ -29,45 +29,7 @@ export interface PageCreationOptions {
   };
 }
 
-export interface IPageCreationActions {
-  uploadCoverImage: (
-    imagePath: string,
-    options?: { widescreenCropOption?: boolean; squareCropOption?: boolean }
-  ) => Promise<void>;
-  fillPageDetails: (options: {
-    category: string;
-    contentType: string;
-    title: string;
-    description: string;
-  }) => Promise<void>;
-  publishPage: () => Promise<Response>;
-  createAndPublishPage: (options: PageCreationOptions) => Promise<{
-    title: string;
-    description: string;
-    category: string;
-    contentType: PageContentType;
-    pageId: string;
-    siteId: string;
-    response: PageCreationResponse;
-  }>;
-  createAndSubmitPage: (options: PageCreationOptions) => Promise<{
-    title: string;
-    description: string;
-    category: string;
-    contentType: PageContentType;
-    pageId: string;
-    siteId: string;
-    peopleId: string;
-    peopleName: string;
-    response: PageCreationResponse;
-  }>;
-}
-
-export interface IPageCreationAssertions {
-  verifyUploadedCoverImagePreviewIsVisible: (options?: { timeout?: number }) => Promise<void>;
-}
-
-export class PageCreationPage extends BasePage implements IPageCreationActions, IPageCreationAssertions {
+export class PageCreationPage extends BasePage {
   readonly mediaManagerComponent: MediaManagerComponent;
   //root locators of some components
   readonly coverImageUploaderContainer: Locator;
@@ -137,17 +99,7 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
     await this.verifier.verifyTheElementIsVisible(this.titleInput, {
       assertionMessage: 'Page title input should be visible',
     });
-  }
-
-  get actions(): IPageCreationActions {
-    return this;
-  }
-
-  get assertions(): IPageCreationAssertions {
-    return this;
-  }
-
-  /**
+  } /**
    * Uploads a cover image to the page creation page
    * It calls uploadAttachment from attachementUploader component
    * and then clicks on next button twice to go to the image cropper page
@@ -180,10 +132,10 @@ export class PageCreationPage extends BasePage implements IPageCreationActions, 
       }
       await this.imageCropper.clickOnNextButton();
 
-      //handle square crop option
       if (options?.squareCropOption) {
         await this.imageCropper.selectCropOption('Square');
       }
+
       await this.imageCropper.clickOnNextButton();
       //await this.imageCropper.clickOnNextButton();
       await this.imageCropper.clickOnAddButton();

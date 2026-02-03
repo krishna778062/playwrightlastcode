@@ -11,7 +11,7 @@ import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 test.describe(
   '@Content API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.CONTENT],
   },
   () => {
     let contentApiHelper: ContentApiHelper;

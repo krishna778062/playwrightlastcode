@@ -22,6 +22,7 @@ export const PAGE_ENDPOINTS = {
   REWARD_STORE_PAGE: '/rewards-store/gift-cards',
   REWARD_STORE_ORDER_HISTORY_PAGE: '/rewards-store/order-history',
   RECOGNITION_HUB: '/recognition',
+  MANAGE_RECOGNITION_RENAMING: '/manage/recognition/naming',
   MANAGE_RECOGNITION_MILESTONES: '/manage/recognition/milestones',
   ACCESS_CONTROL_GROUPS_PAGE: '/manage/access-control/groups',
   FEATURE_OWNERS: '/manage/access-control/feature-owners',
@@ -38,9 +39,12 @@ export const PAGE_ENDPOINTS = {
   IDENTITY_FAVOURITES: '/v1/identity/favourites',
 
   // Recognition pages
+  FEED: '/feed',
+  SEARCH_SITE_FEED: '/sites/search?term=',
   MANAGE_RECOGNITION: '/manage/recognition',
   MANAGE_PEER_RECOGNITION: '/manage/recognition/peer-recognitions',
   MANAGE_RECURRING_RECOGNITION: '/manage/recognition/recurring-awards',
+  MANAGE_APP_RECOGNITION_SETTING: '/manage/app/setup/recognition',
 
   // abac pages
   AUDIENCE_PAGE: '/audiences/org',
@@ -97,6 +101,7 @@ export const PAGE_ENDPOINTS = {
   EVENTS_PAGE: '/people/:userId/calendar',
   CUSTOM_APP_TILES_PAGE: '/manage/custom-app-tiles',
   SUPPORT_TICKETING_PAGE: '/manage/app/integrations/support',
+  APPS_PAGE: '/manage/app/integrations/apps',
   SERVICE_NOW_TICKETS_PAGE: '/servicenow',
   USER_SYNCING_PAGE: '/manage/app/people/user-syncing',
   ANALYTICS_EMBEDS_PAGE: '/manage/app/integrations/analytics-embeds',
@@ -108,7 +113,9 @@ export const PAGE_ENDPOINTS = {
   NOTIFICATION_CUSTOMIZATION_PAGE: '/manage/app/defaults/notification-customization',
   EMAIL_NOTIFICATION_APP_SETTINGS_PAGE: '/manage/app/defaults/email-notifications',
   APPLICATION_GENERAL_SETTINGS_PAGE: '/manage/app/setup/general',
+  NOTIFICATION_SETTINGS_DEFAULT_PAGE: '/manage/app/defaults',
   MOBILE_APP_SETTINGS_PAGE: '/manage/app/setup/mobile-app',
+  DND_PAGE: '/manage/app/defaults/do-not-disturb',
 
   //analytics pages
   ANALYTICS_LANDING_PAGE: '/analytics-landing',
@@ -123,6 +130,8 @@ export const PAGE_ENDPOINTS = {
   MONTHLY_REPORTS_DASHBOARD: '/analytics/reports',
   SITES_DASHBOARD: '/analytics/sites',
   CONTENT_DASHBOARD: '/analytics/content',
+  ON_SITE_PAGE: (siteId: string) => `/manage/sites/${siteId}/analytics`,
+  FILES_DASHBOARD: '/analytics/file',
   USER_SYNCING: '/manage/app/people/user-syncing',
 
   //Polls settings page
@@ -136,4 +145,7 @@ export const PAGE_ENDPOINTS = {
   COMMS_PLANNER_CUSTOMIZATION: '/comms-planner/customization',
   COMMS_PLANNER_PLANNER: '/comms-planner/planner',
   COMMS_PLANNER_CAMPAIGNS: '/comms-planner/campaigns',
+
+  //Newsletter pages
+  MANAGE_NEWSLETTER_PAGE: '/employee-newsletter',
 };

@@ -1,9 +1,8 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
-import { BaseComponent } from '../../../../core/ui/components/baseComponent';
-
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
+import { BaseComponent } from '@/src/core/ui/components/baseComponent';
 import { ContentFilter } from '@/src/modules/content/constants/enums/contentFilter';
 import { BulkActionOptions } from '@/src/modules/content/constants/manageSiteOptions';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
@@ -55,6 +54,8 @@ export class ManageSitesComponent extends BaseComponent {
   readonly contentFilterSelectedValue: Locator;
   readonly contentSearchBar: Locator;
   readonly checkboxLocator: Locator;
+  readonly clickOnMemberTab: Locator;
+  readonly clickOnAddPersonInDialog: Locator;
   readonly SubscriptionButton: Locator;
   readonly pageTemplateTab: Locator;
   readonly editTemplateButton: Locator;
@@ -77,13 +78,14 @@ export class ManageSitesComponent extends BaseComponent {
     this.clickOnTheMembersTab = page.getByRole('tab', { name: 'Members' });
     this.clickOnStartIcon = page.getByRole('button', { name: 'Favorite this user' });
     this.clickOnAlreadyStarIcon = page.getByRole('button', { name: 'Unfavorite this user' });
-    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites Favorites' });
+    this.clickOnFavouriteTabs = page.getByRole('menuitem', { name: 'Favorites' });
 
     this.clickOnPeppleTab = page.getByRole('tab', { name: 'People' });
     this.clickOnTheMemberButtonInAboutTab = page.locator(`[role="tab"][id="member"]`);
     this.clickOnTheMemberButton = page.getByRole('button', { name: 'Member' });
     this.clickOnAddAnotherButton = page.getByRole('button', { name: 'Add person' }).first();
     this.clickOnLeaveButton = page.getByRole('button', { name: 'Leave', exact: true });
+    this.clickOnMemberTab = page.locator('label').filter({ hasText: 'Member' });
     this.clickOnInsideContentButton = page.getByRole('tab', { name: 'Content' });
     this.eventsTabImage = page.locator('[class="CalendarDay CalendarDay--xlarge"]').first();
     this.albumTabImage = page.locator('[class="Image Image--objectFit Image--square"]').first();
@@ -111,6 +113,7 @@ export class ManageSitesComponent extends BaseComponent {
     this.contentFilterSelectedValue = page.getByLabel('Content:').locator(':checked');
     this.contentSearchBar = page.getByRole('textbox', { name: 'Search…' });
     this.checkboxLocator = page.locator('input[type="checkbox"][aria-label="Select"]').first();
+    this.clickOnAddPersonInDialog = page.getByRole('dialog', { name: 'Add person to site' });
     this.SubscriptionButton = page.getByRole('tab', { name: 'Subscriptions' });
   }
   getAuthorNameByLabel(authorName: string): Locator {
@@ -125,7 +128,12 @@ export class ManageSitesComponent extends BaseComponent {
     return this.page.locator(`a:has-text("${name}")`);
   }
   getMembersListInPeopleTab(membersName: string): Locator {
-    return this.page.getByRole('link', { name: membersName });
+    // Scope to the members list to avoid matching navigation links
+    // Find the listitem containing the member, then get the link within it
+    return this.page
+      .getByRole('listitem')
+      .filter({ hasText: membersName })
+      .getByRole('link', { name: membersName, exact: true });
   }
 
   getSiteOwnerStatusForMember(membersName: string): Locator {
@@ -148,10 +156,8 @@ export class ManageSitesComponent extends BaseComponent {
 
   // Action methods
   async clickOnSiteAction(): Promise<void> {
-    await test.step('Clicking on save', async () => {
+    await test.step('Clicking on site', async () => {
       await this.clickOnElement(this.clickOnSite);
-      await this.clickOnSite.press('Tab');
-      await this.clickOnSite.press('Enter');
     });
   }
 
@@ -230,6 +236,16 @@ export class ManageSitesComponent extends BaseComponent {
   async clickOnThePeopleTabAction(): Promise<void> {
     await test.step('Click on the people tab', async () => {
       await this.clickOnElement(this.clickOnThePeopleTab);
+    });
+  }
+  async clickOnAddAnotherButtonAction(): Promise<void> {
+    await test.step('Click on the add another button', async () => {
+      await this.clickOnElement(this.clickOnAddAnotherButton);
+    });
+  }
+  async selectMemberTabAction(): Promise<void> {
+    await test.step('Select the member tab', async () => {
+      await this.clickOnElement(this.clickOnMemberTab);
     });
   }
 
@@ -409,12 +425,6 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
 
-  async clickOnAddAnotherButtonAction(): Promise<void> {
-    await test.step('Click on the add another button', async () => {
-      await this.clickOnElement(this.clickOnAddAnotherButton);
-    });
-  }
-
   async clickOnLeaveButtonAction(): Promise<void> {
     await test.step('Click on the leave button', async () => {
       await this.clickOnElement(this.clickOnLeaveButton);
@@ -460,7 +470,9 @@ export class ManageSitesComponent extends BaseComponent {
     });
   }
   getFilterByTextLocator(bulkActionOption: BulkActionOptions): Locator {
-    return this.page.locator('#react-select-2-listbox').getByText(bulkActionOption);
+    // Use role-based locator instead of brittle ID selector
+    // React Select listbox has role="listbox", find it and then get the text option
+    return this.page.getByRole('listbox').getByText(bulkActionOption);
   }
   async selectFilterByText(bulkActionOption: BulkActionOptions): Promise<void> {
     await test.step('Select filter by text', async () => {
@@ -823,9 +835,6 @@ export class ManageSitesComponent extends BaseComponent {
 
   async searchContentInManageSite(contentName: string): Promise<void> {
     await test.step(`Search content ${contentName} in manage site`, async () => {
-      if (!contentName || typeof contentName !== 'string') {
-        throw new Error(`Invalid contentName provided: ${contentName}. Expected a non-empty string.`);
-      }
       await this.typeInElement(this.contentSearchBar, contentName);
       await this.contentSearchBar.press('Enter');
     });

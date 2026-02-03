@@ -103,7 +103,7 @@ test.describe(
 
     for (const siteData of SITE_TEST_DATA) {
       test(
-        `Verify admin can create a ${siteData.displayName.toLowerCase()}`,
+        `Verify admin can create a ${siteData.displayName.toLowerCase()} ${siteData.zephyrTestId}`,
         {
           tag: [
             TestPriority.P0,
@@ -129,10 +129,7 @@ test.describe(
           console.log(`INFO: Creating ${siteData.displayName} with options:`, siteCreationOptions);
 
           // STEP 3: Create and publish the site
-          const { siteDashboard, siteId } = await siteCreationPage.actions.addSite(
-            siteCreationOptions,
-            appManagerFixture.siteManagementHelper
-          );
+          const { siteDashboard, siteId } = await siteCreationPage.addSite(siteCreationOptions);
 
           // Store IDs for cleanup
           createdSiteId = siteId;
@@ -142,7 +139,7 @@ test.describe(
           console.log(`INFO: ${siteData.displayName} created - Site ID: ${siteId}`);
 
           // STEP 4: Verify we're on the correct site dashboard page
-          await siteDashboard.assertions.verifyDashboardUrl(createdSiteId);
+          await siteDashboard.verifyDashboardUrl(createdSiteId);
 
           // STEP 5: Verify site name is displayed correctly
           await siteDashboard.verifySiteNameIs(siteCreationOptions.title || siteCreationOptions.name);
@@ -150,7 +147,7 @@ test.describe(
       );
     }
     test(
-      `to verify the deactivate option in manage site user drop down sites`,
+      `to verify the deactivate option in manage site user drop down sites CONT-26176`,
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, ContentSuiteTags.SITE_DEACTIVATION],
       },
@@ -161,7 +158,7 @@ test.describe(
           storyId: 'CONT-26176',
         });
         await appManagerFixture.navigationHelper.openManageFeatureSectionInSideBar();
-        await manageFeaturesPage.actions.clickOnSitesCard();
+        await manageFeaturesPage.clickOnSitesCard();
         const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
           hasPages: true,
         });
@@ -170,13 +167,13 @@ test.describe(
         await appManagerFixture.siteManagementHelper.siteManagementService.deactivateSite(siteId);
 
         // Search for the deactivated site in the search bar
-        await manageSiteSetUpPage.actions.searchForSite(siteName);
-        await manageSitePage.assertions.verifyNoSitesFound(siteName);
+        await manageSiteSetUpPage.searchForSite(siteName);
+        await manageSitePage.verifyNoSitesFound(siteName);
         await appManagerFixture.siteManagementHelper.siteManagementService.activateSite(siteId);
       }
     );
     test(
-      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member',
+      'in members tab Verify unlisted sites are non-searchable for end user being a non-site member CONT-22692',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-22692'],
       },
@@ -220,11 +217,11 @@ test.describe(
 
         await standardUserFixture.navigationHelper.openManageFeatureSectionInSideBar();
         const manageFeaturesPageForStandardUser = new ManageFeaturesPage(standardUserFixture.page);
-        await manageFeaturesPageForStandardUser.actions.clickOnSitesCard();
+        await manageFeaturesPageForStandardUser.clickOnSitesCard();
         const manageSiteStandardUserSetUpPage = new ManageSiteSetUpPage(standardUserFixture.page, '');
         const manageSitePageForStandardUser = new ManageSitePage(standardUserFixture.page);
-        await manageSiteStandardUserSetUpPage.actions.searchForSite(appManagerSiteName);
-        await manageSitePageForStandardUser.assertions.verifyNoSitesFound(appManagerSiteName);
+        await manageSiteStandardUserSetUpPage.searchForSite(appManagerSiteName);
+        await manageSitePageForStandardUser.verifyNoSitesFound(appManagerSiteName);
       }
     );
   }

@@ -1,4 +1,6 @@
 import { expect, Locator, Page, test } from '@playwright/test';
+import { DialogContainerForm } from '@recognition/ui/components/common/dialog-container-form';
+import { SubTabIndicator } from '@recognition/ui/components/common/sub-tab-indicator';
 import { MESSAGES } from '@recognition-constants/messages';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
@@ -6,6 +8,8 @@ import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
 export class ManageRecognitionPage extends BasePage {
+  subTabIndicator: SubTabIndicator;
+  dialogContainerForm: DialogContainerForm;
   readonly recognitionHeader: Locator;
   readonly peerRecognitionTab: Locator;
   readonly spotAwardTab: Locator;
@@ -17,9 +21,12 @@ export class ManageRecognitionPage extends BasePage {
   readonly addBadgeButton: Locator;
   readonly featureNotAvailable: Locator;
   readonly featureNotEnabled: Locator;
+  readonly renamingTab: Locator;
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION) {
     super(page, pageUrl);
+    this.subTabIndicator = new SubTabIndicator(page);
+    this.dialogContainerForm = new DialogContainerForm(page);
     this.recognitionHeader = page.getByRole('heading', { name: 'Recognition' }).first();
     this.analyticsLink = page.locator('[class^="Manage_analytics]');
     this.peerRecognitionButton = page.getByRole('button', { name: 'New peer recognition' });
@@ -31,6 +38,7 @@ export class ManageRecognitionPage extends BasePage {
     this.milestonesTab = page.getByRole('tab', { name: 'Milestones' });
     this.recurringTab = page.getByRole('tab', { name: 'Recurring awards' });
     this.badgesTab = page.getByRole('tab', { name: 'Badges' });
+    this.renamingTab = page.getByRole('tab', { name: 'Naming' });
   }
 
   /**
@@ -39,7 +47,7 @@ export class ManageRecognitionPage extends BasePage {
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the manage recognition page is loaded', async () => {
       await expect(this.recognitionHeader, 'expecting manage recognition header element to be visible').toBeVisible({
-        timeout: TIMEOUTS.MEDIUM,
+        timeout: TIMEOUTS.LONG,
       });
     });
   }
@@ -110,6 +118,144 @@ export class ManageRecognitionPage extends BasePage {
       await expect(this.featureNotAvailable).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.featureNotEnabled).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
       await expect(this.featureNotEnabled).toContainText(MESSAGES.FEATURE_NOT_AVAILABLE);
+    });
+  }
+
+  /**
+   * Assert that recurring award submission is successful by verifying toast message
+   * Checks for Continue button and clicks it if present, then verifies success toast
+   */
+  async assertToastMessageIsVisible(toastMessage: string): Promise<void> {
+    await test.step('Verifying success toast message: New award created', async () => {
+      const toastLocator = this.page.getByRole('alert').filter({ hasText: toastMessage }).first();
+      await this.verifier.verifyTheElementIsVisible(toastLocator, {
+        timeout: TIMEOUTS.MEDIUM,
+        assertionMessage: `Toast message should be visible: ${toastMessage}`,
+      });
+    });
+  }
+
+  /**
+   * Clean up the created award
+   */
+  async cleanupCreatedAwardInRecurringAwards(): Promise<void> {
+    await test.step('Clean up - Delete recently created award', async () => {
+      await this.subTabIndicator.clickOnColumnButton('Created', 2);
+      await this.subTabIndicator.cleanupCreatedAward();
+      await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
+    });
+  }
+
+  /**
+   * Open the peer recognition dialog.
+   */
+  async openPeerRecognitionDialog(dialogContainerForm: DialogContainerForm): Promise<void> {
+    await this.clickOnElement(this.peerRecognitionButton, { stepInfo: 'Clicking New peer recognition' });
+    await dialogContainerForm.verifyThePageIsLoaded();
+  }
+
+  /**
+   * Create a peer recognition award via dialog.
+   */
+  async createPeerRecognitionAwardViaDialog(
+    dialogContainerForm: DialogContainerForm,
+    awardName: string,
+    awardDescription: string
+  ): Promise<void> {
+    await this.openPeerRecognitionDialog(dialogContainerForm);
+    await dialogContainerForm.dialogAwardTextBox.fill(awardName);
+    await dialogContainerForm.dialogAwardDescTextBox.fill(awardDescription);
+    await dialogContainerForm.dialogAddButton.click();
+    await this.assertToastMessageIsVisible(MESSAGES.NEW_AWARD_CREATED);
+  }
+
+  /**
+   * Edit an existing peer recognition award via dialog.
+   */
+  async editPeerRecognitionAwardViaDialog(
+    dialogContainerForm: DialogContainerForm,
+    awardName: string,
+    updatedAwardName: string
+  ): Promise<void> {
+    await this.subTabIndicator.getThreeDotsButton(awardName).click();
+    await this.subTabIndicator.editMenuItem.click();
+    await dialogContainerForm.dialogAwardTextBox.fill(updatedAwardName);
+    await dialogContainerForm.dialogUpdateButton.click();
+    await this.subTabIndicator.checkTheAwardNameInTable(updatedAwardName);
+  }
+
+  /**
+   * Activate or deactivate an award.
+   */
+  async togglePeerRecognitionAwardStatus(awardName: string, action: 'Activate' | 'Deactivate'): Promise<void> {
+    await this.subTabIndicator.getThreeDotsButton(awardName).click();
+    if (action === 'Deactivate') {
+      await this.subTabIndicator.deactivateMenuItem.click();
+      await this.dialogContainerForm.dialogDeactivateButton.click();
+    } else {
+      await this.subTabIndicator.activateMenuItem.click();
+    }
+  }
+
+  /**
+   * Delete a peer recognition award.
+   */
+  async deletePeerRecognitionAward(awardName: string): Promise<void> {
+    await this.subTabIndicator.getThreeDotsButton(awardName).click();
+    await this.subTabIndicator.deleteMenuItem.click();
+    await this.subTabIndicator.deleteButton.click();
+    await this.assertToastMessageIsVisible(MESSAGES.AWARD_DELETED);
+  }
+
+  /**
+   * End-to-end peer recognition award lifecycle using dialog container form.
+   */
+  async runPeerRecognitionLifecycle(options: {
+    dialogContainerForm: DialogContainerForm;
+    awardName: string;
+    updatedAwardName: string;
+    awardDescription: string;
+  }): Promise<void> {
+    const { dialogContainerForm, awardName, updatedAwardName, awardDescription } = options;
+
+    await test.step('Create peer recognition award via dialog', async () => {
+      await this.createPeerRecognitionAwardViaDialog(dialogContainerForm, awardName, awardDescription);
+    });
+
+    await test.step('Validate created award in grid', async () => {
+      await this.subTabIndicator.clickOnColumnButton('Created', 2);
+      await this.subTabIndicator.checkTheAwardNameInTable(awardName);
+    });
+
+    await test.step('Edit peer recognition award', async () => {
+      await this.editPeerRecognitionAwardViaDialog(dialogContainerForm, awardName, updatedAwardName);
+    });
+
+    await test.step('Deactivate peer recognition award', async () => {
+      await this.togglePeerRecognitionAwardStatus(updatedAwardName, 'Deactivate');
+      await this.subTabIndicator.checkRecentlyCreatedAwardStatus('Inactive', 3);
+    });
+
+    await test.step('Activate peer recognition award', async () => {
+      await this.togglePeerRecognitionAwardStatus(updatedAwardName, 'Activate');
+      await this.subTabIndicator.checkRecentlyCreatedAwardStatus('Active', 3);
+    });
+
+    await test.step('Delete peer recognition award', async () => {
+      await this.deletePeerRecognitionAward(updatedAwardName);
+    });
+  }
+
+  /**
+   * Select tab (Active, Draft, Scheduled, Inactive) for spot awards or recurring awards
+   */
+  async selectTab(tabName: 'Active' | 'Draft' | 'Scheduled' | 'Inactive'): Promise<void> {
+    await test.step(`Select the ${tabName} tab`, async () => {
+      const tab = this.subTabIndicator.getTab(tabName);
+      await expect(tab, `expecting ${tabName} tab to be visible`).toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await tab.click();
     });
   }
 }

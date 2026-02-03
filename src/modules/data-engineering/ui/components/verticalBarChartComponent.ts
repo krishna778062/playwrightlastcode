@@ -144,20 +144,33 @@ export class VerticalBarChartComponent extends BaseComponent {
   }
 
   /**
-   * Verifies the Y axis labels visible on the bar chart are as expected
+   * Verifies the Y axis labels visible on the bar chart are as expected.
+   * Each entry may be a single label or an array of alternative labels (e.g. chart may show "0%" or "0.0%").
    * @param params - The parameters for the validation
-   * @param params.yAxisLabels - The expected Y axis labels
+   * @param params.yAxisLabels - The expected Y axis labels (string or array of alternatives per tick)
    * @example
    * {
    *   yAxisLabels: ['10%', '20%', '30%'],
    * }
+   * @example
+   * {
+   *   yAxisLabels: [['0%', '0.0%'], ['50%', '50.0%'], ['100%', '100.0%']],
+   * }
    */
-  async verifyYAxisLabelsAreAsExpected(params: { yAxisLabels: string[] }): Promise<void> {
+  async verifyYAxisLabelsAreAsExpected(params: { yAxisLabels: (string | string[])[] }): Promise<void> {
     await test.step(`Verify Y axis labels are as expected for metric ${this.metricTitle}`, async () => {
       const { yAxisLabels } = params;
-      for (const label of yAxisLabels) {
-        const yAxisLabel = this.barChartYAxisLabels.getByText(label, { exact: true });
-        await expect(yAxisLabel, `Y axis with label ${label} should be visible`).toBeVisible();
+      for (const labelOrAlternatives of yAxisLabels) {
+        const alternatives = Array.isArray(labelOrAlternatives) ? labelOrAlternatives : [labelOrAlternatives];
+        let found = false;
+        for (const label of alternatives) {
+          const yAxisLabel = this.barChartYAxisLabels.getByText(label, { exact: true });
+          if ((await yAxisLabel.count()) > 0 && (await yAxisLabel.first().isVisible())) {
+            found = true;
+            break;
+          }
+        }
+        expect(found, `Y axis should have one of [${alternatives.join(', ')}] visible`).toBe(true);
       }
     });
   }
@@ -176,9 +189,23 @@ export class VerticalBarChartComponent extends BaseComponent {
    * Verifies the tool tip container is visible
    */
   async waitForToolTipContainerToBeVisible(): Promise<void> {
-    await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
-      timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
-      stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
+    await test.step(`Wait for tool tip container to be visible for metric ${this.metricTitle}`, async () => {
+      await this.verifier.waitUntilElementIsVisible(this.toolTipContainer, {
+        timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
+        stepInfo: `Wait for tool tip container to be visible for metric ${this.metricTitle}`,
+      });
+    });
+  }
+
+  /**
+   * Verifies the tool tip container is visible
+   */
+  async waitForToolTipContainerToBeHidden(): Promise<void> {
+    await test.step(`Wait for tool tip container to be hidden for metric ${this.metricTitle}`, async () => {
+      await this.verifier.waitUntilElementIsHidden(this.toolTipContainer, {
+        timeout: 60_000, // Increased timeout to 60 seconds for tooltip to appear
+        stepInfo: `Wait for tool tip container to be hidden for metric ${this.metricTitle}`,
+      });
     });
   }
 

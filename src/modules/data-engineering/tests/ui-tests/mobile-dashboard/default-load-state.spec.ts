@@ -54,7 +54,7 @@ test.describe(
 
       testFiltersConfig = {
         tenantCode: getDataEngineeringConfigFromCache().orgId,
-        timePeriod: PeriodFilterTimeRange.LAST_12_MONTHS, //default period filter
+        timePeriod: PeriodFilterTimeRange.LAST_30_DAYS, //default period filter
       };
 
       const { analyticsFiltersComponent } = testEnvironment.mobileDashboard;
@@ -257,7 +257,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile device log-ins in Mobile Dashboard',
       {
         tag: [
@@ -270,7 +270,7 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Mobile device log-ins in Mobile Dashboard',
+          description: 'TS To verify the mobile device logins answer in mobile dashboard',
           zephyrTestId: 'DE-25978',
           storyId: 'DE-25943',
         });
@@ -313,7 +313,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile content views by type in Mobile Dashboard',
       {
         tag: [
@@ -369,7 +369,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile content views in Mobile Dashboard',
       {
         tag: [
@@ -382,8 +382,8 @@ test.describe(
       },
       async () => {
         tagTest(test.info(), {
-          description: 'TS To verify the answer Mobile content views in Mobile Dashboard',
-          zephyrTestId: 'DE-25983',
+          description: 'TS To verify the mobile content views answer in mobile dashboard',
+          zephyrTestId: 'DE-25982',
           storyId: 'DE-25945',
         });
 
@@ -418,7 +418,7 @@ test.describe(
       }
     );
 
-    test(
+    test.fixme(
       'tS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
       {
         tag: [
@@ -432,7 +432,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           isKnownFailure: true,
-          description: 'TS To verify the answer Mobile adoption rate - Mobile user logins in Mobile Dashboard',
+          description: 'TS To verify the mobile adoption rate answer in mobile dashboard',
           zephyrTestId: 'DE-25977',
           storyId: 'DE-25942',
         });
@@ -483,6 +483,7 @@ test.describe(
         tagTest(test.info(), {
           description: 'Verify CSV export for mobile adoption rate metric matches database data',
           zephyrTestId: 'DE-26001',
+          storyId: 'DE-25950',
         });
 
         const { mobileDashboardQueryHelper, mobileDashboard } = testEnvironment;

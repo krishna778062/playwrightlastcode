@@ -75,7 +75,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Reactions / Likes in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26105',
+          zephyrTestId: 'DE-27755',
           storyId: 'DE-25753',
         });
 
@@ -102,7 +102,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Feed posts and comments in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26020',
+          zephyrTestId: 'DE-27778',
           storyId: 'DE-25754',
         });
 
@@ -129,7 +129,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Replies in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26107',
+          zephyrTestId: 'DE-27781',
           storyId: 'DE-25754',
         });
 
@@ -155,7 +155,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Shares in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26037',
+          zephyrTestId: 'DE-27784',
           storyId: 'DE-25769',
         });
 
@@ -181,7 +181,7 @@ test.describe(
       async () => {
         tagTest(test.info(), {
           description: 'To verify the answer of Favorites in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26018',
+          zephyrTestId: 'DE-27787',
           storyId: 'DE-25756',
         });
 
@@ -199,6 +199,69 @@ test.describe(
       }
     );
 
+    test(
+      'verify Active social campaigns metric data validation with all filters applied',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestCaseType.HERO_METRIC, '@social-campaigns'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify the answer of Social campaigns in Social Interaction dashboard with all filters applied',
+          zephyrTestId: 'DE-27793',
+          storyId: 'DE-25757',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected metric value from snowflake with filters applied
+        const expectedMetricValue =
+          await socialInteractionQueryHelper.getActiveSocialCampaignCountDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // UI validation
+        const socialCampaignsMetric = testEnvironment.socialInteractionDashboard.socialCampaigns;
+        await socialCampaignsMetric.verifyMetricIsLoaded();
+        await socialCampaignsMetric.verifyMetricValue(expectedMetricValue);
+      }
+    );
+
+    test(
+      'verify Participant engagement activity CSV download and validation with all filters applied',
+      {
+        tag: [
+          TestPriority.P0,
+          TestGroupType.SMOKE,
+          TestCaseType.CSV_VALIDATION,
+          '@participant-engagement-activity-csv',
+        ],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description:
+            'To verify CSV download and validation for Participant engagement activity in Social Interaction dashboard with all filters applied',
+          zephyrTestId: 'DE-27867',
+          storyId: 'DE-25775',
+        });
+
+        const { socialInteractionQueryHelper } = testEnvironment;
+
+        // Get expected data from snowflake with filters applied
+        const participantEngagementActivityData =
+          await socialInteractionQueryHelper.getParticipantEngagementActivityDataFromDBWithFilters({
+            filterBy: testFiltersConfig,
+          });
+
+        // Download CSV and validate against DB data
+        const participantEngagementActivity = testEnvironment.socialInteractionDashboard.participantEngagementActivity;
+        await participantEngagementActivity.verifyCSVDataMatchesWithDBData(
+          participantEngagementActivityData,
+          testFiltersConfig
+        );
+      }
+    );
+
     // Tabular data validations
     test(
       'verify social campaign shares tabular data validation with all filters applied',
@@ -209,7 +272,7 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Social campaign shares in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26016',
+          zephyrTestId: 'DE-27790',
           storyId: 'DE-25757',
         });
 
@@ -237,8 +300,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Least engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27864',
+          storyId: 'DE-25760',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -264,8 +327,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Least engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26017',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27874',
+          storyId: 'DE-25768',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -291,8 +354,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Most engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27861',
+          storyId: 'DE-25759',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -318,8 +381,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify CSV download and validation for Most engaged by Department in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-26018',
-          storyId: 'DE-25757',
+          zephyrTestId: 'DE-27870',
+          storyId: 'DE-25767',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;
@@ -345,8 +408,8 @@ test.describe(
         tagTest(test.info(), {
           description:
             'To verify the answer of Participant engagement activity in Social Interaction dashboard with all filters applied',
-          zephyrTestId: 'DE-XXXXX',
-          storyId: 'DE-XXXXX',
+          zephyrTestId: 'DE-27796',
+          storyId: 'DE-25758',
         });
 
         const { socialInteractionQueryHelper } = testEnvironment;

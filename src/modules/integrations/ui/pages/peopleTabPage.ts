@@ -7,11 +7,13 @@ import { PeopleTabComponent } from '@/src/modules/integrations/ui/components/peo
 export class PeopleTabPage extends BasePage {
   readonly userProvisioningHeading: Locator;
   readonly peopleTabComponent: PeopleTabComponent;
+  readonly toastContainer: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.USER_SYNCING_PAGE);
     this.userProvisioningHeading = page.getByRole('heading', { name: 'User provisioning' });
     this.peopleTabComponent = new PeopleTabComponent(page);
+    this.toastContainer = page.locator('[class*="Toast-module"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -101,6 +103,85 @@ export class PeopleTabPage extends BasePage {
   }
 
   async verifyToastMessage(message: string): Promise<void> {
-    await this.verifyToastMessageIsVisibleWithText(message);
+    await test.step(`Verify toast message: ${message}`, async () => {
+      await Promise.race([
+        this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+        this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+      ]);
+      const toastMessage = this.toastContainer.locator('p').filter({ hasText: message }).first();
+      await toastMessage.waitFor({ state: 'visible', timeout: 60_000 });
+    });
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForSyncing(): Promise<void> {
+    await this.peopleTabComponent.verifySpecificFieldsUncheckedAndDisabledForSyncing();
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForProvisioning(): Promise<void> {
+    await this.peopleTabComponent.verifySpecificFieldsUncheckedAndDisabledForProvisioning();
+  }
+
+  async verifyFieldOrder(firstFieldName: string, secondFieldName: string): Promise<void> {
+    await this.peopleTabComponent.verifyFieldOrder(firstFieldName, secondFieldName);
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInColumn(
+    columnType: 'display' | 'editable',
+    condition: 'enabled' | 'disabled' = 'enabled'
+  ): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInColumn(columnType, condition);
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInDisplayColumn(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInDisplayColumn();
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldIsEnabledInEditableColumn();
+  }
+
+  async clickOnAddIntegrationButton(): Promise<void> {
+    await this.peopleTabComponent.clickOnAddIntegrationButton();
+  }
+
+  async searchBambooHRInModal(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.searchBambooHRInModal(sourceName);
+  }
+
+  async verifyNoResultsFoundMessage(): Promise<void> {
+    await this.peopleTabComponent.verifyNoResultsFoundMessage();
+  }
+
+  async verifyBambooHROptionInProvisioningSource(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.verifyBambooHROptionInProvisioningSource(sourceName);
+  }
+
+  async verifyBambooHROptionInSyncingSource(sourceName: string): Promise<void> {
+    await this.peopleTabComponent.verifyBambooHROptionInSyncingSource(sourceName);
+  }
+
+  async verifyNamePronunciationFieldUncheckedAndDisabled(): Promise<void> {
+    await this.peopleTabComponent.verifyNamePronunciationFieldUncheckedAndDisabled();
+  }
+
+  /**
+   * Connect Workday with credentials
+   * Handles the complete flow: deselecting if checked, configuring credentials, saving, and verifying success
+   */
+  async connectWorkday(params: {
+    username: string;
+    password: string;
+    wsdlUrl: string;
+    tenantId: string;
+    clientId: string;
+    clientSecret: string;
+    refreshToken: string;
+  }): Promise<void> {
+    await test.step('Connect Workday', async () => {
+      await this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+      await this.deselectWorkdayIfChecked();
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 10_000 }).catch(() => {});
+      await this.configureWorkdayCredentials(params);
+    });
   }
 }

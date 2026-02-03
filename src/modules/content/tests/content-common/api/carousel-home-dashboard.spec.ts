@@ -6,25 +6,28 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { CarouselApiHelper } from '@/src/modules/content/apis/apiValidation/carouselApiHelper';
+import { TileApiHelper } from '@/src/modules/content/apis/apiValidation/tileApiHelper';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 
 test.describe(
   '@Home Carousel API',
   {
-    tag: [ContentTestSuite.API],
+    tag: [ContentTestSuite.API, ContentTestSuite.HOME_DASHBOARD, ContentTestSuite.CAROUSEL],
   },
   () => {
     let carouselApiHelper: CarouselApiHelper;
+    let tileApiHelper: TileApiHelper;
 
     test.beforeEach(async () => {
       carouselApiHelper = new CarouselApiHelper();
+      tileApiHelper = new TileApiHelper();
     });
 
     test(
-      'app manager can enable and disable home carousel',
+      'app manager can enable and disable home carousel CONT-42874',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CCONT-42874'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CCONT-42874'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -58,9 +61,9 @@ test.describe(
     );
 
     test(
-      'app manager can add and remove Page content from home carousel',
+      'app manager can add and remove Page content from home carousel CONT-42875',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-42875'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42875'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -111,7 +114,7 @@ test.describe(
     test(
       'app manager can add and remove event content from home carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-5393'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5393'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -131,7 +134,8 @@ test.describe(
         );
 
         // Get existing site for event creation
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create event content
         const eventInfo = await appManagerApiFixture.contentManagementHelper.createEvent({
@@ -173,7 +177,7 @@ test.describe(
     test(
       'app manager can add and remove album content from home carousel',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, ContentTestSuite.HOME_DASHBOARD, '@CONT-10863'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-10863'],
       },
       async ({ appManagerApiFixture }) => {
         tagTest(test.info(), {
@@ -193,7 +197,8 @@ test.describe(
         );
 
         // Get existing site for album creation
-        const siteId = await appManagerApiFixture.siteManagementHelper.getSiteIdWithName(DEFAULT_PUBLIC_SITE_NAME);
+        const siteId =
+          await appManagerApiFixture.siteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
 
         // Create album content
         const albumInfo = await appManagerApiFixture.contentManagementHelper.createAlbum({
@@ -226,6 +231,54 @@ test.describe(
         // Verify album is removed from carousel
         const updatedCarouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
         await carouselApiHelper.validateCarouselItemNotInList(updatedCarouselItems, albumInfo.contentId);
+      }
+    );
+
+    test(
+      'adding Unlisted Site Content in Home Carousel using App Manager with User Dashboard Control',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-13006'],
+      },
+      async ({ appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'Adding Unlisted Site Content in Home Carousel using App Manager with User Dashboard Control',
+          zephyrTestId: 'CONT-13006',
+          storyId: 'CONT-13006',
+        });
+
+        // Pre-requisite: Dashboard should be user controlled and home carousel enabled
+        const governanceResponse = await appManagerApiFixture.feedManagementHelper.configureAppGovernance({
+          isHomeAppManagerControlled: false,
+          isHomeCarouselEnabled: true,
+        });
+        await carouselApiHelper.validateAppGovernanceResponse(governanceResponse);
+
+        // Verify dashboard is user controlled
+        await tileApiHelper.validateHomeGovernanceControlledWithRetry(
+          () => appManagerApiFixture.feedManagementHelper.getAppConfig(),
+          2,
+          2000,
+          false
+        );
+
+        // Verify carousel is enabled before proceeding
+        await carouselApiHelper.validateHomeCarouselEnabled(() =>
+          appManagerApiFixture.feedManagementHelper.getAppConfig()
+        );
+
+        // Get or create an unlisted site
+        const unlistedSite = await appManagerApiFixture.contentManagementHelper.getContentId({
+          accessType: SITE_TYPES.UNLISTED,
+          status: 'published',
+        });
+
+        // Add the content to the home carousel
+        const addResponse = await appManagerApiFixture.carouselHelper.addHomeCarouselItem(unlistedSite.contentId);
+        await carouselApiHelper.validateCarouselItemAddResponse(addResponse);
+
+        // Get the list of home carousel items and verify each content exists
+        const homeCarouselItems = await appManagerApiFixture.carouselHelper.getHomeCarouselItems();
+        await carouselApiHelper.validateCarouselItemInList(homeCarouselItems, unlistedSite.contentId);
       }
     );
   }

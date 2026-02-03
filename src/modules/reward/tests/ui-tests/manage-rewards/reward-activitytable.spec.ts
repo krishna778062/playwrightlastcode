@@ -12,6 +12,7 @@ import { TestGroupType } from '@core/constants/testType';
 import { CSVUtils } from '@core/utils/csvUtils';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TIMEOUTS } from '@/src/core';
 import { FileUtil } from '@/src/core/utils';
 
 test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
@@ -21,7 +22,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   });
 
   test(
-    '[RC-3004] Validate Rewards Activity table if there is no activity',
+    'RC-3004 Validate Rewards Activity table if there is no activity',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
@@ -144,7 +145,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3264] Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
+    'RC-3264 Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
     {
       tag: [
         REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE,
@@ -159,6 +160,11 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           'Validate if Total count for entries in activity table matching number of entries, on reward overview page.',
         zephyrTestId: 'RC-3264',
         storyId: 'RC-3264',
+      });
+      tagTest(test.info(), {
+        description: 'Verify No Last synced data Note and Info icon on Rewards Activity table',
+        zephyrTestId: 'RC-3420',
+        storyId: 'RC-3065',
       });
       const manageRewardsOverviewPage = new ManageRewardsOverviewPage(appManagerFixture.page);
       let items: any;
@@ -178,6 +184,10 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()
       );
 
+      await manageRewardsOverviewPage.verifier.verifyTheElementIsNotVisible(
+        manageRewardsOverviewPage.activityPanelLastUpdatedInfoIcon
+      );
+
       const apiResponse = await apiPromise;
       const json = await apiResponse.json();
       items = json?.total ?? 0;
@@ -191,6 +201,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
           break;
         }
         await manageRewardsOverviewPage.clickOnElement(manageRewardsOverviewPage.activityPanelTableShowMoreButton, {
+          timeout: TIMEOUTS.VERY_VERY_SHORT,
           stepInfo: 'Clicking on Show More button',
         });
         await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeAttached();
@@ -228,7 +239,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       const dialogBox = new DialogBox(appManagerFixture.page);
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await giveRecognitionModal.selectTheUserForRecognition(getRewardTenantConfigFromCache().recognitionManagerName);
-      await giveRecognitionModal.selectTheUserForRecognition(2);
+      await giveRecognitionModal.selectTheUserForRecognition(0);
       await giveRecognitionModal.selectThePeerRecognitionAwardForRecognition(1);
       const recognitionPostMessage = 'Test Message' + Math.floor(Math.random() * 1000);
       await giveRecognitionModal.enterTheRecognitionMessage(recognitionPostMessage);
@@ -278,7 +289,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5711] Validate show more button on Points redeemed activity table',
+    'RC-5711 Validate show more button on Points redeemed activity table',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -332,7 +343,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-5712] Validate filter on Rewards activity table for points redeemed',
+    'RC-5712 Validate filter on Rewards activity table for points redeemed',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.SMOKE],
     },
@@ -458,7 +469,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
   tests.forEach(({ testId, testTitle }) => {
     test(
-      `[${testId}] ${testTitle}`,
+      `${testId} ${testTitle}`,
       {
         tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.HEALTHCHECK],
       },
@@ -513,7 +524,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   });
 
   test(
-    '[RC-3563] Validate removal sorting of reward name from Activity table of Points Redeemed',
+    'RC-3563 Validate removal sorting of reward name from Activity table of Points Redeemed',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
@@ -659,7 +670,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3031] Validate Rewards Overview Activity Table for points Given',
+    'RC-3031 Validate Rewards Overview Activity Table for points Given',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, TestPriority.P0, TestGroupType.REGRESSION, TestGroupType.SMOKE],
     },
@@ -754,7 +765,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-6080] Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
+    'RC-6080 Validate Message, and URL column value in Points Given CSV when points are removed or the recognition post is deleted',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
     },
@@ -887,7 +898,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-6082] Validate the Message and URL column value in the points given CSV for the Recognition with the points',
+    'RC-6082 Validate the Message and URL column value in the points given CSV for the Recognition with the points',
     {
       tag: [REWARD_FEATURE_TAGS.REWARDS_ACTIVITY_TABLE, REWARD_FEATURE_TAGS.REWARDS_CSV_CASES, TestPriority.P0],
     },
@@ -988,7 +999,7 @@ test.describe('activity Table', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
   );
 
   test(
-    '[RC-3021] Validate Rewards Overview Activity Table for points redeemed',
+    'RC-3021 Validate Rewards Overview Activity Table for points redeemed',
     {
       tag: [REWARD_FEATURE_TAGS.REWARD_STORE, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE],
     },

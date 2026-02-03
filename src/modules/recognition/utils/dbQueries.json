@@ -1,0 +1,5 @@
+{
+  "getNominationsByAwardId": "SELECT id, * FROM \"Nomination\" n\nWHERE n.\"tenantId\" = '{{tenantCode}}' AND n.\"awardId\" IN ('{{awardId}}')\nORDER BY id DESC;",
+  "getNominationInstancesByNominationId": "SELECT * FROM \"NominationInstance\" ni\nWHERE ni.\"tenantId\" = '{{tenantCode}}' AND ni.\"nominationId\" = '{{nominationId}}'\nORDER BY ni.\"id\" DESC;",
+  "updateNominationInstanceByNominationId": "UPDATE \"NominationInstance\"\nSET {setClause}\nWHERE \"tenantId\" = '{{tenantCode}}' AND \"nominationId\" = '{{nominationId}}';"
+}

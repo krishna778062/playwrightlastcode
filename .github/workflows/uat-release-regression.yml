@@ -1,0 +1,131 @@
+# ============================================================================
+# UAT RELEASE REGRESSION (All Regions)
+# ============================================================================
+#
+# PURPOSE:
+#   Runs regression tests for UAT release validation on ALL regions.
+#   Branch depends on CURRENT_STAGE repository variable.
+#
+# SCHEDULE:
+#   DISABLED: Cron disabled – manual only for now.
+#   (Previously: uat Mon/Wed/Fri 1:30 UTC, uatEU 2:30, uatCA 3:30, uatAU 4:30 UTC)
+#
+# BRANCH LOGIC:
+#   - CURRENT_STAGE = 'production' → 'main' branch
+#   - CURRENT_STAGE = 'uat' → 'release' branch
+#   - CURRENT_STAGE = 'qa' → SKIPPED
+#
+# CALLS:
+#   regression-unified-template.yml with trigger_type=uat_release
+#
+# ============================================================================
+
+name: UAT Release Regression
+
+on:
+  # DISABLED: Cron disabled – manual only for now
+  # schedule:
+  #   - cron: '30 1 * * 1,3,5'   # uat (US): 1:30 AM UTC
+  #   - cron: '30 2 * * 1,3,5'   # uatEU: 2:30 AM UTC
+  #   - cron: '30 3 * * 1,3,5'   # uatCA: 3:30 AM UTC
+  #   - cron: '30 4 * * 1,3,5'   # uatAU: 4:30 AM UTC
+
+  workflow_dispatch:
+    inputs:
+      git_ref:
+        description: 'Git branch/tag to run (empty = auto from CURRENT_STAGE: main or release)'
+        required: false
+        default: ''
+        type: string
+
+      environment:
+        description: 'Environment (all = run all 4 UAT regions)'
+        required: false
+        default: 'uat'
+        type: choice
+        options:
+          - 'all'
+          - 'uat'
+          - 'uatEU'
+          - 'uatCA'
+          - 'uatAU'
+
+      module:
+        description: 'Module to test'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - 'all'
+          - 'chat'
+          - 'platforms'
+          - 'global-search'
+          - 'content'
+          - 'content-settings'
+          - 'content-studio'
+          - 'content-abac'
+          - 'de'
+          - 'de-api'
+          - 'de-api-abac'
+          - 'reward'
+          - 'reward-settings'
+          - 'reward-workAnniversary'
+          - 'recognition'
+          - 'privateRecognition'
+          - 'frontline'
+          - 'alert-notification'
+          - 'employee-listening'
+          - 'comms-planner'
+
+      is_browserstack:
+        description: 'Enable BrowserStack'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  # Determine which environments to run based on schedule or input
+  setup:
+    runs-on: [kubernetes]
+    outputs:
+      environments: ${{ steps.set-matrix.outputs.environments }}
+    steps:
+      - name: Set environment matrix
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            # Determine which region based on cron schedule time
+            HOUR=$(date -u +%H)
+            
+            if [ "$HOUR" == "01" ]; then
+              echo 'environments=["uat"]' >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "02" ]; then
+              echo 'environments=["uatEU"]' >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "03" ]; then
+              echo 'environments=["uatCA"]' >> $GITHUB_OUTPUT
+            elif [ "$HOUR" == "04" ]; then
+              echo 'environments=["uatAU"]' >> $GITHUB_OUTPUT
+            else
+              echo 'environments=["uat"]' >> $GITHUB_OUTPUT
+            fi
+          elif [ "${{ inputs.environment }}" == "all" ]; then
+            echo 'environments=["uat","uatEU","uatCA","uatAU"]' >> $GITHUB_OUTPUT
+          else
+            echo 'environments=["${{ inputs.environment }}"]' >> $GITHUB_OUTPUT
+          fi
+
+  regression:
+    needs: setup
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: ${{ fromJson(needs.setup.outputs.environments) }}
+    uses: ./.github/workflows/regression-unified-template.yml
+    with:
+      environment: ${{ matrix.environment }}
+      trigger_type: uat_release
+      slack_prefix: UAT Release Regression
+      git_ref: ${{ inputs.git_ref || '' }}
+      modules: ${{ (github.event_name != 'schedule' && inputs.module != 'all') && format('["{0}"]', inputs.module) || '' }}
+      is_browserstack: ${{ inputs.is_browserstack || false }}
+    secrets: inherit

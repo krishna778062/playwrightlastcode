@@ -43,7 +43,6 @@ export class MessageCardComponent extends MessageBaseComponent {
       .filter({ visible: true });
     this.replyInThreadButton = this.page.getByTestId('replyInThreadButton');
     this.replyThreadComponentContainer = this.page.locator("[data-variant='thread'][class*='styles_root_']");
-    this.deleteMessageButtonFromMessageActionsMenu = this.page.getByTestId('deleteMessageButton');
     this.deleteMessageConfirmationPrompt = this.page
       .locator("[role='dialog']")
       .filter({ hasText: 'This action cannot be undone' });
@@ -116,7 +115,7 @@ export class MessageCardComponent extends MessageBaseComponent {
         assertionMessage: 'expecting message container to be visible',
       });
       await this.messageContainer.hover();
-      await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu);
+      await this.openMessageActionsMenuFrom3Dots();
       await this.verifier.verifyTheElementIsNotVisible(this.editMessageButtonFromMessageActionsMenu, {
         assertionMessage: 'expecting edit message button to be not visible',
       });
@@ -219,6 +218,9 @@ export class MessageCardComponent extends MessageBaseComponent {
       await this.focusedMessageContainer.hover();
       if (await this.verifier.isTheElementVisible(this.threeDotsButtonToOpenMessageActionsMenu)) {
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
+        if (!(await this.verifier.isTheElementVisible(this.replyInThreadButton))) {
+          await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });
+        }
       } else {
         await this.focusedMessageContainer.hover();
         await this.clickOnElement(this.threeDotsButtonToOpenMessageActionsMenu, { delay: 200 });

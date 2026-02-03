@@ -1,4 +1,4 @@
-import { expect, Page, test } from '@playwright/test';
+import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BaseActionUtil } from '@core/utils/baseActionUtil';
@@ -7,10 +7,14 @@ import { BaseVerificationUtil } from '@core/utils/baseVerificationUtil';
 export abstract class BasePage extends BaseActionUtil {
   readonly verifier: BaseVerificationUtil;
   readonly pageUrl: string;
+  readonly requestMembershipPage: Locator;
+  readonly pageNotAvailableMessage: Locator;
   constructor(page: Page, pageUrl?: string) {
     super(page);
     this.verifier = new BaseVerificationUtil(page);
     this.pageUrl = pageUrl || '';
+    this.requestMembershipPage = page.getByRole('button', { name: 'Request membership' });
+    this.pageNotAvailableMessage = page.getByText('Page not available');
   }
 
   // Convenience method for direct Playwright expect access
@@ -46,11 +50,17 @@ export abstract class BasePage extends BaseActionUtil {
   async loadPage(options?: { stepInfo?: string; timeout?: number }) {
     await test.step(options?.stepInfo || `Loading page ${this.pageUrl}`, async () => {
       if (this.pageUrl !== '') {
-        await this.goToUrl(this.pageUrl);
+        await this.goToUrl(this.pageUrl, { timeout: options?.timeout });
       } else {
         throw new Error('Page URL is not set for this page');
       }
       await this.verifyThePageIsLoaded();
+    });
+  }
+
+  async loadFeedDetailPage(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Loading feed detail page`, async () => {
+      await this.goToUrl(`${this.pageUrl}`);
     });
   }
 
@@ -80,6 +90,15 @@ export abstract class BasePage extends BaseActionUtil {
     });
   }
 
+  async verifyPageNotAvailableVisibility(options?: { stepInfo?: string; timeout?: number }) {
+    await test.step(options?.stepInfo || `Verify page not available visibility`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.pageNotAvailableMessage, {
+        assertionMessage: 'Page not available message should be visible',
+        timeout: options?.timeout || TIMEOUTS.SHORT,
+      });
+    });
+  }
+
   /**
    * @description
    * Checks for Access Denied error page
@@ -92,6 +111,14 @@ export abstract class BasePage extends BaseActionUtil {
           .locator('[class*="no-results"] div')
           .filter({ hasText: 'You are not authorized to access this resource, please contact your administrator.' })
       ).toBeVisible();
+    });
+  }
+
+  async verifyRequestMembershipPageVisibility() {
+    await test.step('Verify request membership page visibility', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.requestMembershipPage, {
+        assertionMessage: 'Request membership page should be visible',
+      });
     });
   }
 

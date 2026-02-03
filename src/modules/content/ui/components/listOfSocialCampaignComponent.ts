@@ -2,25 +2,7 @@ import { Locator, Page, test } from '@playwright/test';
 
 import { BaseComponent } from '@core/ui/components/baseComponent';
 
-export interface IListOfSocialCampaignComponentActions {
-  clickCampaignOptions: () => Promise<void>;
-  clickExpireCampaignButton: () => Promise<void>;
-  confirmExpireCampaign: () => Promise<void>;
-  getSocialCampaignCount: () => Promise<number>;
-}
-
-export interface IListOfSocialCampaignComponentAssertions {
-  verifyCampaignNotInLatest: (linkText: string) => Promise<void>;
-  verifyCampaignInExpired: (linkText: string) => Promise<void>;
-  verifyCampaignNotInExpired: (linkText: string) => Promise<void>;
-  verifyExpireCampaignButtonIsNotVisible: () => Promise<void>;
-  verifyDeleteCampaignButtonIsNotVisible: () => Promise<void>;
-}
-
-export class ListOfSocialCampaignComponent
-  extends BaseComponent
-  implements IListOfSocialCampaignComponentActions, IListOfSocialCampaignComponentAssertions
-{
+export class ListOfSocialCampaignComponent extends BaseComponent {
   readonly linkByText: (linkText: string) => Locator;
   readonly campaignOptionsButton: Locator;
   readonly expireCampaignButton: Locator;
@@ -41,15 +23,6 @@ export class ListOfSocialCampaignComponent
     this.deleteCampaignButton = page.locator('button:has-text("Delete campaign")');
     this.confirmDeleteButton = page.locator('span:has-text("Delete")');
   }
-
-  get actions(): IListOfSocialCampaignComponentActions {
-    return this;
-  }
-
-  get assertions(): IListOfSocialCampaignComponentAssertions {
-    return this;
-  }
-
   async verifyCampaignLinkDisplayed(linkText: string): Promise<void> {
     await test.step(`Verify campaign link "${linkText}" is displayed`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.linkByText(linkText).first(), {

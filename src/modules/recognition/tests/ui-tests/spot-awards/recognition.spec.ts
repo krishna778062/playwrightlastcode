@@ -1,0 +1,159 @@
+import { faker } from '@faker-js/faker';
+import { RecognitionFeatureTags, RecognitionSuitTags } from '@recognition/constants/testTags';
+import { recognitionTestFixture as test } from '@recognition/fixtures/recognitionFixture';
+import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { SpotAwardPage } from '@recognition/ui/pages/manage/spotAwardPage';
+import { GiveRecognitionDialogBox } from '@recognition-components/give-recognition-dialog-box';
+
+import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
+import { TestPriority } from '@core/constants/testPriority';
+import { TestGroupType } from '@core/constants/testType';
+import { tagTest } from '@core/utils/testDecorator';
+
+import { MESSAGES } from '@/src/modules/recognition/constants/messages';
+
+test.describe('Recognition Page Flow', () => {
+  test.beforeEach(async ({ appManagerFixture }) => {
+    const { page: appManagerPage } = appManagerFixture;
+    const spotAwardPage = new SpotAwardPage(appManagerPage);
+    await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+  });
+
+  test(
+    '[RC-5000] Verify recognize button when user fill the mandate fields while giving spot award',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.SPOT_AWARDS,
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-5000',
+        storyId: 'RC-4336',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const spotAwardPage = new SpotAwardPage(appManagerPage);
+      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
+      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const awardName = `Auto_QA Spot Award ${faker.string.alphanumeric(8)}`;
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await spotAwardPage.clickNewSpotAwardButton(manageRecognitionPage);
+      await spotAwardPage.createSimpleSpotAward(awardName, awardName);
+      await spotAwardPage.verifyToastMessage(MESSAGES.NEW_AWARD_CREATED);
+      await spotAwardPage.waitForToastToHide();
+      await spotAwardPage.page.reload();
+
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await spotAwardPage.fillFormAndValidateRecognizeButton(giveRecognitionDialogBox, awardName);
+      await spotAwardPage.removeOptionalFieldAndValidateRecognizeButton(giveRecognitionDialogBox);
+      await spotAwardPage.removeMandatoryFieldAndValidateRecognizeButton(giveRecognitionDialogBox);
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await spotAwardPage.verifyAwardInTableAndDelete(awardName);
+    }
+  );
+
+  test(
+    '[RC-4345] Validate promotion tile for spot award in the recognition hub when there is active spot awards for user',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.SPOT_AWARDS,
+        TestPriority.P2,
+        TestGroupType.REGRESSION,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-4345',
+        storyId: 'RC-4336',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const spotAwardPage = new SpotAwardPage(appManagerPage);
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+
+      await spotAwardPage.verifySpotAwardPromotionTile();
+    }
+  );
+
+  test(
+    '[RC-4428] Validate forms opening on selecting tab button on give recognition window',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.SPOT_AWARDS,
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-4428',
+        storyId: 'RC-4336',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const spotAwardPage = new SpotAwardPage(appManagerPage);
+      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await spotAwardPage.clickGiveRecognitionAndValidate(giveRecognitionDialogBox);
+      await spotAwardPage.selectSpotAwardTabAndValidate(giveRecognitionDialogBox);
+    }
+  );
+
+  test(
+    '[RC-4462] Verify spot awards for single recipient',
+    {
+      tag: [
+        RecognitionSuitTags.REGRESSION_TEST,
+        RecognitionFeatureTags.SPOT_AWARDS,
+        TestPriority.P1,
+        TestGroupType.REGRESSION,
+        TestGroupType.SANITY,
+        TestGroupType.SMOKE,
+      ],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: 'RC-4462',
+        storyId: 'RC-4336',
+      });
+      const { page: appManagerPage } = appManagerFixture;
+      const spotAwardPage = new SpotAwardPage(appManagerPage);
+      const giveRecognitionDialogBox = new GiveRecognitionDialogBox(appManagerPage);
+      const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
+      const awardName = `Auto_QA Spot Award ${faker.string.alphanumeric(8)}`;
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await spotAwardPage.clickNewSpotAwardButton(manageRecognitionPage);
+      await spotAwardPage.createSimpleSpotAward(awardName, awardName);
+      await spotAwardPage.verifyToastMessage(MESSAGES.NEW_AWARD_CREATED);
+      await spotAwardPage.waitForToastToHide();
+      await spotAwardPage.page.reload();
+
+      await spotAwardPage.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+      await spotAwardPage.verifySpotAwardsForSingleRecipient(giveRecognitionDialogBox, awardName);
+      await manageRecognitionPage.navigateManageRecognitionPageViaEndpoint(
+        'manage',
+        PAGE_ENDPOINTS.MANAGE_PEER_RECOGNITION
+      );
+      await manageRecognitionPage.spotAwardTab.click();
+      await spotAwardPage.verifyAwardInTableAndDelete(awardName);
+    }
+  );
+});

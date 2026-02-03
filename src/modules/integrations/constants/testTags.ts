@@ -15,7 +15,8 @@ export enum IntegrationsSuiteTags {
   DOCUSIGN = '@docuSignAppTiles',
   DOCEBO = '@doceboAppTiles',
   MONDAY_DOT_COM = '@mondayDotComAppTiles',
-  OUTLOOK_CALENDAR_APPTILES = '@outlookCalendarAppTiles',
+  OUTLOOK_CALENDAR_APPTILES = '@outlookCalendarTiles',
+  OUTLOOK_CALENDAR_NATIVE_TILES = '@outlookCalendarNativeTiles',
   CUSTOM_APP_TILES = '@customAppTiles',
   SHOW_MORE = '@showMore',
   PERSONALIZATION = '@personalization',
@@ -41,6 +42,7 @@ export enum IntegrationsSuiteTags {
   CUSTOM_API_ACTIONS = '@customApiActions',
   JIRA_APPTILES = '@jiraAppTiles',
   GOOGLE_CALENDAR_NATIVE_TILES = '@googleCalendarNativeTiles',
+  APPS_PAGE = '@appsPage',
 }
 
 export enum IntegrationsFeatureTags {
@@ -100,6 +102,7 @@ export enum GammaIntegrationsFeatureTags {
   OKTA_GROUP = '@okta-group',
   AD_GROUP = '@ad-group',
   AZURE_SYNC = '@azure-sync',
+  GOOGLE_SYNC = '@google-sync',
   WORKDAY_SYNC = '@workday-sync',
   PEOPLE_TAB = '@people',
   UKG_SYNCING = '@ukg-syncing',

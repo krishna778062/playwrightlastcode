@@ -5,8 +5,8 @@ import { LowActivitySitesData } from '../../../../helpers/sitesDashboardQueryHel
 import { TabluarMetricsComponent } from '../../../../ui/components/tabluarMetricsComponent';
 
 export enum LowActivitySitesColumns {
-  SITE_NAME = 'Site Name',
-  SITE_TYPE = 'Site Type',
+  SITE_NAME = 'Site name',
+  SITE_TYPE = 'Site type',
   VIEWS = 'Views',
 }
 

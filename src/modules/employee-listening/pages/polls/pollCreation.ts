@@ -18,6 +18,7 @@ export class AIPollCreationPage extends BasePage {
   readonly saveDraftButton: Locator;
   readonly browseAudiencesButton: Locator;
   readonly postButton: Locator;
+  readonly dismissButton: Locator;
   readonly sendingPollTag: Locator;
   readonly activeTag: Locator;
   readonly quickPromptButtons: Locator;
@@ -29,7 +30,7 @@ export class AIPollCreationPage extends BasePage {
   readonly enabledPostButton: Locator;
   readonly searchTextbox: Locator;
   readonly quickPromptsText: Locator;
-  readonly orCreateManuallyButton: Locator;
+  readonly createManuallyButton: Locator;
   readonly pollQuestionTextbox: Locator;
   readonly pollOptionsHeading: Locator;
   readonly addOptionButton: Locator;
@@ -77,6 +78,7 @@ export class AIPollCreationPage extends BasePage {
   readonly keepResponsesConfidentialToggle: Locator;
   readonly keepResponsesConfidentialHelpText: Locator;
   readonly monthDropdown: Locator;
+  readonly yearDropdown: Locator;
   readonly pollEndDateCaption: Locator;
   readonly inlineErrorMessage: Locator;
   readonly regenerateButton: Locator;
@@ -124,11 +126,12 @@ export class AIPollCreationPage extends BasePage {
 
     this.aiPollGenerationHeading = this.page.getByRole('heading', { name: /AI.*generate.*poll/i });
     this.aiTextBox = this.page.getByRole('textbox', { name: 'Describe the poll you want to' });
-    this.generateButton = this.page.locator('button[aria-label="Generate poll"]');
+    this.generateButton = this.page.getByRole('button', { name: 'Generate poll with AI' });
     this.nextButton = this.page.getByRole('button', { name: 'Next' });
     this.saveDraftButton = this.page.getByRole('button', { name: 'Save draft' });
     this.browseAudiencesButton = this.page.getByRole('button', { name: 'Browse' });
     this.postButton = this.page.getByRole('button', { name: 'Post' });
+    this.dismissButton = this.page.getByRole('dialog', { name: 'Survey participation prompt' }).getByLabel('Dismiss');
     this.activeTag = this.page.getByText('Active');
     this.sendingPollTag = this.page.getByText('Sending poll');
     this.quickPromptButtons = this.page.locator(
@@ -145,7 +148,7 @@ export class AIPollCreationPage extends BasePage {
     this.enabledPostButton = this.postButton.and(this.page.locator('button:not([disabled])'));
     this.searchTextbox = this.page.getByRole('textbox', { name: 'Search…' });
     this.quickPromptsText = this.page.getByText('Quick prompts to get started');
-    this.orCreateManuallyButton = this.page.getByRole('button', { name: 'Or create it manually' });
+    this.createManuallyButton = this.page.getByRole('button', { name: 'Create poll manually' });
     this.pollQuestionTextbox = this.page.getByRole('textbox', { name: 'Poll question*' });
     this.pollOptionsHeading = this.page.getByRole('heading', { name: 'Poll options' });
     this.addOptionButton = this.page.getByRole('button', { name: 'Add option' });
@@ -209,6 +212,7 @@ export class AIPollCreationPage extends BasePage {
       .locator('p')
       .filter({ hasText: 'Names are hidden from everyone, including poll managers.' });
     this.monthDropdown = this.page.getByLabel('Select month');
+    this.yearDropdown = this.page.getByLabel('Select year');
     this.pollEndDateCaption = this.page.getByText('This poll will end on Dec 3,');
     this.inlineErrorMessage = this.page.getByText("Couldn't generate a poll. Try rephrasing.");
     this.regenerateButton = this.page.getByRole('button', { name: 'Re-generate poll with AI' });
@@ -374,30 +378,11 @@ export class AIPollCreationPage extends BasePage {
 
   async clickGenerateButton(): Promise<void> {
     await test.step('Click Generate button', async () => {
-      const btn = this.generateButton;
-
-      await btn.waitFor({ state: 'visible' });
-      await btn.click();
-
-      // Wait for loading (button disabled), ignore if too fast
-      await btn.isDisabled().catch(() => null);
-
-      // Wait for loading to finish: becomes enabled OR disappears
-      await Promise.race([
-        btn.waitFor({ state: 'hidden' }).catch(() => null),
-        btn.waitFor({ state: 'visible' }).then(async () => {
-          try {
-            await this.expect(btn).toBeEnabled({ timeout: TIMEOUTS.LONG });
-          } catch {
-            /* ignore */
-          }
-        }),
-      ]);
-
-      // If visible & enabled again → click one more time
-      if ((await btn.isVisible()) && !(await btn.isDisabled())) {
-        await btn.click();
-      }
+      await test.step('Click the "Generate poll with AI" button', async () => {
+        await this.clickOnElement(this.generateButton, {
+          stepInfo: 'Click Next button to proceed to audience selection',
+        });
+      });
     });
   }
 
@@ -523,6 +508,9 @@ export class AIPollCreationPage extends BasePage {
     await test.step('Verify poll creation success message or redirection', async () => {
       await this.verifyToastMessageIsVisibleWithText('Poll created', { timeout: TIMEOUTS.LONG });
     });
+    if (await this.dismissButton.isVisible({ timeout: TIMEOUTS.SHORT })) {
+      await this.dismissButton.click({ timeout: TIMEOUTS.SHORT });
+    }
   }
 
   async verifySendingPollTagIsDisplayed(): Promise<void> {
@@ -557,7 +545,7 @@ export class AIPollCreationPage extends BasePage {
 
   async verifyManualCreationSection(): Promise<void> {
     await test.step('Verify "Or create it manually" section is displayed', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.orCreateManuallyButton, {
+      await this.verifier.verifyTheElementIsVisible(this.createManuallyButton, {
         assertionMessage: '"Or create it manually" button should be visible',
       });
     });
@@ -1104,9 +1092,15 @@ export class AIPollCreationPage extends BasePage {
     await test.step(`Select specific date from calendar: ${date.toDateString()}`, async () => {
       const day = date.getDate();
       const month = date.getMonth();
+      const year = date.getFullYear();
 
+      // Select the year first (Year → Month → Day approach)
+      await this.yearDropdown.selectOption(year.toString());
+
+      // Then select the month
       await this.monthDropdown.selectOption(month.toString());
 
+      // Finally select the day
       const dayCell = getDayGridCell(this.page, day);
       await this.clickOnElement(dayCell, {
         stepInfo: `Click on ${day} day to select the date`,
@@ -1326,10 +1320,10 @@ export class AIPollCreationPage extends BasePage {
     });
   }
 
-  async clickOrCreateManuallyButton(): Promise<void> {
-    await test.step('Click "Or create it manually" button', async () => {
-      await this.clickOnElement(this.orCreateManuallyButton, {
-        stepInfo: 'Click "Or create it manually" button to switch to manual poll creation',
+  async clickCreateManuallyButton(): Promise<void> {
+    await test.step('Click "Create poll manually" button', async () => {
+      await this.clickOnElement(this.createManuallyButton, {
+        stepInfo: 'Click "Create poll manually" button to switch to manual poll creation',
       });
     });
   }
@@ -2019,25 +2013,6 @@ export class AIPollCreationPage extends BasePage {
       test.expect(hasActiveStatus, 'Poll status "Active" should be present in metadata').toBeTruthy();
       const hasPollQuestion = fullText?.includes(pollQuestion);
       test.expect(hasPollQuestion, `Poll question "${pollQuestion}" should be present in metadata`).toBeTruthy();
-    });
-  }
-
-  async verifyGenerateButtonHoverBehavior(): Promise<void> {
-    await test.step('Verify Generate button hover behavior', async () => {
-      await this.verifier.verifyTheElementIsVisible(this.generateButton, {
-        assertionMessage: 'Generate button should be visible',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.verifier.verifyTheElementIsEnabled(this.generateButton, {
-        assertionMessage: 'Generate button should be enabled with valid prompt',
-        timeout: TIMEOUTS.MEDIUM,
-      });
-      await this.generateButton.hover();
-      const isButtonEnabled = await this.generateButton.isEnabled();
-      test.expect(isButtonEnabled, 'Generate button should remain enabled during hover').toBe(true);
-      const ariaLabel = await this.generateButton.getAttribute('aria-label');
-      test.expect(ariaLabel, 'Generate button should maintain aria-label on hover').toBe('Generate poll');
-      await this.aiTextBox.hover();
     });
   }
 }

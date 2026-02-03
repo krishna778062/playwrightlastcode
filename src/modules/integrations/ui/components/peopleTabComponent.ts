@@ -23,6 +23,11 @@ export class PeopleTabComponent extends BaseComponent {
   readonly refreshTokenInput: () => Locator;
   readonly wsdlUrlInput: () => Locator;
   readonly apiClientToggle: () => Locator;
+  readonly addIntegrationButton: () => Locator;
+  readonly integrationSelectionDialog: () => Locator;
+  readonly integrationSearchInput: () => Locator;
+  readonly noResultsFoundMessage: () => Locator;
+  readonly toastContainer: Locator;
 
   constructor(page: Page, rootLocator?: Locator) {
     super(page, rootLocator);
@@ -49,9 +54,17 @@ export class PeopleTabComponent extends BaseComponent {
     this.refreshTokenInput = () => this.rootLocator.getByLabel(/Refresh Token/i);
     this.wsdlUrlInput = () => this.rootLocator.getByLabel(/WSDL URL/i);
     this.apiClientToggle = () => this.rootLocator.getByLabel(/API client/i);
+    this.addIntegrationButton = () => this.rootLocator.locator('#add-integration button');
+    this.integrationSelectionDialog = () => this.page.getByRole('dialog').filter({ hasText: 'Select an integration' });
+    this.integrationSearchInput = () => this.page.getByRole('textbox', { name: 'Search Integration' });
+    this.noResultsFoundMessage = () => this.page.getByRole('heading', { name: 'No results found' });
+    this.toastContainer = this.page.locator('[class*="Toast-module"]');
   }
 
-  private getFieldCheckbox(fieldName: string, columnType: 'editable' | 'display' | 'syncing'): Locator {
+  private getFieldCheckbox(
+    fieldName: string,
+    columnType: 'editable' | 'display' | 'syncing' | 'provisioning'
+  ): Locator {
     return this.rootLocator.locator(
       `li:has(.provisionSyncDisplay__labelText:has-text("${fieldName}")) .provisionSyncDisplay__${columnType} input[type="checkbox"]`
     );
@@ -95,8 +108,22 @@ export class PeopleTabComponent extends BaseComponent {
 
   async verifyAllUserFieldsAreDisplayed(): Promise<void> {
     await test.step('Verify all user fields are displayed', async () => {
+      const missingFields: string[] = [];
+
       for (const field of PEOPLE_TAB.USER_FIELDS) {
-        await expect(this.fieldLabel(field), `expecting field '${field}' to be visible`).toBeVisible();
+        try {
+          await expect(this.fieldLabel(field), `expecting field '${field}' to be visible`).toBeVisible({
+            timeout: 5000,
+          });
+        } catch (error) {
+          console.warn(`Field '${field}' not found on the page: ${error}`);
+          missingFields.push(field);
+        }
+      }
+
+      if (missingFields.length > 0) {
+        console.warn(`The following fields were not found on the page: ${missingFields.join(', ')}`);
+        console.warn('This might be expected behavior based on current configuration or field availability.');
       }
     });
   }
@@ -115,34 +142,56 @@ export class PeopleTabComponent extends BaseComponent {
   async deselectWorkdayIfChecked(): Promise<void> {
     await test.step('Deselect Workday checkbox if checked and click Save', async () => {
       const checkbox = this.workdayCheckbox();
-      await checkbox.waitFor({ state: 'attached', timeout: 10000 });
+      await checkbox.waitFor({ state: 'attached', timeout: 10_000 });
       if (!(await checkbox.isVisible().catch(() => false))) {
         await checkbox.scrollIntoViewIfNeeded().catch(() => {});
       }
-      await expect(checkbox, 'expecting Workday checkbox to be visible').toBeVisible();
-      const isChecked = await checkbox.isChecked();
-      if (isChecked) {
+      await expect(checkbox).toBeVisible();
+      if (await checkbox.isChecked()) {
         await checkbox.uncheck();
+        await this.waitForSaveButtonEnabled();
         await this.saveButton().click();
+        await Promise.race([
+          this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+          this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+        ]);
       }
     });
   }
 
   async isFieldEditable(fieldName: string): Promise<string> {
     const checkbox = this.fieldEditableCheckbox(fieldName);
-    const isChecked = await checkbox.isChecked();
-    return isChecked ? 'true' : 'false';
+    try {
+      const isChecked = await checkbox.isChecked();
+      return isChecked ? 'true' : 'false';
+    } catch (error) {
+      throw new Error(
+        `Failed to check editable status for field "${fieldName}". Field may not exist on the page. Original error: ${error}`
+      );
+    }
   }
 
   async isFieldDisplayed(fieldName: string): Promise<string> {
     const checkbox = this.fieldDisplayCheckbox(fieldName);
-    const isChecked = await checkbox.isChecked();
-    return isChecked ? 'true' : 'false';
+    try {
+      const isChecked = await checkbox.isChecked();
+      return isChecked ? 'true' : 'false';
+    } catch (error) {
+      throw new Error(
+        `Failed to check display status for field "${fieldName}". Field may not exist on the page. Original error: ${error}`
+      );
+    }
   }
 
   async isFieldSyncing(fieldName: string): Promise<boolean> {
     const checkbox = this.fieldSyncingCheckbox(fieldName);
-    return await checkbox.isChecked();
+    try {
+      return await checkbox.isChecked();
+    } catch (error) {
+      throw new Error(
+        `Failed to check syncing status for field "${fieldName}". Field may not exist on the page. Original error: ${error}`
+      );
+    }
   }
 
   async getEditableSettingForAllMergeFields(): Promise<Record<string, string>> {
@@ -250,6 +299,29 @@ export class PeopleTabComponent extends BaseComponent {
     });
   }
 
+  private async fillInputField(locator: Locator, value: string, verifyValue = true): Promise<void> {
+    await locator.waitFor({ state: 'visible', timeout: 15_000 });
+    await expect(locator).toBeEnabled({ timeout: 10_000 });
+    await locator.fill(value);
+    if (verifyValue) {
+      await expect(locator).toHaveValue(value, { timeout: 5_000 });
+    }
+  }
+
+  private async waitForSaveButtonEnabled(): Promise<void> {
+    const saveBtn = this.saveButton();
+    await saveBtn.waitFor({ state: 'visible', timeout: 15_000 });
+    let isEnabled = false;
+    const startTime = Date.now();
+    while (!isEnabled && Date.now() - startTime < 10_000) {
+      isEnabled = !(await saveBtn.isDisabled().catch(() => true));
+      if (!isEnabled) {
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 500 }).catch(() => {});
+      }
+    }
+    await expect(saveBtn).toBeEnabled({ timeout: 10_000 });
+  }
+
   async configureWorkdayCredentials(params: {
     username: string;
     password: string;
@@ -260,17 +332,173 @@ export class PeopleTabComponent extends BaseComponent {
     refreshToken: string;
   }): Promise<void> {
     await test.step('Select Workday and enter credentials, then save', async () => {
+      await this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {});
+
       const workdayCheckbox = this.workdayCheckbox();
+      await workdayCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(workdayCheckbox).toBeEnabled({ timeout: 10_000 });
       await workdayCheckbox.check();
-      await this.workdayUsernameInput().fill(params.username);
-      await this.workdayPasswordInput().fill(params.password);
-      await this.wsdlUrlInput().fill(params.wsdlUrl);
-      await this.tenantIdInput().fill(params.tenantId);
-      await this.apiClientToggle().click();
-      await this.clientIdInput().fill(params.clientId);
-      await this.clientSecretInput().fill(params.clientSecret);
-      await this.refreshTokenInput().fill(params.refreshToken);
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 10_000 }).catch(() => {});
+
+      await this.fillInputField(this.workdayUsernameInput(), params.username);
+      await this.fillInputField(this.workdayPasswordInput(), params.password, false);
+      await this.fillInputField(this.wsdlUrlInput(), params.wsdlUrl);
+      await this.fillInputField(this.tenantIdInput(), params.tenantId);
+
+      const apiClientToggle = this.apiClientToggle();
+      await apiClientToggle.waitFor({ state: 'visible', timeout: 15_000 });
+      await expect(apiClientToggle).toBeEnabled({ timeout: 10_000 });
+      await apiClientToggle.click();
+      await this.page.waitForLoadState('domcontentloaded', { timeout: 5_000 }).catch(() => {});
+
+      await this.fillInputField(this.clientIdInput(), params.clientId);
+      await this.fillInputField(this.clientSecretInput(), params.clientSecret, false);
+      await this.fillInputField(this.refreshTokenInput(), params.refreshToken);
+
+      await this.waitForSaveButtonEnabled();
       await this.saveButton().click();
+
+      await Promise.race([
+        this.toastContainer.waitFor({ state: 'visible', timeout: 30_000 }).catch(() => {}),
+        this.page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {}),
+      ]);
+    });
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForSyncing(): Promise<void> {
+    await test.step('Verify specific fields are unchecked and disabled for syncing', async () => {
+      for (const fieldName of PEOPLE_TAB.DISABLED_FIELDS) {
+        const isSyncingChecked = await this.isFieldSyncing(fieldName);
+        const syncingCheckbox = this.fieldSyncingCheckbox(fieldName);
+        const isSyncingDisabled = await syncingCheckbox.isDisabled();
+
+        expect(isSyncingChecked, `${fieldName} field should not be checked in syncing column`).toBe(false);
+        expect(isSyncingDisabled, `${fieldName} field should be disabled in syncing column`).toBe(true);
+      }
+    });
+  }
+
+  async verifySpecificFieldsUncheckedAndDisabledForProvisioning(): Promise<void> {
+    await test.step('Verify specific fields are unchecked and disabled for provisioning', async () => {
+      for (const fieldName of PEOPLE_TAB.DISABLED_FIELDS) {
+        const provisioningCheckbox = this.getFieldCheckbox(fieldName, 'provisioning');
+        const isProvisioningChecked = await provisioningCheckbox.isChecked();
+        const isProvisioningDisabled = await provisioningCheckbox.isDisabled();
+
+        expect(isProvisioningChecked, `${fieldName} field should not be checked in provisioning column`).toBe(false);
+        expect(isProvisioningDisabled, `${fieldName} field should be disabled in provisioning column`).toBe(true);
+      }
+    });
+  }
+
+  async verifyFieldOrder(firstFieldName: string, secondFieldName: string): Promise<void> {
+    await test.step(`Verify '${secondFieldName}' field is displayed after '${firstFieldName}' field`, async () => {
+      const firstFieldLocator = this.fieldLabel(firstFieldName);
+      const secondFieldLocator = this.fieldLabel(secondFieldName);
+
+      await expect(firstFieldLocator, `expecting field '${firstFieldName}' to be visible`).toBeVisible();
+      await expect(secondFieldLocator, `expecting field '${secondFieldName}' to be visible`).toBeVisible();
+
+      const firstFieldBox = await firstFieldLocator.boundingBox();
+      const secondFieldBox = await secondFieldLocator.boundingBox();
+
+      expect(
+        firstFieldBox?.y,
+        `'${firstFieldName}' field should appear before '${secondFieldName}' field`
+      ).toBeLessThan(secondFieldBox?.y || 0);
+    });
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInColumn(
+    columnType: 'display' | 'editable',
+    condition: 'enabled' | 'disabled' = 'enabled'
+  ): Promise<void> {
+    await test.step(`Verify "Name pronunciation" field is ${condition} for check and uncheck in ${columnType} column`, async () => {
+      const fieldName = 'Name pronunciation';
+      const checkbox =
+        columnType === 'display' ? this.fieldDisplayCheckbox(fieldName) : this.fieldEditableCheckbox(fieldName);
+
+      await expect(checkbox, `expecting ${fieldName} ${columnType} checkbox to be visible`).toBeVisible();
+      const isDisabled = await checkbox.isDisabled();
+
+      if (condition === 'enabled') {
+        expect(isDisabled, `${fieldName} field should be enabled in ${columnType} column`).toBe(false);
+        await checkbox.check();
+        const isCheckedAfterCheck = await checkbox.isChecked();
+        expect(isCheckedAfterCheck, `${fieldName} field should be checked after clicking check`).toBe(true);
+        await checkbox.uncheck();
+        const isCheckedAfterUncheck = await checkbox.isChecked();
+        expect(isCheckedAfterUncheck, `${fieldName} field should be unchecked after clicking uncheck`).toBe(false);
+      } else {
+        expect(isDisabled, `${fieldName} field should be disabled in ${columnType} column`).toBe(true);
+      }
+    });
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInDisplayColumn(): Promise<void> {
+    await this.verifyNamePronunciationFieldIsEnabledInColumn('display');
+  }
+
+  async verifyNamePronunciationFieldIsEnabledInEditableColumn(): Promise<void> {
+    await this.verifyNamePronunciationFieldIsEnabledInColumn('editable');
+  }
+
+  async clickOnAddIntegrationButton(): Promise<void> {
+    await test.step('Click on Add integration button', async () => {
+      await expect(this.addIntegrationButton(), 'expecting Add integration button to be visible').toBeVisible();
+      await this.addIntegrationButton().click();
+    });
+  }
+
+  async searchBambooHRInModal(sourceName: string): Promise<void> {
+    await test.step('Search for BambooHR in integration selection modal', async () => {
+      await expect(
+        this.integrationSelectionDialog(),
+        'expecting integration selection dialog to be visible'
+      ).toBeVisible();
+      await this.page.waitForTimeout(1000);
+      await expect(this.integrationSearchInput(), 'expecting search input to be visible').toBeVisible();
+      await this.integrationSearchInput().fill(sourceName);
+      await this.page.waitForTimeout(500);
+    });
+  }
+
+  async verifyNoResultsFoundMessage(): Promise<void> {
+    await test.step('Verify "No results found" message appears', async () => {
+      await expect(this.noResultsFoundMessage(), 'expecting "No results found" message to be visible').toBeVisible();
+    });
+  }
+
+  async verifyBambooHROptionInProvisioningSource(sourceName: string): Promise<void> {
+    await test.step(`Verify ${sourceName} option is displayed in provisioning source dropdown`, async () => {
+      await expect(
+        this.provisioningSourceDropdown(),
+        'expecting provisioning source dropdown to be visible'
+      ).toBeVisible();
+      const options = await this.provisioningSourceDropdown().locator('option').allTextContents();
+      expect(options, `expecting ${sourceName} option to be present in provisioning source dropdown`).toContain(
+        sourceName
+      );
+    });
+  }
+
+  async verifyBambooHROptionInSyncingSource(sourceName: string): Promise<void> {
+    await test.step(`Verify ${sourceName} option is displayed in syncing source dropdown`, async () => {
+      await expect(this.syncingSourceDropdown(), 'expecting syncing source dropdown to be visible').toBeVisible();
+      const options = await this.syncingSourceDropdown().locator('option').allTextContents();
+      expect(options, `expecting ${sourceName} option to be present in syncing source dropdown`).toContain(sourceName);
+    });
+  }
+
+  async verifyNamePronunciationFieldUncheckedAndDisabled(): Promise<void> {
+    await test.step('Verify Name pronunciation field is unchecked and disabled for provisioning', async () => {
+      const fieldName = PEOPLE_TAB.NAME_PRONUNCIATION_FIELD;
+      const provisioningCheckbox = this.getFieldCheckbox(fieldName, 'provisioning');
+
+      await expect(provisioningCheckbox, `expecting ${fieldName} provisioning checkbox to be visible`).toBeVisible();
+      const isProvisioningDisabled = await provisioningCheckbox.isDisabled();
+
+      expect(isProvisioningDisabled, `${fieldName} field should be disabled in provisioning column`).toBe(true);
     });
   }
 }

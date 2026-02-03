@@ -1,0 +1,1236 @@
+# ============================================================================
+# UNIFIED REGRESSION TEMPLATE
+# ============================================================================
+#
+# PURPOSE:
+#   Single reusable template for all regression test executions across
+#   all environments (test, qa, uat, prod) and all trigger types
+#   (daily cron, release regression, manual).
+#
+# BENEFITS:
+#   1. Single source of truth - changes apply everywhere
+#   2. Centralized branch selection logic
+#   3. Consistent module list management
+#   4. Reduced code duplication (~800 lines saved)
+#   5. Easier maintenance and debugging
+#
+# BRANCH SELECTION RULES (Centralized):
+#   ┌─────────────────────────────────────────────────────────────────────┐
+#   │  Trigger Type       │ Environment │ CURRENT_STAGE │ Git Ref        │
+#   ├─────────────────────┼─────────────┼───────────────┼────────────────┤
+#   │  test_env_regression         │ test        │ any           │ develop        │
+#   │  qa_release         │ qa          │ production    │ main           │
+#   │  qa_release         │ qa          │ qa            │ release        │
+#   │  qa_release         │ qa          │ uat           │ SKIP           │
+#   │  uat_release        │ uat         │ production    │ main           │
+#   │  uat_release        │ uat         │ uat           │ release        │
+#   │  uat_release        │ uat         │ qa            │ SKIP           │
+#   │  prod_healthcheck   │ prod*       │ any           │ main           │
+#   │  manual             │ any         │ any           │ user's choice  │
+#   └─────────────────────────────────────────────────────────────────────┘
+#
+# MODULE CATEGORIES:
+#   - CORE: chat, platforms, global-search, frontline, alert-notification
+#   - CONTENT: content, content-settings, content-studio, content-abac
+#   - DATA: de, de-api, de-api-abac (de = data-engineering)
+#   - REWARDS: reward, reward-settings, recognition, privateRecognition
+#   - OTHERS: employee-listening, form-designer, comms-planner, integrations
+#
+# SPECIAL CASES HANDLED:
+#   1. Content module needs CALENDAR_SECRETS environment variable
+#   2. Reward modules need grep-invert for @rewards-db and P3 exclusion
+#   3. DE modules (de, de-api, de-api-abac) map to data-engineering config
+#   4. Worker count varies by module (reward-settings=1, others=3)
+#
+# USAGE:
+#   Called by thin trigger workflows (daily-regression.yml, etc.)
+#   See examples in comments below.
+#
+# HISTORY:
+#   - Created: Consolidation of regression-template.yml,
+#              uat-regression-template.yml, prod-healthcheck-template.yml
+#
+# ============================================================================
+
+name: Regression Tests (Unified Template)
+
+on:
+  workflow_call:
+    inputs:
+      # ========================================================================
+      # REQUIRED INPUTS
+      # ========================================================================
+
+      environment:
+        description: |
+          Target environment for test execution.
+          Values: test, qa, uat, uatEU, uatCA, uatAU, prodUS, prodEU, prodCA, prodAU
+        required: true
+        type: string
+
+      trigger_type:
+        description: |
+          Type of trigger that initiated this workflow.
+          Used to determine branch selection and module list.
+          Values:
+            - test_env_regression: Daily regression on test environment
+            - qa_release: QA release regression
+            - uat_release: UAT release regression  
+            - prod_healthcheck: Production health check
+            - manual: Manual workflow dispatch
+        required: true
+        type: string
+
+      slack_prefix:
+        description: |
+          Prefix for Slack notification messages.
+          Example: "Daily Regression", "QA Release", "UAT Regression"
+        required: true
+        type: string
+
+      # ========================================================================
+      # OPTIONAL INPUTS (with sensible defaults)
+      # ========================================================================
+
+      git_ref:
+        description: |
+          Git reference (branch/tag) to checkout.
+          If not provided, will be auto-determined based on:
+            - trigger_type
+            - environment  
+            - CURRENT_STAGE repository variable
+        required: false
+        type: string
+        default: ''
+
+      modules:
+        description: |
+          JSON array of modules to test. If empty, uses default list for trigger_type.
+          Example: '["chat", "platforms", "de"]'
+        required: false
+        type: string
+        default: ''
+
+      is_browserstack:
+        description: |
+          Enable BrowserStack Test Observability integration.
+          When true, tests run via browserstack-node-sdk.
+          NOTE: BrowserStack SDK is only in develop branch, so disable for main/release runs.
+        required: false
+        type: boolean
+        default: false
+
+      workers:
+        description: |
+          Number of parallel workers for test execution.
+          Default is 3, but some modules override this (e.g., reward-settings=1)
+        required: false
+        type: string
+        default: '3'
+
+      timeout_minutes:
+        description: |
+          Job timeout in minutes. Default 200 for large test suites.
+        required: false
+        type: number
+        default: 200
+
+      release_tag:
+        description: |
+          Release tag for BrowserStack tracking (e.g., 25.01-qa.1).
+          If empty, uses git_ref or 'untagged' as fallback.
+        required: false
+        type: string
+        default: ''
+
+      # ========================================================================
+      # FILTERING INPUTS (for manual/targeted runs)
+      # ========================================================================
+
+      priority_filter:
+        description: |
+          Filter tests by priority tag.
+          Values: @P0, @P1, @P2, all (no filter)
+          Example: '@P0' runs only P0 priority tests
+        required: false
+        type: string
+        default: 'all'
+
+      test_type:
+        description: |
+          Filter tests by test type tag.
+          Values: @smoke, @regression, all (no filter)
+          Example: '@smoke' runs only smoke tests
+        required: false
+        type: string
+        default: 'all'
+
+      feature_tags:
+        description: |
+          Comma-separated list of feature tags to filter tests.
+          Example: '@chat-attachment,@chat-mentions'
+          Use 'all' for no filter.
+        required: false
+        type: string
+        default: 'all'
+
+# ============================================================================
+# PERMISSIONS
+# ============================================================================
+# Required for:
+#   - contents: read - checkout code
+#   - id-token: write - AWS OIDC authentication
+#   - pages: write - artifact upload
+
+permissions:
+  contents: read
+  id-token: write
+  pages: write
+
+# ============================================================================
+# JOBS
+# ============================================================================
+
+jobs:
+  # ==========================================================================
+  # JOB 1: DETERMINE CONFIGURATION
+  # ==========================================================================
+  # Purpose: Compute runtime configuration based on inputs and repository state
+  #
+  # Outputs:
+  #   - should_run: Whether tests should execute (false = skip)
+  #   - checkout_ref: Git reference to checkout
+  #   - modules_json: JSON array of modules to test
+  #   - skip_reason: Reason if should_run is false
+
+  determine-config:
+    runs-on: [kubernetes-fe]
+    outputs:
+      should_run: ${{ steps.config.outputs.should_run }}
+      checkout_ref: ${{ steps.config.outputs.checkout_ref }}
+      modules_json: ${{ steps.config.outputs.modules_json }}
+      skip_reason: ${{ steps.config.outputs.skip_reason }}
+
+    steps:
+      - name: Compute configuration
+        id: config
+        env:
+          # Repository variable that tracks release stage: production, uat, qa
+          CURRENT_STAGE: ${{ vars.CURRENT_STAGE }}
+          # Inputs
+          TRIGGER_TYPE: ${{ inputs.trigger_type }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          GIT_REF_INPUT: ${{ inputs.git_ref }}
+          MODULES_INPUT: ${{ inputs.modules }}
+        run: |
+          # ================================================================
+          # CONFIGURATION COMPUTATION SCRIPT
+          # ================================================================
+
+          echo "=========================================="
+          echo "CONFIGURATION INPUTS"
+          echo "=========================================="
+          echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Environment: $ENVIRONMENT"
+          echo "Current Stage: ${CURRENT_STAGE:-'not set (defaulting to qa)'}"
+          echo "Git Ref Input: ${GIT_REF_INPUT:-'auto-detect'}"
+          echo "Modules Input: ${MODULES_INPUT:-'use defaults'}"
+          echo ""
+
+          # Default values
+          STAGE="${CURRENT_STAGE:-qa}"
+          SHOULD_RUN="true"
+          SKIP_REASON=""
+          CHECKOUT_REF=""
+
+          # ================================================================
+          # STEP 1: DETERMINE GIT REF (Branch Selection Logic)
+          # ================================================================
+          # When caller passes non-empty git_ref, it ALWAYS wins (no stage logic).
+          # Only when git_ref is empty/not passed do we auto-determine from CURRENT_STAGE.
+          echo "=========================================="
+          echo "STEP 1: DETERMINING GIT REF"
+          echo "=========================================="
+
+          GIT_REF_TRIMMED=$(echo "$GIT_REF_INPUT" | xargs)
+          if [ -n "$GIT_REF_TRIMMED" ]; then
+            CHECKOUT_REF="$GIT_REF_TRIMMED"
+            echo "✅ Using explicitly provided git_ref (caller branch): $CHECKOUT_REF"
+          else
+            # Auto-determine based on trigger_type, environment, and stage
+            case "$TRIGGER_TYPE" in
+              
+              # ────────────────────────────────────────────────────────────
+              # DAILY CRON: Test environment always uses develop branch
+              # ────────────────────────────────────────────────────────────
+              "test_env_regression")
+                if [ "$ENVIRONMENT" = "test" ]; then
+                  CHECKOUT_REF="develop"
+                  echo "✅ Daily cron on test → develop branch"
+                else
+                  # For non-test environments in daily cron, use same logic as release
+                  if [ "$STAGE" = "production" ]; then
+                    CHECKOUT_REF="main"
+                    echo "✅ Daily cron on $ENVIRONMENT (production stage) → main branch"
+                  else
+                    CHECKOUT_REF="release"
+                    echo "✅ Daily cron on $ENVIRONMENT ($STAGE stage) → release branch"
+                  fi
+                fi
+                ;;
+              
+              # ────────────────────────────────────────────────────────────
+              # QA RELEASE: Branch depends on current stage
+              # ────────────────────────────────────────────────────────────
+              "qa_release")
+                case "$STAGE" in
+                  "production")
+                    CHECKOUT_REF="main"
+                    echo "✅ QA release (production stage) → main branch"
+                    ;;
+                  "qa")
+                    CHECKOUT_REF="release"
+                    echo "✅ QA release (qa stage) → release branch"
+                    ;;
+                  "uat")
+                    # Skip QA cron during UAT stage (QA already passed)
+                    SHOULD_RUN="false"
+                    SKIP_REASON="Skipping QA regression: Current stage is UAT (QA already validated)"
+                    echo "⏭️ $SKIP_REASON"
+                    ;;
+                  *)
+                    CHECKOUT_REF="release"
+                    echo "⚠️ Unknown stage '$STAGE', defaulting to release branch"
+                    ;;
+                esac
+                ;;
+              
+              # ────────────────────────────────────────────────────────────
+              # UAT RELEASE: Branch depends on current stage
+              # ────────────────────────────────────────────────────────────
+              "uat_release")
+                case "$STAGE" in
+                  "production")
+                    CHECKOUT_REF="main"
+                    echo "✅ UAT release (production stage) → main branch"
+                    ;;
+                  "uat")
+                    CHECKOUT_REF="release"
+                    echo "✅ UAT release (uat stage) → release branch"
+                    ;;
+                  "qa")
+                    # Skip UAT cron during QA stage (not promoted yet)
+                    SHOULD_RUN="false"
+                    SKIP_REASON="Skipping UAT regression: Current stage is QA (not yet promoted to UAT)"
+                    echo "⏭️ $SKIP_REASON"
+                    ;;
+                  *)
+                    CHECKOUT_REF="release"
+                    echo "⚠️ Unknown stage '$STAGE', defaulting to release branch"
+                    ;;
+                esac
+                ;;
+              
+              # ────────────────────────────────────────────────────────────
+              # PROD HEALTHCHECK: Always uses main branch
+              # ────────────────────────────────────────────────────────────
+              "prod_healthcheck")
+                CHECKOUT_REF="main"
+                echo "✅ Production healthcheck → main branch"
+                ;;
+              
+              # ────────────────────────────────────────────────────────────
+              # MANUAL: Use current branch or default to develop
+              # ────────────────────────────────────────────────────────────
+              "manual")
+                CHECKOUT_REF="${GITHUB_REF_NAME:-develop}"
+                echo "✅ Manual trigger → $CHECKOUT_REF branch"
+                ;;
+              
+              *)
+                echo "⚠️ Unknown trigger type: $TRIGGER_TYPE"
+                CHECKOUT_REF="develop"
+                ;;
+            esac
+          fi
+
+          # ================================================================
+          # STEP 2: DETERMINE MODULE LIST
+          # ================================================================
+          echo ""
+          echo "=========================================="
+          echo "STEP 2: DETERMINING MODULE LIST"
+          echo "=========================================="
+
+          if [ -n "$MODULES_INPUT" ] && [ "$MODULES_INPUT" != "[]" ]; then
+            # Use explicitly provided modules
+            MODULES_JSON="$MODULES_INPUT"
+            echo "✅ Using explicitly provided modules: $MODULES_JSON"
+          else
+            # ================================================================
+            # MODULE LISTS (UI Tests Only)
+            # ================================================================
+            # All lists include content modules for unified UI regression
+            # API tests are handled separately by content-regression-test.yml
+            # ================================================================
+            
+            case "$TRIGGER_TYPE" in
+              
+              # ──────────────────────────────────────────────────────────
+              # DAILY CRON: Full UI regression suite
+              # Runs daily on test environment
+              # ──────────────────────────────────────────────────────────
+              "test_env_regression")
+                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
+                echo "✅ Daily cron: Full UI regression (all modules including content)"
+                ;;
+              
+              # ──────────────────────────────────────────────────────────
+              # QA RELEASE: Full UI regression suite
+              # Same as daily but runs on release branch during QA stage
+              # ──────────────────────────────────────────────────────────
+              "qa_release")
+                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
+                echo "✅ QA release: Full UI regression (all modules including content)"
+                ;;
+              
+              # ──────────────────────────────────────────────────────────
+              # UAT RELEASE: Full UI regression suite
+              # Same modules, runs during UAT stage
+              # ──────────────────────────────────────────────────────────
+              "uat_release")
+                MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","comms-planner"]'
+                echo "✅ UAT release: Full UI regression (all modules including content)"
+                ;;
+              
+              # ──────────────────────────────────────────────────────────
+              # PROD HEALTHCHECK: Subset for faster checks
+              # Excludes some modules that are less critical for healthcheck
+              # ──────────────────────────────────────────────────────────
+              "prod_healthcheck")
+                MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening"]'
+                echo "✅ Prod healthcheck: Core UI modules"
+                ;;
+              
+              # ──────────────────────────────────────────────────────────
+              # MANUAL: Smaller default set for quick runs
+              # User can override with custom modules input
+              # ──────────────────────────────────────────────────────────
+              "manual")
+                MODULES_JSON='["chat","platforms","global-search","content","de","reward","recognition","frontline","alert-notification"]'
+                echo "✅ Manual: Default module subset (use 'modules' input to customize)"
+                ;;
+              
+              *)
+                MODULES_JSON='["chat","platforms"]'
+                echo "⚠️ Unknown trigger type, using minimal module list"
+                ;;
+            esac
+          fi
+
+          # ================================================================
+          # STEP 3: OUTPUT RESULTS
+          # ================================================================
+          echo ""
+          echo "=========================================="
+          echo "CONFIGURATION SUMMARY"
+          echo "=========================================="
+          echo "Should Run: $SHOULD_RUN"
+          echo "Checkout Ref: ${CHECKOUT_REF:-'N/A (skipped)'}"
+          echo "Modules: $MODULES_JSON"
+          if [ -n "$SKIP_REASON" ]; then
+            echo "Skip Reason: $SKIP_REASON"
+          fi
+          echo "=========================================="
+
+          # Set outputs
+          echo "should_run=$SHOULD_RUN" >> $GITHUB_OUTPUT
+          echo "checkout_ref=$CHECKOUT_REF" >> $GITHUB_OUTPUT
+          echo "modules_json=$MODULES_JSON" >> $GITHUB_OUTPUT
+          echo "skip_reason=$SKIP_REASON" >> $GITHUB_OUTPUT
+
+      - name: Notify if skipped
+        if: steps.config.outputs.should_run == 'false'
+        run: |
+          echo "::notice title=Tests Skipped::${{ steps.config.outputs.skip_reason }}"
+
+  # ==========================================================================
+  # JOB 2: REGRESSION TESTS (Matrix)
+  # ==========================================================================
+  # Purpose: Execute tests for each module in parallel
+  #
+  # Prerequisites:
+  #   - determine-config job must complete
+  #   - should_run must be true
+  #
+  # Matrix Strategy:
+  #   - Runs each module as a separate job
+  #   - fail-fast: false ensures all modules run even if some fail
+
+  regression-tests:
+    needs: determine-config
+    if: needs.determine-config.outputs.should_run == 'true'
+    timeout-minutes: ${{ inputs.timeout_minutes }}
+    runs-on: [kubernetes]
+
+    # ========================================================================
+    # MATRIX CONFIGURATION
+    # ========================================================================
+    # The module list comes from determine-config job
+    # Each module runs as an independent parallel job
+
+    strategy:
+      fail-fast: false
+      matrix:
+        module: ${{ fromJson(needs.determine-config.outputs.modules_json) }}
+
+    # ========================================================================
+    # ENVIRONMENT VARIABLES
+    # ========================================================================
+    env:
+      # AWS S3 bucket for report storage
+      S3_BUCKET: simpplr-e2e-automation-958465808810-us-west-2
+
+      # Current module being tested
+      MODULE_NAME: ${{ matrix.module }}
+
+      # Target test environment
+      TEST_ENV: ${{ inputs.environment }}
+
+      # Slack webhook for notifications
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+
+      # BrowserStack configuration (for Test Observability)
+      BUILD_NUMBER: ${{ github.run_number }}
+      CI_BRANCH: ${{ github.ref_name }}
+      BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+      BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+      # Release tag for tracking (fallback to git ref or 'untagged' if empty)
+      RELEASE_TAG: ${{ inputs.release_tag || needs.determine-config.outputs.checkout_ref || 'untagged' }}
+      # Trigger type for BrowserStack tagging
+      TRIGGER_TYPE: ${{ inputs.trigger_type }}
+
+    # ========================================================================
+    # EXECUTION STEPS
+    # ========================================================================
+    steps:
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 1: DISPLAY CONFIGURATION
+      # Purpose: Log all configuration for debugging and audit trail
+      # ────────────────────────────────────────────────────────────────────
+      - name: Display configuration
+        run: |
+          echo "=========================================="
+          echo "TEST EXECUTION CONFIGURATION"
+          echo "=========================================="
+          echo "🌍 Environment: ${{ inputs.environment }}"
+          echo "🔖 Git Ref: ${{ needs.determine-config.outputs.checkout_ref }}"
+          echo "📦 Module: ${{ matrix.module }}"
+          echo "🎯 Trigger: ${{ inputs.trigger_type }}"
+          echo "📢 Slack Prefix: ${{ inputs.slack_prefix }}"
+          echo "🔬 BrowserStack: ${{ inputs.is_browserstack }}"
+          echo "👷 Workers: ${{ inputs.workers }}"
+          echo "=========================================="
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 2: CHECKOUT CODE
+      # Purpose: Clone repository at specified git reference
+      # ────────────────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ needs.determine-config.outputs.checkout_ref }}
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 3: CREATE CALENDAR SECRETS (for Content and Integrations modules)
+      # Purpose: Content and Integrations module tests require Google/Outlook calendar integration
+      # Note: Only creates file if CALENDAR_SECRETS variable exists
+      # ────────────────────────────────────────────────────────────────────
+      - name: Create Calendar Secrets JSON
+        if: contains(fromJson('["content", "content-settings", "content-studio", "content-abac", "integrations-primary", "integrations-workday", "integrations-azuresso", "integrations-api"]'), matrix.module)
+        run: |
+          if [ -n "${{ vars.CALENDAR_SECRETS }}" ]; then
+            echo '${{ vars.CALENDAR_SECRETS }}' > githubSecrets.json
+            echo "✅ Created githubSecrets.json with Google and Outlook Calendar credentials for CI environment"
+          else
+            echo "⚠️ CALENDAR_SECRETS not set - calendar tests may fail"
+          fi
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 4: SETUP NODE.JS
+      # Purpose: Install Node.js runtime for test execution
+      # ────────────────────────────────────────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 5: INSTALL DEPENDENCIES
+      # Purpose: Install npm packages from package-lock.json
+      # Uses: npm ci for reproducible builds
+      # ────────────────────────────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 6: INSTALL PLAYWRIGHT BROWSERS
+      # Purpose: Download browser binaries for test execution
+      # Retry: 3 attempts with 120s delay (handles network issues)
+      # ────────────────────────────────────────────────────────────────────
+      - name: Install Playwright Browsers
+        run: |
+          for i in {1..3}; do
+            npx playwright install --with-deps && break || sleep 120
+          done
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 7: INSTALL SYSTEM DEPENDENCIES
+      # Purpose: Install system packages required by some tests
+      # - ghostscript: PDF processing
+      # - imagemagick/graphicsmagick: Image processing
+      # ────────────────────────────────────────────────────────────────────
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick graphicsmagick
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 8: GENERATE BROWSERSTACK BUILD NAME
+      # Purpose: Create descriptive build name for BrowserStack tracking
+      # Format: "{Type}-{Tag/Branch}-{Module}-{Env}"
+      # Examples:
+      #   - Release-25.01-Rewards-QA (for release regression)
+      #   - Daily-develop-Chat-test (for daily regression)
+      #   - Healthcheck-Platforms-prodUS (for prod healthcheck)
+      # ────────────────────────────────────────────────────────────────────
+      - name: Generate BrowserStack build name
+        run: |
+          TRIGGER="${{ inputs.trigger_type }}"
+          TAG="${RELEASE_TAG}"
+          MODULE="${MODULE_NAME}"
+          ENV="${TEST_ENV}"
+          BRANCH="${CI_BRANCH}"
+
+          # Capitalize first letter of module for cleaner display
+          MODULE_CAP="$(echo "${MODULE:0:1}" | tr '[:lower:]' '[:upper:]')${MODULE:1}"
+
+          # Generate build name based on trigger type
+          case "$TRIGGER" in
+            "test_env_regression")
+              # Daily regression: Daily-{branch}-{Module}-{env}
+              BUILD_NAME="Daily-${BRANCH}-${MODULE_CAP}-${ENV}"
+              ;;
+            "qa_release")
+              # QA release: Release-{tag}-{Module}-QA
+              BUILD_NAME="Release-${TAG}-${MODULE_CAP}-QA"
+              ;;
+            "uat_release")
+              # UAT release: Release-{tag}-{Module}-UAT
+              BUILD_NAME="Release-${TAG}-${MODULE_CAP}-UAT"
+              ;;
+            "prod_healthcheck")
+              # Prod healthcheck: Healthcheck-{Module}-{env}
+              BUILD_NAME="Healthcheck-${MODULE_CAP}-${ENV}"
+              ;;
+            "manual")
+              # Manual: Manual-{tag/branch}-{Module}-{env}
+              BUILD_NAME="Manual-${TAG}-${MODULE_CAP}-${ENV}"
+              ;;
+            *)
+              BUILD_NAME="${TRIGGER}-${TAG}-${MODULE_CAP}-${ENV}"
+              ;;
+          esac
+
+          echo "=========================================="
+          echo "BROWSERSTACK BUILD NAME"
+          echo "=========================================="
+          echo "📛 $BUILD_NAME"
+          echo "=========================================="
+
+          # Export for browserstack.yml to use
+          echo "BROWSERSTACK_BUILD_NAME=${BUILD_NAME}" >> $GITHUB_ENV
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 9: RUN TESTS
+      # Purpose: Execute Playwright tests for the current module
+      #
+      # Module-Specific Handling:
+      #   - reward: Exclude @rewards-db and P3 tests, use 3 workers
+      #   - reward-settings: Exclude @rewards-db and P3 tests, use 1 worker
+      #   - de/de-api/de-api-abac: Use data-engineering config files
+      #   - content-*: Use content module configs
+      #   - others: Standard npm run test:{module}
+      #
+      # BrowserStack Integration:
+      #   - When enabled, uses browserstack-node-sdk for test observability
+      #   - Reports sent to BrowserStack dashboard
+      # ────────────────────────────────────────────────────────────────────
+      - name: Run regression tests
+        id: run-tests
+        run: |
+          # ================================================================
+          # TEST EXECUTION SCRIPT
+          # ================================================================
+          # - Full regression: Runs ALL tests for the module (no filters)
+          # - Prod healthcheck: Runs only @healthcheck tagged tests
+          # - Filtered runs: Use priority_filter, test_type, feature_tags
+          # ================================================================
+
+          MODULE="${{ matrix.module }}"
+          WORKERS="${{ inputs.workers }}"
+          IS_BROWSERSTACK="${{ inputs.is_browserstack }}"
+          TRIGGER_TYPE="${{ inputs.trigger_type }}"
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
+
+          # Set TLS config for test environments (some use self-signed certs)
+          export NODE_TLS_REJECT_UNAUTHORIZED=0
+
+          # ────────────────────────────────────────────────────────────
+          # Build grep filter from inputs
+          # ────────────────────────────────────────────────────────────
+          ALL_TAGS=()
+
+          # Note: For prod_healthcheck, the caller (prod-healthcheck.yml) 
+          # already passes feature_tags='@healthcheck', so no explicit 
+          # handling needed here.
+
+          # Add priority filter (skip if "all" or empty)
+          if [ "$PRIORITY" != "all" ] && [ -n "$PRIORITY" ]; then
+            ALL_TAGS+=("$PRIORITY")
+            echo "🎯 Priority filter: $PRIORITY"
+          fi
+
+          # Add test type filter (skip if "all" or empty)
+          if [ "$TEST_TYPE" != "all" ] && [ -n "$TEST_TYPE" ]; then
+            ALL_TAGS+=("$TEST_TYPE")
+            echo "🧪 Test type filter: $TEST_TYPE"
+          fi
+
+          # Add feature tags (skip if "all" or empty)
+          if [ "$FEATURE_TAGS" != "all" ] && [ -n "$FEATURE_TAGS" ]; then
+            IFS=',' read -ra FEATURES <<< "$FEATURE_TAGS"
+            for tag in "${FEATURES[@]}"; do
+              tag=$(echo "$tag" | xargs)  # Trim whitespace
+              [ -n "$tag" ] && ALL_TAGS+=("$tag")
+            done
+            echo "🏷️ Feature tags: $FEATURE_TAGS"
+          fi
+
+          # Deduplicate tags (preserves order, removes duplicates)
+          UNIQUE_TAGS=()
+          for tag in "${ALL_TAGS[@]}"; do
+            if [[ ! " ${UNIQUE_TAGS[*]} " =~ " ${tag} " ]]; then
+              UNIQUE_TAGS+=("$tag")
+            fi
+          done
+          ALL_TAGS=("${UNIQUE_TAGS[@]}")
+
+          # Build grep filter string
+          GREP_FILTER=""
+          if [ ${#ALL_TAGS[@]} -gt 0 ]; then
+            # Use AND logic: tests must match ALL tags
+            # Pattern: (@tag1).*(@tag2) - requires both tags in test name
+            if [ ${#ALL_TAGS[@]} -gt 1 ]; then
+              GREP_REGEX=$(printf '(%s).*' "${ALL_TAGS[@]}" | sed 's/\.\*$//')
+              echo "🔍 Combined grep filter (AND): $GREP_REGEX"
+            else
+              GREP_REGEX="${ALL_TAGS[0]}"
+              echo "🔍 Single tag filter: $GREP_REGEX"
+            fi
+            GREP_FILTER="--grep=\"$GREP_REGEX\""
+          fi
+
+          echo "=========================================="
+          echo "EXECUTING TESTS"
+          echo "=========================================="
+          echo "Module: $MODULE"
+          echo "Workers: $WORKERS"
+          echo "BrowserStack: $IS_BROWSERSTACK"
+          echo "Trigger Type: $TRIGGER_TYPE"
+          echo "Priority: ${PRIORITY:-'all'}"
+          echo "Test Type: ${TEST_TYPE:-'all'}"
+          echo "Feature Tags: ${FEATURE_TAGS:-'all'}"
+          echo "Grep Filter: ${GREP_FILTER:-'(none - full regression)'}"
+          echo ""
+
+          # ────────────────────────────────────────────────────────────
+          # Determine run command (BrowserStack vs local)
+          # ────────────────────────────────────────────────────────────
+          if [ "$IS_BROWSERSTACK" = "true" ]; then
+            echo "🔬 Running with BrowserStack Test Observability..."
+            RUN_CMD="npx browserstack-node-sdk playwright test"
+          else
+            echo "🧪 Running locally (no BrowserStack)..."
+            RUN_CMD="npx playwright test"
+          fi
+
+          # ────────────────────────────────────────────────────────────
+          # Module-specific test execution
+          # Note: GREP_FILTER is applied for prod_healthcheck (@healthcheck)
+          # ────────────────────────────────────────────────────────────
+          case "$MODULE" in
+            
+            # ──────────────────────────────────────────────────────────
+            # REWARD MODULE
+            # Special: Excludes @rewards-db tests (DB-dependent) and P3
+            # Workers: 3 (parallel execution)
+            # ──────────────────────────────────────────────────────────
+            "reward")
+              echo "📦 Running Reward tests (excluding @rewards-db and P3)..."
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
+                --workers=3
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # REWARD-SETTINGS MODULE
+            # Special: Excludes @rewards-db tests, uses single worker
+            # Workers: 1 (sequential to avoid settings conflicts)
+            # ──────────────────────────────────────────────────────────
+            "reward-settings")
+              echo "📦 Running Reward Settings tests (excluding @rewards-db and P3)..."
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward-settings.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
+                --workers=1
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # DATA ENGINEERING MODULES (de, de-api, de-api-abac)
+            # Maps short names to full config paths
+            # ──────────────────────────────────────────────────────────
+            "de")
+              echo "📦 Running Data Engineering UI tests..."
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "de-api")
+              echo "📦 Running Data Engineering API tests..."
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "de-api-abac")
+              echo "📦 Running Data Engineering API ABAC tests..."
+              eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # CONTENT MODULES
+            # Uses content module directory with specific configs
+            # ──────────────────────────────────────────────────────────
+            "content")
+              echo "📦 Running Content tests..."
+              eval $RUN_CMD --config=src/modules/content/playwright.content.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "content-settings")
+              echo "📦 Running Content Settings tests..."
+              eval $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "content-studio")
+              echo "📦 Running Content Studio tests..."
+              eval $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "content-abac")
+              echo "📦 Running Content ABAC tests..."
+              eval $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # RECOGNITION MODULES
+            # ──────────────────────────────────────────────────────────
+            "recognition")
+              echo "📦 Running Recognition tests..."
+              eval $RUN_CMD --config=src/modules/recognition/playwright.recognition.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "privateRecognition")
+              echo "📦 Running Private Recognition tests..."
+              eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
+            # ──────────────────────────────────────────────────────────
+            # INTEGRATIONS MODULES
+            # All integrations configs are in src/modules/integrations/
+            # Maps module names to their specific config files
+            # Note: MODULE_NAME must be set to 'integrations' for envLoader
+            # to find env files in src/modules/integrations/env/
+            # Export it before eval so it's available when config loads
+            # ──────────────────────────────────────────────────────────
+            "integrations-primary")
+              echo "📦 Running Integrations Primary tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-workday")
+              echo "📦 Running Integrations Workday tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-workday.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-azuresso")
+              echo "📦 Running Integrations Azure SSO tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-azuresso.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-okta")
+              echo "📦 Running Integrations Okta tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-okta.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            "integrations-api")
+              echo "📦 Running Integrations API tests..."
+              export MODULE_NAME=integrations
+              eval $RUN_CMD --config=src/modules/integrations/playwright.integrations-api.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # STANDARD MODULES
+            # Uses convention: src/modules/{module}/playwright.{module}.config.ts
+            # ──────────────────────────────────────────────────────────
+            *)
+              echo "📦 Running $MODULE tests..."
+              eval $RUN_CMD --config=src/modules/$MODULE/playwright.$MODULE.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+          esac
+
+          echo ""
+          echo "✅ Test execution completed"
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 9: UPLOAD TEST ARTIFACTS
+      # Purpose: Save test reports and results for debugging
+      # Runs: Always (even on test failure)
+      # ────────────────────────────────────────────────────────────────────
+      - name: Upload test report to GitHub artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ matrix.module }}-${{ inputs.environment }}
+          path: |
+            playwright-report
+            test-results
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 10: CONFIGURE AWS CREDENTIALS
+      # Purpose: Authenticate with AWS for S3 report upload
+      # Uses: OIDC-based authentication with role assumption
+      # ────────────────────────────────────────────────────────────────────
+      - name: Configure AWS Credentials
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v4.1.0
+        with:
+          aws-access-key-id: ${{ secrets.CICD_USER_AGENT_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.CICD_USER_AGENT_SECRET_ACCESS_KEY }}
+          role-to-assume: 'arn:aws:iam::693891728731:role/non-prod-deployer'
+          aws-region: 'us-west-2'
+          role-skip-session-tagging: true
+          role-duration-seconds: 1200
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 11: SET TIMESTAMP
+      # Purpose: Create unique timestamp for report naming
+      # Format: YYYY-MM-DD-HH-MM-SS
+      # ────────────────────────────────────────────────────────────────────
+      - name: Set timestamp
+        if: always()
+        id: timestamp
+        run: |
+          echo "TIMESTAMP=$(date +"%Y-%m-%d-%H-%M-%S")" >> $GITHUB_ENV
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 12: GENERATE HTML REPORT
+      # Purpose: Create enhanced HTML report from test results
+      # ────────────────────────────────────────────────────────────────────
+      - name: Generate HTML Report
+        if: always()
+        run: npm run generate-report:custom test-results/test-results.json
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 13: GENERATE TAG REPORT
+      # Purpose: Create tag-based analysis report
+      # Shows: Test distribution by tags, pass rates, etc.
+      # ────────────────────────────────────────────────────────────────────
+      - name: Generate Tag Report
+        if: always()
+        run: npm run generate-tag-report
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 14: UPLOAD REPORT TO S3
+      # Purpose: Store reports in S3 for team access
+      # Structure:
+      #   - s3://bucket/{module}/latest/ - most recent report
+      #   - s3://bucket/{module}/runs/{timestamp}-{run_id}/ - historical
+      # ────────────────────────────────────────────────────────────────────
+      - name: Upload Report to S3
+        if: always()
+        run: |
+          echo "=========================================="
+          echo "UPLOADING REPORTS TO S3"
+          echo "=========================================="
+
+          # Upload to timestamped folder (historical archive)
+          echo "📤 Uploading to timestamped folder..."
+          aws s3 cp playwright-report \
+            s3://${S3_BUCKET}/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }} \
+            --recursive
+
+          # Update latest folder (overwrites existing)
+          echo "📤 Updating latest folder..."
+          aws s3 cp playwright-report \
+            s3://${S3_BUCKET}/${MODULE_NAME}/latest \
+            --recursive
+
+          # Create redirect index.html in module root
+          echo '<!DOCTYPE html>
+          <html>
+            <head>
+              <meta http-equiv="refresh" content="0; url=./latest/index.html">
+            </head>
+            <body>
+              <p>Redirecting to latest report...</p>
+            </body>
+          </html>' > index.html
+
+          aws s3 cp index.html s3://${S3_BUCKET}/${MODULE_NAME}/index.html
+
+          # Log report URLs
+          echo ""
+          echo "📊 TEST REPORT LINKS"
+          echo "=========================================="
+          echo "🔗 Latest: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html"
+          echo "📅 This Run: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html"
+          echo "🏷️ Tags: https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html"
+          echo "=========================================="
+
+          # Store URLs for Slack notification
+          echo "LATEST_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/index.html" >> $GITHUB_ENV
+          echo "TIMESTAMPED_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/runs/${{ env.TIMESTAMP }}-${{ github.run_id }}/index.html" >> $GITHUB_ENV
+          echo "TAG_REPORT_URL=https://playwrite.simpplr.xyz/results/${MODULE_NAME}/latest/tag-report.html" >> $GITHUB_ENV
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 15: UPLOAD TO POSTGRES
+      # Purpose: Store test results in PostgreSQL for analytics
+      # Dashboard: Powers regression tracking dashboard
+      # ────────────────────────────────────────────────────────────────────
+      - name: Upload Regression Data to Postgres
+        if: always()
+        env:
+          # Database connection pool settings
+          DB_POOL_MAX: 3
+          DB_POOL_MIN: 1
+          DB_CONNECTION_TIMEOUT: 10000
+          DB_ACQUIRE_TIMEOUT: 60000
+          DB_IDLE_TIMEOUT: 15000
+          DB_ALLOW_EXIT_ON_IDLE: true
+          # Database credentials (from secrets)
+          PG_DB_HOST: ${{ secrets.PG_DB_HOST }}
+          PG_DB_PORT: ${{ secrets.PG_DB_PORT }}
+          PG_DB_NAME: ${{ secrets.PG_DB_NAME }}
+          PG_DB_USER: ${{ secrets.PG_DB_USER }}
+          PG_DB_PASSWORD: ${{ secrets.PG_DB_PASSWORD }}
+          # Metadata
+          TEAM_NAME: core
+          IS_REGRESSION: true
+        run: |
+          echo "📊 Uploading regression data to PostgreSQL..."
+          REPORT_PATH=${{ env.TIMESTAMPED_REPORT_URL }} npm run report:postgres
+          echo "✅ Upload completed"
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 16: PARSE TEST RESULTS
+      # Purpose: Extract test statistics for Slack notification
+      # Extracts: total, passed, failed, skipped, flaky, known failures
+      # ────────────────────────────────────────────────────────────────────
+      - name: Parse Test Results
+        if: always()
+        run: |
+          if [ -f "test-results/test-results.json" ]; then
+            # Extract basic stats using jq
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped + .stats.flaky' test-results/test-results.json)
+            PASSED_TESTS=$(jq -r '.stats.expected' test-results/test-results.json)
+            FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
+            SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
+            FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
+            
+            # Count known failures (tests with @known_failure annotation)
+            # These are expected failures that shouldn't alert the team
+            KNOWN_FAILED=$(node -e "
+              const fs = require('fs');
+              const data = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
+              const knownFailed = data.suites.flatMap(s =>
+                (s.suites || []).flatMap(ss =>
+                  (ss.specs || []).flatMap(sp =>
+                    (sp.tests || []).filter(t =>
+                      t.status === 'unexpected' &&
+                      t.annotations && t.annotations.some(a => a.type === 'known_failure')
+                    )
+                  )
+                )
+              ).length;
+              console.log(knownFailed);
+            ")
+            
+            # Calculate actual failures (excluding known failures)
+            ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
+          else
+            # No test results file - likely pipeline failed before tests ran
+            TOTAL_TESTS=0
+            PASSED_TESTS=0
+            FAILED_TESTS=0
+            SKIPPED_TESTS=0
+            FLAKY_TESTS=0
+            KNOWN_FAILED=0
+            ACTUAL_FAILED=0
+          fi
+
+          # Export to environment for Slack step
+          echo "TOTAL_TESTS=$TOTAL_TESTS" >> $GITHUB_ENV
+          echo "PASSED_TESTS=$PASSED_TESTS" >> $GITHUB_ENV
+          echo "FAILED_TESTS=$FAILED_TESTS" >> $GITHUB_ENV
+          echo "SKIPPED_TESTS=$SKIPPED_TESTS" >> $GITHUB_ENV
+          echo "FLAKY_TESTS=$FLAKY_TESTS" >> $GITHUB_ENV
+          echo "KNOWN_FAILED=$KNOWN_FAILED" >> $GITHUB_ENV
+          echo "ACTUAL_FAILED=$ACTUAL_FAILED" >> $GITHUB_ENV
+
+          echo "📊 Test Results Summary:"
+          echo "   Total: $TOTAL_TESTS"
+          echo "   Passed: $PASSED_TESTS ✅"
+          echo "   Failed: $ACTUAL_FAILED ❌ (Known: $KNOWN_FAILED)"
+          echo "   Skipped: $SKIPPED_TESTS ⏭️"
+          echo "   Flaky: $FLAKY_TESTS ⚠️"
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 17: SEND SLACK NOTIFICATION
+      # Purpose: Notify team of test results
+      # Format: Rich multi-line format with filters, branch, and stats
+      # ────────────────────────────────────────────────────────────────────
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          # Only send notification if tests actually ran
+          if [ "${{ env.TOTAL_TESTS }}" -gt 0 ]; then
+            PRIORITY="${{ inputs.priority_filter }}"
+            TEST_TYPE="${{ inputs.test_type }}"
+            FEATURE_TAGS="${{ inputs.feature_tags }}"
+            BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+            MODULE="${{ matrix.module }}"
+            ENV="${{ inputs.environment }}"
+            TRIGGERED_BY="${{ github.actor }}"
+            
+            # Build filters string only if not all defaults
+            FILTERS=""
+            if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
+              FILTERS=" | 🎯 Filters: \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
+            fi
+            
+            # Build known failures suffix if any
+            KNOWN_SUFFIX=""
+            if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
+              KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
+            fi
+            
+            # Compact 2-line format
+            MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`${FILTERS}\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
+          fi
+
+      # ────────────────────────────────────────────────────────────────────
+      # STEP 18: SEND FAILURE/NO-TESTS NOTIFICATION
+      # Purpose: Alert team if no tests ran or pipeline failed
+      # ────────────────────────────────────────────────────────────────────
+      - name: Send Failure Notification
+        if: always()
+        run: |
+          PRIORITY="${{ inputs.priority_filter }}"
+          TEST_TYPE="${{ inputs.test_type }}"
+          FEATURE_TAGS="${{ inputs.feature_tags }}"
+          BRANCH="${{ needs.determine-config.outputs.checkout_ref }}"
+          MODULE="${{ matrix.module }}"
+          ENV="${{ inputs.environment }}"
+
+          # Build filters string only if not all defaults
+          FILTERS=""
+          if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
+            FILTERS=" | 🎯 \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
+          fi
+
+          if [ -f "test-results/test-results.json" ]; then
+            TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
+            
+            if [ "$TOTAL_TESTS" -eq 0 ]; then
+              # No tests found matching criteria - compact format
+              MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\`${FILTERS} | 💡 No tests matched filters\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+              curl -X POST -H 'Content-type: application/json' \
+                --data "{\"text\":\"$MESSAGE\"}" \
+                $SLACK_WEBHOOK_URL
+            fi
+          else
+            # Pipeline failed before tests could run - compact format
+            MESSAGE="🚨 *${{ inputs.slack_prefix }} Pipeline Failed* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | ❌ Check job logs for errors\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\"$MESSAGE\"}" \
+              $SLACK_WEBHOOK_URL
+          fi
+
+  # ==========================================================================
+  # JOB 3: NOTIFY SKIPPED (Optional)
+  # ==========================================================================
+  # Purpose: Send notification when tests are skipped due to stage mismatch
+
+  notify-skipped:
+    needs: determine-config
+    if: needs.determine-config.outputs.should_run == 'false'
+    runs-on: [kubernetes]
+    env:
+      SLACK_WEBHOOK_URL: https://hooks.slack.com/services/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
+    steps:
+      - name: Notify Slack about skip
+        run: |
+          MESSAGE="⏭️ *${{ inputs.slack_prefix }} Skipped* - \`${{ inputs.environment }}\`\n      💡 ${{ needs.determine-config.outputs.skip_reason }} | 🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"$MESSAGE\"}" \
+            $SLACK_WEBHOOK_URL

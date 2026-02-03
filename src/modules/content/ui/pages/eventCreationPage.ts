@@ -20,33 +20,10 @@ export interface EventCreationOptions {
       square?: boolean;
     };
   };
+  topics?: string[];
 }
 
-export interface IEventCreationActions {
-  createAndPublishEvent(options: EventCreationOptions): Promise<{
-    eventId: string;
-    siteId: string;
-  }>;
-  createAndSubmitEvent(options: EventCreationOptions): Promise<{
-    eventId: string;
-    siteId: string;
-    peopleId: string;
-    peopleName: string;
-    response: EventCreationResponse;
-  }>;
-}
-
-export interface IEventCreationAssertions {
-  verifyThePageIsLoaded: () => Promise<void>;
-  verifyEventSyncConfiguration: (options?: {
-    verifyGoogleCalendar?: boolean;
-    verifyOutlookCalendar?: boolean;
-    verifyRsvpToggle?: boolean;
-  }) => Promise<void>;
-  verifyLanguageDropdown: () => Promise<void>;
-}
-
-export class EventCreationPage extends BasePage implements IEventCreationActions, IEventCreationAssertions {
+export class EventCreationPage extends BasePage {
   // Essential locators for event creation
   readonly titleInput: Locator;
   readonly descriptionInput: Locator;
@@ -69,6 +46,8 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
   readonly imageCropper: ImageCropperComponent;
   readonly languageDropdown: Locator;
   readonly closeAlertDialogButton: Locator;
+  readonly topicInput: Locator;
+  readonly topicInDescription: (topic: string) => Locator;
 
   constructor(page: Page, siteId?: string) {
     super(page, PAGE_ENDPOINTS.getEventCreationPage(siteId ?? ''));
@@ -102,14 +81,21 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
     this.imageCropper = new ImageCropperComponent(page);
     this.languageDropdown = page.getByLabel('Page language');
     this.closeAlertDialogButton = page.getByRole('button', { name: 'Close' });
+    this.topicInput = page.locator('input[id="listOfTopics"]');
+    this.topicInDescription = (topic: string) => page.getByLabel(`${topic}`);
   }
 
-  get actions(): IEventCreationActions {
-    return this;
+  addTopicFromList(topicText: string) {
+    return this.page.locator(`#listOfTopics-list >> text=${topicText}`);
   }
 
-  get assertions(): IEventCreationAssertions {
-    return this;
+  async addTopics(topics: string[]): Promise<void> {
+    for (const topic of topics) {
+      await this.fillInElement(this.topicInput, topic, {
+        stepInfo: `Fill topic: ${topic}`,
+      });
+      await this.clickOnElement(this.addTopicFromList(topic));
+    }
   }
 
   /**
@@ -499,6 +485,82 @@ export class EventCreationPage extends BasePage implements IEventCreationActions
 
       // Verify the date was set by checking if the picker closed
       await calendarGrid.waitFor({ state: 'hidden' });
+    });
+  }
+
+  /**
+   * Creates an event with topics in description and topics section, then publishes it
+   * @param options - The options for creating the event, including topicsSection
+   * @returns The created event details
+   */
+  async createWithTopicInDescriptionAndInTopicSectionAndPublish(
+    options: EventCreationOptions & { topicsSection: string[] }
+  ): Promise<{
+    title: string;
+    description: string;
+    eventId: string;
+    siteId: string;
+    response: EventCreationResponse;
+  }> {
+    return await test.step(`Creating and publishing event with title: ${options.title}`, async () => {
+      // Fill in event mandatory details
+      await this.fillEventDetails({
+        title: options.title,
+        description: options.description,
+        location: options.location,
+        startDate: options.startDate,
+        endDate: options.endDate,
+      });
+
+      // Add topic in description
+      if (options.topics && options.topics.length > 0) {
+        const topicText = options.topics[0];
+        const descriptionLocator = this.page.locator("div[contenteditable='true']").first();
+        await descriptionLocator.waitFor({ state: 'visible', timeout: 3000 });
+        // Get current content and append topic
+        await descriptionLocator.evaluate((element, topic) => {
+          if (element instanceof HTMLElement) {
+            const currentContent = element.innerHTML || element.textContent || '';
+            element.innerHTML = currentContent + ' #' + topic;
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }, topicText);
+        // Wait a bit for the topic suggestion to appear
+        await this.page.waitForTimeout(500);
+        await this.clickOnElement(this.topicInDescription(topicText));
+      }
+
+      // Upload cover image if provided
+      if (options.coverImage) {
+        await this.uploadCoverImage(options.coverImage.fileName, {
+          widescreenCropOption: options.coverImage.cropOptions?.widescreen,
+          squareCropOption: options.coverImage.cropOptions?.square,
+        });
+      }
+
+      // Add topics in topics section
+      if (options.topicsSection && options.topicsSection.length > 0) {
+        await this.addTopics(options.topicsSection);
+      }
+
+      // Publish the event
+      const publishResponse = await this.publishEvent();
+
+      // Parse response body
+      const publishResponseBody = (await publishResponse.json()) as EventCreationResponse;
+
+      // Extract event ID and site ID from response
+      const eventId = publishResponseBody.result.id;
+      const siteId = publishResponseBody.result.site.siteId;
+
+      return {
+        title: options.title,
+        description: options.description,
+        eventId: eventId,
+        siteId: siteId,
+        response: publishResponseBody,
+      };
     });
   }
 }

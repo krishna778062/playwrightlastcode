@@ -29,7 +29,7 @@ const defaultBaseContentPayload = {
   isFeedEnabled: true,
   listOfTopics: [] as { id: string; name: string }[],
   contentType: '',
-  isNewTiptap: false,
+  isNewTiptap: true,
 };
 
 const defaultPageContentPayload = () => {
@@ -45,7 +45,8 @@ const defaultPageContentPayload = () => {
     publishTo: undefined as string | undefined,
     listOfInlineVideos: undefined as any[] | undefined,
     readTimeInMin: undefined as number | undefined,
-    targetAudience: undefined as any[] | undefined,
+    targetAudience: undefined as string[] | undefined,
+    isRestricted: false as boolean,
   };
 };
 
@@ -215,6 +216,8 @@ export class ContentManagementService implements IContentManagementServices {
         );
       }
 
+      // Build update payload matching the working curl request structure
+      // Include all properties that the API accepts (based on successful curl test)
       const updatePayload: any = {
         authoredBy: authoredById,
         contentSubType: contentSubType,
@@ -222,28 +225,25 @@ export class ContentManagementService implements IContentManagementServices {
         publishAt: formattedPublishAt,
         body: bodyString,
         imgCaption: contentItem.imgCaption || '',
+        isRestricted: contentItem.isRestricted || false,
         publishingStatus: contentItem.isScheduled ? 'scheduled' : 'immediate',
         listOfInlineImages: contentItem.listOfInlineImages || [],
         listOfInlineVideos: contentItem.listOfInlineVideos || [],
         summary: contentItem.summary || null,
+        readTimeInMin: contentItem.readTimeInMin || 1,
+        publishTo: contentItem.publishTo || null,
         bodyHtml: contentItem.bodyHtml || '',
         imgLayout: contentItem.imgLayout || 'small',
         isMaximumWidth: contentItem.isMaximumWidth || false,
-        isQuestionAnswerEnabled:
-          contentItem.isQuestionAnswerEnabled !== undefined ? contentItem.isQuestionAnswerEnabled : true,
+        targetAudience: contentItem.targetAudience || [],
         title: contentItem.title || '',
+        language: contentItem.language || 'en-US',
         isFeedEnabled: contentItem.isFeedEnabled !== undefined ? contentItem.isFeedEnabled : true,
         listOfTopics: contentItem.listOfTopics || [],
         category: { id: categoryId, name: contentItem.category?.name || 'Uncategorized' },
         manualTransEnabled: contentItem.manualTransEnabled || false,
         contentType: contentItem.type || contentItem.contentType || 'page',
-        isRestricted: contentItem.isRestricted || false,
-        language: contentItem.language || 'en-US',
       };
-
-      // Only include optional fields if they have values (avoid sending null/undefined/read-only fields)
-      // readTimeInMin, publishTo, and targetAudience are likely read-only or not allowed in updates
-      // so we exclude them to avoid "Additional properties" errors
 
       const response = await this.httpClient.put(API_ENDPOINTS.content.updateDetails(siteId, contentId), {
         data: updatePayload,
@@ -269,7 +269,7 @@ export class ContentManagementService implements IContentManagementServices {
       const payload = {
         ...defaultPageContentPayload(),
         ...overrides,
-        contentSubType: 'news',
+        contentSubType: overrides.contentSubType || 'News',
         contentType: overrides.contentType || 'page',
         category: {
           ...defaultPageContentPayload().category,
@@ -300,6 +300,8 @@ export class ContentManagementService implements IContentManagementServices {
             isNewTiptap: payload.isNewTiptap,
             ...(payload.publishAt && { publishAt: payload.publishAt }),
             ...(payload.publishTo && { publishTo: payload.publishTo }),
+            ...(payload.isRestricted !== undefined && { isRestricted: payload.isRestricted }),
+            ...(payload.targetAudience && { targetAudience: payload.targetAudience }),
           },
         }
       );
@@ -638,14 +640,22 @@ export class ContentManagementService implements IContentManagementServices {
   async getContentList(
     options: {
       siteId?: string;
+      pageCategoryId?: string;
+      categoryId?: string; // Alias for pageCategoryId for backward compatibility
       size?: number;
       status?: string;
       filter?: string;
       sortBy?: string;
       contribution?: string;
+      type?: string;
     } = {}
   ) {
-    return await test.step('Getting content list ', async () => {
+    return await test.step('Getting content list', async () => {
+      // Extract CSRF token from cookies for UAT compatibility
+      const storageState = await this.context.storageState();
+      const cookies = storageState.cookies || [];
+      const csrfid = cookies.find((c: any) => c.name === 'csrfid')?.value;
+
       const requestData: {
         size: number;
         status?: string;
@@ -653,13 +663,18 @@ export class ContentManagementService implements IContentManagementServices {
         contribution: string;
         filter: string;
         siteId?: string;
+        pageCategoryId?: string;
+        type?: string;
       } = {
         size: options.size || 16,
         sortBy: options.sortBy || 'publishedNewest',
         contribution: options.contribution || 'all',
         filter: options.filter || 'managing',
-        ...(options.status && { status: options.status }), // Only include status if explicitly provided
+        ...(options.status && { status: options.status }),
         ...(options.siteId && { siteId: options.siteId }),
+        ...(options.pageCategoryId && { pageCategoryId: options.pageCategoryId }),
+        ...(options.categoryId && !options.pageCategoryId && { pageCategoryId: options.categoryId }), // Support categoryId alias
+        ...(options.type && { type: options.type }),
       };
 
       const response = await this.httpClient.post(API_ENDPOINTS.content.contentListInSite, {

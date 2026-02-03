@@ -1,7 +1,9 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
 
+import { HttpClient } from '@core/api/clients/httpClient';
 import { API_ENDPOINTS } from '@core/constants/apiEndpoints';
 import {
+  SearchSitesResponse,
   SiteCreationPayload,
   SiteListOptions,
   SiteListResponse,
@@ -11,8 +13,6 @@ import {
   SitePermission,
 } from '@core/types/siteManagement.types';
 import { log } from '@core/utils/logger';
-
-import { HttpClient } from '../../../../core/api/clients/httpClient';
 
 import { PeopleListResponse } from '@/src/core/types/people.type';
 import { ISiteManagementOperations } from '@/src/modules/content/apis/interfaces/ISiteManagemenOperations';
@@ -58,6 +58,7 @@ export class SiteManagementService implements ISiteManagementOperations {
           sortBy: 'alphabetical',
           term: category,
         },
+        timeout: 30000,
       });
       const json = await response.json();
       if (!json.result?.listOfItems?.length) throw new Error('Category not found');
@@ -320,7 +321,7 @@ export class SiteManagementService implements ISiteManagementOperations {
         {
           message: `Video file "${fileName}" to appear in search results for site ${siteId}`,
         }
-      ).toPass({ intervals: [10_000, 20_000, 40_000], timeout: 60_000 });
+      ).toPass({ intervals: [10_000, 20_000, 40_000, 60_000, 80_000, 100_000, 110_000, 120_000], timeout: 120_000 });
     });
     log.debug('fileID', { fileId: file.item.fileId });
     return { fileId: file.item.fileId, authorName: file.item.owner.name };
@@ -399,7 +400,7 @@ export class SiteManagementService implements ISiteManagementOperations {
       // Prepare the approval payload with all required fields from the existing content
       const approvalPayload = {
         authoredBy: content.authoredBy?.id || content.authoredBy?.peopleId || content.authoredBy?.email,
-        contentSubType: content.contentSubType || content.type || 'general',
+        contentSubType: content.contentSubType || content.type || 'news',
         contentType: content.type || 'page',
         listOfFiles: content.listOfFiles || [],
         publishAt: content.publishAt || content.expiresAt || new Date().toISOString(),
@@ -520,7 +521,7 @@ export class SiteManagementService implements ISiteManagementOperations {
     permission: SitePermission = SitePermission.MEMBER,
     action: SiteMembershipAction = SiteMembershipAction.ADD
   ): Promise<SiteMembershipResponse> {
-    return await test.step(`Making user ${userId} a content manager for site ${siteId}`, async () => {
+    return await test.step(`Making user ${userId} a ${permission} for site ${siteId}`, async () => {
       const payload: any = {
         userId: userId,
         action: action.toString(), // Convert enum to string
@@ -531,6 +532,41 @@ export class SiteManagementService implements ISiteManagementOperations {
         payload.permission = permission.toString(); // Convert enum to string
       }
 
+      if (action === SiteMembershipAction.SET_PERMISSION) {
+        const siteMembershipList = await this.getSiteMembershipList(siteId);
+        const userMembership = siteMembershipList.result?.listOfItems?.find(
+          (member: any) => member.peopleId === userId
+        );
+        if (SitePermission.OWNER === permission && userMembership?.isOwner) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already an owner of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+        if (SitePermission.MANAGER === permission && userMembership?.isManager) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already a manager of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+        if (SitePermission.MEMBER === permission && userMembership?.isMember) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already a member of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+        if (SitePermission.CONTENT_MANAGER === permission && userMembership?.isContentManager) {
+          return {
+            status: 'success',
+            message: `User ${userId} is already a content manager of site ${siteId}`,
+            result: { userId, siteId, permission, action },
+          };
+        }
+      }
+
       const response = await this.httpClient.post(API_ENDPOINTS.site.manageMembers(siteId), {
         data: payload,
       });
@@ -539,7 +575,7 @@ export class SiteManagementService implements ISiteManagementOperations {
 
       if (!response.ok()) {
         throw new Error(
-          `Failed to make user content manager. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
+          `Failed to make user ${permission} for site ${siteId}. Status: ${response.status()}, Response: ${JSON.stringify(json)}`
         );
       }
 
@@ -652,7 +688,50 @@ export class SiteManagementService implements ISiteManagementOperations {
       const responseBody = await response.json();
 
       if (!response.ok()) {
-        throw new Error(`Failed to get site details for ${siteId}. Status: ${response.status()}`);
+        throw new Error(
+          `Failed to get site details for ${siteId}. Status: ${response.status()} and body: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      return responseBody;
+    });
+  }
+
+  /**
+   * Searches for sites using the search API
+   * @param options - Search options
+   * @param options.q - Search query string
+   * @param options.canManage - Filter sites that can be managed (default: true)
+   * @param options.filter - Filter by site status (default: 'all')
+   * @param options.includeDeactivated - Include deactivated sites (default: true)
+   * @returns Promise containing the search results
+   */
+  async searchSites(
+    siteName: string,
+    options: {
+      canManage?: boolean;
+      filter?: string;
+      includeDeactivated?: boolean;
+    }
+  ): Promise<SearchSitesResponse> {
+    return await test.step(`Searching sites with query: ${siteName}`, async () => {
+      const payload = {
+        q: siteName,
+        canManage: options.canManage !== undefined ? options.canManage : true,
+        filter: options.filter || 'all',
+        includeDeactivated: options.includeDeactivated !== undefined ? options.includeDeactivated : true,
+      };
+
+      const response = await this.httpClient.post(API_ENDPOINTS.search.sites, {
+        data: payload,
+      });
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to search sites. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
       }
 
       return responseBody;

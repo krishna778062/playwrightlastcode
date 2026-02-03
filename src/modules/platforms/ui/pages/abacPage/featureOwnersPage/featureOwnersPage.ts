@@ -8,7 +8,25 @@ import { FeatureOwnerModalComponent } from '../../../components/featureOwnerModa
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 
-export class FeatureOwnersPage extends BasePage {
+export interface IFeatureOwnersActions {
+  searchForFeature(featureName: string, expectResults?: boolean): Promise<void>;
+  clickOnButtonForFeature(
+    featureName: string,
+    optionName: string,
+    options?: { stepInfo?: string; timeout?: number }
+  ): Promise<void>;
+  clickShowMore(): Promise<void>;
+  getAllFeatureNames(): Promise<string[]>;
+  verifyNoResultsFoundMessages(): Promise<void>;
+  clickOnCountButton(featureNameOrIndex: string | number): Promise<string>;
+  verifyUserCountPopupOpened(expectedCount: string): Promise<void>;
+}
+
+export interface IFeatureOwnersAssertions {
+  verifyThePageIsLoaded(): Promise<void>;
+}
+
+export class FeatureOwnersPage extends BasePage implements IFeatureOwnersActions, IFeatureOwnersAssertions {
   readonly userCountButton: Locator;
   readonly feature: Locator;
   readonly searchInputBox: Locator;
@@ -24,10 +42,20 @@ export class FeatureOwnersPage extends BasePage {
   readonly showMoreButton: Locator;
   readonly noResultsFoundHeading: Locator;
   readonly noResultsFoundDescription: Locator;
+  readonly featureOwnerRecords: Locator;
+  readonly featureOwnersUsersCount: (featureName: string) => Locator;
 
   // Component
   readonly userCountPopup: UserCountPopupComponent;
   readonly featureOwnerModal: FeatureOwnerModalComponent;
+
+  get actions(): IFeatureOwnersActions {
+    return this;
+  }
+
+  get assertions(): IFeatureOwnersAssertions {
+    return this;
+  }
 
   constructor(page: Page, pageUrl: string = PAGE_ENDPOINTS.FEATURE_OWNERS) {
     super(page, pageUrl);
@@ -48,6 +76,9 @@ export class FeatureOwnersPage extends BasePage {
     this.showMoreButton = page.getByRole('button', { name: 'Show more' });
     this.noResultsFoundHeading = page.getByText('No results found');
     this.noResultsFoundDescription = page.getByText('Try adjusting search terms or filters');
+    this.featureOwnerRecords = page.locator('[data-testid*="dataGridRow"]');
+    this.featureOwnersUsersCount = (featureName: string) =>
+      this.featureOwnerRecords.filter({ hasText: featureName }).locator('[class*="Cell-module"] button p');
 
     // Initialize component
     this.userCountPopup = new UserCountPopupComponent(page);
@@ -211,5 +242,54 @@ export class FeatureOwnersPage extends BasePage {
    */
   async verifyUserCountPopupOpened(expectedCount: string): Promise<void> {
     await this.userCountPopup.verifyPopupOpenedWithCount(expectedCount);
+  }
+
+  /**
+   * Verifies that the user count popup is opened with correct count using dedicated component (to be used in the future)
+   * @param featureName - Feature name for which the feature owner list needs to be verified.
+   * @param numberOfFeaturesDisplayed - Number of features displayed in the feature owner list.
+   */
+  async verifyFeatureOwnerList(featureName: string, numberOfFeaturesDisplayed: number): Promise<void> {
+    await test.step(`Verify that ${featureName} feature and only ${numberOfFeaturesDisplayed} count of asset is displayed in the feature owner list`, async () => {
+      await this.searchForFeature(featureName);
+      const expectedNumberOfFeatureOwnerRecords = await this.featureOwnerRecords.count();
+      expect(
+        expectedNumberOfFeatureOwnerRecords,
+        `Expected number of feature owner records is ${numberOfFeaturesDisplayed} but found be ${expectedNumberOfFeatureOwnerRecords}`
+      ).toBe(numberOfFeaturesDisplayed);
+
+      const feature = this.featureOwnerRecords.filter({
+        has: this.page.locator(`[class*='FeatureColumn-module-featureName'] p`).filter({ hasText: featureName }),
+      });
+      await this.verifier.verifyTheElementIsVisible(feature, {
+        assertionMessage: `Feature ${featureName} should be visible in the feature owner list`,
+      });
+    });
+  }
+
+  /**
+   * Verifies that the user count popup is opened with correct count using dedicated component (to be used in the future)
+   * @param featureName - Feature name for which the feature owner count needs to be fetched.
+   */
+  async getFeatureOwnerCount(featureName: string): Promise<number> {
+    return await test.step(`Get the count of feature owners for ${featureName} feature`, async () => {
+      const featureOwnerUsersCount = await this.featureOwnersUsersCount(featureName).textContent();
+      return parseInt(featureOwnerUsersCount || '0', 10);
+    });
+  }
+
+  /**
+   * Verifies that the user count for the given feature
+   * @param featureName - Feature name for which the feature owner count needs to be fetched.
+   * @param expectedCount - Expected feature owner count.
+   */
+  async verifyFeatureOwnersUserCountIsEqualToExpectedCount(featureName: string, expectedCount: number): Promise<void> {
+    await test.step(`Verify that the feature owner count is equal to expected count for ${featureName} feature`, async () => {
+      const actualCount = await this.getFeatureOwnerCount(featureName);
+      expect(
+        actualCount,
+        `Feature owner count should be equal to expected count ${expectedCount} but found ${actualCount}`
+      ).toBe(expectedCount);
+    });
   }
 }

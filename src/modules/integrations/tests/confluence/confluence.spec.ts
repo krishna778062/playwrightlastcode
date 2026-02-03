@@ -89,6 +89,14 @@ test.describe(
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
         await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
 
+        // check if the confluence service account is connected
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
+
         // Select Custom Knowledge Base Radio Button
         await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('');
         await supportAndTicketingPage.assertions.verifyCustomKnowledgeBaseNameIsRequired();
@@ -111,6 +119,14 @@ test.describe(
         // Navigate to Support and Ticketing page
         await supportAndTicketingPage.navigateToSupportAndTicketingPage();
         await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
+
+        // check if the confluence service account is connected
+        const isConfluenceServiceAccountConnected =
+          await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
+        if (!isConfluenceServiceAccountConnected) {
+          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
+          await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
+        }
 
         // Select Custom Knowledge Base Radio Button
         await supportAndTicketingPage.actions.selectCustomKnowledgeBaseWithName('Confluence knowledge base');
@@ -280,7 +296,6 @@ test.describe(
           await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
         if (!isConfluenceConnectedAtAppLevel) {
           await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
-          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
           await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
         }
 
@@ -292,6 +307,8 @@ test.describe(
         await supportAndTicketingPage.actions.toggleConfluenceIntegration();
         await supportAndTicketingPage.assertions.verifyConfluenceIntegrationCheckboxState(true);
 
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
         await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
         await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
       }

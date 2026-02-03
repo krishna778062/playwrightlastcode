@@ -145,7 +145,7 @@ test.describe(
       //check pre -populated values for phone number input field
       await mobilePromotionPage.commonActionsComponent.verifyInputValue(
         mobilePromotionPage.mobilePromotionEmailSMSComponent.phoneNumberInput,
-        '4155555555'
+        '2727669485'
       );
 
       //check error message with invalid phone number according to the US Country Code
@@ -205,12 +205,6 @@ test.describe(
       await mobilePromotionPage.mobilePromotionQRModalComponent.clickOnGetAppLinkButton();
       await mobilePromotionPage.mobilePromotionEmailSMSComponent.clickOnEmailButton();
 
-      //check pre -populated values for phone number input field
-      await mobilePromotionPage.commonActionsComponent.verifyInputValue(
-        mobilePromotionPage.mobilePromotionEmailSMSComponent.emailInput,
-        'mahima.varshney@simpplr.com'
-      );
-
       //check error message with invalid email address
       await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('mahima.varshney@simpplr');
       await mobilePromotionPage.commonActionsComponent.pressTab(
@@ -262,11 +256,13 @@ test.describe(
 
       await mobilePromotionPage.mobilePromotionEmailSMSComponent.verifyEmailInputIsDisplayed();
 
+      await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('ruhi.mirza@simpplr.com');
+
       await mobilePromotionPage.commonActionsComponent.clickButton('Send link');
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage(
-        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_SENT_SUCCESSFULLY + 'mahima.varshney@simpplr.com'
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_SENT_SUCCESSFULLY + 'ruhi.mirza@simpplr.com'
       );
     });
 
@@ -285,11 +281,13 @@ test.describe(
 
       await mobilePromotionPage.mobilePromotionEmailSMSComponent.verifyEmailInputIsDisplayed();
 
+      await mobilePromotionPage.mobilePromotionEmailSMSComponent.enterEmail('ruhi.mirza@simpplr.com');
+
       await mobilePromotionPage.commonActionsComponent.clickButton('Send link');
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage(
-        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + 'mahima.varshney@simpplr.com'
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + 'ruhi.mirza@simpplr.com'
       );
     });
 
@@ -310,7 +308,7 @@ test.describe(
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage(
-        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + '+14155555555'
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + '+12727669485'
       );
     });
 
@@ -331,7 +329,7 @@ test.describe(
 
       //verify toast message
       await mobilePromotionPage.commonActionsComponent.verifyToastMessage(
-        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + '+14155555555'
+        ALERT_NOTIFICATION_MESSAGES.MOBILE_PROMOTION_EMAIL_SMS_SENT + '+12727669485'
       );
     });
 
