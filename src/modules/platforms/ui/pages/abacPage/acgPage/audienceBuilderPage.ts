@@ -12,6 +12,7 @@ export class AudienceBuilderPage extends BasePage {
   filtersButton: Locator;
   filterContainer: Locator;
   closeButton: Locator;
+  searchInput: Locator;
   public btnExactText: (buttonName: string) => Locator;
   public filterName: (filterName: string) => Locator;
   public filterOptionName: (filterOptionName: string) => Locator;
@@ -28,6 +29,7 @@ export class AudienceBuilderPage extends BasePage {
     this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
     this.filterContainer = page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
     this.closeButton = page.locator('button[aria-label="Close"]');
+    this.searchInput = this.filterContainer.locator('xpath=//input[@id="search"]');
     // Any button by text using contains() - replace static text with provided value
     this.btnExactText = (btnName: string) => this.page.locator(`//button[text()="${btnName}"]`);
     this.filterName = (name: string) => this.filterContainer.locator('button h3', { hasText: name });
@@ -219,6 +221,12 @@ export class AudienceBuilderPage extends BasePage {
     await test.step(`Click applied filter rail "${label}"`, async () => {
       const railLabel = this.appliedFilterRailLabel(label);
       await this.clickOnElement(railLabel, { stepInfo: `Click applied filter rail "${label}"` });
+    });
+  }
+  async searchFilterOption(query: string): Promise<void> {
+    await test.step(`Search filter option "${query}"`, async () => {
+      await this.searchInput.fill(query);
+      await this.searchInput.press('Enter');
     });
   }
 }

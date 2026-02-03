@@ -59,6 +59,74 @@ export const CUSTOM_APP_TILES_TEST_DATA = {
     FORM: 'Form',
   },
 
+  CONTAINER: {
+    ADD_CONTENT_PLACEHOLDER: 'Add content here',
+    PANEL_HEADING: 'Container',
+    SIZE: {
+      HUG_CONTENTS: 'Hug contents',
+      FILL_PARENT: 'Fill parent container',
+      CUSTOM: 'Custom',
+    },
+    CUSTOM_SIZE: {
+      WIDTH_PLACEHOLDER: 'Width…',
+      HEIGHT_PLACEHOLDER: 'Height…',
+      DEFAULT_WIDTH: '100',
+      DEFAULT_HEIGHT: '100',
+      PERCENTAGE_NOTE: 'To use a percentage height',
+    },
+    MARGIN: {
+      EQUAL: 'Equal',
+      UNEQUAL: 'Unequal',
+      COMBOBOX_NAME: 'Margin',
+      LEFT: 'Left',
+      TOP: 'Top',
+      RIGHT: 'Right',
+      BOTTOM: 'Bottom',
+    },
+    DIRECTION: {
+      HORIZONTAL: 'Horizontal',
+      VERTICAL: 'Vertical',
+    },
+    ALIGNMENT: {
+      LEFT: 'Align left',
+      CENTER: 'Align center',
+      RIGHT: 'Align right',
+      TOP: 'Align top',
+      BOTTOM: 'Align bottom',
+    },
+    SPACING_COMBOBOX: 'Spacing',
+    OVERFLOW: {
+      VISIBLE: 'Visible',
+      AUTO: 'Auto',
+    },
+    TABS: {
+      APPEARANCE: 'Appearance',
+      DATA: 'Data',
+    },
+    DATA_TAB: {
+      LOOP_DATA: 'Loop data',
+      LOOP_DATA_DESCRIPTION: 'Repeat data binding for dynamic content',
+      ADVANCED_SETTINGS: 'Advanced Settings',
+      SET_VISIBILITY_RULE: 'Set visibility rule',
+    },
+    TOOLBAR: {
+      MOVE: 'Move',
+      DUPLICATE: 'Duplicate',
+      SELECT_PARENT_CONTAINER: 'Select parent container',
+      REMOVE: 'Remove',
+    },
+    PANEL_CANCEL: 'Cancel',
+    SECTIONS: {
+      MARGIN: 'Margin',
+      DIRECTION: 'Direction',
+      ALIGNMENT: 'Alignment',
+      SPACING: 'Spacing',
+      OVERFLOW: 'Overflow',
+    },
+    MARGIN_OPTIONS: ['None', 'Small', 'Medium', 'Large', 'X-Large', 'XX-Large'],
+    SPACING_OPTIONS: ['None', 'Small', 'Medium', 'Large', 'X-Large'],
+  },
+
   IMAGE_SIZES: {
     SMALL: 'Small',
     MEDIUM: 'Medium',
@@ -337,5 +405,84 @@ export const TEST_SCENARIOS = [
     app: CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
     apiAction: CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.CREATE_TICKET,
     formBehavior: CUSTOM_APP_TILES_TEST_DATA.FORM_BEHAVIOR.DISPLAY_IN_OVERLAY,
+  },
+] as const;
+
+/**
+ * Representative Container Appearance combinations (Size × Direction × Alignment × Margin × Spacing).
+ * Used by container.spec.ts for combination tests.
+ */
+export const CONTAINER_APPEARANCE_COMBINATIONS = [
+  {
+    size: 'Hug contents' as const,
+    direction: 'Vertical' as const,
+    alignH: 'Align left' as const,
+    alignV: 'Align top' as const,
+    margin: 'None',
+    spacing: 'None',
+    label: 'Hug+Vertical+Left+Top+None+None',
+  },
+  {
+    size: 'Fill parent container' as const,
+    direction: 'Horizontal' as const,
+    alignH: 'Align center' as const,
+    alignV: 'Align center' as const,
+    margin: 'Small',
+    spacing: 'Small',
+    label: 'Fill+Horizontal+Center+Center+Small+Small',
+  },
+  {
+    size: 'Custom' as const,
+    direction: 'Vertical' as const,
+    alignH: 'Align right' as const,
+    alignV: 'Align bottom' as const,
+    margin: 'Medium',
+    spacing: 'Medium',
+    label: 'Custom+Vertical+Right+Bottom+Medium+Medium',
+  },
+  {
+    size: 'Hug contents' as const,
+    direction: 'Horizontal' as const,
+    alignH: 'Align left' as const,
+    alignV: 'Align bottom' as const,
+    margin: 'None',
+    spacing: 'Large',
+    label: 'Hug+Horizontal+Left+Bottom+None+Large',
+  },
+  {
+    size: 'Fill parent container' as const,
+    direction: 'Vertical' as const,
+    alignH: 'Align center' as const,
+    alignV: 'Align top' as const,
+    margin: 'Small',
+    spacing: 'None',
+    label: 'Fill+Vertical+Center+Top+Small+None',
+  },
+  {
+    size: 'Custom' as const,
+    direction: 'Horizontal' as const,
+    alignH: 'Align right' as const,
+    alignV: 'Align top' as const,
+    margin: 'Large',
+    spacing: 'Small',
+    label: 'Custom+Horizontal+Right+Top+Large+Small',
+  },
+  {
+    size: 'Hug contents' as const,
+    direction: 'Horizontal' as const,
+    alignH: 'Align right' as const,
+    alignV: 'Align center' as const,
+    margin: 'None',
+    spacing: 'X-Large',
+    label: 'Hug+Horizontal+Right+Center+None+XLarge',
+  },
+  {
+    size: 'Fill parent container' as const,
+    direction: 'Vertical' as const,
+    alignH: 'Align left' as const,
+    alignV: 'Align bottom' as const,
+    margin: 'X-Large',
+    spacing: 'Medium',
+    label: 'Fill+Vertical+Left+Bottom+XLarge+Medium',
   },
 ] as const;

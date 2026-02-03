@@ -36,7 +36,7 @@ export class CategoryModalComponent extends BaseComponent {
     this.categoryDialog = page.locator('[role="dialog"]').filter({ hasText: this.dialogFilter });
 
     this.closeButton = this.categoryDialog.getByRole('button', { name: 'Close' });
-    this.categoryNameInput = this.categoryDialog.getByRole('textbox', { name: 'Name' });
+    this.categoryNameInput = this.categoryDialog.locator('input[name="name"]');
     this.addDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Add description' });
     this.descriptionInput = this.categoryDialog.getByRole('textbox', { name: 'Description' });
     this.categoryLabel = this.categoryDialog.getByRole('heading', { name: this.titleText });
@@ -46,7 +46,7 @@ export class CategoryModalComponent extends BaseComponent {
     this.cancelButton = this.categoryDialog.getByRole('button', { name: 'Cancel' });
     this.submitButton = this.categoryDialog.getByRole('button', { name: this.submitButtonText, exact: true });
     this.deleteDescriptionButton = this.categoryDialog.getByRole('button', { name: 'Delete' });
-    this.nameRequiredError = this.categoryDialog.getByText('Name is a required field');
+    this.nameRequiredError = this.categoryDialog.getByText('Category name is required.');
   }
 
   /**
@@ -119,6 +119,22 @@ export class CategoryModalComponent extends BaseComponent {
   async submitCategory(): Promise<void> {
     await this.clickOnElement(this.submitButton, {
       stepInfo: `Click ${this.submitButtonText} button`,
+    });
+  }
+
+  async triggerNameRequiredValidation(): Promise<void> {
+    await test.step('Trigger name required validation', async () => {
+      await this.clickOnElement(this.categoryNameInput, { stepInfo: 'Focus Name input' });
+      await this.clickOnElement(this.categoryLabel, { stepInfo: 'Blur Name input' });
+    });
+  }
+
+  async verifyNameRequiredErrorMessage(): Promise<void> {
+    await test.step('Verify name required error message is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.nameRequiredError, {
+        assertionMessage: 'Verify "Name is a required field" error is visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 
