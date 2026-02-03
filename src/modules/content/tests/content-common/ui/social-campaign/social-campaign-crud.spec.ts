@@ -791,15 +791,15 @@ test.describe(
         await siteDashboardPage.loadPage();
         await siteDashboardPage.clickOnEditDashboard();
         await siteDashboardPage.clickOnEditCarousel();
-        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.message);
         await siteDashboardPage.selectCarouselItem(campaignOptions.linkText);
-        await siteDashboardPage.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignInCarouselModal(campaignOptions.linkText);
         await siteDashboardPage.clickDoneButton();
-        await siteDashboardPage.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignInCarouselItem(campaignOptions.linkText);
         // Delete campaign
         await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -883,15 +883,15 @@ test.describe(
         await applicationManagerHomePage.loadPage();
         await applicationManagerHomePage.clickOnManageDashboardCarousel();
         await applicationManagerHomePage.clickOnEditCarousel();
-        await applicationManagerHomePage.enterSearchCarouselInput(campaignOptions.linkText);
+        await applicationManagerHomePage.enterSearchCarouselInput(campaignOptions.message);
         await applicationManagerHomePage.selectCarouselItem(campaignOptions.linkText);
-        await applicationManagerHomePage.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignInCarouselModal(campaignOptions.linkText);
         await applicationManagerHomePage.clickHomeDashboardDoneButton();
-        await applicationManagerHomePage.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignInCarouselItem(campaignOptions.linkText);
         // expire campaign
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await applicationManagerHomePage.loadPage();
-        await applicationManagerHomePage.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await applicationManagerHomePage.verifySocialCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -980,7 +980,7 @@ test.describe(
         await applicationManagerHomePage.clickOnSocialCampaignTile();
         await applicationManagerHomePage.clickOnCustomSCTile();
         await applicationManagerHomePage.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText);
+        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText, campaignOptions.message);
         tileId = await applicationManagerHomePage.clickAddToHomeButton();
         await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
@@ -1076,7 +1076,7 @@ test.describe(
         await applicationManagerHomePage.clickOnSocialCampaignTile();
         await applicationManagerHomePage.clickOnCustomSCTile();
         await applicationManagerHomePage.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText);
+        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText, campaignOptions.message);
         tileId = await applicationManagerHomePage.clickAddToHomeButton();
         await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);

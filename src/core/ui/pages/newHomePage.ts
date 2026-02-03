@@ -82,14 +82,6 @@ export class NewHomePage extends BasePage {
     this.profileSettingsButton = page.getByRole('button', { name: 'Profile settings' });
   }
 
-  get actions(): INewHomePageActions {
-    return this;
-  }
-
-  get assertions(): INewHomePageAssertions {
-    return this;
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verifying the home page is loaded', async () => {
       await expect(this.page, 'expecting page to have URL /home/').toHaveURL(/home/);
@@ -184,8 +176,8 @@ export class NewHomePage extends BasePage {
     return this.addTileComponent.clickCustomTab();
   }
 
-  async setCustomSCTitle(title: string): Promise<void> {
-    return this.addTileComponent.setCustomSCTitle(title);
+  async setCustomSCTitle(title: string, message: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title, message);
   }
 
   async clickOnChangeLayout(): Promise<void> {
@@ -223,15 +215,15 @@ export class NewHomePage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.recentlyVisitedSite(siteName));
   }
 
-  async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
+  async verifySocialCampaignInCarouselModal(text: string): Promise<void> {
     return this.carouselComponent.verifyCarouselItem(text);
   }
 
-  async verifySocalCampaignInCarouselItem(text: string): Promise<void> {
+  async verifySocialCampaignInCarouselItem(text: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
   }
 
-  async verifySocalCampaignIsNotInCarouselItem(text: string): Promise<void> {
+  async verifySocialCampaignIsNotInCarouselItem(text: string): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.carouselItemText(text));
   }
 

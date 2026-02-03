@@ -702,8 +702,6 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-44782',
           storyId: 'CONT-44782',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
         const siteId =
           await appManagerFixture.abacSiteManagementHelper.searchSiteAndActivateIfNeeded(DEFAULT_PUBLIC_SITE_NAME);
@@ -722,23 +720,26 @@ test.describe(
           recipient: campaignOptions.recipient,
         });
         campaignId = createdCampaign.campaignId;
-
         //remove all the carousel items from the site
         await appManagerFixture.carouselHelper.getAndRemoveAllCarouselItems(siteId);
+        await appManagerFixture.homePage.loadPage();
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.clickOnEditDashboard();
         await siteDashboardPage.clickOnEditCarousel();
-        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.message);
         await siteDashboardPage.selectCarouselItem(campaignOptions.linkText);
-        await siteDashboardPage.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await siteDashboardPage.verifyToastMessageIsVisibleWithText(
+          SOCIAL_CAMPAIGN_TEST_DATA.TOAST_MESSAGES.ADDED_SUCCESSFULLY
+        );
+        await siteDashboardPage.verifySocialCampaignInCarouselModal(campaignOptions.linkText);
         await siteDashboardPage.clickDoneButton();
-        await siteDashboardPage.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignInCarouselItem(campaignOptions.linkText);
         // Delete campaign
         await appManagerFixture.socialCampaignHelper.deleteCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -749,7 +750,7 @@ test.describe(
       },
       async ({ appManagerFixture }) => {
         tagTest(test.info(), {
-          description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
+          description: 'In Zeus Verify App Manager able to share Social Campaign to  Site Feed',
           zephyrTestId: 'CONT-44781',
           storyId: 'CONT-44781',
         });
@@ -797,8 +798,6 @@ test.describe(
           description: 'In Zeus Verify App Manager able to share Social Campaign to Home Carousel',
           zephyrTestId: 'CONT-44780',
           storyId: 'CONT-44780',
-          isKnownFailure: true,
-          bugTicket: 'SEN-19493',
         });
 
         const siteId =
@@ -821,20 +820,21 @@ test.describe(
 
         //remove all the carousel items from the site
         await appManagerFixture.carouselHelper.getAndRemoveAllCarouselItems(siteId);
+        await appManagerFixture.homePage.loadPage();
 
         const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage();
         await siteDashboardPage.clickOnEditDashboard();
         await siteDashboardPage.clickOnEditCarousel();
-        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.linkText);
+        await siteDashboardPage.enterSearchCarouselInput(campaignOptions.message);
         await siteDashboardPage.selectCarouselItem(campaignOptions.linkText);
-        await siteDashboardPage.verifySocalCampaignInCarouselModal(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignInCarouselModal(campaignOptions.linkText);
         await siteDashboardPage.clickDoneButton();
-        await siteDashboardPage.verifySocalCampaignInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignInCarouselItem(campaignOptions.linkText);
         // expire campaign
         await appManagerFixture.socialCampaignHelper.expireCampaign(campaignId);
         await siteDashboardPage.loadPage();
-        await siteDashboardPage.verifySocalCampaignIsNotInCarouselItem(campaignOptions.linkText);
+        await siteDashboardPage.verifySocialCampaignIsNotInCarouselItem(campaignOptions.linkText);
       }
     );
 
@@ -923,7 +923,7 @@ test.describe(
         await applicationManagerHomePage.clickOnSocialCampaignTile();
         await applicationManagerHomePage.clickOnCustomSCTile();
         await applicationManagerHomePage.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText);
+        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText, campaignOptions.message);
         tileId = await applicationManagerHomePage.clickAddToHomeButton();
         await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
@@ -1019,7 +1019,7 @@ test.describe(
         await applicationManagerHomePage.clickOnSocialCampaignTile();
         await applicationManagerHomePage.clickOnCustomSCTile();
         await applicationManagerHomePage.enterTileTitle(tileTitle);
-        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText);
+        await applicationManagerHomePage.setCustomSCTitle(campaignOptions.linkText, campaignOptions.message);
         tileId = await applicationManagerHomePage.clickAddToHomeButton();
         await applicationManagerHomePage.verifyTileIsDisplayed(tileTitle);
         await applicationManagerHomePage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
@@ -1051,7 +1051,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+        await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
@@ -1099,7 +1099,7 @@ test.describe(
         };
 
         // Create campaign via API
-        const createdCampaign = await appManagerFixture.socialCampaignHelper.createCampaign({
+        await appManagerFixture.socialCampaignHelper.createCampaign({
           message: campaignOptions.message,
           url: campaignOptions.url,
           recipient: campaignOptions.recipient,
