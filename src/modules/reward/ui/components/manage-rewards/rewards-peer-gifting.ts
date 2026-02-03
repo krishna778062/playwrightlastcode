@@ -174,7 +174,7 @@ export class RewardsPeerGifting extends BasePage {
     }
     await this.peerGiftingToggleSwitch.click();
     await expect(this.peerGiftingToggleSwitch).toHaveAttribute('aria-checked', 'false');
-    await this.saveButton.click();
+    await this.clickOnElement(this.saveButton);
     await expect(this.disableDialog).toBeVisible();
     await expect(this.disableDialogTitle).toHaveText('Disable peer gifting');
     await expect(this.disableDialogConfirmText).toHaveText('Are you sure you want to disable peer gifting?');
