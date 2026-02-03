@@ -998,6 +998,13 @@ export class FormCreationPage extends BasePage {
       test.expect(labels.includes(option), `${option} option should be visible`).toBe(true);
     });
   }
+  async clickOnDropdownOptionIntoUploadImageComponent(option: string): Promise<void> {
+    await test.step(`Click on option: ${option} into upload image component`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentlinkTo, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.legalComponentlinkTo);
+      await this.legalComponentlinkTo.selectOption(option);
+    });
+  }
 
   async verifyPublishedFormToastMessage(): Promise<void> {
     await test.step('Verify published form toast message is visible', async () => {

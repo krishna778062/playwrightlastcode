@@ -1833,7 +1833,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -1887,7 +1886,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -1943,7 +1941,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -1998,7 +1995,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2053,7 +2049,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2107,7 +2102,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2159,7 +2153,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2212,7 +2205,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2274,7 +2266,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
