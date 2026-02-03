@@ -102,7 +102,7 @@ test.describe(
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23911, INT-23917',
-          storyId: 'INT-22853',
+          storyId: 'INT-22918',
         });
 
         createdTileTitle = `zendesk display submitted requests apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -131,7 +131,7 @@ test.describe(
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
           zephyrTestId: 'INT-23914, INT-23918',
-          storyId: 'INT-22853',
+          storyId: 'INT-22918',
         });
 
         createdTileTitle = `zendesk display submitted requests apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -162,13 +162,13 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove display unassigned tickets zendesk apptile on home dashboard',
       {
-        tag: [TestPriority.P4, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23912, INT-23918',
-          storyId: 'INT-22853',
+          zephyrTestId: 'INT-23929, INT-23976',
+          storyId: 'INT-22919',
         });
 
         createdTileTitle = `zendesk display unassigned tickets apptile ${faker.string.alphanumeric({ length: 6 })}`;
@@ -196,8 +196,8 @@ test.describe(
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;
         tagTest(test.info(), {
-          zephyrTestId: 'INT-23915, INT-23919',
-          storyId: 'INT-22853',
+          zephyrTestId: 'INT-23966, INT-23977',
+          storyId: 'INT-22919',
         });
 
         createdTileTitle = `zendesk display unassigned tickets apptile ${faker.string.alphanumeric({ length: 6 })}`;
