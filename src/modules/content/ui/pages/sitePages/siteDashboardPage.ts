@@ -229,8 +229,8 @@ export class SiteDashboardPage extends BaseSitePage {
     return this.addTileComponent.setTileTitle(tileTitle);
   }
 
-  async setCustomSCTitle(title: string): Promise<void> {
-    return this.addTileComponent.setCustomSCTitle(title);
+  async setCustomSCTitle(title: string, message: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title, message);
   }
 
   async clickAddToHomeButton(): Promise<string> {

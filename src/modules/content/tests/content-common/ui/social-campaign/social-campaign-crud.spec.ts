@@ -1124,7 +1124,7 @@ test.describe(
         await siteDashboardPage.clickOnSocialCampaignTile();
         await siteDashboardPage.clickOnCustomSCTile();
         await siteDashboardPage.enterTileTitle(tileTitle);
-        await siteDashboardPage.setCustomSCTitle(campaignOptions.linkText);
+        await siteDashboardPage.setCustomSCTitle(campaignOptions.linkText, campaignOptions.message);
         tileId = await siteDashboardPage.clickAddToSiteButton(siteId);
         await siteDashboardPage.verifyTileIsDisplayed(tileTitle);
         await siteDashboardPage.verifySocialCampaignNameInTheDisplayed(campaignOptions.linkText);
