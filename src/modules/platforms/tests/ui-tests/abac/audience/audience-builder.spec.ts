@@ -5,6 +5,7 @@ import {
   AUDIENCE_BUILDER_BUTTONS,
   AUDIENCE_BUILDER_FILTER_OPTIONS,
   AUDIENCE_BUILDER_FILTERS,
+  TEST_DATA_VALUES,
 } from '@platforms/constants/audience';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audienceBuilderPage';
@@ -30,7 +31,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.verifyCloseButtonPresence();
 
       await audienceBuilderPage.verifyFilterElementPresence('Attributes');
-      await audienceBuilderPage.verifyFilterElementPresence('Created by');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
       await audienceBuilderPage.verifyFilterElementPresence('Created date');
 
       //  verify created date filter options
@@ -126,6 +127,87 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.clickAppliedFilterRail(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
       await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.CLEAR);
       await audienceBuilderPage.verifyAppliedFilterRailAbsence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+    }
+  );
+
+  test(
+    'verify the presence of Add category name option when user types something in Category dropdown field',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-36307'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickCreateButton();
+
+      await audienceBuilderPage.typeInCategoryDropdown(TEST_DATA_VALUES.NEW_CATEGORY_NAME);
+
+      await audienceBuilderPage.verifyAddCategoryOptionPresence(TEST_DATA_VALUES.NEW_CATEGORY_NAME);
+    }
+  );
+
+  test(
+    'verify the order of filter name under Filters tab under Audience rules screen',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35235'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickFiltersButton();
+
+      const expectedOrder = ['Attributes', AUDIENCE_BUILDER_FILTERS.CREATED_BY, 'Created date'];
+      await audienceBuilderPage.verifyFilterOrder(expectedOrder);
+    }
+  );
+
+  test(
+    'verify the absence of search bar when options are less than 10 under createdBy filter',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-34538'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickFiltersButton();
+
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+
+      await audienceBuilderPage.verifySearchBarAbsence();
+    }
+  );
+
+  test(
+    'verify the presence and functionality of cross button under audience rule detail dialog',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33995'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickCreateButton();
+
+      await audienceBuilderPage.verifyCloseButtonInCreateDialog();
+
+      await audienceBuilderPage.clickCloseButtonInCreateDialog();
+
+      await audienceBuilderPage.verifyCreateDialogClosed();
     }
   );
 });

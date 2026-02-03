@@ -4,6 +4,7 @@ import { tagTest } from '@core/utils/testDecorator';
 import {
   AD_GROUP_TYPES,
   AUDIENCE_TYPES,
+  FIELD_LIMITS,
   FIELD_TYPES,
   OPERATORS,
   PAGE_STATES,
@@ -18,6 +19,89 @@ test.describe(
     tag: [TestPriority.P0, `@AUDIENCE`, `@audience`],
   },
   () => {
+    test(
+      'verify user is able to create audience without description under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35862'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
+
+        await audiencePage.loadPage();
+
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+          description: 'Parent category for audience without description test',
+        });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
+
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.createAudienceWithDetails({
+          name: audienceName,
+          parentCategoryName,
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
+        });
+      }
+    );
+
+    test(
+      'verify user is able to create audience with description under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35861'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
+
+        await audiencePage.loadPage();
+
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+          description: 'Parent category for audience with description test',
+        });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
+
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.createAudienceWithDetails({
+          name: audienceName,
+          description,
+          parentCategoryName,
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
+        });
+      }
+    );
+
+    test(
+      'verify the maximum length limit of description field should be less than or equal to 1024 under Create audience modal',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35858'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+
+        await audiencePage.clickAddDescriptionButton();
+
+        await audiencePage.verifyDescriptionMaxLength(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+
+        const description1024 = 'a'.repeat(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+        await audiencePage.fillDescriptionAndVerifyLength(description1024, FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+
+        await audiencePage.verifyDescriptionMaxLengthEnforced(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+      }
+    );
+
     test(
       'verify user is able to create audience with Okta attribute with All groups type under manage audience',
       { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
@@ -535,7 +619,7 @@ test.describe(
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
         await audiencePage.loadPage();
-        let categoriesName: string[] = [];
+        const categoriesName: string[] = [];
         await audiencePage.openCreateAudienceForm();
 
         // Verify + New category button is visible
