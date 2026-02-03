@@ -360,7 +360,6 @@ test.describe(
 
         await customAppTilesPage.dragToCanvas(CUSTOM_APP_TILES_TEST_DATA.CANVAS_COMPONENTS.CONTAINER);
         await customAppTilesPage.dragToCanvas(CUSTOM_APP_TILES_TEST_DATA.CANVAS_COMPONENTS.CONTAINER);
-
         const addContentPlaceholders = customAppTilesPage.canvasContainer.getByText(CONTAINER.ADD_CONTENT_PLACEHOLDER, {
           exact: false,
         });
