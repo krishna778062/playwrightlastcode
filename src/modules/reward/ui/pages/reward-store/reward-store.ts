@@ -152,9 +152,19 @@ export class RewardsStore extends BasePage {
     });
     await this.searchField.clear(); // clear any previous input
     await this.searchField.fill(searchTerm);
-    await this.clickOnElement(this.searchButton.last());
-    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
-    await this.verifier.verifyTheElementIsVisible(this.giftCardItems.last());
+    const searchResponse = this.page.waitForResponse(
+      res =>
+        res.url().includes('/recognition/redemption/rewards/search') &&
+        res.url().includes('rewardType=GIFT_CARD') &&
+        res.url().includes('size=16') &&
+        res.url().includes('skip=0') &&
+        res.status() === 200,
+      { timeout: TIMEOUTS.MEDIUM }
+    );
+
+    await Promise.all([this.clickOnElement(this.searchButton.last()), searchResponse]);
+    // await this.clickOnElement(this.searchButton.last());
+    // await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
   }
 
   async selectCountry(countryName: string) {

@@ -10,16 +10,16 @@ import { tagTest } from '@core/utils';
 
 test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () => {
   const giftCards = [
-    { country: 'Turkey', name: 'A101 Turkey', visibility: 'Active' },
-    { country: 'Turkey', name: 'A101 Turkey', visibility: 'Inactive' },
+    { rcCode: 'RC-5565', country: 'Turkey', name: 'A101 Turkey', visibility: 'Active' },
+    { rcCode: 'RC-5376', country: 'Turkey', name: 'A101 Turkey', visibility: 'Inactive' },
   ];
   for (const giftCard of giftCards) {
     test(
-      `Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
+      `[${giftCard.rcCode}] Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
       { tag: [REWARD_FEATURE_TAGS.REWARD_OPTIONS, TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE] },
       async ({ recoManagerFixture }) => {
         tagTest(test.info(), {
-          description: `RC-5565, RC-5376 - Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
+          description: `[${giftCard.rcCode}]- Gift card should ${giftCard.visibility === 'Active' ? 'be visible' : 'not be visible'} when set to ${giftCard.visibility}`,
           zephyrTestId: giftCard.visibility === 'Active' ? 'RC-5565' : 'RC-5376',
           storyId: 'RC-5251',
         });
@@ -34,13 +34,16 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         await rewardOptionsPage.setGiftCardState(
           rewardOptionsPage,
           giftCard.name,
-          giftCard.visibility as 'Active' | 'Inactive'
+          giftCard.visibility === 'Active' ? 'Active' : 'Inactive'
         );
 
         await rewardsStorePage.loadPage();
         await rewardsStorePage.selectCountry(giftCard.country);
         await rewardsStorePage.searchForGiftCard(giftCard.name);
-        await rewardsStorePage.verifyGiftCardVisibility(giftCard.name, giftCard.visibility as 'Active' | 'Inactive');
+        await rewardsStorePage.verifyGiftCardVisibility(
+          giftCard.name,
+          giftCard.visibility === 'Active' ? 'Active' : 'Inactive'
+        );
       }
     );
   }
