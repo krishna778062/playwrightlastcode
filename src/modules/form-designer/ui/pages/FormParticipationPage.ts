@@ -243,6 +243,40 @@ export class FormParticipationPage extends BasePage {
     });
   }
 
+  async verifyShortTextComponentIsHidden(): Promise<void> {
+    await test.step('Verify component is hidden', async () => {
+      await test.expect(this.shortTextResponse).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyEmailComponentIsHidden(): Promise<void> {
+    await test.step('Verify component is hidden', async () => {
+      await test.expect(this.emailResponse).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyNumberComponentIsVisible(): Promise<void> {
+    await test.step('Verify component is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.numberResponse, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.numberResponse).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyNumberComponentIsHidden(): Promise<void> {
+    await test.step('Verify component is hidden', async () => {
+      await test.expect(this.numberResponse).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyEmailComponentIsVisible(): Promise<void> {
+    await test.step('Verify component is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.emailResponse, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.emailResponse).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  async verifyShortTextComponentIsVisible(): Promise<void> {
+    await test.step('Verify component is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.shortTextResponse, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.shortTextResponse).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
   async fillResponseIntoEmailField(response: string): Promise<void> {
     await test.step('Fill response into email field', async () => {
       await this.verifier.verifyTheElementIsVisible(this.emailResponse, { timeout: TIMEOUTS.MEDIUM });

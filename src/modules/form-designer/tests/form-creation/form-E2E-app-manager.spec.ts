@@ -1816,11 +1816,506 @@ test.describe(
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.dragAndDropElement('date and time');
         await formCreationPage.addHeadingIntoComponent('date and time', 'Automation Test - date and time Description');
-        await formCreationPage.verifyIncludeConditionOptions();
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
         await formCreationPage.verifyMatchOptionIsVisible('MatchAnyOf these conditions');
         await formCreationPage.verifyQuestionOptionIsVisible();
         await formCreationPage.verifyValueOptionsIsVisible();
         await formCreationPage.verifyAddNewConditionButtonIsVisible();
+      }
+    );
+
+    test(
+      'Verify app manager able to add multiple include option condition for a component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager able to add include option condition to hide a component',
+          zephyrTestId: 'ELF-914',
+          storyId: 'ELF-914',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.enterValueIntoValueOptions('test');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyShortTextComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test');
+        await endUserParticipationPage.verifyShortTextComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify component will be hidden if question value equals to mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if question value equals to mentioned value',
+          zephyrTestId: 'ELF-915',
+          storyId: 'ELF-915',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsNotVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be shown if question value not equals to mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if question value does not equal to mentioned value',
+          zephyrTestId: 'ELF-916',
+          storyId: 'ELF-916',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('does not equal');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be hidden if question value contains mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if question value contains mentioned value',
+          zephyrTestId: 'ELF-917',
+          storyId: 'ELF-917',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify component will be hidden if question value not contains mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if question value does not contain mentioned value',
+          zephyrTestId: 'ELF-918',
+          storyId: 'ELF-918',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('does not contain');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify component will be shown if question value is empty',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if question value is empty',
+          zephyrTestId: 'ELF-919',
+          storyId: 'ELF-919',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.addHeadingIntoComponent('number', 'Automation Test - number Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('is empty');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('email');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyNumberComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoEmailField('test@automation.com');
+        await endUserParticipationPage.verifyNumberComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be hidden if question value is not empty',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if question value is not empty',
+          zephyrTestId: 'ELF-920',
+          storyId: 'ELF-920',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.addHeadingIntoComponent('number', 'Automation Test - number Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('is not empty');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('email');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyNumberComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoEmailField('test@automation.com');
+        await endUserParticipationPage.verifyNumberComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be shown if all conditions are matching',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if all conditions are matching',
+          zephyrTestId: 'ELF-921',
+          storyId: 'ELF-921',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.selectMatchCondition('All');
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoValueOptions('test');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.clickOnAddNewConditionButton();
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoSecondValueOptions('automation');
+        await formCreationPage.clickOnSecondQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test automation');
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be hidden if all conditions are matching',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if all conditions are matching',
+          zephyrTestId: 'ELF-922',
+          storyId: 'ELF-922',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.selectMatchCondition('All');
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoValueOptions('test');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.clickOnAddNewConditionButton();
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoSecondValueOptions('automation');
+        await formCreationPage.clickOnSecondQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.clickOnSecondHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test');
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test automation');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
       }
     );
   }
