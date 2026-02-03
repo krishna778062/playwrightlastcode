@@ -81,15 +81,15 @@ test.describe(
 
         await audiencePage.loadPage();
         await audiencePage.clickFiltersButton();
-        await audiencePage.verifyFilterElementPresence('Attributes');
-        await audiencePage.verifyFilterElementPresence('Audience category');
-        await audiencePage.verifyFilterElementPresence('Audience member');
-        await audiencePage.verifyFilterElementPresence('Access control');
-        await audiencePage.verifyFilterElementPresence('Feature');
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.AUDIENCE_CATEGORY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.AUDIENCE_MEMBER);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ACCESS_CONTROL);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.FEATURE);
         await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
-        await audiencePage.verifyFilterElementPresence('Modified by');
-        await audiencePage.verifyFilterElementPresence('Created date');
-        await audiencePage.verifyFilterElementPresence('Modified date');
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.MODIFIED_BY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.MODIFIED_DATE);
       }
     );
 

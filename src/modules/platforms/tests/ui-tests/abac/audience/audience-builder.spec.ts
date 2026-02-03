@@ -87,20 +87,20 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       // Verify close button presence in filters dialog
       await audienceBuilderPage.verifyCloseButtonPresence();
 
-      await audienceBuilderPage.verifyFilterElementPresence('Attributes');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
       await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
-      await audienceBuilderPage.verifyFilterElementPresence('Created date');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
 
       //  verify created date filter options
-      await audienceBuilderPage.clickFilterElement('Created date');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
       await audienceBuilderPage.verifyFilterOptionPresence('Last 30 days');
       await audienceBuilderPage.verifyFilterOptionPresence('Last 90 days');
       await audienceBuilderPage.verifyFilterOptionPresence('Last 12 months');
       await audienceBuilderPage.verifyFilterOptionPresence('Custom');
-      await audienceBuilderPage.clickFilterElement('Created date');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
 
       //  verify attributes filter options
-      await audienceBuilderPage.clickFilterElement('Attributes');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
 
       await audienceBuilderPage.searchFilterOption('Business unit');
       await audienceBuilderPage.verifyFilterOptionPresence('Business unit');
@@ -132,7 +132,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.searchFilterOption('User type');
       await audienceBuilderPage.verifyFilterOptionPresence('User type');
 
-      await audienceBuilderPage.clickFilterElement('Attributes');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
 
       // Test close button functionality
       await audienceBuilderPage.clickCloseButton();
