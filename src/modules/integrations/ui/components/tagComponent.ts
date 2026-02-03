@@ -19,6 +19,7 @@ export class TagComponent extends BaseComponent {
   readonly dialogIconRadio: Locator;
   readonly dialogTextRadio: Locator;
   readonly dialogCancelButton: Locator;
+  readonly dialogCloseButton: Locator;
   readonly dialogSaveButton: Locator;
   readonly dialogRadioButtons: Locator;
   readonly dialogErrorMessage: Locator;
@@ -42,6 +43,8 @@ export class TagComponent extends BaseComponent {
   readonly dialogIconUrlInput: Locator;
   readonly iconDialogTitle: Locator;
   readonly iconDialogDoneButton: Locator;
+  readonly iconSearchInput: Locator;
+  readonly iconGrid: Locator;
   readonly iconPreviewImage: Locator;
   readonly iconUrlLink: Locator;
   readonly iconPreviewContainer: Locator;
@@ -52,10 +55,22 @@ export class TagComponent extends BaseComponent {
   readonly colorPickerDialog: Locator;
   readonly colorPickerHexInput: Locator;
   readonly colorPickerOkButton: Locator;
+  readonly colorPickerCancelButton: Locator;
+  readonly iconDialog: Locator;
+  readonly iconDialogSpanContainers: Locator;
+  readonly iconDialogLibraryRadio: Locator;
+  readonly iconDialogValidationError: Locator;
   readonly dialogDefaultLightThemeField: Locator;
   readonly dialogDefaultDarkThemeField: Locator;
   readonly backButton: Locator;
   readonly tagContainer: Locator;
+  readonly visibilityDialog: Locator;
+  readonly visibilityDialogTitle: Locator;
+  readonly visibilityFunctionInput: Locator;
+  readonly visibilityDoneButton: Locator;
+  readonly visibilityCancelButton: Locator;
+  readonly advancedSettingsAccordion: Locator;
+  readonly setVisibilityRuleButton: Locator;
 
   constructor(page: Page, fieldSelector: string = '[data-testid="field-{fieldName}"]') {
     super(page);
@@ -75,6 +90,7 @@ export class TagComponent extends BaseComponent {
     this.dialogIconRadio = this.dialog.locator('input[type="radio"][value="icon"]');
     this.dialogTextRadio = this.dialog.locator('input[type="radio"][value="text"]');
     this.dialogCancelButton = this.dialog.getByRole('button', { name: 'Cancel' });
+    this.dialogCloseButton = this.dialog.getByRole('button', { name: 'Close' });
     this.dialogSaveButton = this.dialog.getByRole('button', { name: 'Save' });
     this.dialogRadioButtons = this.dialog.locator('input[type="radio"][name="customSettings.activeType"]');
     this.dialogErrorMessage = this.dialog.getByText('Pill type is a required field');
@@ -105,6 +121,10 @@ export class TagComponent extends BaseComponent {
     this.dialogIconSourceField = this.page.locator('[data-testid="field-Icon source"]');
     this.dialogIconUrlInput = this.page.locator('[data-testid="field-Icon URL"]').getByPlaceholder('Icon URL…');
     this.iconDialogDoneButton = this.page.getByRole('button', { name: 'Done' });
+    this.iconSearchInput = this.page.getByPlaceholder('Search icon…');
+    this.iconDialog = this.page.getByRole('dialog').filter({ has: this.iconDialogTitle });
+    this.iconDialogSpanContainers = this.iconDialog.locator('span');
+    this.iconGrid = this.iconDialog.locator('div[class*="iconGrid"]');
     this.iconPreviewImage = this.page.locator('img._previewImage_198co_16[alt="Icon preview"]');
     this.iconUrlLink = this.page.locator('a._urlLink_198co_24');
     this.iconPreviewContainer = this.page.locator('div._previewContainer_198co_1');
@@ -123,10 +143,20 @@ export class TagComponent extends BaseComponent {
       .locator('input[id^="rc-editable-input-"]')
       .first();
     this.colorPickerOkButton = this.colorPickerDialog.getByRole('button', { name: 'OK' });
+    this.colorPickerCancelButton = this.colorPickerDialog.getByRole('button', { name: 'Cancel' });
+    this.iconDialogLibraryRadio = this.iconDialog.locator('input[type="radio"][value="externalLibrary"]');
+    this.iconDialogValidationError = this.iconDialog.getByText('Icon should be selected');
     this.dialogDefaultLightThemeField = this.dialog.locator('[data-testid="field-Light theme"]');
     this.dialogDefaultDarkThemeField = this.dialog.locator('[data-testid="field-Dark theme (mobile app only)"]');
     this.backButton = this.page.getByRole('button', { name: 'Back' });
     this.tagContainer = this.page.locator('[data-testid="tag"]');
+    this.visibilityDialog = page.getByRole('dialog', { name: 'Set visibility rule' });
+    this.visibilityDialogTitle = this.visibilityDialog.getByRole('heading', { name: 'Set visibility rule' });
+    this.visibilityFunctionInput = this.visibilityDialog.getByRole('textbox').first();
+    this.visibilityDoneButton = this.visibilityDialog.getByRole('button', { name: 'Done' });
+    this.visibilityCancelButton = this.visibilityDialog.getByRole('button', { name: 'Cancel' });
+    this.advancedSettingsAccordion = page.getByRole('button', { name: 'Advanced Settings' });
+    this.setVisibilityRuleButton = page.getByRole('button', { name: 'Set visibility rule' });
     this.dialogRadios = {
       status: this.dialogStatusRadio,
       icon: this.dialogIconRadio,
@@ -581,6 +611,15 @@ export class TagComponent extends BaseComponent {
   }
 
   /**
+   * Click Close (X) button on the Add custom settings dialog
+   */
+  async clickDialogCloseButton(): Promise<void> {
+    await test.step('Click Close button on Add custom settings dialog', async () => {
+      await this.clickOnElement(this.dialogCloseButton);
+    });
+  }
+
+  /**
    * Verify invalid regex pattern error appears (if validation is implemented)
    * This method attempts to find an error message for invalid regex patterns
    * @returns true if error is found, false otherwise
@@ -634,24 +673,28 @@ export class TagComponent extends BaseComponent {
   }
 
   /**
-   * Verify the tag icon is visible in the tag component
+   * Verify the tag icon is visible in the tag component.
+   * Supports both img (URL/file upload) and svg (Library) icon rendering.
    * @param expectedText - The expected text of the tag to locate it (default: "Text...")
-   * @param expectedUrlPattern - Optional URL pattern to verify (e.g., base domain). For dynamic URLs, use a pattern instead of exact match.
+   * @param expectedUrlPattern - Optional URL pattern to verify for img icons (e.g., base domain). Not applied for SVG.
    */
   async verifyTagIconVisible(expectedText: string = 'Text...', expectedUrlPattern?: string): Promise<void> {
     await test.step(`Verify tag icon is visible for "${expectedText}"`, async () => {
       const tagContainer = this.tagContainer.filter({ hasText: expectedText }).first();
       await expect(tagContainer, `Tag container for "${expectedText}" should be visible`).toBeVisible();
-      const iconElement = tagContainer.locator('img[alt=""]').first();
+      const iconElement = tagContainer.locator('img[alt=""], [class*="_container_"] > svg').first();
       await expect(iconElement, `Icon for tag "${expectedText}" should be visible`).toBeVisible();
-      await expect(iconElement, `Icon for tag "${expectedText}" should have a src attribute`).toHaveAttribute('src');
-      if (expectedUrlPattern) {
-        const actualSrc = await iconElement.getAttribute('src');
-        if (actualSrc) {
-          expect(
-            actualSrc,
-            `Icon for tag "${expectedText}" should have src containing "${expectedUrlPattern}"`
-          ).toContain(expectedUrlPattern);
+      const isImg = await iconElement.evaluate(el => el.tagName === 'IMG');
+      if (isImg) {
+        await expect(iconElement, `Icon for tag "${expectedText}" should have a src attribute`).toHaveAttribute('src');
+        if (expectedUrlPattern) {
+          const actualSrc = await iconElement.getAttribute('src');
+          if (actualSrc) {
+            expect(
+              actualSrc,
+              `Icon for tag "${expectedText}" should have src containing "${expectedUrlPattern}"`
+            ).toContain(expectedUrlPattern);
+          }
         }
       }
     });
@@ -673,12 +716,10 @@ export class TagComponent extends BaseComponent {
       const lowerOption = option.toLowerCase();
       const optionValue = optionMap[lowerOption] || option;
 
-      const iconDialog = this.page.getByRole('dialog').filter({ has: this.iconDialogTitle });
-
       let radioButton: Locator | undefined;
       for (const strategy of [
-        iconDialog.locator(`input[type="radio"][value="${optionValue}"]`),
-        iconDialog.locator(`input[type="radio"][value="${option}"]`),
+        this.iconDialog.locator(`input[type="radio"][value="${optionValue}"]`),
+        this.iconDialog.locator(`input[type="radio"][value="${option}"]`),
         this.dialogIconSourceField.getByRole('radio', { name: option }),
         this.dialogIconSourceField.locator('label').filter({ hasText: option }).locator('input[type="radio"]'),
       ]) {
@@ -691,6 +732,123 @@ export class TagComponent extends BaseComponent {
         throw new Error(`Icon source radio button "${option}" not found.`);
       }
       await this.clickOnElement(radioButton);
+    });
+  }
+
+  /**
+   * Verify the Select icon dialog is visible
+   */
+  async verifySelectIconDialogVisible(): Promise<void> {
+    await test.step('Verify Select icon dialog is visible', async () => {
+      await expect(this.iconDialogTitle, 'Select icon dialog should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the Select icon dialog is not visible
+   */
+  async verifySelectIconDialogNotVisible(): Promise<void> {
+    await test.step('Verify Select icon dialog is not visible', async () => {
+      await expect(this.iconDialogTitle, 'Select icon dialog should be closed').not.toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the "Icon should be selected" validation error is visible in the Select icon dialog
+   * (shown when Done is clicked without selecting an icon from the Library grid)
+   */
+  async verifyIconSelectionRequiredError(): Promise<void> {
+    await test.step('Verify "Icon should be selected" validation error is visible', async () => {
+      await expect(
+        this.iconDialogValidationError,
+        'Validation error "Icon should be selected" should be visible'
+      ).toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the icon search input field is visible in the Select icon dialog
+   */
+  async verifyIconSearchInputVisible(): Promise<void> {
+    await test.step('Verify icon search field is visible', async () => {
+      await expect(this.iconSearchInput, 'Search icon field should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify Library icon source is selected in the Select icon dialog
+   */
+  async verifyLibraryIconSourceSelected(): Promise<void> {
+    await test.step('Verify Library icon source is selected', async () => {
+      await expect(this.iconDialogLibraryRadio, 'Library icon source should be selected').toBeChecked();
+    });
+  }
+
+  /**
+   * Enter search text in the icon search field
+   * @param searchText - The text to search for
+   */
+  async enterIconSearch(searchText: string): Promise<void> {
+    await test.step(`Enter "${searchText}" in icon search field`, async () => {
+      await this.iconSearchInput.fill(searchText);
+    });
+  }
+
+  /**
+   * Verify the icon search input has the expected value (e.g. after search with no results)
+   * @param expectedValue - The expected value in the search field
+   */
+  async verifyIconSearchInputValue(expectedValue: string): Promise<void> {
+    await test.step('Verify icon search field has expected value', async () => {
+      await expect(this.iconSearchInput, `Search field should have value "${expectedValue}"`).toHaveValue(
+        expectedValue
+      );
+    });
+  }
+
+  /**
+   * Get locator for an icon button in the library grid by its tooltip name
+   */
+  private getLibraryIconButton(iconTooltipName: string): Locator {
+    const escaped = iconTooltipName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const spanWithName = this.iconDialogSpanContainers
+      .filter({ hasText: new RegExp(`^${escaped}$`) })
+      .getByRole('button');
+    const viaExactText = this.iconDialog
+      .getByText(iconTooltipName, { exact: true })
+      .locator('xpath=ancestor::span[1]')
+      .getByRole('button');
+    return spanWithName.or(viaExactText).first();
+  }
+
+  /**
+   * Select an icon from the library grid by its tooltip name
+   * @param iconTooltipName - The tooltip name of the icon as shown in the grid
+   */
+  async selectIconFromLibrary(iconTooltipName: string): Promise<void> {
+    await test.step(`Select icon "${iconTooltipName}" from library grid`, async () => {
+      const iconButton = this.getLibraryIconButton(iconTooltipName);
+      await this.clickOnElement(iconButton);
+    });
+  }
+
+  /**
+   * Verify an icon is visible in the library grid
+   * @param iconTooltipName - The tooltip name of the icon
+   */
+  async verifyIconInGridVisible(iconTooltipName: string): Promise<void> {
+    await test.step(`Verify icon "${iconTooltipName}" is visible in library grid`, async () => {
+      const iconButton = this.getLibraryIconButton(iconTooltipName);
+      await expect(iconButton, `Icon "${iconTooltipName}" should be visible in grid`).toBeVisible();
+    });
+  }
+
+  /**
+   * Click Done button in the Select icon dialog
+   */
+  async clickIconDialogDone(): Promise<void> {
+    await test.step('Click Done in Select icon dialog', async () => {
+      await this.clickOnElement(this.iconDialogDoneButton);
     });
   }
 
@@ -943,6 +1101,19 @@ export class TagComponent extends BaseComponent {
   }
 
   /**
+   * Verify the fallback (default) icon name is visible in the Add custom settings dialog.
+   * Use this when the dialog is still open (e.g. after selecting an icon from Library and clicking Done).
+   * @param iconName - Expected icon name displayed (e.g. 'add-circle', 'search-01')
+   */
+  async verifyFallbackIconNameInDialog(iconName: string): Promise<void> {
+    await test.step(`Verify fallback icon "${iconName}" is shown in dialog`, async () => {
+      const fallbackSection = this.getFallbackSection();
+      const defaultIconDisplay = fallbackSection.getByText(iconName, { exact: true }).first();
+      await expect(defaultIconDisplay, `Fallback icon "${iconName}" should be visible in dialog`).toBeVisible();
+    });
+  }
+
+  /**
    * Click the edit icon button for the fallback icon
    */
   async clickEditFallbackIcon(): Promise<void> {
@@ -1055,6 +1226,72 @@ export class TagComponent extends BaseComponent {
   }
 
   /**
+   * Verify the icon preview image is not visible
+   */
+  async verifyIconPreviewNotVisible(): Promise<void> {
+    await test.step('Verify icon preview is not visible', async () => {
+      await expect(this.iconPreviewImage, 'Icon preview should not be visible after clearing').not.toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the default color field is visible
+   */
+  async verifyDefaultColorFieldVisible(): Promise<void> {
+    await test.step('Verify default color field is visible', async () => {
+      await expect(this.dialogDefaultColorField, 'Default color field should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the Select icon button is visible in the Add custom settings dialog (when Icon style is selected)
+   */
+  async verifySelectIconButtonVisible(): Promise<void> {
+    await test.step('Verify Select icon button is visible', async () => {
+      await expect(this.dialogSelectIconButton, 'Select icon button should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the color picker dialog is visible
+   */
+  async verifyColorPickerDialogVisible(): Promise<void> {
+    await test.step('Verify color picker dialog is visible', async () => {
+      await expect(this.colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
+    });
+  }
+
+  /**
+   * Verify the color picker dialog is not visible
+   */
+  async verifyColorPickerDialogNotVisible(): Promise<void> {
+    await test.step('Verify color picker dialog is closed', async () => {
+      await expect(this.colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
+    });
+  }
+
+  /**
+   * Click Cancel button in the color picker dialog
+   */
+  async clickColorPickerCancel(): Promise<void> {
+    await test.step('Click Cancel in color picker dialog', async () => {
+      await this.clickOnElement(this.colorPickerCancelButton);
+    });
+  }
+
+  /**
+   * Verify the tooltip text helper text contains the truncation message
+   */
+  async verifyTooltipTextHelperTextContainsTruncationMessage(pattern?: RegExp | string): Promise<void> {
+    await test.step('Verify helper text indicates truncation at 150 chars', async () => {
+      const matcher = pattern ?? /150.*cut off/i;
+      await expect(this.tooltipTextHelperText, 'Helper text should indicate truncation at 150 chars').toContainText(
+        matcher
+      );
+    });
+  }
+
+  /**
    * Click Done button and verify icon dialog does not close when file upload is empty
    * This method clicks Done without file upload and verifies the dialog stays open (expected behavior)
    * The test will FAIL if the  exists (dialog closes when it shouldn't)
@@ -1074,6 +1311,68 @@ export class TagComponent extends BaseComponent {
         dialogClosed,
         'Select icon dialog closed when Done was clicked without file upload. Dialog should remain open when no file is uploaded.'
       ).toBe(false);
+    });
+  }
+
+  async openVisibilityRuleDialog(): Promise<void> {
+    await test.step('Open visibility rule dialog', async () => {
+      const isExpanded = await this.advancedSettingsAccordion.getAttribute('aria-expanded');
+      if (isExpanded !== 'true') {
+        await this.clickOnElement(this.advancedSettingsAccordion);
+      }
+      await this.clickOnElement(this.setVisibilityRuleButton);
+      await expect(this.visibilityDialog, 'Set visibility rule dialog should be visible').toBeVisible();
+    });
+  }
+
+  async verifyVisibilityRuleDialogElements(): Promise<void> {
+    await test.step('Verify visibility rule dialog elements', async () => {
+      await expect(this.visibilityDialog, 'Set visibility rule dialog should be visible').toBeVisible();
+      await expect(this.visibilityDialogTitle, 'Dialog title should be visible').toHaveText('Set visibility rule');
+      await expect(this.visibilityFunctionInput, 'Function input should be visible').toBeVisible();
+      await expect(this.visibilityDoneButton, 'Done button should be visible').toBeVisible();
+      await expect(this.visibilityCancelButton, 'Cancel button should be visible').toBeVisible();
+    });
+  }
+
+  async enterVisibilityRule(ruleFunction: string): Promise<void> {
+    await test.step(`Enter visibility rule: ${ruleFunction}`, async () => {
+      await this.visibilityFunctionInput.fill(ruleFunction);
+    });
+  }
+
+  async saveVisibilityRule(): Promise<void> {
+    await test.step('Save visibility rule', async () => {
+      await this.clickOnElement(this.visibilityDoneButton);
+      await expect(this.visibilityDialog, 'Visibility rule dialog should be closed').not.toBeVisible();
+    });
+  }
+
+  async verifyVisibilityRuleSaved(expectedRule: string): Promise<void> {
+    await test.step(`Verify visibility rule "${expectedRule}" was saved`, async () => {
+      await this.openVisibilityRuleDialog();
+      await expect(this.visibilityFunctionInput, `Visibility rule should contain "${expectedRule}"`).toHaveValue(
+        expectedRule
+      );
+      await this.clickOnElement(this.visibilityCancelButton);
+    });
+  }
+
+  async clickVisibilityRuleCancel(): Promise<void> {
+    await test.step('Click Cancel button in visibility rule dialog', async () => {
+      await this.visibilityCancelButton.click();
+    });
+  }
+
+  async verifyVisibilityRuleDialogClosed(): Promise<void> {
+    await test.step('Verify visibility rule dialog is closed', async () => {
+      await expect(this.visibilityDialog, 'Visibility rule dialog should be closed').not.toBeVisible();
+    });
+  }
+
+  async verifyVisibilityRuleInputEmpty(): Promise<void> {
+    await test.step('Verify visibility rule input is empty', async () => {
+      await expect(this.visibilityFunctionInput, 'Visibility rule input should be empty').toHaveValue('');
     });
   }
 }
