@@ -276,13 +276,19 @@ export class SupportAndTicketingPage extends BasePage implements IConfluenceActi
   async isConfluenceIntegrationCheckboxChecked(): Promise<boolean> {
     return await test.step('Check if Confluence integration checkbox is checked', async () => {
       await this.confluenceCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
-      return await this.confluenceCheckbox.isChecked();
+      // Check both property and attribute since this is a custom styled checkbox
+      const checkedAttribute = await this.confluenceCheckbox.getAttribute('checked');
+      return checkedAttribute !== null;
     });
   }
 
   async verifyConfluenceIntegrationCheckboxState(expectedState: boolean): Promise<void> {
     await test.step(`Verify Confluence integration checkbox is ${expectedState ? 'checked' : 'unchecked'}`, async () => {
-      const isChecked = await this.confluenceCheckbox.isChecked();
+      await this.confluenceCheckbox.waitFor({ state: 'visible', timeout: 15_000 });
+
+      const checkedAttribute = await this.confluenceCheckbox.getAttribute('checked');
+      const isChecked = checkedAttribute !== null;
+
       expect(isChecked, `Confluence integration checkbox should be ${expectedState ? 'checked' : 'unchecked'}`).toBe(
         expectedState
       );
