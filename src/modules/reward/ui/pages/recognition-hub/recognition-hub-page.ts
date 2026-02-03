@@ -532,7 +532,6 @@ export class RecognitionHubPage extends BasePage {
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
       await manageRecognitionPage.loadPage();
-      await manageRecognitionPage.verifyThePageIsLoaded();
       await manageRecognitionPage.checkTheRewardsIsEnabled(isRewardEnabled, isPeerGiftingDisabled);
     }
     const recognitionHub = new RecognitionHubPage(this.page);

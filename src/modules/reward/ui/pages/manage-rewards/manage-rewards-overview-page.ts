@@ -167,7 +167,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.rewardsTab = page.getByRole('tab', { name: 'Rewards', exact: true });
     this.rewardsTabHeading = page.locator('h2[class*="Typography-module__heading1"]');
     this.enableRewardsButton = page.locator('button[aria-label="Enable rewards"]');
-    this.insightBulbButton = page.locator('[class*="RewardsOverview_insight"] button');
+    this.insightBulbButton = page.locator('[class*="TooltipOnHover-module__hoverContainer"] button');
     this.rewardTerminologyButton = page.locator('button[aria-label="Insight"]');
     this.insightModalContainer = page.locator('[id*="tippy"]');
     this.rewardsTerminologyHeading = this.insightModalContainer.getByRole('heading', { name: 'Rewards terminology' });
