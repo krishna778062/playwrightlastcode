@@ -3,6 +3,7 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 import {
   AD_GROUP_TYPES,
+  AUDIENCE_BUILDER_FILTERS,
   AUDIENCE_TYPES,
   FIELD_TYPES,
   OPERATORS,
@@ -28,17 +29,9 @@ test.describe(
 
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        await test.step('Navigate to Audiences page', async () => {
-          await audiencePage.loadPage();
-        });
-
-        await test.step('Open Create audience modal', async () => {
-          await audiencePage.openCreateAudienceForm();
-        });
-
-        await test.step('Verify all modal elements are visible', async () => {
-          await audiencePage.verifyCreateAudienceModalAppearance();
-        });
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.verifyCreateAudienceModalAppearance();
       }
     );
 
@@ -52,25 +45,11 @@ test.describe(
 
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        await test.step('Navigate to manage/audience page', async () => {
-          await audiencePage.loadPage();
-        });
-
-        await test.step('Click on Create audience button', async () => {
-          await audiencePage.openCreateAudienceForm();
-        });
-
-        await test.step('Click on Edit icon of parent', async () => {
-          await audiencePage.clickParentEditIcon();
-        });
-
-        await test.step('Search for non-existent audience', async () => {
-          await audiencePage.searchAudienceInPicker('ewugdwebih');
-        });
-
-        await test.step('Verify No Results messages', async () => {
-          await audiencePage.verifyNoResultsMessage();
-        });
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.clickParentEditIcon();
+        await audiencePage.searchAudienceInPicker('ewugdwebih');
+        await audiencePage.verifyNoResultsMessage();
       }
     );
 
@@ -84,17 +63,9 @@ test.describe(
 
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        await test.step('Navigate to manage/audience page', async () => {
-          await audiencePage.loadPage();
-        });
-
-        await test.step('Search for non-existent audience in search bar', async () => {
-          await audiencePage.searchAudienceOnMainPage('edhfbwekjsf');
-        });
-
-        await test.step('Verify No Results messages', async () => {
-          await audiencePage.verifyNoResultsOnMainPage();
-        });
+        await audiencePage.loadPage();
+        await audiencePage.searchAudienceOnMainPage('edhfbwekjsf');
+        await audiencePage.verifyNoResultsOnMainPage();
       }
     );
 
@@ -108,49 +79,17 @@ test.describe(
 
         const audiencePage = new AudiencePage(appManagerFixture.page);
 
-        await test.step('Navigate to manage/audience page', async () => {
-          await audiencePage.loadPage();
-        });
-
-        await test.step('Click on Filters button', async () => {
-          await audiencePage.clickFiltersButton();
-        });
-
-        await test.step('Verify presence of Attributes filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Attributes');
-        });
-
-        await test.step('Verify presence of Audience category filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Audience category');
-        });
-
-        await test.step('Verify presence of Audience member filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Audience member');
-        });
-
-        await test.step('Verify presence of Access control filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Access control');
-        });
-
-        await test.step('Verify presence of Feature filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Feature');
-        });
-
-        await test.step('Verify presence of Created by filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Created by');
-        });
-
-        await test.step('Verify presence of Modified by filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Modified by');
-        });
-
-        await test.step('Verify presence of Created date filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Created date');
-        });
-
-        await test.step('Verify presence of Modified date filter', async () => {
-          await audiencePage.verifyFilterElementPresence('Modified date');
-        });
+        await audiencePage.loadPage();
+        await audiencePage.clickFiltersButton();
+        await audiencePage.verifyFilterElementPresence('Attributes');
+        await audiencePage.verifyFilterElementPresence('Audience category');
+        await audiencePage.verifyFilterElementPresence('Audience member');
+        await audiencePage.verifyFilterElementPresence('Access control');
+        await audiencePage.verifyFilterElementPresence('Feature');
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+        await audiencePage.verifyFilterElementPresence('Modified by');
+        await audiencePage.verifyFilterElementPresence('Created date');
+        await audiencePage.verifyFilterElementPresence('Modified date');
       }
     );
 

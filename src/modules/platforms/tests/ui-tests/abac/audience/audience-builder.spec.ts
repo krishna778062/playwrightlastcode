@@ -24,7 +24,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       await audienceBuilderPage.clickFiltersButton();
 
-      await audienceBuilderPage.verifyFilterElementPresence('Created by');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
     }
   );
 
@@ -62,9 +62,9 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       await audienceBuilderPage.verifyCloseButtonPresence();
 
-      await audienceBuilderPage.verifyButtonTextPresence('Reset all');
+      await audienceBuilderPage.verifyButtonTextPresence(AUDIENCE_BUILDER_BUTTONS.RESET_ALL);
 
-      await audienceBuilderPage.verifyButtonTextPresence('View results');
+      await audienceBuilderPage.verifyButtonTextPresence(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
     }
   );
 
@@ -88,7 +88,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.verifyCloseButtonPresence();
 
       await audienceBuilderPage.verifyFilterElementPresence('Attributes');
-      await audienceBuilderPage.verifyFilterElementPresence('Created by');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
       await audienceBuilderPage.verifyFilterElementPresence('Created date');
 
       //  verify created date filter options

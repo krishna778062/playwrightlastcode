@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { AUDIENCE_MESSAGES } from '@platforms/constants/audience';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -671,15 +672,15 @@ export class AudiencePage extends BasePage {
 
   async verifyNoResultsMessage(): Promise<void> {
     await test.step('Verify No Results messages', async () => {
-      const noResultsText = this.audiencePickerDialog.getByText('No results found');
+      const noResultsText = this.audiencePickerDialog.getByText(AUDIENCE_MESSAGES.NO_RESULTS_FOUND);
       await this.verifier.verifyTheElementIsVisible(noResultsText, {
-        assertionMessage: 'Verify "No results found" message is visible',
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.NO_RESULTS_FOUND}" message is visible`,
         timeout: TIMEOUTS.MEDIUM,
       });
 
-      const adjustSearchText = this.audiencePickerDialog.getByText('Try adjusting search terms or filters');
+      const adjustSearchText = this.audiencePickerDialog.getByText(AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH);
       await this.verifier.verifyTheElementIsVisible(adjustSearchText, {
-        assertionMessage: 'Verify "Try adjusting search terms or filters" message is visible',
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH}" message is visible`,
         timeout: TIMEOUTS.SHORT,
       });
     });
@@ -995,14 +996,14 @@ export class AudiencePage extends BasePage {
   async verifyNoResultsOnMainPage(): Promise<void> {
     await test.step('Verify No Results messages on main page', async () => {
       const pageContainer = this.page.getByTestId('pageContainer-page');
-      const noResultsText = pageContainer.getByText('No results found');
+      const noResultsText = pageContainer.getByText(AUDIENCE_MESSAGES.NO_RESULTS_FOUND);
       await this.verifier.verifyTheElementIsVisible(noResultsText, {
-        assertionMessage: 'Verify "No results found" message is visible',
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.NO_RESULTS_FOUND}" message is visible`,
         timeout: TIMEOUTS.MEDIUM,
       });
-      const adjustSearchText = pageContainer.getByText('Try adjusting search terms or filters');
+      const adjustSearchText = pageContainer.getByText(AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH);
       await this.verifier.verifyTheElementIsVisible(adjustSearchText, {
-        assertionMessage: 'Verify "Try adjusting search terms or filters" message is visible',
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH}" message is visible`,
         timeout: TIMEOUTS.SHORT,
       });
     });

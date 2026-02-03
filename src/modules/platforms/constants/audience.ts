@@ -99,3 +99,8 @@ export const AUDIENCE_BUILDER_BUTTONS = {
   RESET_ALL: 'Reset all',
   CLEAR: 'Clear',
 } as const;
+
+export const AUDIENCE_MESSAGES = {
+  NO_RESULTS_FOUND: 'No results found',
+  TRY_ADJUSTING_SEARCH: 'Try adjusting search terms or filters',
+} as const;
