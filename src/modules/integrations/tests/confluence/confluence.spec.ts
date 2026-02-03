@@ -296,7 +296,6 @@ test.describe(
           await supportAndTicketingPage.assertions.isConfluenceServiceAccountConnected();
         if (!isConfluenceConnectedAtAppLevel) {
           await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
-          await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
           await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
         }
 
@@ -308,6 +307,8 @@ test.describe(
         await supportAndTicketingPage.actions.toggleConfluenceIntegration();
         await supportAndTicketingPage.assertions.verifyConfluenceIntegrationCheckboxState(true);
 
+        await supportAndTicketingPage.navigateToSupportAndTicketingPage();
+        await supportAndTicketingPage.assertions.verifyThePageIsLoaded();
         await supportAndTicketingPage.actions.connectConfluenceServiceAccount();
         await supportAndTicketingPage.assertions.verifyConfluenceServiceAccountConnected();
       }
