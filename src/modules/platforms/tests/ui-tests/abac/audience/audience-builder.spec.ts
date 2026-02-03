@@ -31,7 +31,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.verifyCloseButtonPresence();
 
       await audienceBuilderPage.verifyFilterElementPresence('Attributes');
-      await audienceBuilderPage.verifyFilterElementPresence('Created by');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
       await audienceBuilderPage.verifyFilterElementPresence('Created date');
 
       //  verify created date filter options
@@ -143,7 +143,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       await audienceBuilderPage.clickFiltersButton();
 
-      const expectedOrder = ['Attributes', 'Created by', 'Created date'];
+      const expectedOrder = ['Attributes', AUDIENCE_BUILDER_FILTERS.CREATED_BY, 'Created date'];
       await audienceBuilderPage.verifyFilterOrder(expectedOrder);
     }
   );
@@ -162,13 +162,9 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       await audienceBuilderPage.clickFiltersButton();
 
-      await test.step('Click on Created by filter', async () => {
-        await audienceBuilderPage.clickButtonText('Created by');
-      });
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
 
-      await test.step('Verify search bar is not present when options are less than 10', async () => {
-        await audienceBuilderPage.verifySearchBarAbsence();
-      });
+      await audienceBuilderPage.verifySearchBarAbsence();
     }
   );
 
@@ -186,17 +182,11 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
 
       await audienceBuilderPage.clickCreateButton();
 
-      await test.step('Verify close button is present', async () => {
-        await audienceBuilderPage.verifyCloseButtonInCreateDialog();
-      });
+      await audienceBuilderPage.verifyCloseButtonInCreateDialog();
 
-      await test.step('Click close button', async () => {
-        await audienceBuilderPage.clickCloseButtonInCreateDialog();
-      });
+      await audienceBuilderPage.clickCloseButtonInCreateDialog();
 
-      await test.step('Verify Create audience rule dialog is closed', async () => {
-        await audienceBuilderPage.verifyCreateDialogClosed();
-      });
+      await audienceBuilderPage.verifyCreateDialogClosed();
     }
   );
 });
