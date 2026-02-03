@@ -12,6 +12,9 @@ export class AudienceBuilderPage extends BasePage {
   filtersButton: Locator;
   filterContainer: Locator;
   closeButton: Locator;
+  createButton: Locator;
+  createAudienceRuleDialog: Locator;
+  categoryDropdownInput: Locator;
   searchInput: Locator;
   public btnExactText: (buttonName: string) => Locator;
   public filterName: (filterName: string) => Locator;
@@ -24,6 +27,12 @@ export class AudienceBuilderPage extends BasePage {
 
     // Page title/heading
     this.labelAudienceBuilder = pageContainer.locator('header h1').filter({ hasText: 'Audiences' });
+
+    // Create button and dialog - scope to banner to avoid table header conflicts
+    const banner = pageContainer.getByRole('banner');
+    this.createButton = banner.getByRole('button', { name: 'Create', exact: true });
+    this.createAudienceRuleDialog = page.getByRole('dialog').filter({ hasText: 'Create audience rule' });
+    this.categoryDropdownInput = this.createAudienceRuleDialog.locator('input[type="text"]').first();
 
     // Filter elements
     this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
@@ -159,8 +168,9 @@ export class AudienceBuilderPage extends BasePage {
   // Click a button (by partial name) within the filters dialog
   async clickButtonText(buttonName: string): Promise<void> {
     await test.step(`Click "${buttonName}" button in filters dialog`, async () => {
-      const button = this.btnExactText(buttonName);
-      await this.clickOnElement(button, { stepInfo: `Click "${buttonName}" button` });
+      // Click the filter accordion button by finding the h3 with the button name
+      const filterButton = this.filterContainer.locator(`button:has(h3:text("${buttonName}"))`);
+      await this.clickOnElement(filterButton, { stepInfo: `Click "${buttonName}" button` });
     });
   }
 
@@ -207,6 +217,66 @@ export class AudienceBuilderPage extends BasePage {
     });
   }
 
+  /**
+   * Verify the order of filter names in the filters dialog
+   */
+  async verifyFilterOrder(expectedOrder: string[]): Promise<void> {
+    await test.step('Verify the order of filter names', async () => {
+      // Get all accordion trigger buttons that contain h3 elements
+      const filterHeaders = this.filterContainer.locator('button[data-state] h3');
+      const actualFilters = (await filterHeaders.allTextContents()).map(text => text.trim());
+
+      expect(actualFilters).toEqual(expectedOrder);
+    });
+  }
+
+  /**
+   * Verify the absence of search bar in filter options
+   */
+  async verifySearchBarAbsence(): Promise<void> {
+    await test.step('Verify search bar is not present', async () => {
+      const searchBar = this.page.getByRole('textbox', { name: /search|filter/i });
+      const isSearchBarVisible = await searchBar.isVisible({ timeout: 2000 }).catch(() => false);
+      expect(isSearchBarVisible).toBe(false);
+    });
+  }
+
+  /**
+   * Verify the presence of close button in Create audience rule dialog
+   */
+  async verifyCloseButtonInCreateDialog(): Promise<void> {
+    await test.step('Verify close button is present in Create audience rule dialog', async () => {
+      const closeButton = this.createAudienceRuleDialog.locator('button[aria-label="Close"]');
+      await this.verifier.verifyTheElementIsVisible(closeButton, {
+        assertionMessage: 'Verify close button is visible in Create audience rule dialog',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
+  /**
+   * Click close button to close Create audience rule dialog
+   */
+  async clickCloseButtonInCreateDialog(): Promise<void> {
+    await test.step('Click close button to close Create audience rule dialog', async () => {
+      const closeButton = this.createAudienceRuleDialog.locator('button[aria-label="Close"]');
+      await this.clickOnElement(closeButton, {
+        stepInfo: 'Click close button',
+      });
+    });
+  }
+
+  /**
+   * Verify Create audience rule dialog is closed
+   */
+  async verifyCreateDialogClosed(): Promise<void> {
+    await test.step('Verify Create audience rule dialog is closed', async () => {
+      await expect(this.createAudienceRuleDialog, 'Verify Create audience rule dialog is not visible').not.toBeVisible({
+        timeout: TIMEOUTS.MEDIUM,
+      });
+    });
+  }
+
   async verifyAppliedFilterRailAbsence(label: string): Promise<void> {
     await test.step(`Verify applied filter rail for "${label}" is not visible`, async () => {
       const railLabel = this.appliedFilterRailLabel(label);
@@ -223,10 +293,48 @@ export class AudienceBuilderPage extends BasePage {
       await this.clickOnElement(railLabel, { stepInfo: `Click applied filter rail "${label}"` });
     });
   }
+
   async searchFilterOption(query: string): Promise<void> {
     await test.step(`Search filter option "${query}"`, async () => {
       await this.searchInput.fill(query);
       await this.searchInput.press('Enter');
+    });
+  }
+
+  // ========== AUDIENCE RULE CREATION METHODS ==========
+
+  /**
+   * Click Create button to open Create audience rule dialog
+   */
+  async clickCreateButton(): Promise<void> {
+    await test.step('Click Create button', async () => {
+      await this.clickOnElement(this.createButton, { stepInfo: 'Click Create button' });
+      await expect(this.createAudienceRuleDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  /**
+   * Type text in the category dropdown input field
+   * @param text - Text to type in the category dropdown
+   */
+  async typeInCategoryDropdown(text: string): Promise<void> {
+    await test.step(`Type "${text}" in category dropdown`, async () => {
+      await this.categoryDropdownInput.fill(text);
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  /**
+   * Verify the presence of "Add category name" option
+   * @param categoryName - The category name that should appear in the option
+   */
+  async verifyAddCategoryOptionPresence(categoryName: string): Promise<void> {
+    await test.step(`Verify "Add ${categoryName}" option is visible`, async () => {
+      const addCategoryOption = this.page.getByRole('menuitem', { name: `Add ${categoryName}` });
+      await this.verifier.verifyTheElementIsVisible(addCategoryOption, {
+        assertionMessage: `Verify "Add ${categoryName}" option is visible in dropdown`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 }
