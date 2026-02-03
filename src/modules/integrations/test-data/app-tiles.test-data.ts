@@ -298,3 +298,11 @@ export const JIRA_VALUES = {
   GROUP_ISSUES_BY: 'Group issues by',
   ISSUES_BY_VALUE: 'Assignee',
 } as const;
+
+export const ZENDESK_VALUES = {
+  AppName: 'Zendesk',
+  OpenTicketsTile: 'Display open tickets',
+  SubmittedRequestsTile: 'Display submitted requests',
+  TicketsUsingSearchQueryTile: 'Display tickets using Zendesk search query',
+  UnassignedTicketsTile: 'Display unassigned tickets',
+} as const;
