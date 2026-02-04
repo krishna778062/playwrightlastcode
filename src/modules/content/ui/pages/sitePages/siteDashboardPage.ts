@@ -60,7 +60,7 @@ export class SiteDashboardPage extends BaseSitePage {
 
     // Initialize locators defined outside constructor
     this.editDashboardButton = this.page.locator('div[data-title="Edit dashboard"]');
-    this.carouselItemText = (text: string) => this.page.locator('div').filter({ hasText: text });
+    this.carouselItemText = (text: string) => page.getByRole('link', { name: text });
     this.tileListComponent = (tileTitle: string) => this.page.getByRole('heading', { name: tileTitle });
     this.socialCampaignNameInTileList = (socialCampaignName: string) =>
       this.page.getByRole('button', { name: socialCampaignName }).first();
@@ -184,15 +184,18 @@ export class SiteDashboardPage extends BaseSitePage {
     return this.editbarComponent.clickOnAddTile();
   }
 
-  async verifySocalCampaignInCarouselItem(text: string): Promise<void> {
-    await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
+  async verifySocialCampaignInCarouselItem(text: string): Promise<void> {
+    await test.step('Verifying social campaign is in carousel item', async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
+    });
   }
 
-  async verifySocalCampaignIsNotInCarouselItem(text: string): Promise<void> {
+  async verifySocialCampaignIsNotInCarouselItem(text: string): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.carouselItemText(text));
   }
 
-  async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
+  async verifySocialCampaignInCarouselModal(text: string): Promise<void> {
     return this.carouselComponent.verifyCarouselItem(text);
   }
 
@@ -201,11 +204,17 @@ export class SiteDashboardPage extends BaseSitePage {
   }
 
   async enterSearchCarouselInput(text: string): Promise<void> {
-    return this.carouselComponent.getSearchCarouselInput(text);
+    await this.carouselComponent.getSearchCarouselInput(text);
   }
 
   async selectCarouselItem(text: string): Promise<void> {
-    return this.carouselComponent.selectCarouselItem(text);
+    try {
+      await this.carouselComponent.selectCarouselItem(text);
+    } catch (error) {
+      console.log(`Error selecting carousel item "${text}":`, error);
+      await this.carouselComponent.getSearchCarouselInput(text);
+      await this.carouselComponent.selectCarouselItem(text);
+    }
   }
 
   async clickOnSocialCampaignTile(): Promise<void> {
@@ -220,8 +229,8 @@ export class SiteDashboardPage extends BaseSitePage {
     return this.addTileComponent.setTileTitle(tileTitle);
   }
 
-  async setCustomSCTitle(title: string): Promise<void> {
-    return this.addTileComponent.setCustomSCTitle(title);
+  async setCustomSCTitle(title: string, message: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title, message);
   }
 
   async clickAddToHomeButton(): Promise<string> {

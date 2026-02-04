@@ -134,8 +134,8 @@ test.describe(
         //add, edit, verify
         await siteDashboard.addTile(
           createdTileTitle,
-          'Workday',
-          'Display pending learning courses',
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.pendingLearningCoursesTile,
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
@@ -197,8 +197,8 @@ test.describe(
         //add, verify
         await siteDashboard.addTile(
           createdTileTitle,
-          'Workday',
-          'Display pending learning courses',
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.pendingLearningCoursesTile,
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.isTilePresent(createdTileTitle);
@@ -254,8 +254,8 @@ test.describe(
         //add, verify
         await siteDashboard.addTile(
           createdTileTitle,
-          'Workday',
-          'Display pending learning courses',
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.pendingLearningCoursesTile,
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.isTilePresent(createdTileTitle);
@@ -310,8 +310,8 @@ test.describe(
         //add, verify
         await siteDashboard.addTile(
           createdTileTitle,
-          'Workday',
-          'Display pending learning courses',
+          WORKDAY_VALUES.AppName,
+          WORKDAY_VALUES.pendingLearningCoursesTile,
           UI_ACTIONS.ADD_TO_SITE
         );
         await siteDashboard.isTilePresent(createdTileTitle);

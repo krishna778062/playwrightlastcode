@@ -10,6 +10,7 @@ import { contentTestFixture as test } from '@/src/modules/content/fixtures/conte
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
 import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { MANAGE_SITE_TEST_DATA } from '@/src/modules/content/test-data/manage-site-test-data';
+import { CreateFeedPostComponent } from '@/src/modules/content/ui/components/createFeedPostComponent';
 import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
@@ -148,7 +149,7 @@ for (const testData of feedTestData) {
         // Assign created resources
         if (resources.siteId) {
           siteDetails = {
-            siteId: resources.siteId,
+            siteId: resources.siteId.siteId,
             siteName: '',
             categoryId: '',
             categoryName: '',
@@ -172,9 +173,14 @@ for (const testData of feedTestData) {
           };
         }
 
-        // Generate feed data based on feed type
+        // Generate feed text
+        createdPostText = TestDataGenerator.generateRandomString('feed-file-delete-test');
+        const attachmentFilePath = testData.filePath;
+
+        // Create feed based on feed type
         switch (testData.feedType) {
           case 'Home Feed': {
+            // Create feed via API for Home Feed
             feedTestDataGenerated = TestDataGenerator.generateFeed({
               scope: 'public',
               siteId: undefined,
@@ -185,66 +191,53 @@ for (const testData of feedTestData) {
               filePath: testData.filePath,
               waitForSearchIndex: false,
             });
+            feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
+            createdPostText = feedTestDataGenerated.text;
+            createdPostId = feedResponse.result.feedId;
+            fileId = feedResponse.result.listOfFiles[0].fileId;
+            await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
             break;
           }
 
           case 'Site Feed': {
-            feedTestDataGenerated = TestDataGenerator.generateFeed({
-              scope: 'site',
-              siteId: siteDetails.siteId,
-              withAttachment: testData.hasAttachment,
-              fileName: testData.fileName,
-              fileSize: testData.fileSize,
-              mimeType: testData.mimeType,
-              filePath: testData.filePath,
-              waitForSearchIndex: false,
-            });
+            // Create feed via UI for Site Feed
+            siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
+            await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+            await siteDashboardPage.clickOnFeedLink();
+
+            const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+            await siteDashboardPage.clickShareThoughtsButton();
+            await createFeedPostComponent.createPost(createdPostText);
+            await createFeedPostComponent.uploadFiles([attachmentFilePath]);
+            const postResponse = await createFeedPostComponent.createFeedPost();
+            const responseBody = (await postResponse.json()) as FeedResponse;
+            createdPostId = responseBody.result.feedId;
+            fileId = responseBody.result.listOfFiles[0].fileId;
             break;
           }
 
           case 'Content Feed': {
-            feedTestDataGenerated = TestDataGenerator.generateFeed({
-              scope: 'site',
-              siteId: siteDetails.siteId,
-              contentId: pageDetails.contentId,
-              withAttachment: testData.hasAttachment,
-              fileName: testData.fileName,
-              fileSize: testData.fileSize,
-              mimeType: testData.mimeType,
-              filePath: testData.filePath,
-              waitForSearchIndex: false,
-            });
+            // Create feed via UI for Content Feed
+            contentPreviewPage = new ContentPreviewPage(
+              appManagerFixture.page,
+              siteDetails.siteId,
+              pageDetails.contentId,
+              ContentType.PAGE.toLowerCase()
+            );
+            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+
+            const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+            await contentPreviewPage.clickShareThoughtsButton();
+            await createFeedPostComponent.createPost(createdPostText);
+            await createFeedPostComponent.uploadFiles([attachmentFilePath]);
+            const postResponse = await createFeedPostComponent.createFeedPost();
+            const responseBody = (await postResponse.json()) as FeedResponse;
+            createdPostId = responseBody.result.feedId;
+            fileId = responseBody.result.listOfFiles[0].fileId;
             break;
           }
-
-          default:
-            throw new Error(`Unknown feed type: ${testData.feedType}`);
         }
 
-        // Create feed via API
-        feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestDataGenerated);
-        createdPostText = feedTestDataGenerated.text;
-        createdPostId = feedResponse.result.feedId;
-        fileId = feedResponse.result.listOfFiles[0].fileId;
-
-        console.log(`Created feed with attachment via API: ${feedResponse.result.feedId}`);
-
-        // Navigate to feed URL
-        if (testData.feedType === 'Content Feed') {
-          contentPreviewPage = new ContentPreviewPage(
-            appManagerFixture.page,
-            siteDetails.siteId,
-            pageDetails.contentId,
-            ContentType.PAGE.toLowerCase()
-          );
-          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
-        } else if (testData.feedType === 'Site Feed') {
-          siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteDetails.siteId);
-          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-          await siteDashboardPage.clickOnFeedLink();
-        } else if (testData.feedType === 'Home Feed') {
-          await appManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
-        }
         await appManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
       });
 

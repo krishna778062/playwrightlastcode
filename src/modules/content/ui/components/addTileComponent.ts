@@ -113,7 +113,7 @@ export class AddTileComponent extends BaseComponent {
     await this.clickOnElement(this.customSCButton);
   }
 
-  async setCustomSCTitle(title: string): Promise<void> {
+  async setCustomSCTitle(title: string, message: string): Promise<void> {
     await this.clickOnElement(this.customSCTitleInput);
     await this.customSCTitleInput.clear();
 
@@ -121,7 +121,7 @@ export class AddTileComponent extends BaseComponent {
     const maxAttempts = 5;
 
     while (attempts < maxAttempts) {
-      await this.fillInElement(this.customSCTitleInput, 'Look');
+      await this.fillInElement(this.customSCTitleInput, message);
 
       try {
         await this.verifier.verifyTheElementIsVisible(this.customSCTitleInputOption(title));

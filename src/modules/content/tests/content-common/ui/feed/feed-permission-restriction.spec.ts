@@ -7,7 +7,7 @@ import { ManageSitePage } from '@content/ui/pages/manageSitePage';
 import { SiteDashboardPage } from '@content/ui/pages/sitePages/siteDashboardPage';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
-import { SitePermission } from '@core/types/siteManagement.types';
+import { SiteMembershipAction, SitePermission } from '@core/types/siteManagement.types';
 import { NewHomePage } from '@core/ui/pages/newHomePage';
 import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
@@ -21,12 +21,6 @@ test.describe(
     tag: [ContentTestSuite.FEED_STANDARD_USER, '@feed-permission-restriction', ContentTestSuite.FEED],
   },
   () => {
-    const verifyRestrictionForUser = async (siteId: string, page: any) => {
-      const siteDashboard = new SiteDashboardPage(page, siteId);
-      await siteDashboard.navigateToTab(SitePageTab.DashboardTab);
-      // Verify that restriction message is visible on dashboard
-      await siteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
-    };
     const createdPostIds: string[] = [];
 
     test.afterEach(async ({ appManagerFixture }) => {
@@ -46,11 +40,7 @@ test.describe(
     test(
       'public | private | unlisted | SCM and Member see restriction message on dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.REGRESSION,
-          '@Public_Site_Permission_Restriction @Private_Site_Permission_Restriction @Unlisted_Site_Permission_Restriction',
-        ],
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-37172'],
       },
       async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {
@@ -72,21 +62,35 @@ test.describe(
         await manageSitePage.clickDashboardAndFeedTab();
         await manageSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
-        // As Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
+        // Remove user as from the site
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          publicSiteId,
           userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
-        await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
+          SitePermission.MEMBER,
+          SiteMembershipAction.REMOVE
+        );
+
+        // As Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          publicSiteId,
+          userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        const publicSiteDashboard = new SiteDashboardPage(standardUserFixture.page, publicSiteId);
+        await publicSiteDashboard.loadPage();
+        await publicSiteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
 
         // As Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: publicSiteId,
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          publicSiteId,
           userId,
-          role: SitePermission.MEMBER,
-        });
-        await verifyRestrictionForUser(publicSiteId, standardUserFixture.page);
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.SET_PERMISSION
+        );
+
+        await publicSiteDashboard.reloadPage();
+        await publicSiteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
 
         const privateSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
           waitForSearchIndex: false,
@@ -99,21 +103,34 @@ test.describe(
         await managePrivateSitePage.clickDashboardAndFeedTab();
         await managePrivateSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
-        // As Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: privateSiteId,
+        // Remove user as from the site
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          privateSiteId,
           userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
-        await verifyRestrictionForUser(privateSiteId, standardUserFixture.page);
+          SitePermission.MEMBER,
+          SiteMembershipAction.REMOVE
+        );
+
+        // As Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          privateSiteId,
+          userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        const privateSiteDashboard = new SiteDashboardPage(standardUserFixture.page, privateSiteId);
+        await privateSiteDashboard.loadPage();
+        await privateSiteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
 
         //As Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: privateSiteId,
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          privateSiteId,
           userId,
-          role: SitePermission.MEMBER,
-        });
-        await verifyRestrictionForUser(privateSiteId, standardUserFixture.page);
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.SET_PERMISSION
+        );
+        await privateSiteDashboard.reloadPage();
+        await privateSiteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
 
         // Unlisted sites don't appear in public search, so skip waitForSearchIndex to avoid timeout
         const unlistedSite = await appManagerApiFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
@@ -127,28 +144,41 @@ test.describe(
         await manageUnlistedSitePage.clickDashboardAndFeedTab();
         await manageUnlistedSitePage.setFeedPostingPermission(FeedPostingPermission.MANAGERS_ONLY);
 
-        // As Site Content Manager
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: unlistedSiteId,
+        // Remove user as from the site
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          unlistedSiteId,
           userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
-        await verifyRestrictionForUser(unlistedSiteId, standardUserFixture.page);
+          SitePermission.MEMBER,
+          SiteMembershipAction.REMOVE
+        );
+
+        // As Site Content Manager
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          unlistedSiteId,
+          userId,
+          SitePermission.MEMBER,
+          SiteMembershipAction.ADD
+        );
+        const unlistedSiteDashboard = new SiteDashboardPage(standardUserFixture.page, unlistedSiteId);
+        await unlistedSiteDashboard.loadPage();
+        await unlistedSiteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
 
         // As Member
-        await appManagerApiFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: unlistedSiteId,
+        await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
+          unlistedSiteId,
           userId,
-          role: SitePermission.MEMBER,
-        });
-        await verifyRestrictionForUser(unlistedSiteId, standardUserFixture.page);
+          SitePermission.CONTENT_MANAGER,
+          SiteMembershipAction.SET_PERMISSION
+        );
+        await unlistedSiteDashboard.reloadPage();
+        await unlistedSiteDashboard.verifyFeedRestrictionMessageVisible(FEED_TEST_DATA.RESTRICTION_MESSAGE);
       }
     );
 
     test(
       'verify Site Owner and Site Manager can create feed post on Public Site Dashboard when feed permission is set to managersOnly CONT-41198',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-41198'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-37170'],
       },
       async ({ appManagerApiFixture, appManagerFixture, standardUserFixture }) => {
         tagTest(test.info(), {

@@ -46,7 +46,12 @@ export class SocialCampaignPage extends BasePage {
   }
 
   async verifyCampaignLinkDisplayed(linkText: string): Promise<void> {
-    return await this.listOfSocialCampaignComponent.verifyCampaignLinkDisplayed(linkText);
+    try {
+      return await this.listOfSocialCampaignComponent.verifyCampaignLinkDisplayed(linkText);
+    } catch (error) {
+      console.error('Error verifying campaign link displayed:', error);
+      return await this.listOfSocialCampaignComponent.verifyCampaignLinkDisplayed(linkText);
+    }
   }
 
   async clickCampaignOptions(): Promise<void> {
@@ -113,6 +118,14 @@ export class SocialCampaignPage extends BasePage {
     return await this.shareSocialCampaignComponent.selectShareOptionAsSiteFeed();
   }
 
+  async selectShareOptionNotVisible(option: string): Promise<void> {
+    return await this.shareSocialCampaignComponent.selectShareOptionNotVisible(option);
+  }
+
+  async selectShareOptionVisible(option: string): Promise<void> {
+    return await this.shareSocialCampaignComponent.selectShareOptionVisible(option);
+  }
+
   async enterShareDescription(description: string): Promise<void> {
     return await this.shareSocialCampaignComponent.enterShareDescription(description);
   }
@@ -147,5 +160,83 @@ export class SocialCampaignPage extends BasePage {
 
   async verifyDeleteCampaignButtonIsNotVisible(): Promise<void> {
     return await this.listOfSocialCampaignComponent.verifyDeleteCampaignButtonIsNotVisible();
+  }
+
+  /**
+   * Clicks the first Share button on a social campaign
+   */
+  async clickFirstShareButton(): Promise<void> {
+    await test.step('Click first Share button', async () => {
+      const shareButton = this.page.getByRole('button', { name: 'Share' }).first();
+      await this.verifier.verifyTheElementIsVisible(shareButton, {
+        assertionMessage: 'Share button should be visible',
+        timeout: 5000,
+      });
+      await this.clickOnElement(shareButton);
+    });
+  }
+
+  /**
+   * Connects LinkedIn account by clicking Connect LinkedIn button and logging in
+   * @param linkedInEmail - LinkedIn email address
+   * @param linkedInPassword - LinkedIn password
+   */
+  async connectLinkedIn(linkedInEmail: string, linkedInPassword: string): Promise<void> {
+    await test.step('Connect LinkedIn account', async () => {
+      // Click Connect LinkedIn button
+      const connectLinkedInButton = this.page.getByRole('button', { name: 'Connect LinkedIn' });
+      await this.verifier.verifyTheElementIsVisible(connectLinkedInButton, {
+        assertionMessage: 'Connect LinkedIn button should be visible',
+        timeout: 10000,
+      });
+      await this.clickOnElement(connectLinkedInButton);
+
+      // Wait for LinkedIn login page to load
+      await this.page.waitForTimeout(2000);
+
+      // Fill LinkedIn email
+      const linkedInEmailInput = this.page.getByRole('textbox', { name: 'Email or Phone' });
+      await this.verifier.verifyTheElementIsVisible(linkedInEmailInput, {
+        assertionMessage: 'LinkedIn email input should be visible',
+        timeout: 10000,
+      });
+      await linkedInEmailInput.click();
+      await linkedInEmailInput.press('ControlOrMeta+a');
+      await linkedInEmailInput.fill(linkedInEmail);
+
+      // Fill LinkedIn password
+      const linkedInPasswordInput = this.page.getByRole('textbox', { name: 'Password' });
+      await this.verifier.verifyTheElementIsVisible(linkedInPasswordInput, {
+        assertionMessage: 'LinkedIn password input should be visible',
+        timeout: 5000,
+      });
+      await linkedInPasswordInput.click();
+      await linkedInPasswordInput.fill(linkedInPassword);
+
+      // Click Sign in button
+      const signInButton = this.page.getByRole('button', { name: 'Sign in' });
+      await this.verifier.verifyTheElementIsVisible(signInButton, {
+        assertionMessage: 'Sign in button should be visible',
+        timeout: 5000,
+      });
+      await this.clickOnElement(signInButton);
+
+      // Wait for redirect back to Simpplr
+      await this.page.waitForURL(/campaigns\/latest/, { timeout: 30000 });
+    });
+  }
+
+  /**
+   * Verifies that LinkedIn connection was successful by checking for success message
+   */
+  async verifyLinkedInConnectionSuccess(): Promise<void> {
+    await test.step('Verify LinkedIn connection success', async () => {
+      // Verify the success message is visible
+      const successMessage = this.page.getByText('Shared social campaign to', { exact: false });
+      await this.verifier.verifyTheElementIsVisible(successMessage, {
+        assertionMessage: 'LinkedIn connection success message should be visible',
+        timeout: 10000,
+      });
+    });
   }
 }
