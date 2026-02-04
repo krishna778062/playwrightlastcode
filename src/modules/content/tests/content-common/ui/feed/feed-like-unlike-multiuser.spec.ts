@@ -916,27 +916,19 @@ test.describe(
         await feedPage.feedList.hoverOnReactionButton(createdPostText);
         await feedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
 
-        // Wait a moment for the reaction to be applied
-        await feedPage.page.waitForTimeout(1000);
-
         // Verify the reaction emoji is displayed (replaces Add Reaction icon)
         // The reaction button should show the selected emoji (haha)
-        const reactionButton = feedPage.page
-          .getByRole('button')
-          .filter({ hasText: /haha|Haha|😆/i })
-          .first();
-        await feedPage.verifier.verifyTheElementIsVisible(reactionButton, {
-          assertionMessage: 'Selected reaction emoji should be visible',
-        });
+        await feedPage.feedList.verifySelectedReactionButtonIsVisible(
+          'haha|Haha|😆',
+          'Selected reaction emoji should be visible'
+        );
 
         // Click on the selected reaction emoji to remove it (using unlikeFeedPost)
         await feedPage.feedList.unlikeFeedPost(createdPostText);
 
         // Verify the Add Reaction icon is restored (reaction is removed)
         // The like button should be visible again (Add Reaction icon)
-        await feedPage.feedList.verifier.verifyTheElementIsVisible(feedPage.feedList.likeButton.first(), {
-          assertionMessage: 'Add Reaction icon should be restored after removing reaction',
-        });
+        await feedPage.feedList.verifyReactionButtonIsVisible();
       }
     );
   }

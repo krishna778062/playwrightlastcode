@@ -495,15 +495,7 @@ test.describe(
 
         // Step 12: Verify video attachment is visible in the published feed post
         // Note: Videos are displayed as a video container div, not as HTML <video> elements
-        const videoContainer = standardUserFixture.page
-          .locator('div[class*="postContent"]')
-          .filter({ hasText: videoPostText })
-          .locator('div[class*="videoFluid"]');
-
-        await feedPage.verifier.verifyTheElementIsVisible(videoContainer, {
-          timeout: 10000,
-          assertionMessage: 'Video container should be visible in the published feed post',
-        });
+        await feedPage.feedList.verifyVideoContainerIsVisible(videoPostText);
 
         // Store post text for cleanup
         createdPostText = videoPostText;
@@ -3115,8 +3107,7 @@ test.describe(
         await adminFeedPage.feedList.waitForPostToBeVisible(postText);
 
         // Verify author name is displayed on the feed post
-        const postContainer = await adminFeedPage.feedList.getPostContainerLocator(postText);
-        const authorNameLink = postContainer.getByRole('link').filter({ hasText: appManagerFullName }).first();
+        const authorNameLink = await adminFeedPage.feedList.getAuthorNameLinkLocator(postText, appManagerFullName);
         await adminFeedPage.verifier.verifyTheElementIsVisible(authorNameLink, {
           assertionMessage: `Author name "${appManagerFullName}" should be displayed on the feed post`,
         });
@@ -3127,10 +3118,7 @@ test.describe(
         await profilePage.verifyThePageIsLoaded();
 
         // Verify URL contains the user's peopleId
-        const currentUrl = adminFeedPage.page.url();
-        if (!currentUrl.includes(`people/${appManagerInfo.userId}`)) {
-          throw new Error(`Expected URL to contain "people/${appManagerInfo.userId}", but got: ${currentUrl}`);
-        }
+        await profilePage.verifyUrlContainsPeopleId(appManagerInfo.userId);
       }
     );
 
