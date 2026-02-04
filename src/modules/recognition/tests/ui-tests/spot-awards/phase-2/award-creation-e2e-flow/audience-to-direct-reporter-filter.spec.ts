@@ -13,7 +13,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
-test.describe('Spot award end to end flow - audience to all managers', () => {
+test.describe('Spot award end to end flow - audience to direct reporter', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -26,11 +26,11 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
 
   [
     {
-      testId: 'RC-6446',
+      testId: 'RC-6437',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to All managers for Specific period limited times',
+        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s direct reports for Specific period limited times',
       giverType: 'Users in an audience',
-      receiverType: 'All managers',
+      receiverType: 'Award giver’s direct reports',
       selectAwardPeriodValue: 'During a specified period',
       selectHowOftenAwardGivenValue: 'Limited',
       timesValue: '1',
@@ -38,38 +38,14 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
       testGroup: TestGroupType.SANITY,
     },
     {
-      testId: 'RC-6445',
+      testId: 'RC-6436',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to All managers for Specific period unlimited times',
+        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s direct reports for Indefinitely limited times',
       giverType: 'Users in an audience',
-      receiverType: 'All managers',
-      selectAwardPeriodValue: 'During a specified period',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      timesValue: undefined,
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
-    },
-    {
-      testId: 'RC-6444',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to All managers for Indefinitely limited times',
-      giverType: 'Users in an audience',
-      receiverType: 'All managers',
+      receiverType: 'Award giver’s direct reports',
       selectAwardPeriodValue: 'Indefinitely',
       selectHowOftenAwardGivenValue: 'Limited',
       timesValue: '3',
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
-    },
-    {
-      testId: 'RC-6443',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to All managers for Indefinitely unlimited times',
-      giverType: 'Users in an audience',
-      receiverType: 'All managers',
-      selectAwardPeriodValue: 'Indefinitely',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      timesValue: undefined,
       priority: TestPriority.P2,
       testGroup: TestGroupType.REGRESSION,
     },
@@ -81,7 +57,6 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
       receiverType,
       selectAwardPeriodValue,
       selectHowOftenAwardGivenValue,
-      timesValue,
       priority = TestPriority.P2,
       testGroup = TestGroupType.REGRESSION,
     }) => {
@@ -114,7 +89,7 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
             selectAwardPeriodValue as 'Indefinitely' | 'During a specified period',
             selectHowOftenAwardGivenValue as 'Unlimited' | 'Limited',
             guidance,
-            timesValue,
+            undefined,
             'Monthly',
             getRecognitionTenantConfigFromCache().audience
           );
@@ -132,7 +107,7 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
             email: getRecognitionTenantConfigFromCache().endUserEmail!,
             password: getRecognitionTenantConfigFromCache().endUserPassword!,
           });
-          //Go to hub and open dialog to publish and share the award
+          //Go to hub and open dialog to publish and share the award as eligible user
           await spotAwardPage.navigateToRecognitionHubAndOpenDialog(giveRecognitionDialogBox);
           await giveRecognitionDialogBox.publishSpotAward(
             awardName,
