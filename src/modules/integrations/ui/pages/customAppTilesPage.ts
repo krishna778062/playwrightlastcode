@@ -1,4 +1,5 @@
 import { BaseAppTileComponent } from '@integrations-components/baseAppTileComponent';
+import { ContainerComponent } from '@integrations-components/containerComponent';
 import { TagComponent } from '@integrations-components/tagComponent';
 import { MESSAGES } from '@integrations-constants/messageRepo';
 import { expect, Locator, Page, test } from '@playwright/test';
@@ -39,6 +40,7 @@ export interface TileFilter {
 
 export class CustomAppTilesPage extends BasePage {
   readonly appTileComponent: BaseAppTileComponent;
+  readonly containerComponent: ContainerComponent;
   readonly tagComponent: TagComponent;
 
   // Selector strings for reusable components
@@ -309,6 +311,7 @@ export class CustomAppTilesPage extends BasePage {
     this.fieldRequiredError = ' is a required field';
 
     // Initialize component instances
+    this.containerComponent = new ContainerComponent(page);
     this.tagComponent = new TagComponent(page, this.fieldSelector);
 
     // Initialize selector strings
@@ -353,9 +356,9 @@ export class CustomAppTilesPage extends BasePage {
     this.appSelect = this.getByLabel('App', true);
     this.apiActionSelect = this.page.getByRole('combobox', { name: 'API action' });
     this.tileBuilderStepper = this.getByText('Tile builder', true);
-    this.canvasContainer = this.getByTestId('container');
+    // Use #canvasContainer so we target only the canvas wrapper; dropped Container blocks also have data-testid="container"
+    this.canvasContainer = this.getLocator('#canvasContainer');
     this.imageTextRowsBlock = this.getByTestId('image-text-rows-block');
-    this.containerBlock = this.getByTestId('container-block');
     this.textBlock = this.getByTestId('text-block');
     this.imageBlock = this.getByTestId('image-block');
     this.formContainer = this.getByTestId('form-container');
@@ -403,6 +406,10 @@ export class CustomAppTilesPage extends BasePage {
     this.imageSizeOption = this.getByTestId('image-size-option').or(this.getLocator('option'));
     this.formBehaviorOption = this.getLocator('select[aria-label="Form behavior"] option');
     this.dynamicSourceLocator = this.getLocator("xpath=//button[@draggable='true'] | //div[@role='button']");
+    // Container block in sidebar: same draggable source as dragToCanvas (app may not use data-testid="container-block")
+    this.containerBlock = this.dynamicSourceLocator
+      .filter({ hasText: CUSTOM_APP_TILES_TEST_DATA.CANVAS_COMPONENTS.CONTAINER })
+      .first();
     // Reuse existing locators instead of duplicating
     this.dynamicTileRow = this.tileRowByPrefix;
     this.dynamicMoreButton = this.tileMoreButton; // Reuse existing tileMoreButton

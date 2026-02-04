@@ -25,7 +25,7 @@ test.describe('manage Site Test Suite (ABAC)', { tag: [ContentSuiteTags.MANAGE_S
     editAudienceGroupModalPage = new EditAudienceGroupModalPage(appManagerFixture.page, '');
   });
 
-  test.afterEach('Site Clean up', async ({ appManagerFixture }) => {});
+  test.afterEach('Site Clean up', async ({}) => {});
 
   test(
     'verify Warning Message Appears After Changing Site visibility',

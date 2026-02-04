@@ -54,6 +54,9 @@ export const API_ENDPOINTS = {
     v2IdentityUsersRegisterProfile: '/v2/identity/users/register-profile',
     roles: '/v1/identity/accounts/roles/list',
   },
+  segments: {
+    configs: '/v1/segments/segments-configs',
+  },
   admin: {
     login: '/v2/identity/admin/login',
   },
@@ -79,6 +82,8 @@ export const API_ENDPOINTS = {
     acceptMembershipRequest: (siteId: string) => `/v1/content/sites/${siteId}/membership/approval`,
     deleteCarouselItem: (siteId: string, carouselItemId: string) =>
       `/v1/content/sites/${siteId}/carousel/items/${carouselItemId}`,
+    userSitesAccess: '/v1/content/sites/userSitesAccess',
+    bulkUsersSitesAccess: '/v1/content/internal/sites/bulkUsersSitesAccess',
   },
 
   content: {

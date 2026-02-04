@@ -105,10 +105,7 @@ test.describe(
       }
     );
 
-    /**
-     * TODO: update the locator for content click
-     */
-    test.fixme(
+    test(
       'to verify language dropdown in event creation & updation CONT-30648',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, ContentSuiteTags.LANGUAGE_IN_CONTENT, '@CONT-30648'],

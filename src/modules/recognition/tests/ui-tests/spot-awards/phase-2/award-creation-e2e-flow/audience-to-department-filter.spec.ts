@@ -95,6 +95,32 @@ test.describe('Spot award end to end flow - audience to department', () => {
       timesValue: '1',
       priority: TestPriority.P3,
     },
+    {
+      testId: 'RC-6030',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Employees in a department for Specific period Unlimited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Employees in a department',
+      department: defaultDepartment,
+      selectAwardPeriodValue: 'During a specified period',
+      selectHowOftenAwardGivenValue: 'Unlimited',
+      timesValue: undefined,
+      priority: TestPriority.P3,
+      testGroup: TestGroupType.REGRESSION,
+    },
+    {
+      testId: 'RC-5888',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Employees in a department for Indefinitely limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Employees in a department',
+      department: defaultDepartment,
+      selectAwardPeriodValue: 'Indefinitely',
+      selectHowOftenAwardGivenValue: 'Limited',
+      timesValue: '3',
+      priority: TestPriority.P3,
+      testGroup: TestGroupType.REGRESSION,
+    },
   ].forEach(
     ({
       testId,

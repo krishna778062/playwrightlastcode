@@ -82,6 +82,12 @@ export const AUDIENCE_BUILDER_FILTERS = {
   ATTRIBUTES: 'Attributes',
   CREATED_BY: 'Created by',
   CREATED_DATE: 'Created date',
+  AUDIENCE_CATEGORY: 'Audience category',
+  AUDIENCE_MEMBER: 'Audience member',
+  ACCESS_CONTROL: 'Access control',
+  FEATURE: 'Feature',
+  MODIFIED_BY: 'Modified by',
+  MODIFIED_DATE: 'Modified date',
 } as const;
 
 export const AUDIENCE_BUILDER_FILTER_OPTIONS = {
@@ -98,4 +104,19 @@ export const AUDIENCE_BUILDER_BUTTONS = {
   RESET: 'Reset',
   RESET_ALL: 'Reset all',
   CLEAR: 'Clear',
+} as const;
+
+export const AUDIENCE_MESSAGES = {
+  NO_RESULTS_FOUND: 'No results found',
+  TRY_ADJUSTING_SEARCH: 'Try adjusting search terms or filters',
+} as const;
+
+// Test Data Values
+export const TEST_DATA_VALUES = {
+  NEW_CATEGORY_NAME: 'NewCategory',
+} as const;
+
+// Field Limits
+export const FIELD_LIMITS = {
+  DESCRIPTION_MAX_LENGTH: 1024,
 } as const;
