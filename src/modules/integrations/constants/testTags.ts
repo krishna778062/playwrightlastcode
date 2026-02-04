@@ -45,6 +45,7 @@ export enum IntegrationsSuiteTags {
   GOOGLE_CALENDAR_NATIVE_TILES = '@googleCalendarNativeTiles',
   APPS_PAGE = '@appsPage',
   CONTAINER = '@containerComponent',
+  ZENDESK = '@zendesk',
 }
 
 export enum IntegrationsFeatureTags {
@@ -99,6 +100,7 @@ export const TEST_TAGS = {
   WEEKLY_VIEW_CALENDAR: IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
   HEALTH_CHECK: IntegrationsSuiteTags.HEALTH_CHECK,
   WORKFLOWS: IntegrationsSuiteTags.WORKFLOWS,
+  ZENDESK: IntegrationsSuiteTags.ZENDESK,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {

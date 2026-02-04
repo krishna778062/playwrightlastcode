@@ -5,11 +5,70 @@ import {
   AUDIENCE_BUILDER_BUTTONS,
   AUDIENCE_BUILDER_FILTER_OPTIONS,
   AUDIENCE_BUILDER_FILTERS,
+  TEST_DATA_VALUES,
 } from '@platforms/constants/audience';
 import { platformTestFixture as test } from '@platforms/fixtures/platformFixture';
 import { AudienceBuilderPage } from '@platforms/ui/pages/abacPage/acgPage/audienceBuilderPage';
 
 test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, TestSuite.ABAC] }, () => {
+  test(
+    'verify the presence of createdBy filter under audience rules filter',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-34534'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickFiltersButton();
+
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+    }
+  );
+
+  test(
+    'verify the presence of Filters button under audience page',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33930'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.verifyFiltersButtonPresence();
+
+      await audienceBuilderPage.clickFiltersButton();
+    }
+  );
+
+  test(
+    'verify the presence of cross Reset all and View results button under filters tab',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33932'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickFiltersButton();
+
+      await audienceBuilderPage.verifyCloseButtonPresence();
+
+      await audienceBuilderPage.verifyButtonTextPresence(AUDIENCE_BUILDER_BUTTONS.RESET_ALL);
+
+      await audienceBuilderPage.verifyButtonTextPresence(AUDIENCE_BUILDER_BUTTONS.VIEW_RESULTS);
+    }
+  );
+
   test(
     'filters under audience rule page',
     { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`, '@healthcheck'] },
@@ -29,20 +88,20 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       // Verify close button presence in filters dialog
       await audienceBuilderPage.verifyCloseButtonPresence();
 
-      await audienceBuilderPage.verifyFilterElementPresence('Attributes');
-      await audienceBuilderPage.verifyFilterElementPresence('Created by');
-      await audienceBuilderPage.verifyFilterElementPresence('Created date');
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+      await audienceBuilderPage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
 
       //  verify created date filter options
-      await audienceBuilderPage.clickFilterElement('Created date');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
       await audienceBuilderPage.verifyFilterOptionPresence('Last 30 days');
       await audienceBuilderPage.verifyFilterOptionPresence('Last 90 days');
       await audienceBuilderPage.verifyFilterOptionPresence('Last 12 months');
       await audienceBuilderPage.verifyFilterOptionPresence('Custom');
-      await audienceBuilderPage.clickFilterElement('Created date');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
 
       //  verify attributes filter options
-      await audienceBuilderPage.clickFilterElement('Attributes');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
 
       await audienceBuilderPage.searchFilterOption('Business unit');
       await audienceBuilderPage.verifyFilterOptionPresence('Business unit');
@@ -74,7 +133,7 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.searchFilterOption('User type');
       await audienceBuilderPage.verifyFilterOptionPresence('User type');
 
-      await audienceBuilderPage.clickFilterElement('Attributes');
+      await audienceBuilderPage.clickFilterElement(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
 
       // Test close button functionality
       await audienceBuilderPage.clickCloseButton();
@@ -126,6 +185,87 @@ test.describe('audience builder filter testcases', { tag: [TestSuite.AUDIENCE, T
       await audienceBuilderPage.clickAppliedFilterRail(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
       await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_BUTTONS.CLEAR);
       await audienceBuilderPage.verifyAppliedFilterRailAbsence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+    }
+  );
+
+  test(
+    'verify the presence of Add category name option when user types something in Category dropdown field',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-36307'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickCreateButton();
+
+      await audienceBuilderPage.typeInCategoryDropdown(TEST_DATA_VALUES.NEW_CATEGORY_NAME);
+
+      await audienceBuilderPage.verifyAddCategoryOptionPresence(TEST_DATA_VALUES.NEW_CATEGORY_NAME);
+    }
+  );
+
+  test(
+    'verify the order of filter name under Filters tab under Audience rules screen',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-35235'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickFiltersButton();
+
+      const expectedOrder = ['Attributes', AUDIENCE_BUILDER_FILTERS.CREATED_BY, 'Created date'];
+      await audienceBuilderPage.verifyFilterOrder(expectedOrder);
+    }
+  );
+
+  test(
+    'verify the absence of search bar when options are less than 10 under createdBy filter',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-34538'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickFiltersButton();
+
+      await audienceBuilderPage.clickButtonText(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+
+      await audienceBuilderPage.verifySearchBarAbsence();
+    }
+  );
+
+  test(
+    'verify the presence and functionality of cross button under audience rule detail dialog',
+    { tag: [TestPriority.P1, `@ABAC`, `@audience-builder`] },
+    async ({ appManagerUiFixture }) => {
+      tagTest(test.info(), {
+        zephyrTestId: ['PS-33995'],
+      });
+
+      const audienceBuilderPage = new AudienceBuilderPage(appManagerUiFixture.page);
+
+      await audienceBuilderPage.loadPage();
+
+      await audienceBuilderPage.clickCreateButton();
+
+      await audienceBuilderPage.verifyCloseButtonInCreateDialog();
+
+      await audienceBuilderPage.clickCloseButtonInCreateDialog();
+
+      await audienceBuilderPage.verifyCreateDialogClosed();
     }
   );
 });

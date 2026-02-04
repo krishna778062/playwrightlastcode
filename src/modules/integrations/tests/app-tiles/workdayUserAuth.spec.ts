@@ -30,13 +30,7 @@ test.describe(
     test(
       'verify app manager is able to create, edit and remove time off requests workday user auth apptile on home dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayUserAuth',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard, tileManagementHelper } = appManagerFixture;
@@ -65,13 +59,7 @@ test.describe(
     test(
       'verify site manager is able to create, edit and remove time off requests workday user auth apptile on site dashboard',
       {
-        tag: [
-          TestPriority.P1,
-          TestGroupType.SANITY,
-          TestGroupType.SMOKE,
-          IntegrationsSuiteTags.HEALTH_CHECK,
-          '@workdayUserAuth',
-        ],
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
       async ({ appManagerFixture }) => {
         const { siteManagementHelper, siteDashboard } = appManagerFixture;

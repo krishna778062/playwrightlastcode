@@ -3,7 +3,9 @@ import { TestDataGenerator } from '@core/utils/testDataGenerator';
 import { tagTest } from '@core/utils/testDecorator';
 import {
   AD_GROUP_TYPES,
+  AUDIENCE_BUILDER_FILTERS,
   AUDIENCE_TYPES,
+  FIELD_LIMITS,
   FIELD_TYPES,
   OPERATORS,
   PAGE_STATES,
@@ -18,6 +20,161 @@ test.describe(
     tag: [TestPriority.P0, `@AUDIENCE`, `@audience`],
   },
   () => {
+    test(
+      'verify user is able to create audience without description under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35862'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
+
+        await audiencePage.loadPage();
+
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+          description: 'Parent category for audience without description test',
+        });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
+
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.createAudienceWithDetails({
+          name: audienceName,
+          parentCategoryName,
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
+        });
+      }
+    );
+
+    test(
+      'verify user is able to create audience with description under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35861'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        const audienceName = TestDataGenerator.generateAudienceName(TEST_DATA_PREFIXES.UI_AUDIENCE);
+        const description = TestDataGenerator.generateRandomString(TEST_DATA_PREFIXES.DESCRIPTION);
+        const parentCategoryName = TestDataGenerator.generateCategoryName(TEST_DATA_PREFIXES.API_CATEGORY);
+
+        await audiencePage.loadPage();
+
+        await appManagerFixture.audienceCategoryManagementHelper.createCategory(parentCategoryName, {
+          description: 'Parent category for audience with description test',
+        });
+        await appManagerFixture.page.reload({ waitUntil: PAGE_STATES.DOMCONTENTLOADED });
+
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.createAudienceWithDetails({
+          name: audienceName,
+          description,
+          parentCategoryName,
+          audienceType: AUDIENCE_TYPES.COUNTRY_NAME,
+          operator: OPERATORS.CONTAINS,
+        });
+      }
+    );
+
+    test(
+      'verify the maximum length limit of description field should be less than or equal to 1024 under Create audience modal',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35858'],
+        });
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.clickAddDescriptionButton();
+        await audiencePage.verifyDescriptionMaxLength(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+        await audiencePage.fillDescriptionAndVerifyLength(
+          'a'.repeat(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH),
+          FIELD_LIMITS.DESCRIPTION_MAX_LENGTH
+        );
+        await audiencePage.verifyDescriptionMaxLengthEnforced(FIELD_LIMITS.DESCRIPTION_MAX_LENGTH);
+      }
+    );
+
+    test(
+      'verify the appearance of Create audience modal under manage audience',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-35852'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.verifyCreateAudienceModalAppearance();
+      }
+    );
+
+    test(
+      'verify the text for No Results when user searched audience which is not present',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33808'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.openCreateAudienceForm();
+        await audiencePage.clickParentEditIcon();
+        await audiencePage.searchAudienceInPicker('ewugdwebih');
+        await audiencePage.verifyNoResultsMessage();
+      }
+    );
+
+    test(
+      'verify text No results found when user searched audience which is not present on main page',
+      { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33796'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.searchAudienceOnMainPage('edhfbwekjsf');
+        await audiencePage.verifyNoResultsOnMainPage();
+      }
+    );
+
+    test(
+      'verify the presence of all filters under Filters tab under audience page',
+      { tag: [TestPriority.P1, `@AUDIENCE`, `@audience`] },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: ['PS-33931'],
+        });
+
+        const audiencePage = new AudiencePage(appManagerFixture.page);
+
+        await audiencePage.loadPage();
+        await audiencePage.clickFiltersButton();
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ATTRIBUTES);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.AUDIENCE_CATEGORY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.AUDIENCE_MEMBER);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.ACCESS_CONTROL);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.FEATURE);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_BY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.MODIFIED_BY);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.CREATED_DATE);
+        await audiencePage.verifyFilterElementPresence(AUDIENCE_BUILDER_FILTERS.MODIFIED_DATE);
+      }
+    );
+
     test(
       'verify user is able to create audience with Okta attribute with All groups type under manage audience',
       { tag: [TestPriority.P0, `@AUDIENCE`, `@audience`] },
@@ -535,7 +692,7 @@ test.describe(
         });
         const audiencePage = new AudiencePage(appManagerFixture.page);
         await audiencePage.loadPage();
-        let categoriesName: string[] = [];
+        const categoriesName: string[] = [];
         await audiencePage.openCreateAudienceForm();
 
         // Verify + New category button is visible
