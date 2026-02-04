@@ -3153,7 +3153,6 @@ test.describe(
         // ==================== HOME FEED SCENARIO ====================
         await test.step('Home Feed: Cancel and edit toxic content in reply', async () => {
           // Create a post first
-          await standardUserFixture.homePage.verifyThePageIsLoaded();
           await standardUserFixture.navigationHelper.clickOnGlobalFeed();
           const userFeedPage = new FeedPage(standardUserFixture.page);
           await userFeedPage.verifyThePageIsLoaded();
