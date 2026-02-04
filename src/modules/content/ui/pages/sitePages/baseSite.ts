@@ -29,7 +29,10 @@ export abstract class BaseSitePage extends BasePage {
     this.navigation = new SiteNavigationComponent(page, siteId);
     this.addContentModal = new AddContentModalComponent(page);
     this.addContentButton = this.page.locator("button[title='Add content']");
-    this.manageSiteButton = this.page.locator("button[title='Manage site'], a[href*='/manage']");
+    // Use getByRole to specifically target "Manage site" link, avoiding the Analytics link that also has /manage in href
+    this.manageSiteButton = this.page
+      .getByRole('link', { name: 'Manage site' })
+      .or(this.page.locator("button[title='Manage site']"));
     this.siteNameHeading = this.page.locator('[class*="SiteHeader-title-heading"]');
   }
 

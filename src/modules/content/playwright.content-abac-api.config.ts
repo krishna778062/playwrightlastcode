@@ -6,15 +6,15 @@ import { TIMEOUTS } from '@/src/core/constants/timeouts';
 import baseConfig from '@/src/modules/content/config/baseConfig';
 import { initializeContentConfig } from '@/src/modules/content/config/contentConfig';
 
-// Initialize config for primary tenant at config load time
-initializeContentConfig('primary');
+// Initialize config for contentAbac tenant at config load time
+initializeContentConfig('contentAbac');
 
 export default defineConfig({
   ...baseConfig,
   timeout: TIMEOUTS.VERY_LONG,
   name: 'Content API Automation',
-  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-abac', 'api'),
-  testMatch: '**/*.spec.ts',
+  testDir: path.join(PROJECT_ROOT, 'src', 'modules', 'content', 'tests', 'content-abac'),
+  testMatch: ['**/api/**/*.spec.ts', '**/internalAPI/**/*.spec.ts'],
   use: {
     ...baseConfig.use,
     baseURL: process.env.API_BASE_URL,

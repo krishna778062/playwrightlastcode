@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { CUSTOM_APP_TILES_TEST_DATA } from '@integrations/test-data/customAppTiles.test-data';
 import { IntegrationsSuiteTags } from '@integrations-constants/testTags';
-import { expect } from '@playwright/test';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -194,6 +193,88 @@ test.describe(
     );
 
     test(
+      'verify tag component Add custom settings Close button dismisses dialog',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31236',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Close Button Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+
+        await customAppTilesPage.tagComponent.clickDialogCloseButton();
+
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
+      'verify tag component Add custom settings switching Tag style shows correct sections',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31237',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Switch Tag Style Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Status', 'dialog');
+        await customAppTilesPage.tagComponent.verifyDefaultColorFieldVisible();
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+        await customAppTilesPage.tagComponent.verifySelectIconButtonVisible();
+
+        await customAppTilesPage.tagComponent.selectRadio('Text', 'dialog');
+        await customAppTilesPage.tagComponent.verifyTextDialogFields();
+
+        await customAppTilesPage.clickButton('Cancel');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
       'verify tag component text type with default color and mapping rule errors',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
@@ -240,6 +321,46 @@ test.describe(
         await customAppTilesPage.clickButton('Save');
 
         await customAppTilesPage.tagComponent.verifyMappingRuleErrors();
+      }
+    );
+
+    test(
+      'verify tag component status type save without fallback color shows validation',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31238',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Status Validation');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Status', 'dialog');
+
+        await customAppTilesPage.tagComponent.verifyDefaultColorFieldVisible();
+
+        // Attempt to save without selecting Default (fallback) color - should show validation error
+        await customAppTilesPage.clickButton('Save');
+        await customAppTilesPage.tagComponent.verifyDefaultColorError();
       }
     );
 
@@ -436,6 +557,390 @@ test.describe(
     );
 
     test(
+      'verify tag component Select icon dialog Library default and search',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31239',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Library Icon Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+
+        await customAppTilesPage.tagComponent.verifySelectIconDialogVisible();
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.verifyIconSearchInputVisible();
+
+        await customAppTilesPage.tagComponent.enterIconSearch('add');
+        await customAppTilesPage.tagComponent.verifyIconInGridVisible('add-circle');
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+      }
+    );
+
+    test(
+      'verify tag component icon type with Library icon selection',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31241',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Library Select Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.selectIconFromLibrary('add-circle');
+        await customAppTilesPage.tagComponent.clickIconDialogDone();
+
+        await customAppTilesPage.clickButton('Save');
+
+        await customAppTilesPage.tagComponent.verifyTagIconVisible('Text...');
+
+        await customAppTilesPage.clickTab('Data', 'Tag');
+        await customAppTilesPage.tagComponent.verifyTagIconVisible('Text...');
+      }
+    );
+
+    test(
+      'verify tag component Select icon dialog Back dismisses when using Library',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31242',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Library Back Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.selectIconFromLibrary('address-book');
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+
+        await customAppTilesPage.clickButton('Cancel');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
+      'verify tag component Select icon dialog Back dismisses when using URL',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31243',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('URL Back Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('URL');
+        await customAppTilesPage.tagComponent.enterIconUrl(CUSTOM_APP_TILES_TEST_DATA.EXTERNAL_URLS.ICON_URL);
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+
+        await customAppTilesPage.clickButton('Cancel');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
+      'verify tag component Select icon Done without selecting icon shows validation and keeps dialog open',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31244',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Library Done No Selection Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        // Do not select any icon from the grid - click Done without selection
+        await customAppTilesPage.tagComponent.clickIconDialogDone();
+
+        // Expect validation "Icon should be selected" and Select icon dialog stays open
+        await customAppTilesPage.tagComponent.verifyIconSelectionRequiredError();
+        await customAppTilesPage.tagComponent.verifySelectIconDialogVisible();
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+        await customAppTilesPage.clickButton('Cancel');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
+      'verify tag component Select icon dialog Back dismisses when using File upload',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31245',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('File Upload Back Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('File upload');
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+
+        await customAppTilesPage.clickButton('Cancel');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
+      'verify tag component Select icon Library search with no results keeps dialog open',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31246',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Library Search No Results Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.verifyIconSearchInputVisible();
+
+        const noResultsSearch = 'xyznonexistent999';
+        await customAppTilesPage.tagComponent.enterIconSearch(noResultsSearch);
+
+        await customAppTilesPage.tagComponent.verifySelectIconDialogVisible();
+        await customAppTilesPage.tagComponent.verifyIconSearchInputValue(noResultsSearch);
+
+        await customAppTilesPage.tagComponent.clickBackButton();
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
+
+        await customAppTilesPage.clickButton('Cancel');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
+      'verify tag component icon type with Library icon for mapping rule',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31247',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Library Mapping Rule Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.selectIconFromLibrary('add-circle');
+        await customAppTilesPage.tagComponent.clickIconDialogDone();
+
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Mapped Status');
+
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.selectIconFromLibrary('activity-01');
+        await customAppTilesPage.tagComponent.clickIconDialogDone();
+
+        await customAppTilesPage.clickButton('Save');
+
+        await customAppTilesPage.tagComponent.verifyTagIconVisible('Text...');
+
+        await customAppTilesPage.clickTab('Data', 'Tag');
+        await customAppTilesPage.tagComponent.enterTagText('Mapped Status');
+        await customAppTilesPage.tagComponent.verifyTagIconVisible('Mapped Status');
+      }
+    );
+
+    test(
       'verify tag component icon type with file upload and mapping rules',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE],
@@ -593,6 +1098,59 @@ test.describe(
         await customAppTilesPage.clickButton('Done');
 
         await customAppTilesPage.clickButton('Save');
+      }
+    );
+
+    test(
+      'verify tag component remove all mapping rules only fallback remains',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31248',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+        const { tileName, tileDescription } = generateTileData('Remove All Rules Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Text', 'dialog');
+        await customAppTilesPage.tagComponent.selectDefaultColor('High');
+
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Rule A', 0);
+        await customAppTilesPage.tagComponent.selectMappingRuleColor('Low', 0);
+
+        await customAppTilesPage.clickButton('Add mapping rule');
+        await customAppTilesPage.tagComponent.enterMappingRuleText('Rule B', 1);
+        await customAppTilesPage.tagComponent.selectMappingRuleColor('Medium', 1);
+
+        await customAppTilesPage.tagComponent.verifyMappingRuleCount(2);
+
+        await customAppTilesPage.tagComponent.clickRemoveMappingRule(1);
+        await customAppTilesPage.tagComponent.verifyMappingRuleCount(1);
+
+        await customAppTilesPage.tagComponent.clickRemoveMappingRule(0);
+        await customAppTilesPage.tagComponent.verifyMappingRuleCount(0);
+
+        await customAppTilesPage.clickButton('Save');
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
       }
     );
 
@@ -809,17 +1367,10 @@ test.describe(
         await customAppTilesPage.tagComponent.enterIconUrl(CUSTOM_APP_TILES_TEST_DATA.EXTERNAL_URLS.ICON_URL);
 
         // Cancel icon selection dialog - should return to main dialog without saving icon
-        await customAppTilesPage.page.getByRole('button', { name: 'Back' }).click();
+        await customAppTilesPage.tagComponent.clickBackButton();
 
-        await expect(
-          customAppTilesPage.page.getByRole('heading', { name: 'Select icon' }),
-          'Icon dialog should be closed after cancel'
-        ).not.toBeVisible();
-
-        await expect(
-          customAppTilesPage.page.getByRole('heading', { name: 'Add custom settings' }),
-          'Main dialog should still be visible'
-        ).toBeVisible();
+        await customAppTilesPage.tagComponent.verifySelectIconDialogNotVisible();
+        await customAppTilesPage.tagComponent.verifyDialogStillVisible();
 
         // Cancel the main dialog - should close without saving any changes
         await customAppTilesPage.clickButton('Cancel');
@@ -1059,6 +1610,68 @@ test.describe(
     );
 
     test(
+      'verify tag component edit fallback icon via pen icon opens Select icon and change to different Library icon',
+      {
+        tag: [TestPriority.P2, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31250',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Edit Fallback Icon Test');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Appearance', 'Tag');
+
+        await customAppTilesPage.tagComponent.selectRadio('custom');
+
+        await customAppTilesPage.clickButton('Add custom setting');
+
+        await customAppTilesPage.tagComponent.selectRadio('Icon', 'dialog');
+
+        // Add fallback icon from Library
+        await customAppTilesPage.clickButton('Select icon');
+        await customAppTilesPage.tagComponent.selectIconSourceRadio('Library');
+        await customAppTilesPage.tagComponent.selectIconFromLibrary('add-circle');
+        await customAppTilesPage.tagComponent.clickIconDialogDone();
+
+        await customAppTilesPage.tagComponent.verifyFallbackIconNameInDialog('add-circle');
+
+        // Click Edit icon (pen) next to default icon – Select icon dialog opens
+        await customAppTilesPage.tagComponent.clickEditFallbackIcon();
+
+        await customAppTilesPage.tagComponent.verifySelectIconDialogVisible();
+        await customAppTilesPage.tagComponent.verifyLibraryIconSourceSelected();
+
+        // Search so the grid shows search-01 (dialog may still have add-circle in search)
+        await customAppTilesPage.tagComponent.enterIconSearch('search-01');
+        await customAppTilesPage.tagComponent.selectIconFromLibrary('search-01');
+        await customAppTilesPage.tagComponent.clickIconDialogDone();
+
+        await customAppTilesPage.tagComponent.verifyFallbackIconNameInDialog('search-01');
+
+        await customAppTilesPage.clickButton('Save');
+
+        // Verify tag on canvas shows an icon after saving
+        await customAppTilesPage.tagComponent.verifyTagIconVisible('Text...');
+
+        await customAppTilesPage.tagComponent.verifyDialogNotVisible('Add custom settings');
+      }
+    );
+
+    test(
       'verify tag component custom color selection',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
@@ -1155,10 +1768,7 @@ test.describe(
         // Clear the previously uploaded icon
         await customAppTilesPage.tagComponent.clearImage();
 
-        await expect(
-          customAppTilesPage.tagComponent.iconPreviewImage,
-          'Icon preview should not be visible after clearing'
-        ).not.toBeVisible();
+        await customAppTilesPage.tagComponent.verifyIconPreviewNotVisible();
 
         // Upload a new icon file to replace the cleared one
         await customAppTilesPage.uploadFile('freshservice.jpg', 'image');
@@ -1244,15 +1854,11 @@ test.describe(
         const colorButton = lightThemeField.locator('button.InputButtonLauncher-module__launcher__kby5u');
         await colorButton.click();
 
-        const colorPickerDialog = customAppTilesPage.page.getByRole('dialog', { name: 'Hex color picker' });
-        await expect(colorPickerDialog, 'Color picker dialog should be visible').toBeVisible();
+        await customAppTilesPage.tagComponent.verifyColorPickerDialogVisible();
 
-        // Cancel the color picker
-        const cancelButton = colorPickerDialog.getByRole('button', { name: 'Cancel' });
-        await cancelButton.click();
+        await customAppTilesPage.tagComponent.clickColorPickerCancel();
 
-        // Verify color picker is closed and color was not changed
-        await expect(colorPickerDialog, 'Color picker dialog should be closed').not.toBeVisible();
+        await customAppTilesPage.tagComponent.verifyColorPickerDialogNotVisible();
       }
     );
 
@@ -1337,11 +1943,7 @@ test.describe(
         const statusColors = ['Not started', 'In progress', 'Active', 'Completed', 'On hold', 'Off track', 'Archived'];
         for (const statusColor of statusColors) {
           await customAppTilesPage.tagComponent.selectDefaultColor(statusColor);
-          // Verify the selection was successful
-          await expect(
-            customAppTilesPage.tagComponent.dialogDefaultColorField,
-            `Default color should be set to ${statusColor}`
-          ).toBeVisible();
+          await customAppTilesPage.tagComponent.verifyDefaultColorFieldVisible();
         }
       }
     );
@@ -1549,11 +2151,7 @@ test.describe(
         const textColors = ['None', 'Low', 'Medium', 'High', 'Highest', 'Custom'];
         for (const textColor of textColors) {
           await customAppTilesPage.tagComponent.selectDefaultColor(textColor);
-          // Verify the selection was successful
-          await expect(
-            customAppTilesPage.tagComponent.dialogDefaultColorField,
-            `Default color should be set to ${textColor}`
-          ).toBeVisible();
+          await customAppTilesPage.tagComponent.verifyDefaultColorFieldVisible();
         }
       }
     );
@@ -1586,11 +2184,7 @@ test.describe(
         const longTooltipText = 'A'.repeat(200);
         await customAppTilesPage.tagComponent.tooltipTextField.fill(longTooltipText);
 
-        // Verify helper text indicates truncation will occur
-        await expect(
-          customAppTilesPage.tagComponent.tooltipTextHelperText,
-          'Helper text should indicate truncation at 150 chars'
-        ).toContainText(/150.*cut off/i);
+        await customAppTilesPage.tagComponent.verifyTooltipTextHelperTextContainsTruncationMessage();
       }
     );
 
@@ -1972,6 +2566,113 @@ test.describe(
         // Verify toast messages
         await customAppTilesPage.verifyToastMessage('Image upload failed');
         await customAppTilesPage.verifyToastMessage('File size should not exceed 200 KB');
+      }
+    );
+
+    test(
+      'verify tag component Set visibility rule dialog opens and shows elements',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31253',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Visibility Rule Dialog');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Data', 'Tag');
+
+        await customAppTilesPage.tagComponent.openVisibilityRuleDialog();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleDialogElements();
+        await customAppTilesPage.tagComponent.clickVisibilityRuleCancel();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleDialogClosed();
+      }
+    );
+
+    test(
+      'verify tag component Set visibility rule Cancel dismisses dialog without saving',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31254',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Visibility Rule Cancel');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Data', 'Tag');
+
+        const visibilityRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.ACTIVE_STATUS;
+        await customAppTilesPage.tagComponent.openVisibilityRuleDialog();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleDialogElements();
+        await customAppTilesPage.tagComponent.enterVisibilityRule(visibilityRule);
+        await customAppTilesPage.tagComponent.clickVisibilityRuleCancel();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleDialogClosed();
+
+        await customAppTilesPage.tagComponent.openVisibilityRuleDialog();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleInputEmpty();
+        await customAppTilesPage.tagComponent.clickVisibilityRuleCancel();
+      }
+    );
+
+    test(
+      'verify tag component Set visibility rule with JS function saves',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-31255',
+        });
+
+        const customAppTilesPage = new CustomAppTilesPage(appManagerFixture.page);
+
+        const { tileName, tileDescription } = generateTileData('Visibility Rule Save');
+        await customAppTilesPage.createcustom(
+          tileName,
+          tileDescription,
+          CUSTOM_APP_TILES_TEST_DATA.TILE_TYPES.DISPLAY,
+          CUSTOM_APP_TILES_TEST_DATA.APPS.JIRA_CUSTOM_APP_BASIC_AUTH,
+          CUSTOM_APP_TILES_TEST_DATA.API_ACTIONS.LIST_ALL_TICKETS
+        );
+
+        await customAppTilesPage.dragToCanvas('Tag');
+        await customAppTilesPage.clickText('Text...');
+
+        await customAppTilesPage.clickTab('Data', 'Tag');
+
+        const visibilityRule = CUSTOM_APP_TILES_TEST_DATA.LINK_COMPONENT.VISIBILITY_RULES.ACTIVE_STATUS;
+        await customAppTilesPage.tagComponent.openVisibilityRuleDialog();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleDialogElements();
+        await customAppTilesPage.tagComponent.enterVisibilityRule(visibilityRule);
+        await customAppTilesPage.tagComponent.saveVisibilityRule();
+        await customAppTilesPage.tagComponent.verifyVisibilityRuleSaved(visibilityRule);
       }
     );
 

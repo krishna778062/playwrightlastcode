@@ -27,6 +27,7 @@ export enum IntegrationsSuiteTags {
   RECONNECT_AND_CHANGE_USER = '@reconnectAndChangeUser',
   UKG_SYNCING = '@ukgSync',
   WORKDAY = '@workdayAppTiles',
+  WORKDAY_USER_AUTH = '@workdayUserAuth',
   HOTJAR = '@hotjar',
   WEEKLY_VIEW_CALENDAR = '@weekly-view-calendar',
   FORM = '@formAppTiles',
@@ -43,6 +44,8 @@ export enum IntegrationsSuiteTags {
   JIRA_APPTILES = '@jiraAppTiles',
   GOOGLE_CALENDAR_NATIVE_TILES = '@googleCalendarNativeTiles',
   APPS_PAGE = '@appsPage',
+  CONTAINER = '@containerComponent',
+  ZENDESK = '@zendesk',
 }
 
 export enum IntegrationsFeatureTags {
@@ -92,10 +95,12 @@ export const TEST_TAGS = {
   RECONNECT_AND_CHANGE_USER: IntegrationsFeatureTags.RECONNECT_AND_CHANGE_USER,
   UKG_SYNCING: IntegrationsSuiteTags.UKG_SYNCING,
   WORKDAY: IntegrationsSuiteTags.WORKDAY,
+  WORKDAY_USER_AUTH: IntegrationsSuiteTags.WORKDAY_USER_AUTH,
   HOTJAR: IntegrationsSuiteTags.HOTJAR,
   WEEKLY_VIEW_CALENDAR: IntegrationsSuiteTags.WEEKLY_VIEW_CALENDAR,
   HEALTH_CHECK: IntegrationsSuiteTags.HEALTH_CHECK,
   WORKFLOWS: IntegrationsSuiteTags.WORKFLOWS,
+  ZENDESK: IntegrationsSuiteTags.ZENDESK,
 } as const;
 
 export enum GammaIntegrationsFeatureTags {

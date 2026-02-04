@@ -344,6 +344,46 @@ export class FeedManagementHelper {
   }
 
   /**
+   * Ensures contentSubmissionsEnabled is set to true in app governance settings
+   * Gets the current app config, checks if contentSubmissionsEnabled is true,
+   * and if not, updates it via the governance API
+   * @returns Promise<boolean> - true if enabled (either already or after update), false if update failed
+   */
+  async ensureContentSubmissionsFlag(contentSubmissions: boolean): Promise<boolean> {
+    return await test.step('Ensure contentSubmissionsEnabled is true in app governance', async () => {
+      // Step 1: Get the current app configuration
+      const appConfig = await this.getAppConfig();
+      const contentSubmissionsEnabled = (appConfig.result as any)?.contentSubmissionsEnabled;
+
+      // Step 2: Check if contentSubmissionsEnabled is true
+      if (contentSubmissionsEnabled === contentSubmissions) {
+        log.debug('Content submissions is already enabled in app configuration');
+        return true;
+      }
+
+      // Step 3: Update the governance settings to enable content submissions
+      log.debug('Content submissions is not enabled, updating via governance API');
+      await this.configureAppGovernance({
+        contentSubmissionsEnabled: true,
+      });
+
+      // Step 4: Verify the update was successful by getting the config again
+      const updatedAppConfig = await this.getAppConfig();
+      const updatedContentSubmissionsEnabled = (updatedAppConfig.result as any)?.contentSubmissionsEnabled;
+
+      // Assert that contentSubmissionsEnabled is now true
+      if (updatedContentSubmissionsEnabled !== true) {
+        throw new Error(
+          `Failed to update contentSubmissionsEnabled. Expected: true, Actual: ${updatedContentSubmissionsEnabled}`
+        );
+      }
+
+      log.debug('Content submissions successfully enabled via governance API');
+      return true;
+    });
+  }
+
+  /**
    * Gets the Recognition tenant configuration
    * @returns Promise with the recognition configuration response
    */

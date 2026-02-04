@@ -767,30 +767,33 @@ export class CreateFeedPostComponent extends BaseComponent {
   }): Promise<FeedPostResult> {
     const { text: title, userName, topicName, siteName, embedUrl } = params;
     return await test.step(`Creating feed post with user mention "${userName}" and topic mention "${topicName}"`, async () => {
-      const topicName2 = faker.company.name();
       // Add post content
       await this.createPost(title);
-      await this.addTopicMention(topicName);
-      await this.addTopicMention(topicName2);
-      await this.addUserNameMention(userName);
-      for (const site of siteName) {
-        await this.addSiteName(site);
+      if (topicName) {
+        await this.addTopicMention(topicName);
       }
-      await this.addEmbedUrl(embedUrl);
+      if (userName) {
+        await this.addUserNameMention(userName);
+      }
+      if (siteName.length > 0) {
+        for (const site of siteName) {
+          await this.addSiteName(site);
+        }
+      }
+      if (embedUrl) {
+        await this.addEmbedUrl(embedUrl);
+      }
 
       // Publish the page
       const postResponse = await this.createFeedPost();
 
       //json body
       const feedResponseBody = (await postResponse.json()) as FeedPostApiResponse;
-      const siteNamesText = Array.isArray(siteName) ? siteName.map(site => `@${site}`).join(' ') : `@${siteName}`;
-      const postText = `${title} #${topicName} #${topicName2} @${userName} ${siteNamesText}`;
       //fetch the page id from the response
       const postId = feedResponseBody.result.feedId;
-      console.log('postText :   ', postText);
 
       return {
-        postText: postText,
+        postText: title,
         attachmentCount: 0,
         postId,
       };
