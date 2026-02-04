@@ -142,15 +142,6 @@ test.describe(
         privateSiteName = testDataResults.privateSite.name;
         unlistedSiteName = testDataResults.unlistedSite.name;
 
-        console.log('Test data retrieved:');
-        console.log('Standard User Full Name:', standardUserFullName);
-        console.log('Public Site Name:', publicSiteName);
-        console.log('Private Site Name:', privateSiteName);
-        console.log('Unlisted Site Name:', unlistedSiteName);
-        console.log('Simpplr Topic:', simpplrTopic?.name);
-
-        console.log(`Found ${testDataResults.topicList.result.listOfItems.length} topics`);
-
         // Search for "Simpplr" topic, otherwise use first available topic
         simpplrTopic = testDataResults.topicList.result.listOfItems.find(
           (topic: any) => topic.name.toLowerCase() === 'simpplr'
@@ -183,7 +174,7 @@ test.describe(
     test(
       'in Zeus verify end user is able to add edit delete text topic mention user mention site embedded URL CONT-24134',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-24134'],
       },
       async () => {
         tagTest(test.info(), {

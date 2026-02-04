@@ -14,7 +14,7 @@ export class CarouselComponent extends BaseComponent {
   constructor(page: Page) {
     super(page);
 
-    this.carouselItemLink = (text: string) => page.locator('a').filter({ hasText: text });
+    this.carouselItemLink = (text: string) => page.getByLabel('Edit site dashboard').getByRole('link', { name: text });
     this.getSearchContentInput = page
       .locator(`div:has-text("Search content & social campaigns") + div >> input`)
       .first();
@@ -26,6 +26,7 @@ export class CarouselComponent extends BaseComponent {
 
   async getSearchCarouselInput(text: string): Promise<void> {
     await this.clickOnElement(this.getSearchContentInput);
+    await this.getSearchContentInput.clear();
     await this.fillInElement(this.getSearchContentInput, text);
   }
 

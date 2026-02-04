@@ -744,6 +744,17 @@ test.describe(
       const eventContentId = eventInfo.contentId;
       const eventTitle = eventInfo.eventName;
 
+      // create another event for Upcoming Events block
+      await appManagerApiFixture.contentManagementHelper.createEvent({
+        siteId: allEmployeesSiteId,
+        contentInfo: { contentType: 'event' },
+        options: {
+          eventName: `Upcoming ${Date.now()} Event`,
+          contentDescription: eventData.description,
+          location: eventData.location,
+        },
+      });
+
       // Single FeedPage instance for all feed validations
       const feedPage = new FeedPage(standardUserFixture.page);
 
