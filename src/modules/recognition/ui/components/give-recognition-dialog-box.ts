@@ -277,8 +277,11 @@ export class GiveRecognitionDialogBox extends DialogBox {
   ): Promise<void> {
     await test.step('Publish the spot award', async () => {
       await this.descriptionTextArea.waitFor({ state: 'visible' });
+      await expect(this.descriptionTextArea).toBeEnabled();
+      await this.page.waitForTimeout(500);
       await this.recipientsInput.click();
       await this.suggesterContainer.waitFor({ state: 'visible' });
+      await this.page.waitForTimeout(500);
       await this.recipientsInput.fill(awardName);
       await this.suggesterContainer.waitFor({ state: 'visible' });
       await this.getOption(0).click();
