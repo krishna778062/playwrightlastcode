@@ -501,6 +501,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Verify navigation to TopicDetailsPage
       const topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, topicId);
+      await topicDetailsPage.loadPage({ stepInfo: 'Load topic details page' });
       await topicDetailsPage.verifyThePageIsLoaded();
 
       // Verify Content tab is selected by default (first tab)
