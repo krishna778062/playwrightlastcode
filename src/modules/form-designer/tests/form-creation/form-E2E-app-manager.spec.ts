@@ -1674,7 +1674,7 @@ test.describe(
         await formParticipationPage.clickOnCopyLink();
         await formParticipationPage.openCopiedFormLink();
         await formParticipationPage.verifySubmitButtonIsDisabled();
-        await formParticipationPage.fillResponseIntoImageField('image1.jpg');
+        await formParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
         await formCreationPage.clickOn('button', 'Submit');
         await formParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
       }
@@ -1816,11 +1816,1062 @@ test.describe(
         await formCreationPage.clickOnCreateFormButton();
         await formCreationPage.dragAndDropElement('date and time');
         await formCreationPage.addHeadingIntoComponent('date and time', 'Automation Test - date and time Description');
-        await formCreationPage.verifyIncludeConditionOptions();
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
         await formCreationPage.verifyMatchOptionIsVisible('MatchAnyOf these conditions');
         await formCreationPage.verifyQuestionOptionIsVisible();
         await formCreationPage.verifyValueOptionsIsVisible();
         await formCreationPage.verifyAddNewConditionButtonIsVisible();
+      }
+    );
+
+    test(
+      'Verify app manager able to add multiple include option condition for a component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager able to add include option condition to hide a component',
+          zephyrTestId: 'ELF-914',
+          storyId: 'ELF-914',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.enterValueIntoValueOptions('test');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyShortTextComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test');
+        await endUserParticipationPage.verifyShortTextComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify component will be hidden if question value equals to mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if question value equals to mentioned value',
+          zephyrTestId: 'ELF-915',
+          storyId: 'ELF-915',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsNotVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be shown if question value not equals to mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if question value does not equal to mentioned value',
+          zephyrTestId: 'ELF-916',
+          storyId: 'ELF-916',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('does not equal');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be hidden if question value contains mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if question value contains mentioned value',
+          zephyrTestId: 'ELF-917',
+          storyId: 'ELF-917',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+
+        // End user participation flow (use standardUserPage fixture)
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify component will be hidden if question value not contains mentioned value',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if question value does not contain mentioned value',
+          zephyrTestId: 'ELF-918',
+          storyId: 'ELF-918',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('does not contain');
+        await formCreationPage.enterValueIntoValueOptions('10');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('number');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoNumberField('10');
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify component will be shown if question value is empty',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if question value is empty',
+          zephyrTestId: 'ELF-919',
+          storyId: 'ELF-919',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.addHeadingIntoComponent('number', 'Automation Test - number Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('is empty');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('email');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyNumberComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoEmailField('test@automation.com');
+        await endUserParticipationPage.verifyNumberComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be hidden if question value is not empty',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if question value is not empty',
+          zephyrTestId: 'ELF-920',
+          storyId: 'ELF-920',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.dragAndDropElement('number');
+        await formCreationPage.addHeadingIntoComponent('number', 'Automation Test - number Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.clickOnViewConditionBox('is not empty');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('email');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyNumberComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoEmailField('test@automation.com');
+        await endUserParticipationPage.verifyNumberComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be shown if all conditions are matching',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be shown if all conditions are matching',
+          zephyrTestId: 'ELF-921',
+          storyId: 'ELF-921',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.selectMatchCondition('All');
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoValueOptions('test');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.clickOnAddNewConditionButton();
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoSecondValueOptions('automation');
+        await formCreationPage.clickOnSecondQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.verifyHiddenTagIsVisibleForComponent('Hidden');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test automation');
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify component will be hidden if all conditions are matching',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify component will be hidden if all conditions are matching',
+          zephyrTestId: 'ELF-922',
+          storyId: 'ELF-922',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('long text');
+        await formCreationPage.dragAndDropElement('email');
+        await formCreationPage.addHeadingIntoComponent('email', 'Automation Test - email Description');
+        await formCreationPage.verifyAndClickOnIncludeConditionOptions();
+        await formCreationPage.selectMatchCondition('All');
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoValueOptions('test');
+        await formCreationPage.clickOnQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.clickOnHiddenOrShowBox('Hide');
+        await formCreationPage.clickOnAddNewConditionButton();
+        await formCreationPage.clickOnViewConditionBox('contains');
+        await formCreationPage.enterValueIntoSecondValueOptions('automation');
+        await formCreationPage.clickOnSecondQuestionBox();
+        await formCreationPage.selectOptionIntoIncludeConditionOptions('long text');
+        await formCreationPage.clickOnSecondHiddenOrShowBox('Hide');
+        await formCreationPage.saveIncludeConditionOptions();
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test');
+        await endUserParticipationPage.verifyEmailComponentIsVisible();
+        await endUserParticipationPage.fillResponseIntoLongTextField('test automation');
+        await endUserParticipationPage.verifyEmailComponentIsHidden();
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only image file if file type is image into file upload component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only image file if file type is image into file upload component',
+          zephyrTestId: 'ELF-938',
+          storyId: 'ELF-938',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload file');
+        await formCreationPage.addHeadingIntoComponent('upload file', 'Automation Test - upload file Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Image');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoFileUploadField('sample_csv.csv');
+        await endUserParticipationPage.verifyFileUploadResponseNotVisible('Uploaded file name: sample_csv');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('image1.jpg');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: image1');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only video file if file type is video into file upload component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only video file if file type is video into file upload component',
+          zephyrTestId: 'ELF-939',
+          storyId: 'ELF-939',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload file');
+        await formCreationPage.addHeadingIntoComponent('upload file', 'Automation Test - upload file Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Video');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoFileUploadField('image1.jpg');
+        await endUserParticipationPage.verifyFileUploadResponseNotVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('samplevideo.avi');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: samplevideo');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify end user able to submit only file if file type is file into file upload component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to submit only file if file type is file into file upload component',
+          zephyrTestId: 'ELF-940',
+          storyId: 'ELF-940',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload file');
+        await formCreationPage.addHeadingIntoComponent('upload file', 'Automation Test - upload file Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('File');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoFileUploadField('image1.jpg');
+        await endUserParticipationPage.verifyFileUploadResponseNotVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('samplepptx.pptx');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: samplepptx');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only image and file if file type is image and file into file upload component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only image and file if file type is image and file into file upload component',
+          zephyrTestId: 'ELF-942',
+          storyId: 'ELF-942',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload file');
+        await formCreationPage.addHeadingIntoComponent('upload file', 'Automation Test - upload file Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnCheckboxOptionIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Image and file');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoFileUploadField('samplevideo.avi');
+        await endUserParticipationPage.verifyFileUploadResponseNotVisible('Uploaded file name: samplevideo');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('sample-docs.docx');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: sample-docs');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('image1.jpg');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: image1');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify end user able to submit only image and video if file type is image and video into file upload component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only image and video if file type is image and video into file upload component',
+          zephyrTestId: 'ELF-943',
+          storyId: 'ELF-943',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload file');
+        await formCreationPage.addHeadingIntoComponent('upload file', 'Automation Test - upload file Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnCheckboxOptionIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Image and video');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoFileUploadField('samplepptx.pptx');
+        await endUserParticipationPage.verifyFileUploadResponseNotVisible('Uploaded file name: samplepptx');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('image1.jpg');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoFileUploadField('samplevideo.avi');
+        await endUserParticipationPage.verifyFileUploadResponseVisible('Uploaded file name: samplevideo');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only image file if file type is image into upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only image file if file type is image into upload image component',
+          zephyrTestId: 'ELF-946',
+          storyId: 'ELF-946',
+        });
+
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Image');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoSingleImageField('sample_csv.csv');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: sample_csv');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image1');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify end user able to submit only video file if file type is video into upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only video file if file type is video into upload image component',
+          zephyrTestId: 'ELF-947',
+          storyId: 'ELF-947',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Video');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplevideo.avi');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: samplevideo');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only image and file if file type is image and file into upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only image and file if file type is image and file into upload image component',
+          zephyrTestId: 'ELF-950',
+          storyId: 'ELF-950',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnCheckboxOptionIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Image and file');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplevideo.avi');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: samplevideo');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('sample-docs.docx');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: sample-docs');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplepptx.pptx');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: samplepptx');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image1');
+
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only image and video if file type is image and video into upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify end user able to submit only image and video if file type is image and video into upload image component',
+          zephyrTestId: 'ELF-951',
+          storyId: 'ELF-951',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnCheckboxOptionIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('Image and video');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplepptx.pptx');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: samplepptx');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplevideo.avi');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: samplevideo');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+    test(
+      'Verify end user able to submit only csv file if file type is csv into upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to submit only csv file if file type is csv into upload image component',
+          zephyrTestId: 'ELF-949',
+          storyId: 'ELF-949',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('CSV');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('sample_csv.csv');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: sample_csv');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify end user able to submit only file if file type is file into upload image component',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+          FormSuiteTags.FORM_INCLUDE_CONDITION,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify end user able to submit only file if file type is file into upload image component',
+          zephyrTestId: 'ELF-948',
+          storyId: 'ELF-948',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnDropdownOptionIntoUploadImageComponent('File');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplevideo.avi');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: samplevideo');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('samplepptx.pptx');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: samplepptx');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
       }
     );
   }

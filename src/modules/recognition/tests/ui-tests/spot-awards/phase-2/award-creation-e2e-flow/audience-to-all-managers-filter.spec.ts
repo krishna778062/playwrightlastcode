@@ -12,9 +12,8 @@ import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
-import { spotAwardTestData } from '@/src/modules/recognition/test-data/awardTestData';
 
-test.describe('Spot award end to end flow - audience to department', () => {
+test.describe('Spot award end to end flow - audience to all managers', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -25,100 +24,29 @@ test.describe('Spot award end to end flow - audience to department', () => {
     await manageRecognitionPage.spotAwardTab.click();
   });
 
-  const defaultDepartment = spotAwardTestData.department;
-
   [
-    // Manager in a department receiver
     {
-      testId: 'RC-6476',
+      testId: 'RC-6446',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Managers in a department for Specific period limited times',
+        'Validate creation of Spot award when Users in audience selected to give award to All managers for Specific period limited times',
       giverType: 'Users in an audience',
-      receiverType: 'Managers in a department',
-      department: defaultDepartment,
-      selectAwardPeriodValue: 'During a specified period',
-      selectHowOftenAwardGivenValue: 'Limited',
-      timesValue: '5',
-      priority: TestPriority.P1,
-      testGroup: TestGroupType.SANITY,
-    },
-    {
-      testId: 'RC-6475',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Managers in a department for Specific period unlimited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Managers in a department',
-      department: defaultDepartment,
-      selectAwardPeriodValue: 'During a specified period',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      timesValue: undefined,
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
-    },
-    {
-      testId: 'RC-6473',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Managers in a department for Indefinitely unlimited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Managers in a department',
-      department: defaultDepartment,
-      selectAwardPeriodValue: 'Indefinitely',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      timesValue: undefined,
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
-    },
-
-    //Employee in a department receiver
-    {
-      testId: 'RC-4425',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Employees in a department for Indefinitely unlimited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Employees in a department',
-      department: defaultDepartment,
-      selectAwardPeriodValue: 'Indefinitely',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      timesValue: undefined,
-      priority: TestPriority.P1,
-      testGroup: TestGroupType.SANITY,
-    },
-    {
-      testId: 'RC-5889',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Employees in a department for Specific period limited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Employees in a department',
-      department: defaultDepartment,
+      receiverType: 'All managers',
       selectAwardPeriodValue: 'During a specified period',
       selectHowOftenAwardGivenValue: 'Limited',
       timesValue: '1',
-      priority: TestPriority.P3,
+      priority: TestPriority.P1,
+      testGroup: TestGroupType.SANITY,
     },
     {
-      testId: 'RC-6030',
+      testId: 'RC-6445',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Employees in a department for Specific period Unlimited times',
+        'Validate creation of Spot award when Users in audience selected to give award to All managers for Specific period unlimited times',
       giverType: 'Users in an audience',
-      receiverType: 'Employees in a department',
-      department: defaultDepartment,
+      receiverType: 'All managers',
       selectAwardPeriodValue: 'During a specified period',
       selectHowOftenAwardGivenValue: 'Unlimited',
       timesValue: undefined,
-      priority: TestPriority.P3,
-      testGroup: TestGroupType.REGRESSION,
-    },
-    {
-      testId: 'RC-5888',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Employees in a department for Indefinitely limited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Employees in a department',
-      department: defaultDepartment,
-      selectAwardPeriodValue: 'Indefinitely',
-      selectHowOftenAwardGivenValue: 'Limited',
-      timesValue: '3',
-      priority: TestPriority.P3,
+      priority: TestPriority.P2,
       testGroup: TestGroupType.REGRESSION,
     },
   ].forEach(
@@ -127,7 +55,6 @@ test.describe('Spot award end to end flow - audience to department', () => {
       testTitle,
       giverType,
       receiverType,
-      department = defaultDepartment,
       selectAwardPeriodValue,
       selectHowOftenAwardGivenValue,
       timesValue,
@@ -159,7 +86,7 @@ test.describe('Spot award end to end flow - audience to department', () => {
             2,
             giverType,
             receiverType,
-            department,
+            undefined,
             selectAwardPeriodValue as 'Indefinitely' | 'During a specified period',
             selectHowOftenAwardGivenValue as 'Unlimited' | 'Limited',
             guidance,
