@@ -2,6 +2,7 @@ export enum FormSuiteTags {
   FORM_CREATION = '@form-creation',
   FORM_E2E = '@form-e2e',
   FORM_PARTICIPATION = '@form-participation',
+  FORM_INCLUDE_CONDITION = '@form-include-condition',
 }
 
 export enum FormFeatureTags {
