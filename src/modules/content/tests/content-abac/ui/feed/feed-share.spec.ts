@@ -3683,6 +3683,10 @@ test.describe(
           });
           publicSiteId = publicSite.siteId;
           publicSiteName = publicSite.name;
+
+          const manageSitePage = new ManageSitePage(appManagerFixture.page, publicSiteId);
+          await manageSitePage.goToUrl(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(publicSiteId));
+          await manageSitePage.setFeedPostingPermission(FeedPostingPermission.EVERYONE);
         });
 
         // ==================== Create a restricted Page with Target users as App Manager (Owner) and SU (Manager) ====================
@@ -3713,8 +3717,20 @@ test.describe(
           await contentPreviewPage.enablePageRestrictedViewers([SitePermission.OWNER, SitePermission.MANAGER]);
         });
 
-        // ==================== SU creates a comment/feed post on the restricted Page ====================
-        await test.step('SU navigates to restricted Page and creates a comment', async () => {
+        // ==================== SU creates a comment/feed post on the restricted Page via API ====================
+        await test.step('SU creates a comment on the restricted Page via API and navigates to Page to verify', async () => {
+          pageCommentText = TestDataGenerator.generateRandomText('SU comment on restricted Page for sharing', 2, true);
+
+          // Create comment on the restricted Page via API as Standard User
+          await standardUserFixture.feedManagementHelper.createFeed({
+            scope: 'site',
+            siteId: privateSiteId,
+            contentId: pageId,
+            text: pageCommentText,
+            options: { waitForSearchIndex: false },
+          });
+
+          // SU navigates to the restricted Page and verify comment is visible
           suContentPreviewPage = new ContentPreviewPage(
             standardUserFixture.page,
             privateSiteId,
@@ -3723,15 +3739,6 @@ test.describe(
           );
           await suContentPreviewPage.loadPage();
           await suContentPreviewPage.verifyThePageIsLoaded();
-
-          // Create comment on the restricted Page
-          pageCommentText = TestDataGenerator.generateRandomText('SU comment on restricted Page for sharing', 2, true);
-          await suContentPreviewPage.clickShareThoughtsButton();
-
-          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
-          await createFeedPostComponent.createAndPost({ text: pageCommentText });
-
-          // Verify comment is visible
           await suContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
         });
 
@@ -3906,8 +3913,24 @@ test.describe(
           await contentPreviewPage.enablePageRestrictedViewers([SitePermission.OWNER, SitePermission.MANAGER]);
         });
 
-        // ==================== SU creates a comment/feed post on the restricted Page ====================
-        await test.step('SU navigates to restricted Page and creates a comment', async () => {
+        // ==================== SU creates a comment/feed post on the restricted Page via API ====================
+        await test.step('SU creates a comment on the Page via API and navigates to Page to verify', async () => {
+          pageCommentText = TestDataGenerator.generateRandomText(
+            'SU comment on restricted Page for Home Feed sharing',
+            2,
+            true
+          );
+
+          // Create comment on the restricted Page via API as Standard User
+          await standardUserFixture.feedManagementHelper.createFeed({
+            scope: 'site',
+            siteId: privateSiteId,
+            contentId: pageId,
+            text: pageCommentText,
+            options: { waitForSearchIndex: false },
+          });
+
+          // SU navigates to the restricted Page and verify comment is visible
           suContentPreviewPage = new ContentPreviewPage(
             standardUserFixture.page,
             privateSiteId,
@@ -3916,19 +3939,6 @@ test.describe(
           );
           await suContentPreviewPage.loadPage();
           await suContentPreviewPage.verifyThePageIsLoaded();
-
-          // Create comment on the restricted Page
-          pageCommentText = TestDataGenerator.generateRandomText(
-            'SU comment on restricted Page for Home Feed sharing',
-            2,
-            true
-          );
-          await suContentPreviewPage.clickShareThoughtsButton();
-
-          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
-          await createFeedPostComponent.createAndPost({ text: pageCommentText });
-
-          // Verify comment is visible
           await suContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
         });
 
@@ -4129,8 +4139,24 @@ test.describe(
           await contentPreviewPage.enablePageRestrictedViewers([SitePermission.OWNER, SitePermission.MANAGER]);
         });
 
-        // ==================== SU creates a comment/feed post on the restricted Page ====================
-        await test.step('SU navigates to restricted Page and creates a comment', async () => {
+        // ==================== SU creates a comment/feed post on the restricted Page via API ====================
+        await test.step('SU creates a comment on the Page via API and navigates to Page to verify', async () => {
+          pageCommentText = TestDataGenerator.generateRandomText(
+            'SU comment on restricted Page for Home Feed no restriction',
+            2,
+            true
+          );
+
+          // Create comment on the restricted Page via API as Standard User
+          await standardUserFixture.feedManagementHelper.createFeed({
+            scope: 'site',
+            siteId: privateSiteId,
+            contentId: pageId,
+            text: pageCommentText,
+            options: { waitForSearchIndex: false },
+          });
+
+          // SU navigates to the restricted Page and verify comment is visible
           suContentPreviewPage = new ContentPreviewPage(
             standardUserFixture.page,
             privateSiteId,
@@ -4139,19 +4165,6 @@ test.describe(
           );
           await suContentPreviewPage.loadPage();
           await suContentPreviewPage.verifyThePageIsLoaded();
-
-          // Create comment on the restricted Page
-          pageCommentText = TestDataGenerator.generateRandomText(
-            'SU comment on restricted Page for Home Feed no restriction',
-            2,
-            true
-          );
-          await suContentPreviewPage.clickShareThoughtsButton();
-
-          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
-          await createFeedPostComponent.createAndPost({ text: pageCommentText });
-
-          // Verify comment is visible
           await suContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
         });
 
@@ -4335,8 +4348,24 @@ test.describe(
           await contentPreviewPage.verifyThePageIsLoaded();
         });
 
-        // ==================== SU creates a comment/feed post on the non-restricted Page ====================
-        await test.step('SU navigates to non-restricted Page and creates a comment', async () => {
+        // ==================== SU creates a comment/feed post on the non-restricted Page via API ====================
+        await test.step('SU creates a comment on the Page via API and navigates to Page to verify', async () => {
+          pageCommentText = TestDataGenerator.generateRandomText(
+            'SU comment on non-restricted Page for Home Feed sharing with UX',
+            2,
+            true
+          );
+
+          // Create comment on the non-restricted Page via API as Standard User
+          await standardUserFixture.feedManagementHelper.createFeed({
+            scope: 'site',
+            siteId: privateSiteId,
+            contentId: pageId,
+            text: pageCommentText,
+            options: { waitForSearchIndex: false },
+          });
+
+          // SU navigates to the non-restricted Page and verify comment is visible
           suContentPreviewPage = new ContentPreviewPage(
             standardUserFixture.page,
             privateSiteId,
@@ -4345,19 +4374,6 @@ test.describe(
           );
           await suContentPreviewPage.loadPage();
           await suContentPreviewPage.verifyThePageIsLoaded();
-
-          // Create comment on the non-restricted Page
-          pageCommentText = TestDataGenerator.generateRandomText(
-            'SU comment on non-restricted Page for Home Feed sharing with UX',
-            2,
-            true
-          );
-          await suContentPreviewPage.clickShareThoughtsButton();
-
-          const createFeedPostComponent = new CreateFeedPostComponent(standardUserFixture.page);
-          await createFeedPostComponent.createAndPost({ text: pageCommentText });
-
-          // Verify comment is visible
           await suContentPreviewPage.listFeedComponent.waitForPostToBeVisible(pageCommentText);
         });
 
