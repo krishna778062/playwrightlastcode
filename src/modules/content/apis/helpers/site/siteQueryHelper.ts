@@ -385,7 +385,6 @@ export class SiteQueryHelper {
     const createdSite = await this.creationHelper.createSite({
       accessType: accessType || SITE_TYPES.PUBLIC,
       siteName: siteName,
-      category: { name: 'Public', categoryId: 'public' },
       waitForSearchIndex: true,
     });
     await this.membershipHelper.makeUserSiteMembership(

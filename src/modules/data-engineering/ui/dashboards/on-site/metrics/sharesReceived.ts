@@ -79,7 +79,6 @@ export class SharesReceived extends BaseOnSiteTabularMetricsComponent {
 
       const expectedCsvHeaders = [
         'Name',
-        'Interaction Receiver User Code',
         'Audience role',
         'Site name',
         'Site role',
@@ -103,7 +102,6 @@ export class SharesReceived extends BaseOnSiteTabularMetricsComponent {
         transformations: {
           headerMapping: {
             Name: 'Full name',
-            'Interaction Receiver User Code': 'Interacted by user code',
             'Audience role': 'Audience role',
             'Site name': 'Site name',
             'Site role': 'Site role',
