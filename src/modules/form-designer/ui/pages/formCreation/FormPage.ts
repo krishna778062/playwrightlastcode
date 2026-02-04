@@ -381,6 +381,13 @@ export class FormCreationPage extends BasePage {
     });
   }
 
+  async clickOnCheckboxOptionIntoSettingForUploadImageComponent(option: string): Promise<void> {
+    await test.step(`Click on checkbox option: ${option} into setting for upload image component`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.genericGetByTextLocator(option));
+    });
+  }
+
   async verifyHeadingSectionIsVisible(): Promise<void> {
     await test.step('Verify heading section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.heading, { timeout: TIMEOUTS.MEDIUM });

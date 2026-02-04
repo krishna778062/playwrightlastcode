@@ -59,6 +59,9 @@ export class FormParticipationPage extends BasePage {
   readonly submitButton: Locator;
   readonly notificationBell: Locator;
   readonly dismissSurvey: Locator;
+  readonly fileUploadImage: Locator;
+  readonly imageResponseSingle: Locator;
+
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
@@ -75,6 +78,7 @@ export class FormParticipationPage extends BasePage {
       this.page.getByRole('button', { name: `Rate ${opinionValue}`, exact: true });
     this.fileUploadResponse = this.page.locator('input[type="file"]').first();
     this.imageResponse = this.page.locator('input[type="file"]').nth(1);
+    this.imageResponseSingle = this.page.locator('//div[@aria-label="Upload file"]');
     this.multiSelectResponse = (multiSelectValue: string) =>
       this.page.getByRole('checkbox', { name: `${multiSelectValue}`, exact: true });
     this.singleSelectResponse = (singleSelectValue: string) =>
@@ -129,6 +133,8 @@ export class FormParticipationPage extends BasePage {
     this.formNameInNotification = (formName: string) =>
       this.page.locator(`//span[contains(text(),'A new form is ready for you "${formName}"')]`);
     this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
+
+    this.fileUploadImage = this.page.getByRole('button', { name: 'Upload file Drop files here' });
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -264,6 +270,32 @@ export class FormParticipationPage extends BasePage {
       await test.expect(this.numberResponse).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
+
+  async verifyFileUploadResponseNotVisible(fileName: string): Promise<void> {
+    await test.step(`Verify ${fileName} file upload response is not visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.fileUploadImage, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.fileUploadResponsePreview(fileName)).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyImageUploadResponseNotVisible(fileName: string): Promise<void> {
+    await test.step(`Verify ${fileName} image upload response is not visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.fileUploadImage, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.fileUploadResponsePreview(fileName)).not.toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyImageUploadResponseVisible(fileName: string): Promise<void> {
+    await test.step(`Verify ${fileName} image upload response is visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.fileUploadImage, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.fileUploadResponsePreview(fileName)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+  async verifyFileUploadResponseVisible(fileName: string): Promise<void> {
+    await test.step(`Verify ${fileName} file upload response is visible`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.fileUploadImage, { timeout: TIMEOUTS.MEDIUM });
+      await test.expect(this.fileUploadResponsePreview(fileName)).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
   async verifyEmailComponentIsVisible(): Promise<void> {
     await test.step('Verify component is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.emailResponse, { timeout: TIMEOUTS.MEDIUM });
@@ -306,8 +338,16 @@ export class FormParticipationPage extends BasePage {
   async fillResponseIntoImageField(fileName: string): Promise<void> {
     await test.step(`Upload image file: ${fileName}`, async () => {
       const filePath = path.join(TEST_DATA_FILES_PATH, fileName);
-      await this.imageResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+      await this.fileUploadImage.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
       await this.imageResponse.setInputFiles(filePath);
+    });
+  }
+
+  async fillResponseIntoSingleImageField(fileName: string): Promise<void> {
+    await test.step(`Upload image file: ${fileName}`, async () => {
+      const filePath = path.join(TEST_DATA_FILES_PATH, fileName);
+      await this.imageResponseSingle.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+      await this.imageResponseSingle.setInputFiles(filePath);
     });
   }
   async fillResponseIntoMultiSelectField(response: string): Promise<void> {
