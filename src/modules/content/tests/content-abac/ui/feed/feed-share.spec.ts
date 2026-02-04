@@ -3610,7 +3610,7 @@ test.describe(
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Manager of Private Site) can create a comment on a restricted Page and share it to a Public Site Feed with Restricted Viewers (UX Designs). The shared post should be visible to siteManager (in UX), who sees "This post has been deleted" for the original. SU (creator but NOT in UX) cannot see the shared post.',
+            'SU is able to "Share Post" Restricted Private Content Feed Post (In Selected viewers) to Public site Feed with Restricted viewers (UX Designs)',
           zephyrTestId: 'CONT-42216',
           storyId: 'CONT-42216',
         });
@@ -3803,33 +3803,6 @@ test.describe(
           // Verify the shared post is NOT visible to SU (NOT in UX Designs audience)
           await suPublicSiteFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove users from sites ====================
-        await test.step('Cleanup: Remove users from sites', async () => {
-          // Remove SU from Private Site
-          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-            privateSiteId,
-            standardUserUserId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-
-          // Remove SU from Public Site
-          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-            publicSiteId,
-            standardUserUserId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-
-          // Remove siteManager from Public Site
-          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-            publicSiteId,
-            siteManagerUserId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-        });
       }
     );
 
@@ -3841,7 +3814,7 @@ test.describe(
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Manager of Private Site) can create a comment on a restricted Page and share it to Home Feed with Restricted Viewers (UX Designs). The shared post should be visible to siteManager (in UX) and App Manager (in UX), who see "This post has been deleted" for the original. SU (creator but NOT in UX) cannot see the shared post.',
+            'ABAC: SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with Restricted viewers (UX Designs)',
           zephyrTestId: 'CONT-42217',
           storyId: 'CONT-42217',
         });
@@ -4064,7 +4037,7 @@ test.describe(
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Manager of Private Site) can create a comment on a restricted Page and share it to Home Feed WITHOUT Restriction. The shared post should be visible to everyone on Home Feed including siteManager, App Manager, and SU. siteManager sees "This post has been deleted" for the original.',
+            'SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42221',
           storyId: 'CONT-42221',
         });
@@ -4262,17 +4235,6 @@ test.describe(
           // Verify the shared post IS visible to SU (no restriction)
           await suHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove users from Private Site ====================
-        await test.step('Cleanup: Remove users from Private Site', async () => {
-          // Remove SU from Private Site
-          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-            privateSiteId,
-            standardUserUserId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-        });
       }
     );
 
@@ -4284,7 +4246,7 @@ test.describe(
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Manager of Private Site) can create a comment on a non-restricted Page and share it to Home Feed with Restricted Viewers (UX Designs). The shared post should be visible to siteManager (in UX) and App Manager (in UX), who see "This post has been deleted" for the original. SU (creator but NOT in UX) cannot see the shared post.',
+            'SU is able to "Share Post" Non Restricted Private Content Feed Post (In Selected viewers) to Home Feed with Restricted viewers (UX Designs)',
           zephyrTestId: 'CONT-42222',
           storyId: 'CONT-42222',
         });
@@ -4504,7 +4466,7 @@ test.describe(
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify FO (App Manager) can share a restricted Page (UX audience) to Home Feed with Limit Visibility OFF. FO can see shared post and view original content. User B (standardUser, NOT in restricted audience) can see shared post but sees "This post has been deleted" for original.',
+            'FO | Verify FO can Share Content to Home Feed when FO is In Target Audience AND Page Content is Restricted Audience AND Limit Visibility = OFF',
           zephyrTestId: 'CONT-42223',
           storyId: 'CONT-42223',
         });
@@ -4745,16 +4707,6 @@ test.describe(
           // Verify the shared post is NOT visible to standardUser (NOT in Marketing audience)
           await suHomeFeedPage.feedList.verifyPostIsNotVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove standardUser from Public Site ====================
-        await test.step('Cleanup: Remove standardUser from Public Site', async () => {
-          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-            publicSiteId,
-            standardUserUserId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-        });
       }
     );
 
@@ -4880,16 +4832,6 @@ test.describe(
           // Verify the shared post IS visible to standardUser (no restriction on shared post)
           await suHomeFeedPage.feedList.waitForPostToBeVisible(sharePostText);
         });
-
-        // ==================== Cleanup: Remove standardUser from Public Site ====================
-        await test.step('Cleanup: Remove standardUser from Public Site', async () => {
-          await appManagerApiFixture.siteManagementHelper.makeUserSiteMembership(
-            publicSiteId,
-            standardUserUserId,
-            SitePermission.MEMBER,
-            SiteMembershipAction.REMOVE
-          );
-        });
       }
     );
 
@@ -4901,7 +4843,7 @@ test.describe(
       async ({ appManagerFixture, appManagerApiFixture, standardUserFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify FO (App Manager) can share a non-restricted Page to Home Feed with both Limit Visibility ON (UX) and OFF. Since Page is not restricted, all users can view original content. With Limit Visibility ON, only UX users see shared post. With Limit Visibility OFF, all users see shared post.',
+            'ABAC: Verify FO can Share Content to Home Feed when FO is Not in Target Audience AND Page Content is Not in Restricted Audience (Limit Visibility ON/OFF)',
           zephyrTestId: 'CONT-42226',
           storyId: 'CONT-42226',
         });
@@ -5066,7 +5008,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Standard User) in target audience (Engineering) can share a restricted Page to Home Feed with Limit Visibility OFF. SU can see shared post and view original content. User B (siteManager, NOT in restricted audience) can see shared post but sees "This post has been deleted" for original.',
+            'SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42227',
           storyId: 'CONT-42227',
         });
@@ -5217,7 +5159,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Standard User) NOT in target audience (UX) cannot access a restricted Page. User A (standardUser - NOT in UX) should see "Page not available" message when attempting to access the restricted Page. User B (siteManager - IN UX) can access the Page.',
+            'SU | Verify SU/Member cannot Share Content to Home Feed when SU is Not in Target Audience AND Content is Restricted AND Limit Visibility = ON',
           zephyrTestId: 'CONT-42228',
           storyId: 'CONT-42228',
         });
@@ -5337,7 +5279,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SU (Standard User) NOT in target audience can share a non-restricted Page to Home Feed with both Limit Visibility ON (UX) and OFF. Since Page is not restricted, all users can view original content. With Limit Visibility ON, only UX users see shared post. With Limit Visibility OFF, all users see shared post.',
+            'SU | Verify SU/Member can Share Content to Home Feed when SU is Not in Target Audience AND Content is Not Restricted (Limit Visibility ON/OFF)',
           zephyrTestId: 'CONT-42229',
           storyId: 'CONT-42229',
         });
@@ -5527,7 +5469,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Site Owner (siteManager) can share a restricted Page (Engineering audience) to Home Feed even though NOT in the restricted audience, due to Site Owner override permissions. Both Site Owner (SO override) and Standard User (in Engineering) can see shared post and view original content.',
+            'Site Owner is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42230',
           storyId: 'CONT-42230',
         });
@@ -5669,7 +5611,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Site Manager (siteManager) can share a restricted Page (Engineering audience) to Home Feed even though NOT in the restricted audience, due to Site Manager override permissions. Both Site Manager (SM override) and Standard User (in Engineering) can see shared post and view original content.',
+            'Site Manager is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42231',
           storyId: 'CONT-42231',
         });
@@ -5821,7 +5763,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SCM (Site Content Manager) in target audience (Engineering) can share a restricted Page to Home Feed with Limit Visibility OFF. SCM can see shared post and view original content. User B (siteManager, NOT in restricted audience) can see shared post but sees "This post has been deleted" for original.',
+            'Site Content Manager is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42232',
           storyId: 'CONT-42232',
         });
@@ -5973,7 +5915,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify SCM (Site Content Manager) NOT in target audience (Engineering) can access restricted Page (SCM override) and share it to Home Feed with Limit Visibility ON (Engineering). The shared post is NOT visible to SCM (not in Engineering) but IS visible to User B (standardUser - IN Engineering).',
+            'Site Content Manager is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42233',
           storyId: 'CONT-42233',
         });
@@ -6122,7 +6064,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Manager-via-Role SU (standardUser - NOT in Marketing but has Manager-via-Role via "Manage sites | All org" ACG) can access restricted Page and share it to Home Feed with Limit Visibility OFF. Both users can see the shared post. User A (Manager-via-Role) can view original content, User B (siteManager - NOT in Marketing) sees "This post has been deleted".',
+            'Manager-via-Role SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42234',
           storyId: 'CONT-42234',
         });
@@ -6280,7 +6222,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Manager-via-Role SU (standardUser - in Engineering, has Manager-via-Role via "Manage sites | All org" ACG) can share non-restricted Page to Home Feed. Test covers both Limit Visibility OFF (both users see post) and Limit Visibility ON with Engineering audience (only standardUser sees post, siteManager in UX cannot see it).',
+            'Manager-via-Role SU is able to "Share Post" Non Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42235',
           storyId: 'CONT-42235',
         });
@@ -6492,7 +6434,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Site Owner (siteManager - in UX, has SO override) can share a restricted Page (Engineering audience) to Home Feed with Limit Visibility ON (UX audience). Site Owner (in UX) CAN see the shared post. Standard User (in Engineering, NOT in UX) CANNOT see the shared post.',
+            'Site Owner is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42243',
           storyId: 'CONT-42243',
         });
@@ -6632,7 +6574,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Site Manager (siteManager - in UX, has SM override) can share a restricted Page (Engineering audience) to Home Feed with Limit Visibility ON (UX audience). Site Manager (in UX) CAN see the shared post. Standard User (in Engineering, NOT in UX) CANNOT see the shared post.',
+            'Site Manager is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42244',
           storyId: 'CONT-42244',
         });
@@ -6786,7 +6728,7 @@ test.describe(
       async ({ appManagerApiFixture, standardUserFixture, siteManagerFixture }) => {
         tagTest(test.info(), {
           description:
-            'ABAC: Verify Manager-via-Role SU (standardUser - in Engineering, has Manager-via-Role via "Manage sites | All org" ACG) can share a restricted Page (Marketing audience) to Home Feed with Limit Visibility ON (Engineering audience). Manager-via-Role SU (in Engineering) CAN see the shared post. siteManager (in UX, NOT in Engineering) CANNOT see the shared post.',
+            'Manager-via-Role SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42247',
           storyId: 'CONT-42247',
         });
