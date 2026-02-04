@@ -1321,7 +1321,7 @@ export class RenamingPage extends BasePage {
       const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs(
         getRewardTenantConfigFromCache().appManagerName
       );
-      await manageRewardsOverviewPage.page.goto(rewardData.resultAny?.URL!);
+      await manageRewardsOverviewPage.page.goto(rewardData.urlToOpen!);
       await recognitionHub.clickOnTheFirstPostMoreOption(2);
       const expectedRecognition = expectedMap.get('recognition') ?? '';
       const expectedPoints = expectedMap.get('points') ?? '';
