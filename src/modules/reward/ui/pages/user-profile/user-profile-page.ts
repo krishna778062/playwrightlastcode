@@ -261,24 +261,30 @@ export class UserProfilePage extends BasePage {
   /**
    * Set notification settings for recognition
    */
-  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<void> {
+  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<boolean> {
     const isChecked = await this.recognitionEmailCheckbox.isChecked();
+    let valueChanged = false;
     if (isChecked !== enabled) {
       await this.clickOnElement(this.recognitionEmailCheckbox, {
         stepInfo: `Setting recognition notifications to ${enabled ? 'enabled' : 'disabled'}`,
       });
+      valueChanged = true;
     }
+    return valueChanged;
   }
 
   /**
    * Set notification settings for rewards
    */
-  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<void> {
+  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<boolean> {
     const isChecked = await this.rewardsEmailCheckbox.isChecked();
+    let valueChanged = false;
     if (isChecked !== enabled) {
       await this.clickOnElement(this.rewardsEmailCheckbox, {
         stepInfo: `Setting rewards notifications to ${enabled ? 'enabled' : 'disabled'}`,
       });
+      valueChanged = true;
     }
+    return valueChanged;
   }
 }

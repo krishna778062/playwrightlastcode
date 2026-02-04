@@ -407,9 +407,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     const rewardsData = await rewardsApi.getRewardsAsJson(this.page);
     const isRewardEnabled = rewardsData.enabled;
     const isPeerGiftingDisabled = rewardsData.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    );
+    console.log(`${test.info().title}: Rewards: ${isRewardEnabled}, Peer Gifting: ${isPeerGiftingDisabled}`);
     const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       await manageRecognitionPage.loadPage();
