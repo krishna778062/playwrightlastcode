@@ -777,14 +777,12 @@ jobs:
             # ──────────────────────────────────────────────────────────
             # REWARD MODULE
             # Special: Excludes @rewards-db tests (DB-dependent) and P3
-            # Workers: 3 (parallel execution)
             # ──────────────────────────────────────────────────────────
             "reward")
               echo "📦 Running Reward tests (excluding @rewards-db and P3)..."
               eval $RUN_CMD --config=src/modules/reward/playwright.reward.config.ts \
                 --grep-invert=\"@rewards-db\|P3\" \
                 $GREP_FILTER \
-                --workers=4
               ;;
 
             # ──────────────────────────────────────────────────────────
@@ -819,7 +817,7 @@ jobs:
             # Special: Excludes @rewards-db tests, uses single worker
             # Workers: 1 (sequential to avoid settings conflicts)
             # ──────────────────────────────────────────────────────────
-            "reward-renaming")
+            "reward-workAnniversary")
               echo "📦 Running Reward Settings tests (excluding @rewards-db and P3)..."
               eval $RUN_CMD --config=src/modules/reward/playwright.work-anniversary-with-points.config.ts \
                 --grep-invert=\"@rewards-db\|P3\" \
