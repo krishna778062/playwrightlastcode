@@ -908,8 +908,6 @@ export class ManageRewardsOverviewPage extends BasePage {
    *  - urlToOpen: convenience URL (same preference)
    */
   public async openTheRecognitionPostCreatedBefore24Hrs(recognitionGiver?: string): Promise<{
-    resultForGiver: RecordResult;
-    resultAny: RecordResult;
     pointsToValidate: number | null;
     urlToOpen: string | null;
   }> {
@@ -932,6 +930,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     } catch (e) {
       /* ignore errors */
     }
-    return { resultForGiver, resultAny, pointsToValidate, urlToOpen };
+    return { pointsToValidate, urlToOpen };
   }
 }

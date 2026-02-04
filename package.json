@@ -30,7 +30,7 @@
     "test:content-abac": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-abac.config.ts",
     "test:content-studio:P0": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-studio.config.ts --grep=@P0",
     "test:content-studio:smoke": "cross-env MODULE_NAME=content npx playwright test --config=src/modules/content/playwright.content-studio.config.ts --grep=@smoke",
-    "test:reward": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
+    "test:reward": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts --grep=@reward-store",
     "test:reward-settings": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward-settings.config.ts",
     "test:reward-workAnniversary": "cross-env MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.work-anniversary-with-points.config.ts",
     "test:reward:test": "cross-env TEST_ENV=test MODULE_NAME=reward npx playwright test --config=src/modules/reward/playwright.reward.config.ts",
