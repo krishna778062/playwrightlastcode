@@ -1,11 +1,8 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
-import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
-import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { SitePermission } from '@/src/core/types/siteManagement.types';
-import { TestDataGenerator } from '@/src/core/utils/testDataGenerator';
 import { FeedSortBy } from '@/src/modules/content/constants/feedSortBy';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
@@ -19,37 +16,26 @@ test.describe(
     tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],
   },
   () => {
-    let siteManagerFeedPage: FeedPage;
-    let siteContentManagerFeedPage: FeedPage;
-    let adminFeedPage: FeedPage;
     let createdPostText: string;
     let createdPostId: string = '';
     let createdSite: any;
 
-    test.beforeEach(
-      'Setup test environment: Create site and get user IDs',
-      async ({ siteManagerFixture, appManagerFixture }) => {
-        const siteContentManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
-          users.endUser.email
-        );
-        // Create a public site
-        createdSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
-          waitForSearchIndex: false,
-        });
+    test.beforeEach('Setup test environment: Create site and get user IDs', async ({ appManagerFixture }) => {
+      const siteContentManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+        users.endUser.email
+      );
+      // Create a public site
+      createdSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
+        waitForSearchIndex: false,
+      });
 
-        // Make endUser (Site Content Manager) a content manager of the site
-        await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
-          siteId: createdSite.siteId,
-          userId: siteContentManagerInfo.userId,
-          role: SitePermission.CONTENT_MANAGER,
-        });
-
-        // Initialize feed pages
-        siteManagerFeedPage = new FeedPage(siteManagerFixture.page);
-        siteContentManagerFeedPage = new FeedPage(siteManagerFixture.page);
-        adminFeedPage = new FeedPage(appManagerFixture.page);
-      }
-    );
+      // Make endUser (Site Content Manager) a content manager of the site
+      await appManagerFixture.siteManagementHelper.updateUserSiteMembershipWithRole({
+        siteId: createdSite.siteId,
+        userId: siteContentManagerInfo.userId,
+        role: SitePermission.CONTENT_MANAGER,
+      });
+    });
 
     test.afterEach(async ({ appManagerFixture }) => {
       // Cleanup: Delete post using API if test failed and post still exists
@@ -75,39 +61,22 @@ test.describe(
           storyId: 'CONT-26729',
         });
 
-        // Login as Site Manager (Admin shouldn't be following Site Manager)
-        await siteManagerFixture.homePage.verifyThePageIsLoaded();
-
         // Create a Feed post with text "Created a Feed Post"
-        createdPostText = FEED_TEST_DATA.POST_TEXT.SHARED;
-        const feedTestData = TestDataGenerator.generateFeed({
-          scope: 'site',
-          siteId: createdSite.siteId,
-          withAttachment: false as const,
-          waitForSearchIndex: false,
-        });
+        createdPostText = FEED_TEST_DATA.POST_TEXT.INITIAL;
 
-        // Navigate to site feed
-        await siteManagerFeedPage.page.goto(PAGE_ENDPOINTS.getSiteFeedPage(createdSite.siteId));
-
-        // Create feed post with custom text
-        const feedResponse = await siteManagerFixture.feedManagementHelper.createFeed({
-          ...feedTestData,
-          text: createdPostText,
-        });
-        createdPostId = feedResponse.result.feedId;
-        console.log(`Created feed via API: ${createdPostId}`);
-
-        // Navigate to the feed URL to see the post
-        await siteManagerFeedPage.page.goto(API_ENDPOINTS.feed.feedURL(createdPostId));
-        await siteManagerFeedPage.feedList.waitForPostToBeVisible(createdPostText);
+        // Login as Site Manager (Admin shouldn't be following Site Manager)
+        await siteManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const feedPage = new FeedPage(siteManagerFixture.page);
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.clickShareThoughtsButton();
+        const feedResponse1 = await feedPage.postEditor.createAndPost({ text: createdPostText });
+        createdPostId = feedResponse1.postId || '';
+        await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
         // Login as Site Content Manager (Admin should be following Site Content Manager)
-        siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
-        await standardUserFixture.homePage.verifyThePageIsLoaded();
-
-        // Navigate to Global Feed and Select Show filter as "All Posts"
         await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+        const siteContentManagerFeedPage = new FeedPage(standardUserFixture.page);
+        await siteContentManagerFeedPage.reloadPage();
         await siteContentManagerFeedPage.verifyThePageIsLoaded();
         await siteContentManagerFeedPage.clickOnShowOption('all');
 
@@ -123,7 +92,10 @@ test.describe(
         await siteContentManagerFeedPage.share.clickShareButton();
 
         // Login as Admin
-        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.reloadPage();
+        await adminFeedPage.verifyThePageIsLoaded();
 
         // Navigate to Global Feed
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();

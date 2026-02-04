@@ -13,7 +13,7 @@ export class ManageTopicsPage extends BasePage {
   private addTopicComponent: AddTopicComponent;
   private editTopicComponent: EditTopicComponent;
   readonly searchingTopic: Locator;
-  readonly verifiedTheSearhcedTopic: (topicName: string) => Locator;
+  readonly verifiedTheSearchedTopic: (topicName: string) => Locator;
   readonly clickingOnSearchButton: Locator;
   readonly nothingToShowHereText: Locator;
   readonly clickingOnCrossSearchButton: Locator;
@@ -28,7 +28,7 @@ export class ManageTopicsPage extends BasePage {
 
     // Initialize locators
     this.searchingTopic = this.page.locator('[aria-label="Search topics…"]');
-    this.verifiedTheSearhcedTopic = (topicName: string) =>
+    this.verifiedTheSearchedTopic = (topicName: string) =>
       this.page.locator('[data-testid="dataGridRow"]').filter({ hasText: topicName }).first();
     this.clickingOnSearchButton = this.page.locator('.SearchField-submit');
     this.nothingToShowHereText = this.page.locator('div').filter({ hasText: /^Nothing to show here$/ });
@@ -79,14 +79,14 @@ export class ManageTopicsPage extends BasePage {
           await this.searchingTopicInSearchBar(topicName);
 
           // Verify the topic is visible
-          await this.verifyingTheSearhcedTopicIsVisible(topicName);
+          await this.verifyingTheSearchedTopicIsVisible(topicName);
 
           console.log(`✓ Successfully verified topic ${i + 1}/${topicNames.length}: "${topicName}"`);
         });
       }
     });
   }
-  async verifyErroToastMessage(): Promise<void> {
+  async verifyErrorToastMessage(): Promise<void> {
     const baseActionUtil = new BaseActionUtil(this.page);
     await baseActionUtil.verifyToastMessageIsVisibleWithText(
       'Could not edit Topic - Only character spacing and capitalization allowed',
@@ -129,9 +129,9 @@ export class ManageTopicsPage extends BasePage {
     await this.clickOnElement(this.clickingOnSearchButton);
   }
 
-  async verifyingTheSearhcedTopicIsVisible(topicName: string): Promise<void> {
+  async verifyingTheSearchedTopicIsVisible(topicName: string): Promise<void> {
     await test.step(`Verifying topic "${topicName}" is visible in search results`, async () => {
-      const topicLocator = this.verifiedTheSearhcedTopic(topicName);
+      const topicLocator = this.verifiedTheSearchedTopic(topicName);
       await this.verifier.verifyTheElementIsVisible(topicLocator, {
         assertionMessage: `Topic "${topicName}" should be visible in search results`,
       });

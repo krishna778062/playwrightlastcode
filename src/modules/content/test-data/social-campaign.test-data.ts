@@ -1,14 +1,26 @@
 import { faker } from '@faker-js/faker';
 import { SocialCampaignNetwork, SocialCampaignRecipient } from '@core/types/social-campaign.types';
 
+/**
+ * Formats today's date in DD_MM_YYYY format
+ * @returns Formatted date string (e.g., "03_03_2026")
+ */
+function getTodayDateFormatted(): string {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, '0');
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const year = today.getFullYear();
+  return `${day}_${month}_${year}`;
+}
+
 export const SOCIAL_CAMPAIGN_TEST_DATA = {
   // Default campaign messages
   MESSAGES: {
     DEFAULT: `Test Social Campaign ${faker.company.buzzPhrase()}`,
-    YOUTUBE: `YouTube Campaign ${faker.company.buzzPhrase()}`,
-    BLOG: `Blog Campaign ${faker.company.buzzPhrase()}`,
-    NEWS: `News Campaign ${faker.company.buzzPhrase()}`,
-    PRODUCT: `Product Campaign ${faker.company.buzzPhrase()}`,
+    YOUTUBE: `${faker.company.buzzPhrase()} YouTube Campaign ${getTodayDateFormatted()}`,
+    BLOG: `${faker.company.buzzPhrase()} Blog Campaign ${getTodayDateFormatted()}`,
+    NEWS: `${faker.company.buzzPhrase()} News Campaign ${getTodayDateFormatted()}`,
+    PRODUCT: `${faker.company.buzzPhrase()} Product Campaign ${getTodayDateFormatted()}`,
   },
 
   // Common URLs for testing
@@ -100,6 +112,7 @@ export const SOCIAL_CAMPAIGN_TEST_DATA = {
     EXPIRED_SUCCESSFULLY: 'Expired social campaign successfully',
     DELETED_SUCCESSFULLY: 'Deleted social campaign successfully',
     SHARED_SUCCESSFULLY: 'Shared social campaign successfully',
+    ADDED_SUCCESSFULLY: 'Added campaign to site carousel successfully',
   },
 
   // Error messages

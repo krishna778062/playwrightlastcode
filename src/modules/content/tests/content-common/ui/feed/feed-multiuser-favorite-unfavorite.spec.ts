@@ -1,6 +1,8 @@
 import { TestPriority } from '@core/constants/testPriority';
 import { tagTest } from '@core/utils/testDecorator';
 
+import { TestFileHelper } from '../../../utils/testFileHelper';
+
 import { API_ENDPOINTS } from '@/src/core/constants/apiEndpoints';
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { TestGroupType } from '@/src/core/constants/testType';
@@ -10,13 +12,14 @@ import { getContentConfigFromCache } from '@/src/modules/content/config/contentC
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@/src/modules/content/test-data/feed.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { SITE_TYPES } from '@/src/modules/global-search/constants/siteTypes';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
-test.describe.skip(
+test.describe(
   '@FeedMultiUser - Multi-User Feed Post Favorite/Unfavorite Tests (Site Owner, Manager, Content Manager)',
   {
     tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],
@@ -38,17 +41,17 @@ test.describe.skip(
         hasAttachment: false as const,
         storyId: 'CONT-39249',
       },
-      // {
-      //   testName: 'with file attachment',
-      //   description:
-      //     'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post with File Attachment',
-      //   hasAttachment: true as const,
-      //   fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
-      //   fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
-      //   mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-      //   filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
-      //   storyId: 'CONT-24919',
-      // },
+      {
+        testName: 'with file attachment',
+        description:
+          'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post with File Attachment',
+        hasAttachment: true as const,
+        fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
+        fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
+        mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
+        filePath: TestFileHelper.getTestDataFilePath(FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName, __dirname),
+        storyId: 'CONT-24919',
+      },
     ];
 
     test.beforeEach(
@@ -99,40 +102,27 @@ test.describe.skip(
             storyId: testData.storyId,
           });
 
-          // Generate feed test data using the test data generator
-          const feedTestData = testData.hasAttachment
-            ? (() => {
-                const attachmentData = testData as typeof testData & {
-                  fileName: string;
-                  fileSize: number;
-                  mimeType: string;
-                  filePath: string;
-                };
-                return TestDataGenerator.generateFeed({
-                  scope: 'site',
-                  siteId: createdSite.siteId,
-                  withAttachment: true as const,
-                  fileName: attachmentData.fileName,
-                  fileSize: attachmentData.fileSize,
-                  mimeType: attachmentData.mimeType,
-                  filePath: attachmentData.filePath,
-                  waitForSearchIndex: false,
-                });
-              })()
-            : TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: createdSite.siteId,
-                withAttachment: false as const,
-                waitForSearchIndex: false,
-              });
-          createdPostText = feedTestData.text;
+          // Generate post text for UI creation
+          createdPostText = TestDataGenerator.generateRandomText('Post Favorite/Unfavorite', 2, false);
 
-          // Create feed based on test data
-          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
-          console.log(`Created feed via Helper: ${feedResponse.result.feedId}`);
+          // Navigate app manager to site feed and create post via UI
+          const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, createdSite.siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.clickOnFeedLink();
+          await appManagerFeedPage.verifyThePageIsLoaded();
+          await appManagerFeedPage.clickShareThoughtsButton();
 
-          // Store created post ID for cleanup
-          createdPostId = feedResponse.result.feedId;
+          const postResult = testData.hasAttachment
+            ? await appManagerFeedPage.postEditor.createAndPost({
+                text: createdPostText,
+                attachments: {
+                  files: [(testData as typeof testData & { filePath: string }).filePath],
+                },
+              })
+            : await appManagerFeedPage.postEditor.createAndPost({ text: createdPostText });
+
+          createdPostId = postResult.postId ?? '';
+          console.log(`Created feed via UI: ${createdPostId}`);
 
           // Navigate all pages to the feed URL in parallel
           await Promise.all([
@@ -197,17 +187,17 @@ test.describe(
         hasAttachment: false as const,
         storyId: 'CONT-24907',
       },
-      // {
-      //   testName: 'with file attachment',
-      //   description:
-      //     'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post with File Attachment on Site Feed',
-      //   hasAttachment: true as const,
-      //   fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
-      //   fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
-      //   mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
-      //   filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
-      //   storyId: 'CONT-24907',
-      // },
+      {
+        testName: 'with file attachment',
+        description:
+          'Verify Site Owner, Manager and Content Manager is able to favorite and unfavorite Feed post with File Attachment on Site Feed',
+        hasAttachment: true as const,
+        fileName: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileName,
+        fileSize: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.fileSize,
+        mimeType: FEED_TEST_DATA.DEFAULT_FEED_CONTENT.mimeType,
+        filePath: FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname),
+        storyId: 'CONT-24907',
+      },
     ];
 
     test.beforeEach('Setup test environment', async ({ appManagerFixture }) => {
@@ -280,69 +270,48 @@ test.describe(
             storyId: testData.storyId,
           });
 
-          // Generate feed test data using the test data generator
-          const feedTestData = testData.hasAttachment
-            ? (() => {
-                const attachmentData = testData as typeof testData & {
-                  fileName: string;
-                  fileSize: number;
-                  mimeType: string;
-                  filePath: string;
-                };
-                return TestDataGenerator.generateFeed({
-                  scope: 'site',
-                  siteId: siteId,
-                  withAttachment: true as const,
-                  fileName: attachmentData.fileName,
-                  fileSize: attachmentData.fileSize,
-                  mimeType: attachmentData.mimeType,
-                  filePath: attachmentData.filePath,
-                  waitForSearchIndex: false,
-                });
-              })()
-            : TestDataGenerator.generateFeed({
-                scope: 'site',
-                siteId: siteId,
-                withAttachment: false as const,
-                waitForSearchIndex: false,
-              });
-          createdPostText = feedTestData.text;
+          // Generate post text and create post via UI (app manager)
+          createdPostText = TestDataGenerator.generateRandomText('Post', 1, false);
 
-          // Create feed based on test data via API
-          // Note: feedManagementHelper automatically tracks created feeds for cleanup via fixture
-          const feedResponse = await appManagerFixture.feedManagementHelper.createFeed(feedTestData);
-          console.log(`Created feed via API: ${feedResponse.result.feedId}`);
+          const ownerDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+          await ownerDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await ownerDashboardPage.clickOnFeedLink();
+          const appManagerFeedPageForCreate = new FeedPage(appManagerFixture.page);
+          await appManagerFeedPageForCreate.verifyThePageIsLoaded();
+          await appManagerFeedPageForCreate.clickShareThoughtsButton();
+          const postResult = await appManagerFeedPageForCreate.postEditor.createAndPost({
+            text: createdPostText,
+          });
+          const createdPostId = postResult.postId ?? '';
+          console.log(`Created feed via UI: ${createdPostId}`);
 
           // Navigate all users to Site Feed via Site Dashboard → Feed Link in parallel
           const [ownerFeedPage, managerFeedPage, contentFeedPage] = await Promise.all([
             // Site Owner navigation
             (async () => {
               const siteOwnerDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
-              // await siteOwnerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
               await siteOwnerDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
               await siteOwnerDashboardPage.clickOnFeedLink();
               const feedPage = new FeedPage(appManagerFixture.page);
-              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
+              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(createdPostId));
               return feedPage;
             })(),
             // Site Manager navigation
             (async () => {
               const siteManagerDashboardPage = new SiteDashboardPage(siteManagerFixture.page, siteId);
               await siteManagerDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-              // await siteManagerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
               await siteManagerDashboardPage.clickOnFeedLink();
               const feedPage = new FeedPage(siteManagerFixture.page);
-              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
+              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(createdPostId));
               return feedPage;
             })(),
             // Content Manager navigation
             (async () => {
               const contentManagerDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
               await contentManagerDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
-              // await contentManagerDashboardPage.goToUrl(PAGE_ENDPOINTS.getSiteDashboardPage(siteId));
               await contentManagerDashboardPage.clickOnFeedLink();
               const feedPage = new FeedPage(standardUserFixture.page);
-              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(feedResponse.result.feedId));
+              await feedPage.goToUrl(PAGE_ENDPOINTS.getFeedPage(createdPostId));
               return feedPage;
             })(),
           ]);
@@ -384,7 +353,7 @@ test.describe(
   }
 );
 
-test.describe.skip(
+test.describe(
   'home Feed Post Favorite/Unfavorite Tests',
   {
     tag: [ContentTestSuite.FEED_MULTI_USER, ContentTestSuite.FEED],

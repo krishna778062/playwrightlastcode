@@ -1,6 +1,39 @@
 import { expect, test } from '@playwright/test';
 
 /**
+ * User sites access item structure
+ */
+export interface UserSitesAccessItem {
+  siteId: string;
+  hasAccess: boolean;
+}
+
+/**
+ * User sites access response structure from getUserSitesAccess API
+ */
+export interface UserSitesAccessResponse {
+  status: string;
+  result: UserSitesAccessItem[];
+}
+
+/**
+ * Bulk users sites access item structure
+ */
+export interface BulkUsersSitesAccessItem {
+  userId: string;
+  siteId: string;
+  hasAccess: boolean;
+}
+
+/**
+ * Bulk users sites access response structure
+ */
+export interface BulkUsersSitesAccessResponse {
+  status: string;
+  result: BulkUsersSitesAccessItem[];
+}
+
+/**
  * Site details response structure from getSiteDetails API
  */
 export interface SiteDetailsResponse {
@@ -250,5 +283,128 @@ export class SiteApiHelper {
     await test.step('Validate site name', async () => {
       expect(siteResponse.result.name, 'name should match the expected name').toBe(siteName);
     });
+  }
+
+  /**
+   * Validates the basic user sites access response structure (status and result)
+   * @param userSitesAccessResponse - The user sites access response to validate
+   */
+  async validateUserSitesAccessResponseBasic(userSitesAccessResponse: UserSitesAccessResponse): Promise<void> {
+    await test.step('Validate user sites access response basic fields', async () => {
+      expect(userSitesAccessResponse.status, 'status should be "success"').toBe('success');
+      expect(userSitesAccessResponse.result, 'result should exist').toBeDefined();
+      expect(Array.isArray(userSitesAccessResponse.result), 'result should be an array').toBe(true);
+    });
+  }
+
+  /**
+   * Validates user sites access result array structure
+   * @param userSitesAccessResponse - The user sites access response to validate
+   * @param expectedSiteIds - Array of expected site IDs that should be in the response
+   */
+  async validateUserSitesAccessResult(
+    userSitesAccessResponse: UserSitesAccessResponse,
+    expectedSiteIds: string[]
+  ): Promise<void> {
+    await test.step('Validate user sites access result array', async () => {
+      expect(userSitesAccessResponse.result.length, `result array should have ${expectedSiteIds.length} items`).toBe(
+        expectedSiteIds.length
+      );
+      expect(userSitesAccessResponse.result.length, 'result array should have at least one item').toBeGreaterThan(0);
+
+      // Validate each item in the result array
+      userSitesAccessResponse.result.forEach((item, index) => {
+        expect(item, `result[${index}] should be defined`).toBeDefined();
+        expect(item.siteId, `result[${index}].siteId should be a non-empty string`).toBeTruthy();
+        expect(typeof item.siteId, `result[${index}].siteId should be a string`).toBe('string');
+        expect(item.hasAccess, `result[${index}].hasAccess should be a boolean`).toBeDefined();
+        expect(typeof item.hasAccess, `result[${index}].hasAccess should be a boolean`).toBe('boolean');
+        expect(expectedSiteIds, `result[${index}].siteId should be in the expected site IDs list`).toContain(
+          item.siteId
+        );
+      });
+    });
+  }
+
+  /**
+   * Validates user sites access response comprehensively
+   * @param userSitesAccessResponse - The user sites access response to validate
+   * @param expectedSiteIds - Array of expected site IDs that should be in the response
+   */
+  async validateUserSitesAccessResponse(
+    userSitesAccessResponse: UserSitesAccessResponse,
+    expectedSiteIds: string[]
+  ): Promise<void> {
+    await this.validateUserSitesAccessResponseBasic(userSitesAccessResponse);
+    await this.validateUserSitesAccessResult(userSitesAccessResponse, expectedSiteIds);
+  }
+
+  /**
+   * Validates the basic bulk users sites access response structure (status and result)
+   * @param bulkUsersSitesAccessResponse - The bulk users sites access response to validate
+   */
+  async validateBulkUsersSitesAccessResponseBasic(
+    bulkUsersSitesAccessResponse: BulkUsersSitesAccessResponse
+  ): Promise<void> {
+    await test.step('Validate bulk users sites access response basic fields', async () => {
+      expect(bulkUsersSitesAccessResponse.status, 'status should be "success"').toBe('success');
+      expect(bulkUsersSitesAccessResponse.result, 'result should exist').toBeDefined();
+      expect(Array.isArray(bulkUsersSitesAccessResponse.result), 'result should be an array').toBe(true);
+    });
+  }
+
+  /**
+   * Validates bulk users sites access result array structure
+   * @param bulkUsersSitesAccessResponse - The bulk users sites access response to validate
+   * @param expectedSiteIds - Array of expected site IDs that should be in the response
+   * @param expectedUserIds - Array of expected user IDs that should be in the response
+   */
+  async validateBulkUsersSitesAccessResult(
+    bulkUsersSitesAccessResponse: BulkUsersSitesAccessResponse,
+    expectedSiteIds: string[],
+    expectedUserIds: string[]
+  ): Promise<void> {
+    await test.step('Validate bulk users sites access result array', async () => {
+      const expectedResultCount = expectedSiteIds.length * expectedUserIds.length;
+      expect(
+        bulkUsersSitesAccessResponse.result.length,
+        `result array should have ${expectedResultCount} items (${expectedSiteIds.length} sites × ${expectedUserIds.length} users)`
+      ).toBe(expectedResultCount);
+      expect(bulkUsersSitesAccessResponse.result.length, 'result array should have at least one item').toBeGreaterThan(
+        0
+      );
+
+      // Validate each item in the result array
+      bulkUsersSitesAccessResponse.result.forEach((item, index) => {
+        expect(item, `result[${index}] should be defined`).toBeDefined();
+        expect(item.userId, `result[${index}].userId should be a non-empty string`).toBeTruthy();
+        expect(typeof item.userId, `result[${index}].userId should be a string`).toBe('string');
+        expect(item.siteId, `result[${index}].siteId should be a non-empty string`).toBeTruthy();
+        expect(typeof item.siteId, `result[${index}].siteId should be a string`).toBe('string');
+        expect(item.hasAccess, `result[${index}].hasAccess should be a boolean`).toBeDefined();
+        expect(typeof item.hasAccess, `result[${index}].hasAccess should be a boolean`).toBe('boolean');
+        expect(expectedSiteIds, `result[${index}].siteId should be in the expected site IDs list`).toContain(
+          item.siteId
+        );
+        expect(expectedUserIds, `result[${index}].userId should be in the expected user IDs list`).toContain(
+          item.userId
+        );
+      });
+    });
+  }
+
+  /**
+   * Validates bulk users sites access response comprehensively
+   * @param bulkUsersSitesAccessResponse - The bulk users sites access response to validate
+   * @param expectedSiteIds - Array of expected site IDs that should be in the response
+   * @param expectedUserIds - Array of expected user IDs that should be in the response
+   */
+  async validateBulkUsersSitesAccessResponse(
+    bulkUsersSitesAccessResponse: BulkUsersSitesAccessResponse,
+    expectedSiteIds: string[],
+    expectedUserIds: string[]
+  ): Promise<void> {
+    await this.validateBulkUsersSitesAccessResponseBasic(bulkUsersSitesAccessResponse);
+    await this.validateBulkUsersSitesAccessResult(bulkUsersSitesAccessResponse, expectedSiteIds, expectedUserIds);
   }
 }

@@ -21,6 +21,10 @@ export class GovernanceScreenPage extends BasePage {
   readonly customFeedPlaceholderInput: Locator;
   readonly makePlaceholderDefaultButton: Locator;
   readonly feedPlaceholderHeading: Locator;
+  readonly contentSubmissionsHeading: Locator;
+  readonly contentSubmissionsDescription: Locator;
+  readonly contentSubmissionsEnableRadio: Locator;
+  readonly contentSubmissionsDisableRadio: Locator;
 
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.GOVERNANCE_SCREEN);
@@ -40,6 +44,18 @@ export class GovernanceScreenPage extends BasePage {
     this.customFeedPlaceholderInput = this.page.locator('#customFeedPlaceholderText');
     this.makePlaceholderDefaultButton = page.getByRole('radio', { name: 'Default (Share your thoughts' });
     this.feedPlaceholderHeading = page.getByRole('heading', { name: 'Feed placeholder' });
+    this.contentSubmissionsHeading = page.getByRole('heading', { name: 'Content submissions' });
+    this.contentSubmissionsDescription = page.getByText(
+      'Allow users to contribute content across the platform. Each site can then configure who can submit and how submissions are approved.'
+    );
+    // Locate radio buttons within the Content submissions section
+    // Strategy: Find the parent container that holds both the heading/description and the radio buttons
+    // The structure is typically: container > [heading, description, group with radio buttons]
+    // Go up two levels from heading to get the section container
+    const contentSubmissionsSection = this.contentSubmissionsHeading.locator('..').locator('..');
+    // Find radio buttons within this section
+    this.contentSubmissionsEnableRadio = contentSubmissionsSection.getByRole('radio', { name: 'Enable' }).first();
+    this.contentSubmissionsDisableRadio = contentSubmissionsSection.getByRole('radio', { name: 'Disable' }).first();
   }
   async verifyFeedPlaceholderSettingIsVisible(): Promise<void> {
     await test.step('Verify Feed placeholder setting section is visible', async () => {
@@ -229,6 +245,34 @@ export class GovernanceScreenPage extends BasePage {
           stepInfo: 'Verify the changes confirmation toast message is visible',
         });
       }
+    });
+  }
+
+  async verifyContentSubmissionsUI(): Promise<void> {
+    await test.step('Verify Content Submissions UI is displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentSubmissionsHeading, {
+        assertionMessage: 'Content Submissions heading should be visible',
+      });
+    });
+  }
+
+  async verifyContentSubmissionsDescription(): Promise<void> {
+    await test.step('Verify Content Submissions description contains expected text', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentSubmissionsDescription, {
+        assertionMessage:
+          'Content Submissions description should contain: "Allow users to contribute content across the platform. Each site can then configure who can submit and how submissions are approved."',
+      });
+    });
+  }
+
+  async verifyContentSubmissionsRadioButtons(): Promise<void> {
+    await test.step('Verify Enable and Disable radio buttons are displayed', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.contentSubmissionsEnableRadio, {
+        assertionMessage: 'Enable radio button should be visible',
+      });
+      await this.verifier.verifyTheElementIsVisible(this.contentSubmissionsDisableRadio, {
+        assertionMessage: 'Disable radio button should be visible',
+      });
     });
   }
 }
