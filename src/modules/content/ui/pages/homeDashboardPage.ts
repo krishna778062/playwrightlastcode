@@ -50,12 +50,6 @@ export class HomeDashboardPage extends BasePage {
     );
   }
 
-  async visit() {
-    await test.step('Verify home dashboard page is loaded', async () => {
-      await this.goToUrl(PAGE_ENDPOINTS.HOME_PAGE, { waitUntil: 'domcontentloaded' });
-    });
-  }
-
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
       const isEditButtonVisible = await this.verifier.isTheElementVisibleWithLessTimeout(this.editDashboardButton);

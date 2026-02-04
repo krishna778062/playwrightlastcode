@@ -9,11 +9,10 @@ import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
-import { HomeDashboardPage } from '@content/ui/pages/homeDashboardPage';
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
+import { NewHomePage, PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
 import { RewardSitesService } from '@/src/modules/reward/api/services/RewardSitesService';
 
 export class RenamingPage extends BasePage {
@@ -890,8 +889,8 @@ export class RenamingPage extends BasePage {
 
   private async validateRecognitionOnHome(customValue: any): Promise<void> {
     const recognition = customValue.get('recognition');
-    const homePage = new HomeDashboardPage(this.page);
-    await homePage.visit();
+    const homePage = new NewHomePage(this.page);
+    await homePage.loadPage();
     const locator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`);
     await this.verifier.verifyTheElementIsVisible(locator, {
       assertionMessage: `Verifying recognition nav menu with label ${await locator.textContent()} is visible on home page`,
