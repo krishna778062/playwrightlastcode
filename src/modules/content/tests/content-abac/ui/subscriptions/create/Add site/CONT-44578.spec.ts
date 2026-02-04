@@ -1,5 +1,3 @@
-import { expect } from '@playwright/test';
-
 import { TestPriority } from '@/src/core/constants/testPriority';
 import { TestGroupType } from '@/src/core/constants/testType';
 import { tagTest } from '@/src/core/utils/testDecorator';
@@ -39,7 +37,7 @@ test.describe('Subscription Site Creation Test Suite (ABAC)', { tag: [ContentSui
       });
 
       await appManagerFixture.navigationHelper.openSiteCreationForm(true);
-      const manageSiteSubscriptionPage = new ManageSiteSubscriptionPage(appManagerFixture.page);
+      let manageSiteSubscriptionPage = new ManageSiteSubscriptionPage(appManagerFixture.page);
 
       await siteCreationPage.verifySiteCreationFormStructure();
       await siteCreationPage.form.fillSiteDetails({
@@ -53,12 +51,11 @@ test.describe('Subscription Site Creation Test Suite (ABAC)', { tag: [ContentSui
       await siteCreationPage.form.abacSubscriptionComponent.selectAllOrganizationAudience();
       await siteCreationPage.form.abacSubscriptionComponent.verifySubscriptionsSectionIsVisible();
 
-      audienceId = await siteCreationPage.form.abacSubscriptionComponent.extractAudienceIdFromFirstRow();
-      expect(audienceId, 'Audience ID should be extracted').not.toBeNull();
-      await manageSiteSubscriptionPage.verifySubscriptionExists(audienceId!);
-      await siteCreationPage.form.abacSubscriptionComponent.clickMoreMenu(audienceId!);
-      await manageSiteSubscriptionPage.verifyRerunOption(audienceId!, false);
-      await manageSiteSubscriptionPage.verifyDeleteOptionEnabled(audienceId!);
+      audienceId = await siteCreationPage.form.abacSubscriptionComponent.extractAndVerifyAudienceIdFromFirstRow();
+      await manageSiteSubscriptionPage.verifySubscriptionExists(audienceId);
+      await siteCreationPage.form.abacSubscriptionComponent.clickMoreMenu(audienceId);
+      await manageSiteSubscriptionPage.verifyRerunOption(audienceId, false);
+      await manageSiteSubscriptionPage.verifyDeleteOptionEnabled(audienceId);
       await manageSiteSubscriptionPage.verifyPlusButtonIsVisible();
       await manageSiteSubscriptionPage.verifyPlusButtonIsClickable();
 
@@ -68,34 +65,34 @@ test.describe('Subscription Site Creation Test Suite (ABAC)', { tag: [ContentSui
       siteId = extractedSiteId as string;
       await siteCreationPage.verifySiteCreatedSuccessfully(SITE_CREATION_TEST_DATA.PUBLIC_SITE.name);
 
-      const manageSiteSubscriptionPageWithSite = new ManageSiteSubscriptionPage(appManagerFixture.page, siteId);
-      await manageSiteSubscriptionPageWithSite.loadPage();
-      await manageSiteSubscriptionPageWithSite.verifyThePageIsLoaded();
+      manageSiteSubscriptionPage = new ManageSiteSubscriptionPage(appManagerFixture.page, siteId);
+      await manageSiteSubscriptionPage.loadPage();
+      await manageSiteSubscriptionPage.verifyThePageIsLoaded();
 
-      await manageSiteSubscriptionPageWithSite.verifyPlusButtonIsVisible();
-      await manageSiteSubscriptionPageWithSite.verifyPlusButtonIsClickable();
+      await manageSiteSubscriptionPage.verifyPlusButtonIsVisible();
+      await manageSiteSubscriptionPage.verifyPlusButtonIsClickable();
 
-      await manageSiteSubscriptionPageWithSite.abacSubscriptionComponent.waitForSyncingToStart(audienceId!);
-      await manageSiteSubscriptionPageWithSite.verifySubscriptionControlsDisabledDuringSync(audienceId!);
+      await manageSiteSubscriptionPage.abacSubscriptionComponent.waitForSyncingToStart(audienceId);
+      await manageSiteSubscriptionPage.verifySubscriptionControlsDisabledDuringSync(audienceId);
 
-      await manageSiteSubscriptionPageWithSite.waitForSubscriptionSyncingToComplete({ audienceId: audienceId! });
+      await manageSiteSubscriptionPage.waitForSubscriptionSyncingToComplete({ audienceId: audienceId });
 
-      await manageSiteSubscriptionPageWithSite.verifySubscriptionControlsEnabledAfterSync(audienceId!);
+      await manageSiteSubscriptionPage.verifySubscriptionControlsEnabledAfterSync(audienceId);
 
-      await manageSiteSubscriptionPageWithSite.abacSubscriptionComponent.clickMoreMenu(audienceId!);
-      await manageSiteSubscriptionPageWithSite.verifyRerunOption(audienceId!, true);
-      await manageSiteSubscriptionPageWithSite.verifyDeleteOptionEnabled(audienceId!);
+      await manageSiteSubscriptionPage.abacSubscriptionComponent.clickMoreMenu(audienceId);
+      await manageSiteSubscriptionPage.verifyRerunOption(audienceId, true);
+      await manageSiteSubscriptionPage.verifyDeleteOptionEnabled(audienceId);
 
-      await manageSiteSubscriptionPageWithSite.verifySubscriptionTypeIsMembers(audienceId!, false);
-      await manageSiteSubscriptionPageWithSite.verifyMandatorySwitchIsOff(audienceId!);
+      await manageSiteSubscriptionPage.verifySubscriptionTypeIsMembers(audienceId, false);
+      await manageSiteSubscriptionPage.verifyMandatorySwitchIsOff(audienceId);
 
-      const setupTabCount = await manageSiteSubscriptionPageWithSite.extractSubscriptionCountFromFirstRow();
+      const setupTabCount = await manageSiteSubscriptionPage.extractSubscriptionCountFromFirstRow();
 
-      await manageSiteSubscriptionPageWithSite.clickPeopleTab();
-      await manageSiteSubscriptionPageWithSite.verifyMembersTabWithCount(setupTabCount);
-      await manageSiteSubscriptionPageWithSite.verifySetupTabCountMatchesPeopleTab(setupTabCount);
+      await manageSiteSubscriptionPage.clickPeopleTab();
+      await manageSiteSubscriptionPage.verifyMembersTabWithCount(setupTabCount);
+      await manageSiteSubscriptionPage.verifySetupTabCountMatchesPeopleTab(setupTabCount);
 
-      await manageSiteSubscriptionPageWithSite.clickMembersTab(setupTabCount);
+      await manageSiteSubscriptionPage.clickMembersTab(setupTabCount);
     }
   );
 });

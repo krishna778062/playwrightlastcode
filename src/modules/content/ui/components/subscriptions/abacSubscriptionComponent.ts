@@ -89,6 +89,22 @@ export class AbacSubscriptionComponent extends BaseComponent {
   }
 
   /**
+   * Extracts and verifies the audience ID from the first subscription row
+   * @returns The extracted audience ID (guaranteed to be non-null)
+   * @throws Error if audience ID cannot be extracted
+   */
+  async extractAndVerifyAudienceIdFromFirstRow(options?: { stepInfo?: string }): Promise<string> {
+    return await test.step(
+      options?.stepInfo || 'Extract and verify audience ID from first subscription row',
+      async () => {
+        const audienceId = await this.extractAudienceIdFromFirstRow();
+        expect(audienceId, 'Audience ID should be extracted from subscription row').not.toBeNull();
+        return audienceId!;
+      }
+    );
+  }
+
+  /**
    * @param audienceId - The audience ID to identify the subscription row
    */
   async clickMoreMenu(audienceId: string, options?: { stepInfo?: string }): Promise<void> {
