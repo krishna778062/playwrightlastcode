@@ -345,7 +345,7 @@ export const config = {
     },
     uatAU: {
       tenantName: 'Reward UAT-AU Primary',
-      frontendBaseUrl: 'https://reward-setting.uat-au.simpplr.com/',
+      frontendBaseUrl: 'https://reward-setting.uat-au.simpplr.com',
       apiBaseUrl: 'https://reward-setting-api.uat-au.simpplr.com',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
