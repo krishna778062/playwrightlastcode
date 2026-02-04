@@ -135,6 +135,8 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
         'Redeemable options',
         'Countries',
         'Currencies',
+        'Status',
+        '',
       ]);
 
       // Search for Zara to get specific results
@@ -146,7 +148,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       // Validate the 'Name' column is sortable
       const nameHeader = rewardOptionsPage.rewardsOptionsTableHeaders.getByText('Name');
-      const nameCells = rewardOptionsPage.page.locator('tbody tr td:nth-child(1)');
+      const nameCells = rewardOptionsPage.page.locator('[class*="Rewards_content"] tbody tr td:nth-child(1)');
       const originalNames = await nameCells.allTextContents();
 
       // Click once for ascending sort
@@ -162,7 +164,7 @@ test.describe('reward Options', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       await rewardOptionsPage.clickOnElement(nameHeader, {
         stepInfo: 'Clicking on Name column header for descending sort',
       });
-      await rewardOptionsPage.page.waitForTimeout(500);
+      await rewardOptionsPage.verifier.waitUntilElementIsAttached(rewardOptionsPage.rewardsOptionsTableRow.last());
       const descendingNames = await nameCells.allTextContents();
       const sortedDescending = [...originalNames].sort((a, b) => a.localeCompare(b));
       expect(descendingNames.toLocaleString()).toEqual(sortedDescending.toLocaleString());

@@ -347,6 +347,12 @@ export class ManageRewardsOverviewPage extends BasePage {
     return new DialogBox(this.page);
   }
 
+  async visit(): Promise<void> {
+    await test.step('Visit the Manage Reward page', async () => {
+      await this.goToUrl(PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE, { waitUntil: 'domcontentloaded' });
+    });
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.insightBulbButton, {
       timeout: 30000,
@@ -465,7 +471,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
         timeout: TIMEOUTS.SHORT,
       }),
-      this.loadPage(),
+      this.visit(),
     ]);
     this.harnessFlagResponse = response;
   }
