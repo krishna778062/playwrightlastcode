@@ -79,15 +79,15 @@ test.describe(
     });
 
     test(
-      'verify user can create, edit and delete a feed post with attachments CONT-19533',
+      'verify user can create, edit and delete a feed post with attachments on Home Feed CONT-19538',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments', '@healthcheck'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Test feed post creation, editing and deletion with file attachments',
-          zephyrTestId: 'CONT-19533',
-          storyId: 'CONT-19533',
+          description: 'Verify user can create, edit and delete a feed post with attachments on Home Feed',
+          zephyrTestId: 'CONT-19538',
+          storyId: 'CONT-19538',
         });
 
         // Generate test data
