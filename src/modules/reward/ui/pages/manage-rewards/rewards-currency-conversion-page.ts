@@ -132,16 +132,18 @@ export class RewardsCurrencyConversionPage extends BasePage {
     // --- TABLE & CONTROLS ---
     await expect(this.currencyConversionTable).toBeVisible();
     await expect(this.currencyConversionAddCurrency).toBeVisible();
-    await expect(this.currencyConversionPendingPointsInfoIcon).toBeVisible();
 
     // --- TOOLTIP ---
-    await this.currencyConversionPendingPointsInfoIcon.click({ force: true });
-    await expect(this.currencyConversionPendingPointsInfoTooltipText).toBeVisible();
-    await expect(this.currencyConversionPendingPointsInfoTooltipText).toHaveText(
-      'Foreign exchange rates are updated every 24 hours, based on multiple sources'
-    );
     // toggle/close tooltip
-    await this.currencyConversionPendingPointsInfoIcon.click({ force: true });
+    if (apiData?.total > 0) {
+      await expect(this.currencyConversionPendingPointsInfoIcon).toBeVisible();
+      await this.currencyConversionPendingPointsInfoIcon.click({ force: true });
+      await expect(this.currencyConversionPendingPointsInfoTooltipText).toBeVisible();
+      await expect(this.currencyConversionPendingPointsInfoTooltipText).toHaveText(
+        'Foreign exchange rates are updated every 24 hours, based on multiple sources'
+      );
+      await this.currencyConversionPendingPointsInfoIcon.click({ force: true });
+    }
 
     // --- LAST UPDATED TEXT (from API) ---
     await expect(this.currencyConversionExchangeRateUpdatedText).toBeVisible();

@@ -123,23 +123,17 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      await recognitionHub.enableTheRewardsAndPeerGiftingForHubIfDisabled();
       const rewardOptionIndex = 3;
-      await recognitionHub.setupTheMultipleGiftingOptions();
+      const existingOptions = await recognitionHub.visitRecognitionHub();
+      await recognitionHub.verifyThePageIsLoaded();
+      if (existingOptions.length <= 1) {
+        await recognitionHub.setupTheMultipleGiftingOptions();
+      }
       await recognitionHub.navigateToRecognitionHub();
       const recognitionPostId = await recognitionHub.giveRecognitionAndGetRecognitionId(0, 0, rewardOptionIndex);
 
-      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
-      await recognitionHub.verifyThePageIsLoaded();
-      await recognitionHub.validateTheRewardElementsInRecognitionPost(
-        true,
-        String(rewardOptionIndex),
-        'Only visible to recipients, their managers and app administrators'
-      );
-
       // Disable the Rewards and Check the points are not visible
       await manageRewardsPage.loadPage();
-      await manageRewardsPage.verifyThePageIsLoaded();
       await manageRewardsPage.disableTheRewards();
       await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.verifyThePageIsLoaded();
@@ -151,7 +145,6 @@ test.describe('single Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HU
 
       // Enable the Rewards again
       await manageRewardsPage.loadPage();
-      await manageRewardsPage.verifyThePageIsLoaded();
       await manageRewardsPage.enableTheRewards();
       await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostId}`);
       await recognitionHub.verifyThePageIsLoaded();

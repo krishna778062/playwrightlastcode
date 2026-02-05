@@ -45,10 +45,9 @@ test.describe('gifting options page exchange rate validation', () => {
       await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/peer-gifting/options');
 
       // Validate exchange rate dropdown options
-      await rewardGiftingOptionsPage.exchangeRateSelectDropdown.waitFor({
-        state: 'visible',
-        timeout: 30000,
-      });
+      await rewardGiftingOptionsPage.verifier.verifyTheElementIsVisible(
+        rewardGiftingOptionsPage.exchangeRateSelectDropdown
+      );
       const expectedOptions = [
         'Select Exchange Rate',
         '10 points = 1 USD (recommended)',
@@ -58,10 +57,7 @@ test.describe('gifting options page exchange rate validation', () => {
         '100 points = 1 USD',
         '1 point = 1 USD (not recommended for international organizations)',
       ];
-      const actualOptions = await rewardGiftingOptionsPage.exchangeRateSelectDropdown
-        .locator('option')
-        .allTextContents();
-      expect(actualOptions).toEqual(expectedOptions);
+      await expect(rewardGiftingOptionsPage.exchangeRateSelectDropdown.locator('option')).toHaveText(expectedOptions);
 
       // Select random exchange rate option
       await rewardGiftingOptionsPage.exchangeRateSelectDropdown.waitFor({ state: 'visible' });

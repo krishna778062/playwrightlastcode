@@ -86,18 +86,14 @@ export class AudienceManagementService {
       // Search through items and their children for the audience
       for (const item of items) {
         // Check if item itself is an audience matching the name
-        if (item.type === 'audience' && item.data && item.data.name.toLowerCase() === audienceName.toLowerCase()) {
+        if (item.type === 'audience' && item.data?.name.toLowerCase() === audienceName.toLowerCase()) {
           return { audienceId: item.data.id, name: item.data.name };
         }
 
         // Check children (audiences under categories)
         if (item.children && item.children.length > 0) {
           for (const child of item.children) {
-            if (
-              child.type === 'audience' &&
-              child.data &&
-              child.data.name.toLowerCase() === audienceName.toLowerCase()
-            ) {
+            if (child.type === 'audience' && child.data?.name.toLowerCase() === audienceName.toLowerCase()) {
               return { audienceId: child.data.id, name: child.data.name };
             }
           }
