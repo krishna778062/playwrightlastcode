@@ -33,14 +33,17 @@
 #   - CORE: chat, platforms, global-search, frontline, alert-notification
 #   - CONTENT: content, content-settings, content-studio, content-abac
 #   - DATA: de, de-api, de-api-abac (de = data-engineering)
-#   - REWARDS: reward, reward-settings, recognition, privateRecognition
+#   - REWARDS: reward, reward-settings, reward-renaming, reward-workAnniversary, recognition, recognition-abac, recognition-only-p2p, privateRecognition
 #   - OTHERS: employee-listening, form-designer, comms-planner, integrations
 #
 # SPECIAL CASES HANDLED:
 #   1. Content module needs CALENDAR_SECRETS environment variable
 #   2. Reward modules need grep-invert for @rewards-db and P3 exclusion
 #   3. DE modules (de, de-api, de-api-abac) map to data-engineering config
-#   4. Worker count varies by module (reward-settings=1, others=3)
+#   4. Reward sub-modules (reward-renaming, reward-workAnniversary) use src/modules/reward/ configs
+#   5. Recognition sub-modules (recognition-abac, recognition-only-p2p, privateRecognition) use src/modules/recognition/ configs
+#   6. form-designer: only runs when environment is qa or test (excluded from matrix otherwise)
+#   7. Worker count varies by module (reward-settings=1, others=3)
 #
 # USAGE:
 #   Called by thin trigger workflows (daily-regression.yml, etc.)
@@ -429,6 +432,14 @@ jobs:
           fi
 
           # ================================================================
+          # FILTER: form-designer only runs on qa or test
+          # ================================================================
+          if [ "$ENVIRONMENT" != "qa" ] && [ "$ENVIRONMENT" != "test" ]; then
+            MODULES_JSON=$(echo "$MODULES_JSON" | jq 'map(select(. != "form-designer"))')
+            echo "⏭️ form-designer excluded (only supported on qa/test; current env: $ENVIRONMENT)"
+          fi
+
+          # ================================================================
           # STEP 3: OUTPUT RESULTS
           # ================================================================
           echo ""
@@ -657,15 +668,21 @@ jobs:
       # Purpose: Execute Playwright tests for the current module
       #
       # Module-Specific Handling:
-      #   - reward: Exclude @rewards-db and P3 tests, use 3 workers
-      #   - reward-settings: Exclude @rewards-db and P3 tests, use 1 worker
+      #   - reward / reward-settings / reward-renaming / reward-workAnniversary:
+      #     Sub-modules under src/modules/reward/; explicit config paths (not convention).
+      #   - reward, reward-settings: Exclude @rewards-db and P3; workers 3 / 1
+      #   - reward-renaming, reward-workAnniversary: Same exclusions, use inputs.workers
       #   - de/de-api/de-api-abac: Use data-engineering config files
       #   - content-*: Use content module configs
-      #   - others: Standard npm run test:{module}
+      #   - others: Convention src/modules/{module}/playwright.{module}.config.ts
       #
       # BrowserStack Integration:
       #   - When enabled, uses browserstack-node-sdk for test observability
-      #   - Reports sent to BrowserStack dashboard
+      #   - We run "npx browserstack-node-sdk playwright test --config=..." directly
+      #     rather than "npx browserstack-node-sdk npm run test:reward-renaming" because
+      #     the SDK needs to wrap the Playwright process; wrapping npm may not instrument
+      #     the child process correctly. Explicit config path also allows per-job workers
+      #     and grep filters from workflow inputs.
       # ────────────────────────────────────────────────────────────────────
       - name: Run regression tests
         id: run-tests
@@ -801,6 +818,33 @@ jobs:
               ;;
             
             # ──────────────────────────────────────────────────────────
+            # REWARD-RENAMING MODULE (sub-module of reward, same dir)
+            # Config lives under src/modules/reward/, not reward-renaming/
+            # ──────────────────────────────────────────────────────────
+            "reward-renaming")
+              echo "📦 Running Reward Renaming tests (excluding @rewards-db and P3)..."
+              export MODULE_NAME=reward
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward-renaming.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # REWARD-WORKANNIVERSARY MODULE (sub-module of reward, same dir)
+            # Config: playwright.work-anniversary-with-points.config.ts
+            # Handle both reward-workAnniversary and reward-workanniversary (casing)
+            # ──────────────────────────────────────────────────────────
+            "reward-workAnniversary"|"reward-workanniversary")
+              echo "📦 Running Reward Work Anniversary tests (excluding @rewards-db and P3)..."
+              export MODULE_NAME=reward
+              eval $RUN_CMD --config=src/modules/reward/playwright.work-anniversary-with-points.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
             # DATA ENGINEERING MODULES (de, de-api, de-api-abac)
             # Maps short names to full config paths
             # ──────────────────────────────────────────────────────────
@@ -867,8 +911,37 @@ jobs:
                 --workers=\"$WORKERS\"
               ;;
             
+            # ──────────────────────────────────────────────────────────
+            # PRIVATE RECOGNITION (sub-module of recognition, same dir)
+            # Config: playwright.only-p2p.config.ts; needs MODULE_NAME=recognition for env
+            # ──────────────────────────────────────────────────────────
             "privateRecognition")
               echo "📦 Running Private Recognition tests..."
+              export MODULE_NAME=recognition
+              eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # RECOGNITION-ABAC MODULE (sub-module of recognition, same dir)
+            # Config: playwright.abacEnabled.ts under src/modules/recognition/
+            # ──────────────────────────────────────────────────────────
+            "recognition-abac")
+              echo "📦 Running Recognition ABAC tests..."
+              export MODULE_NAME=recognition
+              eval $RUN_CMD --config=src/modules/recognition/playwright.abacEnabled.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+            
+            # ──────────────────────────────────────────────────────────
+            # RECOGNITION-ONLY-P2P MODULE (sub-module of recognition, same dir)
+            # Config: playwright.only-p2p.config.ts under src/modules/recognition/
+            # ──────────────────────────────────────────────────────────
+            "recognition-only-p2p")
+              echo "📦 Running Recognition Only P2P tests..."
+              export MODULE_NAME=recognition
               eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
@@ -922,6 +995,21 @@ jobs:
                 --workers=\"$WORKERS\"
               ;;
             
+            # ──────────────────────────────────────────────────────────
+            # FORM-DESIGNER (only runs on qa or test)
+            # Explicit handling: skip when env is uat/prod
+            # ──────────────────────────────────────────────────────────
+            "form-designer")
+              if [ "$TEST_ENV" != "qa" ] && [ "$TEST_ENV" != "test" ]; then
+                echo "⏭️ Skipping form-designer (only runs on qa/test; current env: $TEST_ENV)"
+                exit 0
+              fi
+              echo "📦 Running Form Designer tests..."
+              eval $RUN_CMD --config=src/modules/form-designer/playwright.form-designer.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
             # ──────────────────────────────────────────────────────────
             # STANDARD MODULES
             # Uses convention: src/modules/{module}/playwright.{module}.config.ts
