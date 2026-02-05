@@ -59,6 +59,18 @@ test.describe('Spot award end to end flow - audience to full ladder', () => {
       priority: TestPriority.P2,
       testGroup: TestGroupType.REGRESSION,
     },
+    {
+      testId: 'RC-6438',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s full ladder reports for Specific period limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'Award giver’s full ladder reports',
+      selectAwardPeriodValue: 'During a specified period',
+      selectHowOftenAwardGivenValue: 'Limited',
+      timesValue: '1',
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
   ].forEach(
     ({
       testId,
