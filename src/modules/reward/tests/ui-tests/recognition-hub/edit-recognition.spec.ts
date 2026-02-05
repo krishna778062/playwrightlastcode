@@ -500,9 +500,9 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await manageRecognitionPage.loadPage();
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardData = await manageRecognitionPage.openTheRecognitionPostCreatedBefore24Hrs();
-      const points = rewardData.resultAny?.points!;
+      const points = rewardData.pointsToValidate!;
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
+      await recognitionHub.page.goto(rewardData.urlToOpen!);
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
@@ -543,8 +543,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await manageRecognitionPage.loadPage();
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardData = await manageRecognitionPage.openTheRecognitionPostCreatedBefore24Hrs();
-      const points = rewardData.resultAny?.points!;
-      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
+      const points = rewardData.pointsToValidate!;
+      await recognitionHub.page.goto(rewardData.urlToOpen!);
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
@@ -580,8 +580,8 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await manageRecognitionPage.loadPage();
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardData = await manageRecognitionPage.openTheRecognitionPostCreatedBefore24Hrs(recognitionGiverName);
-      const points = rewardData.resultAny?.points!;
-      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
+      const points = rewardData.pointsToValidate!;
+      await recognitionHub.page.goto(rewardData.urlToOpen!);
       await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
@@ -617,15 +617,15 @@ test.describe('edit Recognition', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, 
       await manageRecognitionPage.loadPage();
       await expect(manageRecognitionPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
       const rewardData = await manageRecognitionPage.openTheRecognitionPostCreatedBefore24Hrs(recognitionGiverName);
-      const points = rewardData.resultAny?.points!;
-      const currentUrl = rewardData.resultForGiver?.URL!;
+      const points = rewardData.pointsToValidate!;
+      const currentUrl = rewardData.urlToOpen!;
       await LoginHelper.logoutByNavigatingToLogoutPage(appManagerFixture.page);
       await LoginHelper.loginWithPassword(appManagerFixture.page, {
         email: getRewardTenantConfigFromCache().endUserEmail!,
         password: getRewardTenantConfigFromCache().endUserPassword!,
       });
-      await recognitionHub.page.goto(currentUrl);
-      await recognitionHub.rewardRecognitionFirstPost.waitFor({ state: 'visible', timeout: 25000 });
+      await recognitionHub.page.goto(currentUrl!);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnTheFirstPostMoreOption('Edit');
       const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
       await expect(giveRecognitionModal.giftingOptionsContainerPill).not.toBeVisible();

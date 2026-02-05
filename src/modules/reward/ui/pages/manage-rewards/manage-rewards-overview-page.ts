@@ -167,7 +167,12 @@ export class ManageRewardsOverviewPage extends BasePage {
     this.rewardsTab = page.getByRole('tab', { name: 'Rewards', exact: true });
     this.rewardsTabHeading = page.locator('h2[class*="Typography-module__heading1"]');
     this.enableRewardsButton = page.locator('button[aria-label="Enable rewards"]');
-    this.insightBulbButton = page.locator('[class*="RewardsOverview_insight"] button');
+    this.insightBulbButton = page
+      .locator(
+        '[class*="EnableRewards_header"] [class*="TooltipOnHover-module__hoverContainer"] button, ' +
+          '[class*="RewardsOverview_insight"] button'
+      )
+      .first();
     this.rewardTerminologyButton = page.locator('button[aria-label="Insight"]');
     this.insightModalContainer = page.locator('[id*="tippy"]');
     this.rewardsTerminologyHeading = this.insightModalContainer.getByRole('heading', { name: 'Rewards terminology' });
@@ -347,6 +352,12 @@ export class ManageRewardsOverviewPage extends BasePage {
     return new DialogBox(this.page);
   }
 
+  async visit(): Promise<void> {
+    await test.step('Visit the Manage Reward page', async () => {
+      await this.goToUrl(PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE, { waitUntil: 'domcontentloaded' });
+    });
+  }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.insightBulbButton, {
       timeout: 30000,
@@ -401,9 +412,7 @@ export class ManageRewardsOverviewPage extends BasePage {
     const rewardsData = await rewardsApi.getRewardsAsJson(this.page);
     const isRewardEnabled = rewardsData.enabled;
     const isPeerGiftingDisabled = rewardsData.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    );
+    console.log(`${test.info().title}: Rewards: ${isRewardEnabled}, Peer Gifting: ${isPeerGiftingDisabled}`);
     const manageRecognitionPage = new ManageRewardsOverviewPage(this.page);
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       await manageRecognitionPage.loadPage();
@@ -465,7 +474,7 @@ export class ManageRewardsOverviewPage extends BasePage {
       this.page.waitForResponse(resp => apiUrlPattern.test(resp.url()) && resp.status() === 200, {
         timeout: TIMEOUTS.SHORT,
       }),
-      this.page.goto(PAGE_ENDPOINTS.MANAGE_REWARDS_PAGE),
+      this.visit(),
     ]);
     this.harnessFlagResponse = response;
   }
@@ -908,8 +917,6 @@ export class ManageRewardsOverviewPage extends BasePage {
    *  - urlToOpen: convenience URL (same preference)
    */
   public async openTheRecognitionPostCreatedBefore24Hrs(recognitionGiver?: string): Promise<{
-    resultForGiver: RecordResult;
-    resultAny: RecordResult;
     pointsToValidate: number | null;
     urlToOpen: string | null;
   }> {
@@ -932,6 +939,6 @@ export class ManageRewardsOverviewPage extends BasePage {
     } catch (e) {
       /* ignore errors */
     }
-    return { resultForGiver, resultAny, pointsToValidate, urlToOpen };
+    return { pointsToValidate, urlToOpen };
   }
 }

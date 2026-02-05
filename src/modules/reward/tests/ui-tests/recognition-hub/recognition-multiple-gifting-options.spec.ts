@@ -94,8 +94,8 @@ test.describe('multiple Gifting options', { tag: [REWARD_SUITE_TAGS.RECOGNITION_
       });
 
       const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.mockTheWalletPoints(Number(0), 100, 1000);
+      await recognitionHub.verifyThePageIsLoaded();
       await recognitionHub.clickOnGiveRecognition();
       const minimumErrorMessage = await recognitionHub.minimumPointErrorMessageIsDisplaying();
       expect(minimumErrorMessage).toBe(true);

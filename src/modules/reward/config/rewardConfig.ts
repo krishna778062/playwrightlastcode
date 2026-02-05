@@ -73,7 +73,7 @@ export const config = {
   primary: {
     test: {
       tenantName: 'Reward Test Primary',
-      frontendBaseUrl: 'https://rewards.test.simpplr.xyz/',
+      frontendBaseUrl: 'https://rewards.test.simpplr.xyz',
       apiBaseUrl: 'https://rewards-api.test.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
@@ -291,7 +291,7 @@ export const config = {
     },
     uat: {
       tenantName: 'Reward Primary UAT',
-      frontendBaseUrl: 'https://reward-setting.uat.simpplr.xyz/',
+      frontendBaseUrl: 'https://reward-setting.uat.simpplr.xyz',
       apiBaseUrl: 'https://reward-setting-api.uat.simpplr.xyz',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',
@@ -345,7 +345,7 @@ export const config = {
     },
     uatAU: {
       tenantName: 'Reward UAT-AU Primary',
-      frontendBaseUrl: 'https://reward-setting.uat-au.simpplr.com/',
+      frontendBaseUrl: 'https://reward-setting.uat-au.simpplr.com',
       apiBaseUrl: 'https://reward-setting-api.uat-au.simpplr.com',
       appManagerEmail: 'sonu.kumar+1@simpplr.com',
       appManagerName: 'App Manager',

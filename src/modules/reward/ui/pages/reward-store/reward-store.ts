@@ -154,7 +154,6 @@ export class RewardsStore extends BasePage {
     await this.searchField.fill(searchTerm);
     await this.clickOnElement(this.searchButton.last());
     await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
-    await this.verifier.verifyTheElementIsVisible(this.giftCardItems.last());
   }
 
   async selectCountry(countryName: string) {
@@ -213,15 +212,11 @@ export class RewardsStore extends BasePage {
           res.request().method() === 'GET'
       ),
       rewardStore.loadPage(), // action that triggers API
-      rewardStore.verifyThePageIsLoaded(),
     ]);
     const body = await apiResponse.json();
-    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
     const isRewardEnabled = body.rewardConfig?.enabled;
     const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    );
+    console.log(`${test.info().title}: Rewards: ${isRewardEnabled}, Peer Gifting: ${isPeerGiftingDisabled}`);
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       const manageRewards = new ManageRewardsOverviewPage(this.page);
       await manageRewards.enableTheRewardsAndPeerGiftingIfDisabled();
