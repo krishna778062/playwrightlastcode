@@ -66,6 +66,8 @@ export class FormCreationPage extends BasePage {
   readonly secondCombobox: Locator;
   readonly viewCondition: Locator;
   readonly matchAnyOfTheseConditions: Locator;
+  readonly searchAudienceLocator: Locator;
+  readonly audienceNameCheckbox: (audienceName: string) => Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -142,6 +144,8 @@ export class FormCreationPage extends BasePage {
       name: 'Enter text for the property conditions[1].condition',
     });
     this.secondCombobox = this.page.locator('(//p[contains(text(),"Then")])[1]/following-sibling::div');
+    this.searchAudienceLocator = this.page.getByRole('textbox', { name: 'Search…' });
+    this.audienceNameCheckbox = (audienceName: string) => this.page.getByLabel(audienceName).getByRole('checkbox');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -361,6 +365,12 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
     });
   }
+
+  async clickonTabOnFormDashboard(tabName: string): Promise<void> {
+    await test.step('Click on tab on Form dashboard', async () => {
+      await this.clickOnElement(this.getDashboardLocator(tabName));
+    });
+  }
   async verifyBlockSectionIsVisible(): Promise<void> {
     await test.step('Verify block section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.blockSection, { timeout: TIMEOUTS.MEDIUM });
@@ -385,6 +395,33 @@ export class FormCreationPage extends BasePage {
     await test.step(`Click on checkbox option: ${option} into setting for upload image component`, async () => {
       await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.genericGetByTextLocator(option));
+    });
+  }
+  async searchAudience(audience: string): Promise<void> {
+    await test.step(`Search audience: ${audience}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.searchAudienceLocator, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.searchAudienceLocator);
+      await this.fillInElement(this.searchAudienceLocator, audience);
+    });
+  }
+  async selectAudience(audience: string): Promise<void> {
+    await test.step(`Select audience: ${audience}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audienceNameCheckbox(audience), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.audienceNameCheckbox(audience));
+    });
+  }
+  async verifyAudienceIsSelected(audience: string): Promise<void> {
+    await test.step(`Verify audience is selected: ${audience}`, async () => {
+      await this.page.waitForTimeout(2000);
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(audience), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      test
+        .expect(
+          await this.genericGetByTextLocator(audience).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Audience should be selected'
+        )
+        .toBe(true);
     });
   }
 
