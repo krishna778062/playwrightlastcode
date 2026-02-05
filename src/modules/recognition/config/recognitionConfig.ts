@@ -389,7 +389,7 @@ export function getCurrentEnvironment(): EnvironmentKey {
 export function initializeRecognitionConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return;
   }

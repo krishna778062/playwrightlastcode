@@ -422,7 +422,7 @@ function getCurrentEnvironment(): EnvironmentKey {
 export function initializeFrontlineConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     console.log(`🔧 Frontline config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return; // Already initialized for same tenant
   }
@@ -482,7 +482,7 @@ export function getFrontlineTenantConfigFor(tenant: TenantKey): FrontlineTenantC
   const caller = getCallerInfo();
 
   // If cache is initialized for the same tenant, use it
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     console.log(`🔧 Using cached frontline config for tenant: ${tenant} (called from: ${caller})`);
     return configCache.tenantConfig;
   }

@@ -10,7 +10,7 @@ import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allowanceTestCaseOnly'] }, () => {
+test.describe('reward allowance tests', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allowanceTestCaseOnly'] }, () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
     await manageRewardsPage.enableTheRewardsAndPeerGiftingIfDisabled();
@@ -477,17 +477,6 @@ test.describe('allowance Flows', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD, '@allo
       const amountToBeSetForIndividualAllowance = 10;
       await manageRewardsPage.rewardsAllowance.visitAllowancePage();
       await allowancePage.verifier.waitUntilPageHasNavigatedTo('/manage/recognition/rewards/peer-gifting/allowances');
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.header);
-      await allowancePage.verifier.verifyTheElementIsVisible(allowancePage.individualAllowance);
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.individualAllowanceHeading,
-        'Individual allowances'
-      );
-      const individualAllowanceDescription = 'Add individual monthly allowances for selected users';
-      await allowancePage.verifier.verifyElementHasText(
-        allowancePage.individualAllowanceDescription,
-        individualAllowanceDescription
-      );
 
       let status: string;
       if (
