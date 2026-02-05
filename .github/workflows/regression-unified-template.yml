@@ -435,7 +435,7 @@ jobs:
           # FILTER: form-designer only runs on qa or test
           # ================================================================
           if [ "$ENVIRONMENT" != "qa" ] && [ "$ENVIRONMENT" != "test" ]; then
-            MODULES_JSON=$(echo "$MODULES_JSON" | jq 'map(select(. != "form-designer"))')
+            MODULES_JSON=$(echo "$MODULES_JSON" | jq -c 'map(select(. != "form-designer"))')
             echo "⏭️ form-designer excluded (only supported on qa/test; current env: $ENVIRONMENT)"
           fi
 
