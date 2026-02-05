@@ -304,28 +304,16 @@ test.describe(
           await siteFilesPage.clickToOpenFileInFilesPreview(testVideoDetails.fileName);
           await siteFilesPage.filesPreviewModalComponent.verifyFileNameTitle(testVideoDetails.fileName);
 
-          const modalContainer = siteFilesPage.filesPreviewModalComponent.filesPreviewModalContainer;
-
           // Verify like, unfavorite, and delete options are visible
-          const likeButton = modalContainer.getByRole('button', { name: /^Like|Unlike$/i }).first();
-          const favoriteButton = modalContainer.getByRole('button', { name: /^Favorite|Unfavorite$/i }).first();
-          const showMoreButton = modalContainer.getByRole('button', { name: 'Show more' });
-
-          await siteFilesPage.filesPreviewModalComponent.verifier.verifyTheElementIsVisible(likeButton, {
-            assertionMessage: 'Like button should be visible',
-          });
-          await siteFilesPage.filesPreviewModalComponent.verifier.verifyTheElementIsVisible(favoriteButton, {
-            assertionMessage: 'Favorite button should be visible',
-          });
-          await siteFilesPage.filesPreviewModalComponent.verifier.verifyTheElementIsVisible(showMoreButton, {
-            assertionMessage: 'Show more button (for delete) should be visible',
-          });
+          await siteFilesPage.filesPreviewModalComponent.verifyLikeButtonIsVisible();
+          await siteFilesPage.filesPreviewModalComponent.verifyFavoriteButtonIsVisible();
+          await siteFilesPage.filesPreviewModalComponent.verifyShowMoreButtonIsVisible();
 
           // Click like button
-          await siteFilesPage.filesPreviewModalComponent.clickOnElement(likeButton);
+          await siteFilesPage.filesPreviewModalComponent.clickLikeButton();
 
           // Click favorite button
-          await siteFilesPage.filesPreviewModalComponent.clickOnElement(favoriteButton);
+          await siteFilesPage.filesPreviewModalComponent.clickFavoriteButton();
 
           // Wait for favorite button to change to "Unfavorite" to confirm action completed
           await appManagerFixture.page
@@ -343,11 +331,8 @@ test.describe(
             });
 
           // Close the preview modal
-          const closeButton = modalContainer.getByRole('button', { name: 'Close' }).first();
-          await siteFilesPage.filesPreviewModalComponent.verifier.verifyTheElementIsVisible(closeButton, {
-            assertionMessage: 'Close button should be visible',
-          });
-          await siteFilesPage.filesPreviewModalComponent.clickOnElement(closeButton);
+          await siteFilesPage.filesPreviewModalComponent.verifyCloseButtonIsVisible();
+          await siteFilesPage.filesPreviewModalComponent.clickCloseButton();
         });
 
         await test.step('Verify video appears in favorites Files tab', async () => {
@@ -379,12 +364,8 @@ test.describe(
           await siteFilesPage.clickToOpenFileInFilesPreview(testVideoDetails.fileName);
           await siteFilesPage.filesPreviewModalComponent.verifyFileNameTitle(testVideoDetails.fileName);
 
-          const modalContainer = siteFilesPage.filesPreviewModalComponent.filesPreviewModalContainer;
-          const favoriteButton = modalContainer.getByRole('button', { name: /^Favorite|Unfavorite$/i }).first();
-          await siteFilesPage.filesPreviewModalComponent.verifier.verifyTheElementIsVisible(favoriteButton, {
-            assertionMessage: 'Favorite button should be visible',
-          });
-          await siteFilesPage.filesPreviewModalComponent.clickOnElement(favoriteButton);
+          await siteFilesPage.filesPreviewModalComponent.verifyFavoriteButtonIsVisible();
+          await siteFilesPage.filesPreviewModalComponent.clickFavoriteButton();
 
           // Delete the video
           await siteFilesPage.filesPreviewModalComponent.clickOnPreviewMenuActionButton(

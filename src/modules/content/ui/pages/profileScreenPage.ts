@@ -160,4 +160,17 @@ export class ProfileScreenPage extends BasePage {
       await this.editContactComponent.clickOnSaveButton();
     });
   }
+
+  /**
+   * Verifies that the current URL contains the user's peopleId
+   * @param peopleId - The expected peopleId to verify in the URL
+   */
+  async verifyUrlContainsPeopleId(peopleId: string): Promise<void> {
+    await test.step(`Verify URL contains peopleId: ${peopleId}`, async () => {
+      const currentUrl = this.page.url();
+      if (!currentUrl.includes(`people/${peopleId}`)) {
+        throw new Error(`Expected URL to contain "people/${peopleId}", but got: ${currentUrl}`);
+      }
+    });
+  }
 }

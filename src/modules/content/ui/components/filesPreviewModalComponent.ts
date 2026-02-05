@@ -91,4 +91,99 @@ export class FilesPreviewModalComponent extends BaseComponent {
     await this.confirmDeleteOrCancelFromDeleteFileModal(FilesPreviewDeleteModal.Delete);
     await this.verifyToastMessageIsVisibleWithText(FilesPreviewToastMessages.DeletedFileSuccessfully);
   }
+
+  /**
+   * Gets the locator for the like/unlike button in the files preview modal
+   * @returns Locator for the like/unlike button
+   */
+  getLikeButtonLocator(): Locator {
+    return this.filesPreviewModalContainer.getByRole('button', { name: /^Like|Unlike$/i }).first();
+  }
+
+  /**
+   * Gets the locator for the favorite/unfavorite button in the files preview modal
+   * @returns Locator for the favorite/unfavorite button
+   */
+  getFavoriteButtonLocator(): Locator {
+    return this.filesPreviewModalContainer.getByRole('button', { name: /^Favorite|Unfavorite$/i }).first();
+  }
+
+  /**
+   * Gets the locator for the close button in the files preview modal
+   * @returns Locator for the close button
+   */
+  getCloseButtonLocator(): Locator {
+    return this.filesPreviewModalContainer.getByRole('button', { name: 'Close' }).first();
+  }
+
+  /**
+   * Verifies that the like button is visible in the files preview modal
+   */
+  async verifyLikeButtonIsVisible(): Promise<void> {
+    await test.step('Verify like button is visible in files preview modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getLikeButtonLocator(), {
+        assertionMessage: 'Like button should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the favorite button is visible in the files preview modal
+   */
+  async verifyFavoriteButtonIsVisible(): Promise<void> {
+    await test.step('Verify favorite button is visible in files preview modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getFavoriteButtonLocator(), {
+        assertionMessage: 'Favorite button should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the show more button is visible in the files preview modal
+   */
+  async verifyShowMoreButtonIsVisible(): Promise<void> {
+    await test.step('Verify show more button is visible in files preview modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.showMoreButtonLocator, {
+        assertionMessage: 'Show more button (for delete) should be visible',
+      });
+    });
+  }
+
+  /**
+   * Verifies that the close button is visible in the files preview modal
+   */
+  async verifyCloseButtonIsVisible(): Promise<void> {
+    await test.step('Verify close button is visible in files preview modal', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getCloseButtonLocator(), {
+        assertionMessage: 'Close button should be visible',
+      });
+    });
+  }
+
+  /**
+   * Clicks the like button in the files preview modal
+   */
+  async clickLikeButton(): Promise<void> {
+    await test.step('Click like button in files preview modal', async () => {
+      await this.clickOnElement(this.getLikeButtonLocator());
+    });
+  }
+
+  /**
+   * Clicks the favorite button in the files preview modal
+   */
+  async clickFavoriteButton(): Promise<void> {
+    await test.step('Click favorite button in files preview modal', async () => {
+      await this.clickOnElement(this.getFavoriteButtonLocator());
+    });
+  }
+
+  /**
+   * Clicks the close button in the files preview modal
+   */
+  async clickCloseButton(): Promise<void> {
+    await test.step('Click close button in files preview modal', async () => {
+      await this.clickOnElement(this.getCloseButtonLocator());
+    });
+  }
 }

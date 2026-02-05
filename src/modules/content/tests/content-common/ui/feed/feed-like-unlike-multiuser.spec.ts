@@ -899,5 +899,37 @@ test.describe(
         });
       }
     );
+
+    test(
+      'verify that clicking the selected reaction emoji removes it and restores the Add Reaction icon CONT-31818',
+      {
+        tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-31818'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'Verify that clicking the selected reaction emoji removes it and restores the Add Reaction icon',
+          zephyrTestId: 'CONT-31818',
+          storyId: 'CONT-31818',
+        });
+
+        // Add a reaction (haha emoji)
+        await feedPage.feedList.hoverOnReactionButton(createdPostText);
+        await feedPage.feedList.clickReactionEmoji(createdPostText, ReactionsEmoji.HAHA);
+
+        // Verify the reaction emoji is displayed (replaces Add Reaction icon)
+        // The reaction button should show the selected emoji (haha)
+        await feedPage.feedList.verifySelectedReactionButtonIsVisible(
+          'haha|Haha|😆',
+          'Selected reaction emoji should be visible'
+        );
+
+        // Click on the selected reaction emoji to remove it (using unlikeFeedPost)
+        await feedPage.feedList.unlikeFeedPost(createdPostText);
+
+        // Verify the Add Reaction icon is restored (reaction is removed)
+        // The like button should be visible again (Add Reaction icon)
+        await feedPage.feedList.verifyReactionButtonIsVisible();
+      }
+    );
   }
 );
