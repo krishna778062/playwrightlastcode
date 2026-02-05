@@ -531,7 +531,7 @@ function getCurrentEnvironment(): EnvironmentKey {
 export function initializeContentConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     log.debug(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return; // Already initialized for same tenant
   }
@@ -594,7 +594,7 @@ export function getContentTenantConfigFor(tenant: TenantKey): ContentTenantConfi
   const caller = getCallerInfo();
 
   // If cache is initialized for the same tenant, use it
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     log.debug(`🔧 Using cached config for tenant: ${tenant} (called from: ${caller})`);
     return configCache.tenantConfig;
   }

@@ -525,6 +525,30 @@ export class BaseVerificationUtil {
   }
 
   /**
+   * Waits for the element to be hidden
+   * @param locator - The locator to wait for
+   * @param options - The options to pass to the verification
+   */
+  async waitUntilElementIsAttached(
+    locator: Locator,
+    options?: {
+      timeout?: number;
+      stepInfo?: string;
+    }
+  ) {
+    try {
+      await locator.waitFor({
+        state: 'attached',
+        timeout: options?.timeout || 8_000,
+      });
+    } catch (error) {
+      throw new Error(
+        options?.stepInfo ? `${options.stepInfo}\n${error}` : `Waiting for element to be attached failed.\n${error}`
+      );
+    }
+  }
+
+  /**
    * Waits for the element count to be equal to the expected count
    * @param locator - The locator to wait for
    * @param expectedCount - The expected count of elements

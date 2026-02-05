@@ -33,14 +33,17 @@
 #   - CORE: chat, platforms, global-search, frontline, alert-notification
 #   - CONTENT: content, content-settings, content-studio, content-abac
 #   - DATA: de, de-api, de-api-abac (de = data-engineering)
-#   - REWARDS: reward, reward-settings, recognition, privateRecognition
+#   - REWARDS: reward, reward-settings, reward-renaming, reward-workAnniversary, recognition, recognition-abac, recognition-only-p2p, privateRecognition
 #   - OTHERS: employee-listening, form-designer, comms-planner, integrations
 #
 # SPECIAL CASES HANDLED:
 #   1. Content module needs CALENDAR_SECRETS environment variable
 #   2. Reward modules need grep-invert for @rewards-db and P3 exclusion
 #   3. DE modules (de, de-api, de-api-abac) map to data-engineering config
-#   4. Worker count varies by module (reward-settings=1, others=3)
+#   4. Reward sub-modules (reward-renaming, reward-workAnniversary) use src/modules/reward/ configs
+#   5. Recognition sub-modules (recognition-abac, recognition-only-p2p, privateRecognition) use src/modules/recognition/ configs
+#   6. form-designer: only runs when environment is qa or test (excluded from matrix otherwise)
+#   7. Worker count varies by module (reward-settings=1, others=3)
 #
 # USAGE:
 #   Called by thin trigger workflows (daily-regression.yml, etc.)
@@ -75,7 +78,7 @@ on:
           Values:
             - test_env_regression: Daily regression on test environment
             - qa_release: QA release regression
-            - uat_release: UAT release regression  
+            - uat_release: UAT release regression
             - prod_healthcheck: Production health check
             - manual: Manual workflow dispatch
         required: true
@@ -97,7 +100,7 @@ on:
           Git reference (branch/tag) to checkout.
           If not provided, will be auto-determined based on:
             - trigger_type
-            - environment  
+            - environment
             - CURRENT_STAGE repository variable
         required: false
         type: string
@@ -259,7 +262,7 @@ jobs:
           else
             # Auto-determine based on trigger_type, environment, and stage
             case "$TRIGGER_TYPE" in
-              
+
               # ────────────────────────────────────────────────────────────
               # DAILY CRON: Test environment always uses develop branch
               # ────────────────────────────────────────────────────────────
@@ -278,7 +281,7 @@ jobs:
                   fi
                 fi
                 ;;
-              
+
               # ────────────────────────────────────────────────────────────
               # QA RELEASE: Branch depends on current stage
               # ────────────────────────────────────────────────────────────
@@ -304,7 +307,7 @@ jobs:
                     ;;
                 esac
                 ;;
-              
+
               # ────────────────────────────────────────────────────────────
               # UAT RELEASE: Branch depends on current stage
               # ────────────────────────────────────────────────────────────
@@ -330,7 +333,7 @@ jobs:
                     ;;
                 esac
                 ;;
-              
+
               # ────────────────────────────────────────────────────────────
               # PROD HEALTHCHECK: Always uses main branch
               # ────────────────────────────────────────────────────────────
@@ -338,7 +341,7 @@ jobs:
                 CHECKOUT_REF="main"
                 echo "✅ Production healthcheck → main branch"
                 ;;
-              
+
               # ────────────────────────────────────────────────────────────
               # MANUAL: Use current branch or default to develop
               # ────────────────────────────────────────────────────────────
@@ -346,7 +349,7 @@ jobs:
                 CHECKOUT_REF="${GITHUB_REF_NAME:-develop}"
                 echo "✅ Manual trigger → $CHECKOUT_REF branch"
                 ;;
-              
+
               *)
                 echo "⚠️ Unknown trigger type: $TRIGGER_TYPE"
                 CHECKOUT_REF="develop"
@@ -373,9 +376,9 @@ jobs:
             # All lists include content modules for unified UI regression
             # API tests are handled separately by content-regression-test.yml
             # ================================================================
-            
+
             case "$TRIGGER_TYPE" in
-              
+
               # ──────────────────────────────────────────────────────────
               # DAILY CRON: Full UI regression suite
               # Runs daily on test environment
@@ -384,7 +387,7 @@ jobs:
                 MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
                 echo "✅ Daily cron: Full UI regression (all modules including content)"
                 ;;
-              
+
               # ──────────────────────────────────────────────────────────
               # QA RELEASE: Full UI regression suite
               # Same as daily but runs on release branch during QA stage
@@ -393,7 +396,7 @@ jobs:
                 MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","form-designer","comms-planner"]'
                 echo "✅ QA release: Full UI regression (all modules including content)"
                 ;;
-              
+
               # ──────────────────────────────────────────────────────────
               # UAT RELEASE: Full UI regression suite
               # Same modules, runs during UAT stage
@@ -402,7 +405,7 @@ jobs:
                 MODULES_JSON='["chat","platforms","global-search","content","content-settings","content-studio","content-abac","de","de-api","de-api-abac","reward","reward-settings","recognition","privateRecognition","frontline","alert-notification","employee-listening","comms-planner"]'
                 echo "✅ UAT release: Full UI regression (all modules including content)"
                 ;;
-              
+
               # ──────────────────────────────────────────────────────────
               # PROD HEALTHCHECK: Subset for faster checks
               # Excludes some modules that are less critical for healthcheck
@@ -411,7 +414,7 @@ jobs:
                 MODULES_JSON='["chat","platforms","global-search","content","content-abac","de","reward","recognition","privateRecognition","frontline","content-settings","content-studio","alert-notification","employee-listening"]'
                 echo "✅ Prod healthcheck: Core UI modules"
                 ;;
-              
+
               # ──────────────────────────────────────────────────────────
               # MANUAL: Smaller default set for quick runs
               # User can override with custom modules input
@@ -420,12 +423,20 @@ jobs:
                 MODULES_JSON='["chat","platforms","global-search","content","de","reward","recognition","frontline","alert-notification"]'
                 echo "✅ Manual: Default module subset (use 'modules' input to customize)"
                 ;;
-              
+
               *)
                 MODULES_JSON='["chat","platforms"]'
                 echo "⚠️ Unknown trigger type, using minimal module list"
                 ;;
             esac
+          fi
+
+          # ================================================================
+          # FILTER: form-designer only runs on qa or test
+          # ================================================================
+          if [ "$ENVIRONMENT" != "qa" ] && [ "$ENVIRONMENT" != "test" ]; then
+            MODULES_JSON=$(echo "$MODULES_JSON" | jq -c 'map(select(. != "form-designer"))')
+            echo "⏭️ form-designer excluded (only supported on qa/test; current env: $ENVIRONMENT)"
           fi
 
           # ================================================================
@@ -657,15 +668,21 @@ jobs:
       # Purpose: Execute Playwright tests for the current module
       #
       # Module-Specific Handling:
-      #   - reward: Exclude @rewards-db and P3 tests, use 3 workers
-      #   - reward-settings: Exclude @rewards-db and P3 tests, use 1 worker
+      #   - reward / reward-settings / reward-renaming / reward-workAnniversary:
+      #     Sub-modules under src/modules/reward/; explicit config paths (not convention).
+      #   - reward, reward-settings: Exclude @rewards-db and P3; workers 3 / 1
+      #   - reward-renaming, reward-workAnniversary: Same exclusions, use inputs.workers
       #   - de/de-api/de-api-abac: Use data-engineering config files
       #   - content-*: Use content module configs
-      #   - others: Standard npm run test:{module}
+      #   - others: Convention src/modules/{module}/playwright.{module}.config.ts
       #
       # BrowserStack Integration:
       #   - When enabled, uses browserstack-node-sdk for test observability
-      #   - Reports sent to BrowserStack dashboard
+      #   - We run "npx browserstack-node-sdk playwright test --config=..." directly
+      #     rather than "npx browserstack-node-sdk npm run test:reward-renaming" because
+      #     the SDK needs to wrap the Playwright process; wrapping npm may not instrument
+      #     the child process correctly. Explicit config path also allows per-job workers
+      #     and grep filters from workflow inputs.
       # ────────────────────────────────────────────────────────────────────
       - name: Run regression tests
         id: run-tests
@@ -694,8 +711,8 @@ jobs:
           # ────────────────────────────────────────────────────────────
           ALL_TAGS=()
 
-          # Note: For prod_healthcheck, the caller (prod-healthcheck.yml) 
-          # already passes feature_tags='@healthcheck', so no explicit 
+          # Note: For prod_healthcheck, the caller (prod-healthcheck.yml)
+          # already passes feature_tags='@healthcheck', so no explicit
           # handling needed here.
 
           # Add priority filter (skip if "all" or empty)
@@ -773,7 +790,7 @@ jobs:
           # Note: GREP_FILTER is applied for prod_healthcheck (@healthcheck)
           # ────────────────────────────────────────────────────────────
           case "$MODULE" in
-            
+
             # ──────────────────────────────────────────────────────────
             # REWARD MODULE
             # Special: Excludes @rewards-db tests (DB-dependent) and P3
@@ -786,7 +803,7 @@ jobs:
                 $GREP_FILTER \
                 --workers=3
               ;;
-            
+
             # ──────────────────────────────────────────────────────────
             # REWARD-SETTINGS MODULE
             # Special: Excludes @rewards-db tests, uses single worker
@@ -799,7 +816,34 @@ jobs:
                 $GREP_FILTER \
                 --workers=1
               ;;
-            
+
+            # ──────────────────────────────────────────────────────────
+            # REWARD-RENAMING MODULE (sub-module of reward, same dir)
+            # Config lives under src/modules/reward/, not reward-renaming/
+            # ──────────────────────────────────────────────────────────
+            "reward-renaming")
+              echo "📦 Running Reward Renaming tests (excluding @rewards-db and P3)..."
+              export MODULE_NAME=reward
+              eval $RUN_CMD --config=src/modules/reward/playwright.reward-renaming.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
+            # ──────────────────────────────────────────────────────────
+            # REWARD-WORKANNIVERSARY MODULE (sub-module of reward, same dir)
+            # Config: playwright.work-anniversary-with-points.config.ts
+            # Handle both reward-workAnniversary and reward-workanniversary (casing)
+            # ──────────────────────────────────────────────────────────
+            "reward-workAnniversary"|"reward-workanniversary")
+              echo "📦 Running Reward Work Anniversary tests (excluding @rewards-db and P3)..."
+              export MODULE_NAME=reward
+              eval $RUN_CMD --config=src/modules/reward/playwright.work-anniversary-with-points.config.ts \
+                --grep-invert=\"@rewards-db\|P3\" \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
             # ──────────────────────────────────────────────────────────
             # DATA ENGINEERING MODULES (de, de-api, de-api-abac)
             # Maps short names to full config paths
@@ -810,21 +854,21 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "de-api")
               echo "📦 Running Data Engineering API tests..."
               eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "de-api-abac")
               echo "📦 Running Data Engineering API ABAC tests..."
               eval $RUN_CMD --config=src/modules/data-engineering/playwright.data-engineering-api-abac.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             # ──────────────────────────────────────────────────────────
             # CONTENT MODULES
             # Uses content module directory with specific configs
@@ -835,28 +879,28 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "content-settings")
               echo "📦 Running Content Settings tests..."
               eval $RUN_CMD --config=src/modules/content/playwright.content-settings.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "content-studio")
               echo "📦 Running Content Studio tests..."
               eval $RUN_CMD --config=src/modules/content/playwright.content-studio.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "content-abac")
               echo "📦 Running Content ABAC tests..."
               eval $RUN_CMD --config=src/modules/content/playwright.content-abac.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             # ──────────────────────────────────────────────────────────
             # RECOGNITION MODULES
             # ──────────────────────────────────────────────────────────
@@ -866,9 +910,38 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
+            # ──────────────────────────────────────────────────────────
+            # PRIVATE RECOGNITION (sub-module of recognition, same dir)
+            # Config: playwright.only-p2p.config.ts; needs MODULE_NAME=recognition for env
+            # ──────────────────────────────────────────────────────────
             "privateRecognition")
               echo "📦 Running Private Recognition tests..."
+              export MODULE_NAME=recognition
+              eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
+            # ──────────────────────────────────────────────────────────
+            # RECOGNITION-ABAC MODULE (sub-module of recognition, same dir)
+            # Config: playwright.abacEnabled.ts under src/modules/recognition/
+            # ──────────────────────────────────────────────────────────
+            "recognition-abac")
+              echo "📦 Running Recognition ABAC tests..."
+              export MODULE_NAME=recognition
+              eval $RUN_CMD --config=src/modules/recognition/playwright.abacEnabled.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
+            # ──────────────────────────────────────────────────────────
+            # RECOGNITION-ONLY-P2P MODULE (sub-module of recognition, same dir)
+            # Config: playwright.only-p2p.config.ts under src/modules/recognition/
+            # ──────────────────────────────────────────────────────────
+            "recognition-only-p2p")
+              echo "📦 Running Recognition Only P2P tests..."
+              export MODULE_NAME=recognition
               eval $RUN_CMD --config=src/modules/recognition/playwright.only-p2p.config.ts \
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
@@ -889,7 +962,7 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "integrations-workday")
               echo "📦 Running Integrations Workday tests..."
               export MODULE_NAME=integrations
@@ -897,7 +970,7 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "integrations-azuresso")
               echo "📦 Running Integrations Azure SSO tests..."
               export MODULE_NAME=integrations
@@ -905,7 +978,7 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "integrations-okta")
               echo "📦 Running Integrations Okta tests..."
               export MODULE_NAME=integrations
@@ -913,7 +986,7 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
             "integrations-api")
               echo "📦 Running Integrations API tests..."
               export MODULE_NAME=integrations
@@ -921,7 +994,22 @@ jobs:
                 $GREP_FILTER \
                 --workers=\"$WORKERS\"
               ;;
-            
+
+            # ──────────────────────────────────────────────────────────
+            # FORM-DESIGNER (only runs on qa or test)
+            # Explicit handling: skip when env is uat/prod
+            # ──────────────────────────────────────────────────────────
+            "form-designer")
+              if [ "$TEST_ENV" != "qa" ] && [ "$TEST_ENV" != "test" ]; then
+                echo "⏭️ Skipping form-designer (only runs on qa/test; current env: $TEST_ENV)"
+                exit 0
+              fi
+              echo "📦 Running Form Designer tests..."
+              eval $RUN_CMD --config=src/modules/form-designer/playwright.form-designer.config.ts \
+                $GREP_FILTER \
+                --workers=\"$WORKERS\"
+              ;;
+
             # ──────────────────────────────────────────────────────────
             # STANDARD MODULES
             # Uses convention: src/modules/{module}/playwright.{module}.config.ts
@@ -1092,7 +1180,7 @@ jobs:
             FAILED_TESTS=$(jq -r '.stats.unexpected' test-results/test-results.json)
             SKIPPED_TESTS=$(jq -r '.stats.skipped' test-results/test-results.json)
             FLAKY_TESTS=$(jq -r '.stats.flaky' test-results/test-results.json)
-            
+
             # Count known failures (tests with @known_failure annotation)
             # These are expected failures that shouldn't alert the team
             KNOWN_FAILED=$(node -e "
@@ -1110,7 +1198,7 @@ jobs:
               ).length;
               console.log(knownFailed);
             ")
-            
+
             # Calculate actual failures (excluding known failures)
             ACTUAL_FAILED=$((FAILED_TESTS - KNOWN_FAILED))
           else
@@ -1157,22 +1245,22 @@ jobs:
             MODULE="${{ matrix.module }}"
             ENV="${{ inputs.environment }}"
             TRIGGERED_BY="${{ github.actor }}"
-            
+
             # Build filters string only if not all defaults
             FILTERS=""
             if [ "$PRIORITY" != "all" ] || [ "$TEST_TYPE" != "all" ] || [ "$FEATURE_TAGS" != "all" ]; then
               FILTERS=" | 🎯 Filters: \`${PRIORITY}\` | \`${TEST_TYPE}\` | \`${FEATURE_TAGS}\`"
             fi
-            
+
             # Build known failures suffix if any
             KNOWN_SUFFIX=""
             if [ "${{ env.KNOWN_FAILED }}" -gt 0 ]; then
               KNOWN_SUFFIX=" | 🔗 Known: ${{ env.KNOWN_FAILED }}"
             fi
-            
+
             # Compact 2-line format
             MESSAGE="🧪 *${{ inputs.slack_prefix }}* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\` | By: \`${TRIGGERED_BY}\`${FILTERS}\n      📊 *Results:* ${{ env.TOTAL_TESTS }} tests | ✅ ${{ env.PASSED_TESTS }} passed | ❌ ${{ env.ACTUAL_FAILED }} failed | ⏭️ ${{ env.SKIPPED_TESTS }} skipped | ⚠️ ${{ env.FLAKY_TESTS }} flaky${KNOWN_SUFFIX}\n      🔗 <${{ env.TIMESTAMPED_REPORT_URL }}|Report> | <${{ env.TAG_REPORT_URL }}|Tags> | <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-            
+
             curl -X POST -H 'Content-type: application/json' \
               --data "{\"text\":\"$MESSAGE\"}" \
               $SLACK_WEBHOOK_URL
@@ -1200,7 +1288,7 @@ jobs:
 
           if [ -f "test-results/test-results.json" ]; then
             TOTAL_TESTS=$(jq -r '.stats.expected + .stats.unexpected + .stats.skipped' test-results/test-results.json)
-            
+
             if [ "$TOTAL_TESTS" -eq 0 ]; then
               # No tests found matching criteria - compact format
               MESSAGE="⚠️ *${{ inputs.slack_prefix }}: No Tests Found* - \`${MODULE}\` on \`${ENV}\`\n      📌 Branch: \`${BRANCH}\`${FILTERS} | 💡 No tests matched filters\n      🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Details>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

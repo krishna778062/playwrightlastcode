@@ -238,8 +238,8 @@ test.describe('recognition hub', { tag: [REWARD_SUITE_TAGS.RECOGNITION_HUB] }, (
       const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs(
         getRewardTenantConfigFromCache().appManagerName
       );
-      const points = rewardData.resultAny?.points!;
-      await recognitionHub.page.goto(rewardData.resultAny?.URL!);
+      const points = rewardData.pointsToValidate!;
+      await recognitionHub.page.goto(rewardData.urlToOpen!);
       await recognitionHub.validateTheRewardElementsInRecognitionPost(
         true,
         String(points),

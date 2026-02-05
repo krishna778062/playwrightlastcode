@@ -44,7 +44,7 @@ export class TopicDetailsPage extends BasePage {
     this.replyButton = this.page.getByRole('button', { name: 'Reply', exact: true });
     this.textField = this.page.getByRole('textbox', { name: 'You are in the content editor' }).getByRole('paragraph');
     this.shareButton = this.page.getByRole('button', { name: 'Share this post' });
-    this.topicScreenContentAndFeedTabs = this.page.getByText('ContentFeed');
+    this.topicScreenContentAndFeedTabs = this.page.getByRole('tab', { name: 'Content' });
   }
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify topic details page is visible', async () => {
