@@ -429,7 +429,7 @@ export class ChatAppPage extends ChatPageBase implements IChatActions, IChatAsse
       async () => {
         const chatEditor = this.getConversationWindowComponent().getChatEditorComponent();
         await chatEditor.inputTextBox.click();
-        await chatEditor.inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 1)}`, {
+        await chatEditor.inputTextBox.pressSequentially(`@${groupName.slice(0, groupName.length - 14)}`, {
           delay: 300,
         });
         const mentionListComponent = this.getConversationWindowComponent().getMentionListComponent();
