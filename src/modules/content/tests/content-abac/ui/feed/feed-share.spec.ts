@@ -5916,7 +5916,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify Manager-via-Role SU can share restricted Page to Home Feed even when NOT in target audience',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42234', '@SU-feed', '@share-restriction'],
@@ -5927,6 +5927,8 @@ test.describe(
             'Manager-via-Role SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42234',
           storyId: 'CONT-42234',
+          isKnownFailure: true,
+          bugTicket: 'PS-40595',
         });
 
         let sharePostText: string;
@@ -6063,7 +6065,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify Manager-via-Role SU can share non-restricted Page to Home Feed regardless of Limit Visibility',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42235', '@SU-feed', '@share-restriction'],
@@ -6074,6 +6076,8 @@ test.describe(
             'Manager-via-Role SU is able to "Share Post" Non Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42235',
           storyId: 'CONT-42235',
+          isKnownFailure: true,
+          bugTicket: 'PS-40595',
         });
 
         let sharePostText1: string;
@@ -6545,7 +6549,7 @@ test.describe(
       }
     );
 
-    test.skip(
+    test.fixme(
       'verify Manager-via-Role SU can share restricted Page to Home Feed with Limit Visibility ON',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42247', '@SU-feed', '@share-restriction'],
@@ -6556,6 +6560,8 @@ test.describe(
             'Manager-via-Role SU is able to "Share Post" Restricted Content Feed Post (In Selected viewers) to Home Feed with No Restrictions',
           zephyrTestId: 'CONT-42247',
           storyId: 'CONT-42247',
+          isKnownFailure: true,
+          bugTicket: 'PS-40595',
         });
 
         let sharePostText: string;
