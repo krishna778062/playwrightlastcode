@@ -570,7 +570,11 @@ export function initializeContentConfig(tenant: TenantKey): void {
   configCache = {
     environment,
     currentTenant: tenant,
-    tenantConfig: envConfig,
+    tenantConfig: {
+      ...envConfig,
+      standardUser2Email: (envConfig as any).standardUser2Email ?? '',
+      standardUser2Password: (envConfig as any).standardUser2Password ?? '',
+    },
     appConfig: config.appConfig,
   };
 

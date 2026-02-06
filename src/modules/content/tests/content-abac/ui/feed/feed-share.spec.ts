@@ -6267,7 +6267,7 @@ test.describe(
     test(
       'verify Site Owner can share restricted Page to Home Feed with Limit Visibility ON (SO override)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42243', '@SO-feed', '@share-restriction'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42243', '@SU-feed', '@share-restriction'],
       },
       async ({ appManagerApiFixture, standardUserFixture, standardUser2Fixture }) => {
         tagTest(test.info(), {
@@ -6404,7 +6404,7 @@ test.describe(
     test(
       'verify Site Manager can share restricted Page to Home Feed with Limit Visibility ON (SM override)',
       {
-        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42244', '@SM-feed', '@share-restriction'],
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-42244', '@SU-feed', '@share-restriction'],
       },
       async ({ appManagerApiFixture, standardUserFixture, standardUser2Fixture }) => {
         tagTest(test.info(), {
