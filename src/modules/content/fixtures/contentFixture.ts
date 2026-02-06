@@ -53,7 +53,7 @@ export interface UiFixture {
 // Combined user fixture type that extends both API and UI fixtures
 export interface UserFixture extends ApiFixture, UiFixture {}
 
-export type UserType = 'appManager' | 'endUser' | 'siteManager' | 'socialCampaignManager';
+export type UserType = 'appManager' | 'endUser' | 'siteManager' | 'socialCampaignManager' | 'standardUser2';
 
 export const users = {
   appManager: {
@@ -71,6 +71,10 @@ export const users = {
   socialCampaignManager: {
     email: getContentTenantConfigFromCache().socialCampaignManagerEmail || '',
     password: getContentTenantConfigFromCache().socialCampaignManagerPassword || '',
+  },
+  standardUser2: {
+    email: getContentTenantConfigFromCache().standardUser2Email || '',
+    password: getContentTenantConfigFromCache().standardUser2Password || '',
   },
 } as const;
 
@@ -174,18 +178,21 @@ export const contentTestFixture = test.extend<
     standardUserApiFixture: ApiFixture;
     siteManagerApiFixture: ApiFixture;
     socialCampaignManagerApiFixture: ApiFixture;
+    standardUser2ApiFixture: ApiFixture;
 
     // UI-only fixtures - browser and page components
     appManagerUiFixture: UiFixture;
     standardUserUiFixture: UiFixture;
     siteManagerUiFixture: UiFixture;
     socialCampaignManagerUiFixture: UiFixture;
+    standardUser2UiFixture: UiFixture;
 
     // Combined user fixtures - complete entry points with all helpers and services
     appManagerFixture: UserFixture;
     standardUserFixture: UserFixture;
     siteManagerFixture: UserFixture;
     socialCampaignManagerFixture: UserFixture;
+    standardUser2Fixture: UserFixture;
   },
   {
     // Worker-scoped fixtures
@@ -193,6 +200,7 @@ export const contentTestFixture = test.extend<
     standardUserApiContext: APIRequestContext;
     siteManagerApiContext: APIRequestContext;
     socialCampaignManagerApiContext: APIRequestContext;
+    standardUser2ApiContext: APIRequestContext;
   }
 >({
   // Worker-scoped API client - shared across all tests in worker
@@ -245,6 +253,20 @@ export const contentTestFixture = test.extend<
         {
           email: users.socialCampaignManager.email,
           password: users.socialCampaignManager.password,
+        }
+      );
+      await use(context);
+    },
+    { scope: 'worker' },
+  ],
+
+  standardUser2ApiContext: [
+    async ({}, use) => {
+      const context = await RequestContextFactory.createAuthenticatedContext(
+        getContentTenantConfigFromCache().apiBaseUrl,
+        {
+          email: users.standardUser2.email,
+          password: users.standardUser2.password,
         }
       );
       await use(context);
@@ -331,6 +353,25 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  standardUser2ApiFixture: [
+    async ({ standardUser2ApiContext }, use) => {
+      const fixture = await createApiFixture(standardUser2ApiContext);
+      await use(fixture);
+
+      // Cleanup helpers that have cleanup methods
+      try {
+        await fixture.siteManagementHelper.cleanup();
+        await fixture.tileManagementHelper.cleanup();
+        await fixture.contentManagementHelper.cleanup();
+        await fixture.feedManagementHelper.cleanup();
+        await fixture.socialCampaignHelper.cleanup();
+      } catch (error) {
+        console.warn('Standard user 2 API fixture cleanup failed:', error);
+      }
+    },
+    { scope: 'test' },
+  ],
+
   // UI-only fixtures - browser and page components
   appManagerUiFixture: [
     async ({ browser }, use) => {
@@ -368,6 +409,15 @@ export const contentTestFixture = test.extend<
     { scope: 'test' },
   ],
 
+  standardUser2UiFixture: [
+    async ({ browser }, use) => {
+      const fixture = await createUiFixture(browser, 'standardUser2');
+      await use(fixture);
+      await fixture.browserContext.close();
+    },
+    { scope: 'test' },
+  ],
+
   // Combined user fixtures - complete entry points
   appManagerFixture: [
     async ({ appManagerUiFixture, appManagerApiFixture }, use) => {
@@ -393,6 +443,13 @@ export const contentTestFixture = test.extend<
   socialCampaignManagerFixture: [
     async ({ socialCampaignManagerUiFixture, socialCampaignManagerApiFixture }, use) => {
       await use({ ...socialCampaignManagerUiFixture, ...socialCampaignManagerApiFixture });
+    },
+    { scope: 'test' },
+  ],
+
+  standardUser2Fixture: [
+    async ({ standardUser2UiFixture, standardUser2ApiFixture }, use) => {
+      await use({ ...standardUser2UiFixture, ...standardUser2ApiFixture });
     },
     { scope: 'test' },
   ],

@@ -27,6 +27,7 @@ export class ContentPreviewPage extends BasePage {
   readonly editPageButton: Locator;
   readonly sendFeedbackTab: Locator;
   readonly closeModalButton: Locator;
+  readonly closeShareContentModalButton: Locator;
   readonly versionHistoryButton: Locator;
   readonly optionMenuDropdown: Locator;
   readonly unpublishButton: Locator;
@@ -104,6 +105,7 @@ export class ContentPreviewPage extends BasePage {
     this.editPageButton = this.page.getByRole('button', { name: 'Edit' });
     this.sendFeedbackTab = this.page.getByTestId('send-feedback-tab');
     this.closeModalButton = this.page.getByTestId('close-modal-button');
+    this.closeShareContentModalButton = this.page.getByRole('button', { name: 'Close', exact: true });
     this.versionHistoryButton = this.page.getByRole('button', { name: 'Version history' });
     this.optionMenuDropdown = this.page.getByRole('button', { name: 'Category option' });
     this.unpublishButton = this.page.getByRole('button', { name: 'Unpublish' });
@@ -690,6 +692,12 @@ export class ContentPreviewPage extends BasePage {
   async clickShareContentButton(): Promise<void> {
     await test.step('Click Share content button', async () => {
       await this.clickOnElement(this.shareContentButton);
+    });
+  }
+
+  async clickCloseButtonForShareContent(): Promise<void> {
+    await test.step('Click Close button for share content', async () => {
+      await this.clickOnElement(this.closeShareContentModalButton);
     });
   }
 

@@ -12,6 +12,8 @@ import { SiteDetailsResponse } from '@/src/modules/content/apis/apiValidation/si
 import { SiteCreationHelper, SiteMembershipHelper, SiteQueryHelper } from '@/src/modules/content/apis/helpers/site';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
+import { SiteSystemAudiences } from '@/src/modules/content/constants/siteSystemAudiences';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
 
@@ -287,6 +289,69 @@ export class SiteManagementHelper {
     return await this.membershipHelper.acceptMembershipRequest(siteId, requestId);
   }
 
+  /**
+   * Sets up site memberships in bulk - adds members, managers, and removes users.
+   * This is a convenience method that encapsulates common membership setup patterns.
+   *
+   * @param siteId - The site ID
+   * @param setup - Configuration object for memberships
+   * @param setup.members - Array of user IDs to add as members
+   * @param setup.managers - Array of user IDs to add as managers (will be added as members first, then promoted)
+   * @param setup.removeUsers - Array of user IDs to remove from the site
+   *
+   */
+  async setupSiteMemberships(
+    siteId: string,
+    setup: {
+      members?: string[];
+      managers?: string[];
+      removeUsers?: string[];
+    }
+  ): Promise<void> {
+    return await this.membershipHelper.setupSiteMemberships(siteId, setup);
+  }
+
+  /**
+   * Sets the feed posting permission for a site via API.
+   * This is an alternative to the UI-based approach in ManageSitePage.
+   *
+   * @param siteId - The site ID
+   * @param permission - The feed posting permission (EVERYONE or MANAGERS_ONLY)
+   *
+   */
+  async setFeedPostingPermission(siteId: string, permission: FeedPostingPermission): Promise<void> {
+    return await test.step(`Setting feed posting permission to ${permission} for site ${siteId}`, async () => {
+      const isBroadcast = permission === FeedPostingPermission.MANAGERS_ONLY;
+
+      await this.siteManagementService.updateSiteSettings(siteId, {
+        isBroadcast,
+      });
+
+      log.debug(`Successfully set feed posting permission to ${permission} for site ${siteId}`);
+    });
+  }
+
+  async getSystemAudienceId(siteId: string, audienceType: SiteSystemAudiences): Promise<string> {
+    return await test.step(`Getting system audience ID for type '${audienceType}' from site ${siteId}`, async () => {
+      const siteDetails = await this.siteManagementService.getSiteDetails(siteId);
+
+      if (!siteDetails?.result?.systemAudience) {
+        throw new Error(`Site ${siteId} does not have systemAudience data`);
+      }
+
+      const audience = siteDetails.result.systemAudience.find(
+        (a: { audienceId: string; audienceType: string }) => a.audienceType === audienceType
+      );
+
+      if (!audience) {
+        throw new Error(`System audience type '${audienceType}' not found for site ${siteId}`);
+      }
+
+      log.debug(`Found system audience ID for '${audienceType}': ${audience.audienceId}`);
+      return audience.audienceId;
+    });
+  }
+
   // ============================================================
   // SITE QUERY METHODS (delegated to SiteQueryHelper)
   // ============================================================
@@ -322,6 +387,7 @@ export class SiteManagementHelper {
       isMembershipAutoApproved?: boolean;
       isBroadcast?: boolean;
       waitForSearchIndex?: boolean;
+      feedPostingPermission?: FeedPostingPermission;
     }
   ): Promise<{ siteId: string; name: string; siteListResponse?: any[] }> {
     return await this.queryHelper.getSiteByAccessType(accessType, options);
