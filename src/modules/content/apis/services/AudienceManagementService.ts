@@ -86,18 +86,14 @@ export class AudienceManagementService {
       // Search through items and their children for the audience
       for (const item of items) {
         // Check if item itself is an audience matching the name
-        if (item.type === 'audience' && item.data && item.data.name.toLowerCase() === audienceName.toLowerCase()) {
+        if (item.type === 'audience' && item.data?.name.toLowerCase() === audienceName.toLowerCase()) {
           return { audienceId: item.data.id, name: item.data.name };
         }
 
         // Check children (audiences under categories)
         if (item.children && item.children.length > 0) {
           for (const child of item.children) {
-            if (
-              child.type === 'audience' &&
-              child.data &&
-              child.data.name.toLowerCase() === audienceName.toLowerCase()
-            ) {
+            if (child.type === 'audience' && child.data?.name.toLowerCase() === audienceName.toLowerCase()) {
               return { audienceId: child.data.id, name: child.data.name };
             }
           }
@@ -224,6 +220,22 @@ export class AudienceManagementService {
       };
 
       return await this.createAudience(request);
+    });
+  }
+
+  /**
+   * Gets list of audiences with large size (matches curl format)
+   * Uses endpoint: POST /v1/identity/audience/list
+   * Payload: {"size": 9999}
+   * @param size - Number of audiences to fetch (default: 9999)
+   * @returns Promise<AudienceListResponse>
+   */
+  async getAudienceListLarge(size: number = 9999): Promise<AudienceListResponse> {
+    return await test.step(`Getting audience list with large size: ${size}`, async () => {
+      const response = await this.httpClient.post(API_ENDPOINTS.appManagement.identity.listOfAudiences, {
+        data: { size: size },
+      });
+      return (await response.json()) as AudienceListResponse;
     });
   }
 }

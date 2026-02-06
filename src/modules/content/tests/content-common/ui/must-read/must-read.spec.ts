@@ -198,5 +198,32 @@ test.describe(
         await privilegesScreenPage.verifyAlertChangesAreSaved(sitesNotInControl.site.name);
       }
     );
+    test(
+      'verify that app manager should be able to add any site from the access control ',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-5796'],
+      },
+      async ({ appManagerFixture, appManagerApiFixture }) => {
+        tagTest(test.info(), {
+          description: 'verify that app manager should be able to add any site from the access control',
+          zephyrTestId: 'CONT-5796',
+          storyId: 'CONT-5796',
+        });
+
+        await appManagerApiFixture.feedManagementHelper.getAppConfig();
+        const sitesNotInControl = await appManagerApiFixture.feedManagementHelper.getSiteAndContentNotInControl(
+          appManagerApiFixture.siteManagementHelper
+        );
+        const privilegesScreenPage = new PrivilegesScreenPage(appManagerFixture.page);
+        await privilegesScreenPage.loadPage();
+        await privilegesScreenPage.verifyThePageIsLoaded();
+        await privilegesScreenPage.mustReadInputBoxFillWithText(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.mustReadInputBoxSelectOption(sitesNotInControl.mustReadSite.name);
+        await privilegesScreenPage.clickOnSave();
+        await privilegesScreenPage.verifyTheChangesConfirmationToastMessageIsVisible();
+        await privilegesScreenPage.reloadScreen();
+        await privilegesScreenPage.verifyMustReadChangesAreSaved(sitesNotInControl.mustReadSite.name);
+      }
+    );
   }
 );

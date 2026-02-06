@@ -136,7 +136,19 @@ export class ABACSiteManagementHelper {
       );
 
       if (!matchingSite) {
-        throw new Error(`Site with name "${siteName}" not found in search results`);
+        log.debug(`Site "${siteName}" not found, creating...`);
+        //create the site
+        const createdSite = await this.createSite('public', {
+          siteName: siteName,
+          category: {
+            categoryId: '1',
+            name: 'Uncategorized',
+          },
+          targetAudience: [],
+          subscription: [],
+        });
+        log.debug(`Site "${siteName}" created with ID: ${createdSite.siteId}`);
+        return createdSite.siteId;
       }
 
       const siteId = matchingSite.item.id;
@@ -177,5 +189,15 @@ export class ABACSiteManagementHelper {
 
     this.creationHelper.clearTrackedSites();
     this.membershipHelper.clearTrackedMembers();
+  }
+  async getPeopleList(): Promise<any> {
+    return await this.siteManagementService.getListOfPeopleV2({
+      size: 16,
+      sortBy: ['user_name', 'asc'],
+      includePendingActivation: true,
+      includeTotal: true,
+      q: '',
+      limitToSegment: true,
+    });
   }
 }

@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker';
-import path from 'path';
 
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
@@ -10,6 +9,8 @@ import { ContentType } from '@/src/modules/content/constants/contentType';
 import { ContentFeatureTags } from '@/src/modules/content/constants/testTags';
 import { ContentSuiteTags } from '@/src/modules/content/constants/testTags';
 import { contentTestFixture as test } from '@/src/modules/content/fixtures/contentFixture';
+import { CONTENT_TEST_DATA } from '@/src/modules/content/test-data/content.test-data';
+import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { TOPIC_TEST_DATA } from '@/src/modules/content/test-data/topic.test-data';
 import { AlbumCreationPage } from '@/src/modules/content/ui/pages/albumCreationPage';
@@ -43,15 +44,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   });
 
   test(
-    'in Zeus to verify the Edit topic - negative scenario',
+    'ABAC in Zeus to verify the Edit topic - negative scenario CONT-44955',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.EDIT_TOPICS, '@CONT-44955'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'In Zeus to verify the Edit topic - negative scenario',
-        zephyrTestId: 'CONT-38095',
-        storyId: 'CONT-38095',
+        zephyrTestId: 'CONT-44955',
+        storyId: 'CONT-44955',
       });
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.clickOnTopics();
@@ -62,19 +63,19 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.clickOnEditTopic();
       await manageTopicsPage.editTopicName(`${topicName}--__`);
       await manageTopicsPage.clickOnUpdateButton();
-      await manageTopicsPage.verifyErroToastMessage();
+      await manageTopicsPage.verifyErrorToastMessage();
     }
   );
   test(
-    'to verify search topics',
+    'ABAC to verify search topics CONT-44954',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.SEARCH_TOPICS, '@CONT-44954'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify search topics',
-        zephyrTestId: 'CONT-21059',
-        storyId: 'CONT-21059',
+        zephyrTestId: 'CONT-44954',
+        storyId: 'CONT-44954',
       });
       await appManagerFixture.navigationHelper.openApplicationSettings();
       await applicationScreenPage.clickOnTopics();
@@ -84,21 +85,21 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.clickOnAddButton();
       await manageTopicsPage.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.searchingTopicInSearchBar(topicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(topicName);
       await manageTopicsPage.searchingTopicInSearchBar(`${topicName}--__`);
       await manageTopicsPage.verifyingNothingToShowHereText();
     }
   );
   test(
-    'to verify topic details page in content',
+    'ABAC to verify topic details page in content CONT-44956',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_CONTENT],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_CONTENT, '@CONT-44956'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify topic details page in content',
-        zephyrTestId: 'CONT-21076',
-        storyId: 'CONT-21076',
+        zephyrTestId: 'CONT-44956',
+        storyId: 'CONT-44956',
       });
       // Create topic via API
       const topicName = faker.lorem.words(2);
@@ -127,7 +128,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       });
 
       console.log(
-        `Created page via API: Test Page Title with ID: 
+        `Created page via API: Test Page Title with ID:
         ${pageInfo.contentId} and name ${pageInfo.pageName} in site: ${siteId}`
       );
 
@@ -170,15 +171,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
     }
   );
   test(
-    'to verify topic details page in home & site feed',
+    'ABAC to verify topic details page in home & site feed CONT-44957',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.TOPIC_DETAILS_FEED, '@CONT-44957'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'To verify topic details page incontent',
-        zephyrTestId: 'CONT-40817',
-        storyId: 'CONT-40817',
+        zephyrTestId: 'CONT-44957',
+        storyId: 'CONT-44957',
       });
       const topicName = faker.lorem.words(2);
       const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
@@ -227,15 +228,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify cancel behaviour of delete topic',
+    'verify cancel behavior of delete topic CONT-44959',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-40977'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44959'],
     },
-    async ({ appManagerFixture, appManagerApiFixture }) => {
+    async ({ appManagerFixture }) => {
       tagTest(test.info(), {
-        description: 'Verify cancel behaviour of delete topic',
-        zephyrTestId: 'CONT-40977',
-        storyId: 'CONT-40977',
+        description: 'Verify cancel behavior of delete topic',
+        zephyrTestId: 'CONT-44959',
+        storyId: 'CONT-44959',
       });
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
@@ -249,15 +250,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'managing Topic Follow/Unfollow Status',
+    'managing Topic Follow/Unfollow Status CONT-44960',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-41028'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44960'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Managing Topic Follow/Unfollow Status',
-        zephyrTestId: 'CONT-41028',
-        storyId: 'CONT-41028',
+        zephyrTestId: 'CONT-44960',
+        storyId: 'CONT-44960',
       });
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
@@ -278,15 +279,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify topic gets deleted',
+    'verify topic gets deleted CONT-44961',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-21066'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44961'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Verify topic gets deleted',
-        zephyrTestId: 'CONT-21066',
-        storyId: 'CONT-21066',
+        zephyrTestId: 'CONT-44961',
+        storyId: 'CONT-44961',
       });
 
       // Step 3: Click on Add topic
@@ -315,16 +316,16 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI',
+    'to verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI CONT-44962',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-31145'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44962'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'To verify on adding multiple topics with same name and spaces in manage topics page correct error message is displayed on UI',
-        zephyrTestId: 'CONT-31145',
-        storyId: 'CONT-31145',
+        zephyrTestId: 'CONT-44962',
+        storyId: 'CONT-44962',
       });
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
@@ -343,15 +344,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'manage Topics View topic list',
+    'manage Topics View topic list CONT-44963',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20590'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44963'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Manage Topics View topic list',
-        zephyrTestId: 'CONT-20590',
-        storyId: 'CONT-20590',
+        zephyrTestId: 'CONT-44963',
+        storyId: 'CONT-44963',
       });
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
@@ -360,13 +361,13 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       topicName = faker.lorem.words(2);
       const existingTopicName = await manageTopicsPage.getTopicNameFromList();
       await manageTopicsPage.searchingTopicInSearchBar(existingTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(existingTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(existingTopicName);
 
       topicId = await manageTopicsPage.createTopic(topicName.toLowerCase());
       await manageTopicsPage.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
       await manageTopicsPage.verifyTopicIsVisible(topicName.toLowerCase());
       await manageTopicsPage.searchingTopicInSearchBar(topicName.toLowerCase());
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(topicName.toLowerCase());
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(topicName.toLowerCase());
       await manageTopicsPage.editTopic(topicName.toUpperCase());
       await manageTopicsPage.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.EDITED_SUCCESSFULLY);
       await manageTopicsPage.verifyTopicIsVisible(topicName.toUpperCase());
@@ -376,15 +377,15 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'application should allow to add/edit/delete topic when merge and delete action',
+    'application should allow to add/edit/delete topic when merge and delete action CONT-44964',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-20591'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44964'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description: 'Application should allow to add/edit/delete topic when merge and delete action',
-        zephyrTestId: 'CONT-20591',
-        storyId: 'CONT-20591',
+        zephyrTestId: 'CONT-44964',
+        storyId: 'CONT-44964',
       });
 
       manageTopicsPage = new ManageTopicsPage(appManagerFixture.page);
@@ -400,23 +401,23 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       await manageTopicsPage.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.MERGING_TOPICS);
       await manageTopicsPage.verifyingNothingToShowHereText();
       await manageTopicsPage.searchingTopicInSearchBar(secondTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(secondTopicName);
       await manageTopicsPage.deleteTopic();
       await manageTopicsPage.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.DELETING_TOPIC);
     }
   );
 
   test(
-    'verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums',
+    'verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums CONT-44965',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-24165'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44965'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Verify user should be able to add new topics(with numbers and special characters) and newly added topic should be displayed on Manage Topics Screen for albums',
-        zephyrTestId: 'CONT-24165',
-        storyId: 'CONT-24165',
+        zephyrTestId: 'CONT-44965',
+        storyId: 'CONT-44965',
       });
 
       // Generate random alphanumeric string with special characters
@@ -426,21 +427,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
       )) as AlbumCreationPage;
       await albumCreationPage.verifyThePageIsLoaded();
 
-      // Generate data for album
-
-      // Upload file "image3.jpg" under content and create album with topic
-      // Use path.resolve to ensure absolute path resolution
-      const imagePath = path.resolve(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        '..',
-        'test-data',
-        'static-files',
-        'images',
-        'image3.jpg'
-      );
+      const imagePath = FILE_TEST_DATA.IMAGES.IMAGE3.getPath(__dirname);
 
       const albumCreationOptions = TestDataGenerator.generateAlbum({
         fileName: imagePath,
@@ -469,16 +456,16 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
-    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic',
+    'verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic CONT-44966',
     {
-      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-25971'],
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-44966'],
     },
     async ({ appManagerFixture }) => {
       tagTest(test.info(), {
         description:
           'Verify App Managers should be able to perform edit, delete, merge and follow actions on existing topic',
-        zephyrTestId: 'CONT-25971',
-        storyId: 'CONT-25971',
+        zephyrTestId: 'CONT-44966',
+        storyId: 'CONT-44966',
       });
 
       // Navigate to manage/topics page
@@ -500,12 +487,12 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Create second topic "UI-test"
       const secondTopicName = faker.string.alpha({ length: 5 });
-      const secondTopicId = await manageTopicsPage.createTopic(secondTopicName);
+      await manageTopicsPage.createTopic(secondTopicName);
       await manageTopicsPage.verifyToastMessage(TOPIC_TEST_DATA.TOAST_MESSAGES.CREATED_SUCCESSFULLY);
 
       // Search for the edited topic "me rge"
       await manageTopicsPage.searchingTopicInSearchBar(editedTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(editedTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(editedTopicName);
 
       // Merge "me rge" into "UI-test"
       await manageTopicsPage.openTopicOptionsDropdown();
@@ -517,7 +504,7 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Search for "UI-test" topic
       await manageTopicsPage.searchingTopicInSearchBar(secondTopicName);
-      await manageTopicsPage.verifyingTheSearhcedTopicIsVisible(secondTopicName);
+      await manageTopicsPage.verifyingTheSearchedTopicIsVisible(secondTopicName);
 
       // Delete "UI-test" topic
       await manageTopicsPage.openTopicOptionsDropdown();
@@ -528,6 +515,57 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
 
       // Cleanup is not needed as topics are deleted in the test
       manualCleanupNeeded = false;
+    }
+  );
+  test(
+    'Create Album with new and existing topic',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-42592'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Create Album with new and existing topic',
+        zephyrTestId: 'CONT-42592',
+        storyId: 'CONT-42592',
+      });
+      // Generate album data using TestDataGenerator
+      const imagePath = FILE_TEST_DATA.IMAGES.RATIO_TEXT.getPath(__dirname);
+      const attachmentPath = FILE_TEST_DATA.EXCEL.SAMPLE_DOCX.getPath(__dirname);
+      const albumCreationOptions = TestDataGenerator.generateAlbum({
+        fileName: imagePath,
+        attachmentFileName: attachmentPath,
+        videoUrl: CONTENT_TEST_DATA.DEFAULT_ALBUM_CONTENT.videoUrls[0],
+        openAlbum: true,
+        topics: [faker.lorem.words(2)],
+      });
+
+      const topicsSection = [faker.lorem.words(2)];
+      const albumCreationPage = (await appManagerFixture.navigationHelper.openCreateContentPageForContentType(
+        ContentType.ALBUM
+      )) as AlbumCreationPage;
+      await albumCreationPage.verifyThePageIsLoaded();
+      // Create and publish the album
+      const { albumId, siteId } = await albumCreationPage.createWithTopicInDescriptionAndInTopicSectionAndPublish({
+        ...albumCreationOptions,
+        topicsSection: topicsSection,
+      });
+
+      const contentPreviewPage = new ContentPreviewPage(appManagerFixture.page, siteId, albumId, ContentType.ALBUM);
+      // Handle promotion step
+      await contentPreviewPage.handlePromotionPageStep();
+
+      // Verify content was published successfully
+      await contentPreviewPage.verifyContentPublishedSuccessfully(
+        albumCreationOptions.title,
+        "Created album successfully - it's published"
+      );
+
+      // Verify both topics are created:
+      // 1. Topic added in description (from albumCreationOptions.topics)
+      // 2. Topic added in topics section (from topicsSection)
+      const topics = [...topicsSection, ...(albumCreationOptions.topics || [])];
+      await manageTopicsPage.loadPage();
+      await manageTopicsPage.searchAndVerifyMultipleTopics(topics);
     }
   );
 });

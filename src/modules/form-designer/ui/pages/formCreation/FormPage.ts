@@ -52,10 +52,22 @@ export class FormCreationPage extends BasePage {
   readonly customUrlInput: Locator;
   readonly dropdownOptionCrossIcon: Locator;
   readonly genericGetByTextLocator: (text: string) => Locator;
+  readonly hiddenOrShowBox: (tag: string) => Locator;
   readonly includeConditionOptions: Locator;
   readonly questionOption: Locator;
   readonly valueOptions: Locator;
+  readonly secondValueOptions: Locator;
   readonly addNewConditionButton: Locator;
+  readonly questionBox: Locator;
+  readonly secondQuestionBox: Locator;
+  readonly getCompNameLocator: (compName: string) => Locator;
+  readonly saveButtonOnIncludeConditionOptions: Locator;
+  readonly combobox: Locator;
+  readonly secondCombobox: Locator;
+  readonly viewCondition: Locator;
+  readonly matchAnyOfTheseConditions: Locator;
+  readonly searchAudienceLocator: Locator;
+  readonly audienceNameCheckbox: (audienceName: string) => Locator;
 
   readonly getDashboardLocator: (value: string) => Locator = (value: string) =>
     this.page.locator(`//h3[text()='${value}']`).locator('..');
@@ -74,6 +86,7 @@ export class FormCreationPage extends BasePage {
     this.shortText = this.page.getByRole('button', { name: 'Short text' });
     this.draftButton = this.page.getByRole('button', { name: 'Save draft' });
     this.formNameInput = this.page.getByRole('textbox', { name: 'Form name*' });
+    this.saveButtonOnIncludeConditionOptions = this.page.getByRole('button', { name: 'Save', exact: true });
     this.saveButton = this.page.getByRole('button', { name: 'Save' });
     this.formsTab = this.page.getByRole('menuitem', { name: /Forms/i });
     this.draftsTab = this.page.getByRole('tab', { name: /Drafts?/i });
@@ -120,6 +133,19 @@ export class FormCreationPage extends BasePage {
     this.addNewConditionButton = this.page.locator('button').filter({ hasText: 'Add new condition' });
     this.questionOption = this.page.getByRole('heading', { name: 'If question is one of' });
     this.valueOptions = this.page.getByRole('textbox', { name: 'Enter text for the property' });
+    this.questionBox = this.page.locator('//h4[normalize-space()="If question is one of"]/../div');
+    this.secondQuestionBox = this.page.locator('(//h4[normalize-space()="If question is one of"]/../div)[2]');
+    this.getCompNameLocator = (compName: string) => this.page.getByRole('menuitem', { name: compName });
+    this.hiddenOrShowBox = (tag: string) => this.page.getByRole('menuitem', { name: tag });
+    this.combobox = this.page.getByRole('combobox', { name: 'Select action' });
+    this.viewCondition = this.page.locator('//div[contains(text(),"equals")]/ancestor::*[2]');
+    this.matchAnyOfTheseConditions = this.page.locator('//h4[normalize-space()="Match"]/../div');
+    this.secondValueOptions = this.page.getByRole('textbox', {
+      name: 'Enter text for the property conditions[1].condition',
+    });
+    this.secondCombobox = this.page.locator('(//p[contains(text(),"Then")])[1]/following-sibling::div');
+    this.searchAudienceLocator = this.page.getByRole('textbox', { name: 'Search…' });
+    this.audienceNameCheckbox = (audienceName: string) => this.page.getByLabel(audienceName).getByRole('checkbox');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -309,6 +335,11 @@ export class FormCreationPage extends BasePage {
       await this.clickOnElement(this.saveButton);
     });
   }
+  async saveIncludeConditionOptions(): Promise<void> {
+    await test.step('Save include condition options', async () => {
+      await this.clickByInjectingJavaScript(this.saveButtonOnIncludeConditionOptions);
+    });
+  }
 
   async verifyDraftToastMessageIsVisible(): Promise<void> {
     await test.step('Verify draft saved toast message is visible', async () => {
@@ -334,6 +365,12 @@ export class FormCreationPage extends BasePage {
         .toBe(true);
     });
   }
+
+  async clickonTabOnFormDashboard(tabName: string): Promise<void> {
+    await test.step('Click on tab on Form dashboard', async () => {
+      await this.clickOnElement(this.getDashboardLocator(tabName));
+    });
+  }
   async verifyBlockSectionIsVisible(): Promise<void> {
     await test.step('Verify block section is visible', async () => {
       await this.verifier.verifyTheElementIsVisible(this.blockSection, { timeout: TIMEOUTS.MEDIUM });
@@ -349,6 +386,40 @@ export class FormCreationPage extends BasePage {
         .expect(
           await this.titleAndDescriptionArea.isVisible({ timeout: TIMEOUTS.MEDIUM }),
           'Title and description section should be visible'
+        )
+        .toBe(true);
+    });
+  }
+
+  async clickOnCheckboxOptionIntoSettingForUploadImageComponent(option: string): Promise<void> {
+    await test.step(`Click on checkbox option: ${option} into setting for upload image component`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.genericGetByTextLocator(option));
+    });
+  }
+  async searchAudience(audience: string): Promise<void> {
+    await test.step(`Search audience: ${audience}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.searchAudienceLocator, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.searchAudienceLocator);
+      await this.fillInElement(this.searchAudienceLocator, audience);
+    });
+  }
+  async selectAudience(audience: string): Promise<void> {
+    await test.step(`Select audience: ${audience}`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.audienceNameCheckbox(audience), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.audienceNameCheckbox(audience));
+    });
+  }
+  async verifyAudienceIsSelected(audience: string): Promise<void> {
+    await test.step(`Verify audience is selected: ${audience}`, async () => {
+      await this.page.waitForTimeout(2000);
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(audience), {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      test
+        .expect(
+          await this.genericGetByTextLocator(audience).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Audience should be selected'
         )
         .toBe(true);
     });
@@ -384,6 +455,19 @@ export class FormCreationPage extends BasePage {
       test
         .expect(await this.longText.isVisible({ timeout: TIMEOUTS.MEDIUM }), 'Long text section should be visible')
         .toBe(true);
+    });
+  }
+  async selectMatchCondition(condition: string): Promise<void> {
+    await test.step('Select match condition', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.matchAnyOfTheseConditions, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.matchAnyOfTheseConditions);
+      await this.getCompNameLocator(condition).click();
+    });
+  }
+  async enterValueIntoSecondValueOptions(value: string): Promise<void> {
+    await test.step('Enter value into second value options', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.secondValueOptions, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.secondValueOptions, value);
     });
   }
   async verifyNumberSectionIsVisible(): Promise<void> {
@@ -654,12 +738,84 @@ export class FormCreationPage extends BasePage {
       await this.clickOnElement(this.settingsIcon);
     });
   }
-  async verifyIncludeConditionOptions(): Promise<void> {
-    await test.step('Verify include condition options', async () => {
+  async verifyAndClickOnIncludeConditionOptions(): Promise<void> {
+    await test.step('Verify and click on include condition options', async () => {
       await this.verifier.verifyTheElementIsVisible(this.includeConditionOptions, { timeout: TIMEOUTS.MEDIUM });
       await this.clickOnElement(this.includeConditionOptions);
     });
   }
+
+  async selectOptionIntoIncludeConditionOptions(compName: string): Promise<void> {
+    await test.step('Select option into include condition options', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.getCompNameLocator(compName), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.getCompNameLocator(compName));
+    });
+  }
+  async clickOnQuestionBox(): Promise<void> {
+    await test.step('Click on question box', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.questionBox, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.questionBox);
+    });
+  }
+  async clickOnSecondQuestionBox(): Promise<void> {
+    await test.step('Click on second question box', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.secondQuestionBox, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.secondQuestionBox);
+    });
+  }
+  async clickOnAddNewConditionButton(): Promise<void> {
+    await test.step('Click on add new condition button', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.addNewConditionButton, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.addNewConditionButton);
+    });
+  }
+
+  async enterValueIntoValueOptions(value: string): Promise<void> {
+    await test.step('Enter value into value options', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.valueOptions, { timeout: TIMEOUTS.MEDIUM });
+      await this.fillInElement(this.valueOptions, value);
+    });
+  }
+
+  async verifyHiddenTagIsVisibleForComponent(tag: string): Promise<void> {
+    await test.step('Verify hidden tag is visible for component', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(tag), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.genericGetByTextLocator(tag).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          `${tag} tag should be visible`
+        )
+        .toBe(true);
+    });
+  }
+  async verifyHiddenTagIsNotVisibleForComponent(tag: string): Promise<void> {
+    await test.step('Verify hidden tag is not visible for component', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.genericGetByTextLocator(tag), { timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  async clickOnHiddenOrShowBox(tag: string): Promise<void> {
+    await test.step('Click on hidden or show box', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.combobox, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.combobox);
+      await this.hiddenOrShowBox(tag).click();
+    });
+  }
+  async clickOnSecondHiddenOrShowBox(tag: string): Promise<void> {
+    await test.step('Click on second hidden or show box', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.secondCombobox, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.secondCombobox);
+      await this.hiddenOrShowBox(tag).click();
+    });
+  }
+  async clickOnViewConditionBox(condition: string): Promise<void> {
+    await test.step('Verify view condition box', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.viewCondition, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.viewCondition);
+      await this.getCompNameLocator(condition).click();
+    });
+  }
+
   async verifyCopiedTitleAndDescriptionIsVisible(): Promise<void> {
     await test.step('Verify copied component is visible', async () => {
       const heading = formCreationConstants.FORM_HEADING;
@@ -884,6 +1040,13 @@ export class FormCreationPage extends BasePage {
       const labels = await this.legalComponentlinkTo.locator('option').allTextContents();
       console.log('labels : ', labels);
       test.expect(labels.includes(option), `${option} option should be visible`).toBe(true);
+    });
+  }
+  async clickOnDropdownOptionIntoUploadImageComponent(option: string): Promise<void> {
+    await test.step(`Click on option: ${option} into upload image component`, async () => {
+      await this.verifier.verifyTheElementIsVisible(this.legalComponentlinkTo, { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.legalComponentlinkTo);
+      await this.legalComponentlinkTo.selectOption(option);
     });
   }
 

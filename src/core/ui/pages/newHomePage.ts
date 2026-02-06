@@ -21,7 +21,7 @@ export interface INewHomePageActions {
   clickAddToHomeButton: () => Promise<string>;
   enterTileTitle: (tileTitle: string) => Promise<void>;
   clickOnCustomSCTile: () => Promise<void>;
-  setCustomSCTitle: (title: string) => Promise<void>;
+  setCustomSCTitle: (title: string, message: string) => Promise<void>;
   clickOnChangeLayout: () => Promise<void>;
   clickExcludeFeed: () => Promise<void>;
   clickIncludeFeed: () => Promise<void>;
@@ -37,9 +37,9 @@ export interface INewHomePageAssertions {
   verifyTileIsDisplayed: (tileTitle: string) => Promise<void>;
   verifySocialCampaignNameInTheDisplayed: (socialCampaignName: string) => Promise<void>;
   verifySocialCampaignNameNotDisplayed: (socialCampaignName: string) => Promise<void>;
-  verifySocalCampaignInCarouselModal: (text: string) => Promise<void>;
-  verifySocalCampaignInCarouselItem: (text: string) => Promise<void>;
-  verifySocalCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
+  verifySocialCampaignInCarouselModal: (text: string) => Promise<void>;
+  verifySocialCampaignInCarouselItem: (text: string) => Promise<void>;
+  verifySocialCampaignIsNotInCarouselItem: (text: string) => Promise<void>;
   verifyContentIsNotVisibleInCarousel: (contentName: string) => Promise<void>;
   verifyRecentlyVisitedSiteIsDisplayed: (siteName: string) => Promise<void>;
 }
@@ -184,8 +184,8 @@ export class NewHomePage extends BasePage {
     return this.addTileComponent.clickCustomTab();
   }
 
-  async setCustomSCTitle(title: string): Promise<void> {
-    return this.addTileComponent.setCustomSCTitle(title);
+  async setCustomSCTitle(title: string, message: string): Promise<void> {
+    return this.addTileComponent.setCustomSCTitle(title, message);
   }
 
   async clickOnChangeLayout(): Promise<void> {
@@ -223,15 +223,15 @@ export class NewHomePage extends BasePage {
     await this.verifier.verifyTheElementIsVisible(this.recentlyVisitedSite(siteName));
   }
 
-  async verifySocalCampaignInCarouselModal(text: string): Promise<void> {
+  async verifySocialCampaignInCarouselModal(text: string): Promise<void> {
     return this.carouselComponent.verifyCarouselItem(text);
   }
 
-  async verifySocalCampaignInCarouselItem(text: string): Promise<void> {
+  async verifySocialCampaignInCarouselItem(text: string): Promise<void> {
     await this.verifier.verifyTheElementIsVisible(this.carouselItemText(text));
   }
 
-  async verifySocalCampaignIsNotInCarouselItem(text: string): Promise<void> {
+  async verifySocialCampaignIsNotInCarouselItem(text: string): Promise<void> {
     await this.verifier.verifyTheElementIsNotVisible(this.carouselItemText(text));
   }
 

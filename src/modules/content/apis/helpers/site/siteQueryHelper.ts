@@ -217,13 +217,7 @@ export class SiteQueryHelper {
             siteDetails.isManager === undefined ||
             (allowIsMemberAbsent && !('isManager' in siteDetails));
 
-          if (
-            siteDetails &&
-            siteDetails.isActive === true &&
-            isMemberCondition &&
-            isOwnerCondition &&
-            isManagerCondition
-          ) {
+          if (siteDetails?.isActive === true && isMemberCondition && isOwnerCondition && isManagerCondition) {
             log.debug(`✓ Found site where user is not a member/owner/manager: ${siteDetails.name}`);
             return { siteId: siteDetails.siteId, name: siteDetails.name };
           }
@@ -391,7 +385,6 @@ export class SiteQueryHelper {
     const createdSite = await this.creationHelper.createSite({
       accessType: accessType || SITE_TYPES.PUBLIC,
       siteName: siteName,
-      category: { name: 'Public', categoryId: 'public' },
       waitForSearchIndex: true,
     });
     await this.membershipHelper.makeUserSiteMembership(

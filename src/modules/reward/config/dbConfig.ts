@@ -115,7 +115,7 @@ export function initializeDbConfig(databaseType: DatabaseType): void {
   const environment = getCurrentEnvironment();
 
   // Reset cache if environment changed (prevents mixing qa/test configs)
-  if (!dbConfigCache || dbConfigCache.environment !== environment) {
+  if (dbConfigCache?.environment !== environment) {
     dbConfigCache = {
       environment,
       configs: {},
@@ -163,7 +163,7 @@ export function getRewardDbConfigFromCache(dbName?: DatabaseType): DatabaseConfi
  * @param databaseType - Type of database ('reward' or 'recognition'). Defaults to 'reward' if omitted.
  */
 export function getDbConfigFromCache(databaseType: DatabaseType = 'reward'): DatabaseConfig {
-  if (!dbConfigCache || dbConfigCache.environment !== getCurrentEnvironment() || !dbConfigCache.configs[databaseType]) {
+  if (dbConfigCache?.environment !== getCurrentEnvironment() || !dbConfigCache.configs[databaseType]) {
     initializeDbConfig(databaseType);
   }
 

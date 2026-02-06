@@ -49,6 +49,7 @@ export class HomeDashboardPage extends BasePage {
       'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
     );
   }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
       const isEditButtonVisible = await this.verifier.isTheElementVisibleWithLessTimeout(this.editDashboardButton);
@@ -243,10 +244,16 @@ export class HomeDashboardPage extends BasePage {
   }
   async verifyOnboardingTileIsVisible(): Promise<void> {
     await test.step('Verify onboarding tile is visible on home dashboard', async () => {
-      const onboardingTileHeading = this.page.getByRole('heading', { name: /Onboarding/i }).first();
+      const onboardingTileHeading = this.page.getByRole('heading', { name: 'Onboarding' });
       await this.verifier.waitUntilElementIsVisible(onboardingTileHeading, {
         stepInfo: 'Wait for onboarding tile to appear on dashboard',
       });
+    });
+  }
+  async isOnboardingTileVisible(): Promise<boolean> {
+    return await test.step('Check if onboarding tile is visible on home dashboard', async () => {
+      const onboardingTileHeading = this.page.getByRole('heading', { name: /Onboarding/ }).first();
+      return await this.verifier.isTheElementVisible(onboardingTileHeading);
     });
   }
   async isAddToHomeButtonDisabled(): Promise<boolean> {

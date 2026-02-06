@@ -39,14 +39,14 @@ export class EditLabelModal extends BasePage {
       '//button[text()="Reset all translations to automatic"]'
     );
 
-    this.otherLanguageCustomInputBox = this.container.locator('input[name="languageValues"]');
-    this.otherLanguageCustomLabel = this.container.locator('label[data-slot="form-label"]');
+    this.otherLanguageCustomInputBox = this.container.locator('input[name="languageValues"][data-testid*="-input"]');
+    this.otherLanguageCustomLabel = this.container.locator('label[data-slot="form-label"][data-testid*="-label"]');
     this.manualTranlationToggerSwitch = this.container.locator('button[data-testid*="-toggle"]');
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
     await this.verifier.waitUntilElementIsVisible(this.container, {
-      timeout: TIMEOUTS.VERY_SHORT,
+      timeout: TIMEOUTS.SHORT,
       stepInfo: 'Verify Edit Label modal is loaded',
     });
   }

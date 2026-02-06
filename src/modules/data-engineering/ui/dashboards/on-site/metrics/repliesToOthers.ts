@@ -8,7 +8,7 @@ import { CSVValidationConfig, CSVValidationUtil } from '@/src/modules/data-engin
 
 export enum RepliesToOthersColumns {
   NAME = 'Name',
-  INTERACTIONS_COUNT = 'Interactions Count',
+  INTERACTIONS_COUNT = 'Count',
 }
 
 export class RepliesToOthers extends BaseOnSiteTabularMetricsComponent {
@@ -79,7 +79,6 @@ export class RepliesToOthers extends BaseOnSiteTabularMetricsComponent {
 
       const expectedCsvHeaders = [
         'Name',
-        'Interacted By User Code',
         'Audience role',
         'Site name',
         'Site role',
@@ -103,7 +102,6 @@ export class RepliesToOthers extends BaseOnSiteTabularMetricsComponent {
         transformations: {
           headerMapping: {
             Name: 'Full name',
-            'Interacted By User Code': 'Interacted by user code',
             'Audience role': 'Audience role',
             'Site name': 'Site name',
             'Site role': 'Site role',

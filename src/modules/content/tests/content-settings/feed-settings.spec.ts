@@ -550,70 +550,71 @@ test.describe(
             'Verify Share button is not visible on feed posts on home dashboard, site dashboard, and page dashboard when Timeline mode is enabled',
           zephyrTestId: 'CONT-26730',
           storyId: 'CONT-26730',
-          isKnownFailure: true,
         });
 
-        // Create feed posts BEFORE setting Timeline mode (posts can only be created when Timeline is disabled)
-        // Create feed post on Home Feed
-        const homeFeedTestData = TestDataGenerator.generateFeed({
-          scope: 'public',
-          siteId: undefined,
-          waitForSearchIndex: false,
-        });
-        const homeFeedResponse: FeedResponse =
-          await appManagerFixture.feedManagementHelper.createFeed(homeFeedTestData);
-        homeFeedPostId = homeFeedResponse.result.feedId;
+        // Generate unique post text for each feed (for visibility assertions)
+        const homeFeedPostText = TestDataGenerator.generateRandomText('Home post', 3, true);
+        const siteFeedPostText = TestDataGenerator.generateRandomText('Site post', 3, true);
+        const contentFeedPostText = TestDataGenerator.generateRandomText('Content post', 3, true);
 
-        // Create feed post on Site Feed
+        // Create feed posts via UI BEFORE setting Timeline mode (posts can only be created when Timeline is disabled)
+        // Create feed post on Home Feed via UI
+        await appManagerFixture.homePage.loadPage();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.clickShareThoughtsButton();
+        const homePostResult = await feedPage.postEditor.createAndPost({ text: homeFeedPostText });
+        homeFeedPostId = homePostResult.postId ?? '';
+
+        // Create feed post on Site Feed via UI
         const siteDetails = await appManagerFixture.siteManagementHelper.getSiteByAccessType('public');
         siteId = siteDetails.siteId;
+        siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
+        await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+        await siteDashboardPage.clickOnFeedLink();
+        await feedPage.verifyThePageIsLoaded();
+        await feedPage.clickShareThoughtsButton();
+        const sitePostResult = await feedPage.postEditor.createAndPost({ text: siteFeedPostText });
+        siteFeedPostId = sitePostResult.postId ?? '';
 
-        const siteFeedTestData = TestDataGenerator.generateFeed({
-          scope: 'site',
-          siteId: siteId,
-          waitForSearchIndex: false,
-        });
-        const siteFeedResponse: FeedResponse =
-          await appManagerFixture.feedManagementHelper.createFeed(siteFeedTestData);
-        siteFeedPostId = siteFeedResponse.result.feedId;
-
-        // Create feed post on Content/Page Dashboard
+        // Create feed post (comment) on Content/Page Dashboard via UI
         const pageDetails = await appManagerFixture.contentManagementHelper.getContentId();
         contentId = pageDetails.contentId;
-        // Use the siteId from pageDetails if available, otherwise use the siteId from siteDetails
         if (pageDetails.siteId) {
           siteId = pageDetails.siteId;
         }
-
-        const contentFeedTestData = TestDataGenerator.generateFeed({
-          scope: 'site',
-          siteId: siteId,
-          contentId: contentId,
-          waitForSearchIndex: false,
-        });
-        const contentFeedResponse: FeedResponse =
-          await appManagerFixture.feedManagementHelper.createFeed(contentFeedTestData);
-        contentFeedPostId = contentFeedResponse.result.feedId;
+        contentPreviewPage = new ContentPreviewPage(
+          appManagerFixture.page,
+          siteId,
+          contentId,
+          ContentType.PAGE.toLowerCase()
+        );
+        await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+        await contentPreviewPage.verifyThePageIsLoaded();
+        await contentPreviewPage.clickShareThoughtsButton();
+        const createFeedPostComponent = new CreateFeedPostComponent(appManagerFixture.page);
+        const contentPostResult = await createFeedPostComponent.createAndPost({ text: contentFeedPostText });
+        contentFeedPostId = contentPostResult.postId ?? '';
 
         // Set Timeline & feed setting to "Timeline and comments on Content"
         await governanceScreenPage.loadPage();
         await governanceScreenPage.selectTimelineFeedSettingsAsTimelineAndCommentsOnContent();
 
-        //  Navigate to Home Feed and verify post is not visible and share button is NOT visible
+        // Navigate to Home Feed and verify post is not visible and share button is NOT visible
         await appManagerFixture.homePage.loadPage();
         await appManagerFixture.navigationHelper.clickOnGlobalFeed();
         await feedPage.feedList.verifyThePageIsLoadedWithTimelineMode();
-        await feedPage.feedList.verifyPostIsNotVisible(homeFeedTestData.text);
+        await feedPage.feedList.verifyPostIsNotVisible(homeFeedPostText);
         await feedPage.feedList.verifyShareButtonIsNotVisible();
 
         // Navigate to Site Dashboard and verify post is not visible and share button is NOT visible
         siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, siteId);
         await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
         await siteDashboardPage.verifyThePageIsLoaded();
-        await siteDashboardPage.validatePostNotVisible(siteFeedTestData.text);
+        await siteDashboardPage.validatePostNotVisible(siteFeedPostText);
         await siteDashboardPage.listFeedComponent.verifyShareButtonIsNotVisible();
 
-        // Navigate to Content Preview Page and verify post is not visible and share button is NOT visible
+        // Navigate to Content Preview Page and verify post is visible and share button is NOT visible
         contentPreviewPage = new ContentPreviewPage(
           appManagerFixture.page,
           siteId,
@@ -622,7 +623,7 @@ test.describe(
         );
         await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
         await contentPreviewPage.verifyThePageIsLoadedWithTimelineModeOnContentPage();
-        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(contentFeedTestData.text);
+        await contentPreviewPage.listFeedComponent.waitForPostToBeVisible(contentFeedPostText);
         await contentPreviewPage.listFeedComponent.verifyShareButtonIsNotVisible();
         // Verify content share button is visible on content preview page
         await contentPreviewPage.verifyContentShareButtonIsVisible();

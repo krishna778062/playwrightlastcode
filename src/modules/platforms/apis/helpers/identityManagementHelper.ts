@@ -69,6 +69,20 @@ interface GetUserByIdResponse {
   additional_role_id: string[];
 }
 
+// ACG configuration for cleanup operations
+export interface ACGCleanupConfig {
+  acgName: string;
+  featureCode?: string; // Optional - not all ACGs have FO role (e.g., Custom ACGs)
+}
+
+// Pre-defined ACG configurations for Feed-related cleanup
+export const FEED_ACG_CONFIGS: ACGCleanupConfig[] = [
+  { acgName: 'Post in home feed | All org', featureCode: 'ADD_HOME_FEED' },
+  { acgName: 'Post in home feed | Engineering' }, // Custom ACG - no FO
+  { acgName: 'Manage home feed | All org', featureCode: 'MANAGE_HOME_FEED' },
+  { acgName: 'Manage sites | All org', featureCode: 'MANAGE_SITES' },
+];
+
 export class IdentityManagementHelper {
   public identityService: IdentityService;
 
@@ -190,5 +204,88 @@ export class IdentityManagementHelper {
 
     // Update the user with the new additional roles
     return await this.updateUser(userId, updatePayload);
+  }
+
+  // ==================== ACG Management Methods ====================
+
+  /**
+   * Adds a user as manager of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to add as manager
+   */
+  async addUserAsManagerOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.addManagerToACG(acgName, userId);
+  }
+
+  /**
+   * Removes a user from managers of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to remove from managers
+   */
+  async removeUserFromManagerOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.removeManagerFromACG(acgName, userId);
+  }
+
+  /**
+   * Adds a user as admin of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to add as admin
+   */
+  async addUserAsAdminOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.addAdminToACG(acgName, userId);
+  }
+
+  /**
+   * Removes a user from admins of an ACG
+   * @param acgName - Name of the ACG (e.g., 'Post in home feed | All org')
+   * @param userId - User ID to remove from admins
+   */
+  async removeUserFromAdminOfACG(acgName: string, userId: string): Promise<void> {
+    await this.identityService.removeAdminFromACG(acgName, userId);
+  }
+
+  // ==================== Feature Owner Methods ====================
+
+  /**
+   * Adds a user as Feature Owner for a specific feature
+   * @param featureCode - Feature code (e.g., 'ADD_HOME_FEED')
+   * @param userId - User ID to add as feature owner
+   */
+  async addUserAsFeatureOwner(featureCode: string, userId: string): Promise<void> {
+    await this.identityService.addFeatureOwner(featureCode, userId);
+  }
+
+  /**
+   * Removes a user from Feature Owners for a specific feature
+   * @param featureCode - Feature code (e.g., 'ADD_HOME_FEED')
+   * @param userId - User ID to remove from feature owners
+   */
+  async removeUserFromFeatureOwner(featureCode: string, userId: string): Promise<void> {
+    await this.identityService.removeFeatureOwner(featureCode, userId);
+  }
+
+  // ==================== Bulk Cleanup Methods ====================
+
+  /**
+   * Removes a user from all roles (Manager, Admin, Feature Owner) across multiple ACGs
+   * Uses parallel execution for optimal performance
+   * @param userId - User ID to remove from all ACG roles
+   * @param acgConfigs - Array of ACG configurations to clean up (defaults to FEED_ACG_CONFIGS)
+   */
+  async cleanupUserFromAllACGRoles(userId: string, acgConfigs: ACGCleanupConfig[] = FEED_ACG_CONFIGS): Promise<void> {
+    const cleanupPromises: Promise<void>[] = [];
+
+    for (const config of acgConfigs) {
+      // Remove from Manager role
+      cleanupPromises.push(this.removeUserFromManagerOfACG(config.acgName, userId));
+      // Remove from Admin role
+      cleanupPromises.push(this.removeUserFromAdminOfACG(config.acgName, userId));
+      // Remove from Feature Owner if featureCode is defined
+      if (config.featureCode) {
+        cleanupPromises.push(this.removeUserFromFeatureOwner(config.featureCode, userId));
+      }
+    }
+
+    await Promise.all(cleanupPromises);
   }
 }

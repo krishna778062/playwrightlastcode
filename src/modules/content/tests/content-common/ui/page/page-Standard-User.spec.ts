@@ -76,11 +76,8 @@ test.describe(
       }
     });
 
-    /**
-     * Notifications are not appearing, enable notifcation popup is visible why?
-     */
     for (const testData of PAGE_APPROVAL_TEST_DATA) {
-      test.fixme(
+      test(
         `${testData.description} ${testData.zephyrTestId}`,
         {
           tag: [
@@ -96,8 +93,6 @@ test.describe(
             description: testData.description,
             zephyrTestId: testData.zephyrTestId,
             storyId: testData.storyId,
-            isKnownFailure: true,
-            bugTicket: 'CONT-39965',
           });
 
           // Initialize preview page for app manager

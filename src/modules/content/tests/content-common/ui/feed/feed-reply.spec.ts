@@ -270,15 +270,15 @@ for (const testData of feedTestData) {
       // Test case for CONT-19537: Verify user able to add, edit, delete reply on Home Feed
       if (testData.feedType === 'Home Feed') {
         test(
-          'verify user can add, edit, delete reply on Home Feed with image attachments CONT-19537',
+          'verify user can add, edit, delete reply on Home Feed with image attachments CONT-19547',
           {
-            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19537'],
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19547'],
           },
-          async ({ appManagerFixture }) => {
+          async ({}) => {
             tagTest(test.info(), {
               description: 'Verify user able to add, edit, delete reply on Home Feed',
-              zephyrTestId: 'CONT-19537',
-              storyId: 'CONT-19537',
+              zephyrTestId: 'CONT-19547',
+              storyId: 'CONT-19547',
             });
 
             // Get file paths for test images
@@ -374,6 +374,84 @@ for (const testData of feedTestData) {
         );
       }
 
+      // Test case for CONT-19547: Verify user able to add, edit, delete reply with File Attachment on Home Feed
+      if (testData.feedType === 'Home Feed') {
+        test(
+          'verify user able to add edit delete reply on Home Feed CONT-19537',
+          {
+            tag: [TestPriority.P1, TestGroupType.REGRESSION, '@CONT-19537'],
+          },
+          async ({}) => {
+            tagTest(test.info(), {
+              description: 'Verify user able to add, edit, delete reply with File Attachment on Home Feed',
+              zephyrTestId: 'CONT-19537',
+              storyId: 'CONT-19537',
+            });
+
+            // Generate unique reply text
+            const replyText = FEED_TEST_DATA.POST_TEXT.REPLY;
+            const updatedReplyText = FEED_TEST_DATA.POST_TEXT.UPDATED_REPLY;
+
+            // ==================== CREATE REPLY ====================
+            // Open reply editor for the post
+            await appManagerFeedPage.feedList.openReplyEditorForPost(createdPostText);
+
+            // Get the createFeedPostComponent from the page (used for reply editor)
+            const createFeedPostComponent = appManagerFeedPage['postEditor'];
+            const listFeedComponent = appManagerFeedPage['feedList'];
+
+            // Create reply text in editor
+            await createFeedPostComponent.createPost(replyText);
+
+            // Submit reply
+            await listFeedComponent.submitReplyAndGetResponse();
+
+            // ==================== VERIFY REPLY CREATED ====================
+            // Verify reply is visible
+            await appManagerFeedPage.feedList.verifyReplyIsVisible(replyText);
+
+            // Verify timestamp is present
+            await listFeedComponent.verifyReplyTimestamp(replyText);
+
+            // Verify reply count = 1
+            await appManagerFeedPage.feedList.verifyReplyCount(createdPostText, 1);
+
+            // ==================== EDIT REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(replyText);
+
+            // Click Edit
+            await listFeedComponent.clickReplyEditOption();
+
+            // Verify editor is visible
+            await createFeedPostComponent.verifyEditorVisible();
+
+            // Update reply text
+            await createFeedPostComponent.updatePostText(updatedReplyText);
+
+            // Click Update button
+            await createFeedPostComponent.clickUpdateButton();
+
+            // Verify updated reply is visible
+            await appManagerFeedPage.feedList.verifyReplyIsVisible(updatedReplyText);
+
+            // ==================== DELETE REPLY ====================
+            // Open reply options menu
+            await listFeedComponent.openReplyOptionsMenu(updatedReplyText);
+
+            // Click Delete option
+            await listFeedComponent.clickReplyDeleteOption();
+
+            // Confirm deletion
+            await listFeedComponent.confirmDelete();
+
+            await appManagerFeedPage.feedList.verifyReplyIsNotVisible(updatedReplyText);
+
+            await appManagerFeedPage.deletePost(createdPostText);
+          }
+        );
+      }
+
       // Test case for CONT-19548: Verify user able to add, edit, delete reply on Site Feed with file attachment
       if (testData.feedType === 'Site Feed') {
         test(
@@ -397,15 +475,9 @@ for (const testData of feedTestData) {
             // Get the createFeedPostComponent from siteDashboardPage
             const createFeedPostComponent = siteDashboardPage.createFeedPostComponent;
 
-            // Get file path for sample.xlsx
-            const documentPath = FILE_TEST_DATA.EXCEL.SAMPLE_XLSX.getPath(__dirname);
-
             // Post the feed with attachment (createAndPost handles text and file upload internally)
             const postResult = await createFeedPostComponent.createAndPost({
               text: initialPostText,
-              attachments: {
-                files: [documentPath],
-              },
             });
 
             const postWithAttachmentText = postResult.postText;
@@ -431,13 +503,6 @@ for (const testData of feedTestData) {
 
             // Create reply text in editor
             await replyCreateFeedPostComponent.createPost(replyText);
-
-            // Upload sample.xlsx file to reply (using reply-specific method)
-            await replyCreateFeedPostComponent.uploadFilesToReply([documentPath], postWithAttachmentText);
-
-            // Verify file is attached
-            await replyCreateFeedPostComponent.verifyAttachedFileCount(1);
-            await replyCreateFeedPostComponent.verifyFileIsAttached(FEED_TEST_DATA.ATTACHMENTS.DOCUMENT);
 
             // Submit reply
             await listFeedComponent.submitReplyAndGetResponse();

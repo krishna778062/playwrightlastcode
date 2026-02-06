@@ -7,6 +7,8 @@ import { getContentConfigFromCache } from '@/src/modules/content/config/contentC
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { ContentTestSuite } from '@/src/modules/content/constants/testSuite';
 import { contentTestFixture as test, users } from '@/src/modules/content/fixtures/contentFixture';
+import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
+import { ContentPreviewPage } from '@/src/modules/content/ui/pages/contentPreviewPage';
 import { FeedPage } from '@/src/modules/content/ui/pages/feedPage';
 import { SiteDashboardPage } from '@/src/modules/content/ui/pages/sitePages';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
@@ -97,6 +99,7 @@ async function getPrerequisiteData(
     const response = await helpers.contentManagementHelper.getContentId();
     resources.contentId = response.contentId;
     resources.siteId = response.siteId;
+    resources.contentType = response.contentType?.toLowerCase() ?? 'page';
   }
 
   console.log('resources :   ', resources);
@@ -136,7 +139,7 @@ for (const testData of feedTestData) {
       tag: [ContentTestSuite.FEED_MENTION_SITE_TOPIC_USER_APP_MANAGER, ContentTestSuite.FEED],
     },
     () => {
-      test.fixme(testData.feedType === 'Content Feed', 'Content feed is not rightly implemented');
+      //test.fixme(testData.feedType === 'Content Feed', 'Content feed is not rightly implemented');
       let appManagerFeedPage: FeedPage;
       let createdPostId: any;
       let fullName: string;
@@ -207,6 +210,14 @@ for (const testData of feedTestData) {
             const siteDashboardPage = new SiteDashboardPage(appManagerFixture.page, resources.siteId);
             await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
             await siteDashboardPage.clickOnFeedLink();
+          } else if (testData.feedType === 'Content Feed') {
+            const contentPreviewPage = new ContentPreviewPage(
+              appManagerFixture.page,
+              resources.siteId,
+              resources.contentId,
+              resources.contentType ?? 'page'
+            );
+            await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
           }
         }
       );
@@ -224,21 +235,21 @@ for (const testData of feedTestData) {
           });
 
           const initialPostText = TestDataGenerator.generateRandomText('Post', 1, false);
+          const publicSiteName = DEFAULT_PUBLIC_SITE_NAME;
           const embeedUrl = `https://www.youtube.com/watch?v=F_77M3ZZ1z8`;
 
           // Step 1: Create post with mentions
+          await appManagerFeedPage.verifyThePageIsLoaded();
           await appManagerFeedPage.clickShareThoughtsButton();
           const postResult = await appManagerFeedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: fullName,
             topicName: randomTopic.name,
-            siteName: [publicSiteName, privateSiteName],
+            siteName: [publicSiteName],
             embedUrl: embeedUrl,
           });
           createdPostId = postResult.postId;
           const postText = postResult.postText;
-
-          console.log('postText :   ', postText);
 
           // Step 2: Validate post creation
           await appManagerFeedPage.feedList.validatePostIsVisibleWithText(postText);

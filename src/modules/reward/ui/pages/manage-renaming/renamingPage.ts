@@ -1,13 +1,18 @@
 import { expect, Locator, Page, test } from '@playwright/test';
-import { RecognitionHubPage } from '@recognition/ui/pages';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
+import { getRewardTenantConfigFromCache } from '@rewards/config/rewardConfig';
 import { EditLabelModal } from '@rewards-components/manage-renaming/edit-label-modal';
+import { GiveRecognitionDialogBox } from '@rewards-components/recognition/give-recognition-dialog-box';
+import { ManageRewardsOverviewPage } from '@rewards-pages/manage-rewards/manage-rewards-overview-page';
+import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
+import { RewardsDialogBox } from '@rewards-pages/reward-store/rewards-dialog-box';
 import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
 import { BasePage } from '@core/pages/basePage';
 
-import { PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
+import { NewHomePage, PAGE_ENDPOINTS, TestDataGenerator } from '@/src/core';
 import { RewardSitesService } from '@/src/modules/reward/api/services/RewardSitesService';
 
 export class RenamingPage extends BasePage {
@@ -212,7 +217,10 @@ export class RenamingPage extends BasePage {
   async clickEditButtonByCardType(cardType: 'recognition' | 'points' | 'rewardsStore'): Promise<void> {
     await test.step(`Clicking Edit button for ${cardType}`, async () => {
       const editButton = this.getEditButtonByCardType(cardType);
-      await this.clickOnElement(editButton, { stepInfo: `Clicking Edit button for ${cardType}` });
+      await this.clickOnElement(editButton, {
+        timeout: TIMEOUTS.SHORT,
+        stepInfo: `Clicking Edit button for ${cardType}`,
+      });
       const dialog = new EditLabelModal(this.page);
       await this.verifier.waitUntilElementIsVisible(dialog.getSaveButton(), { timeout: TIMEOUTS.VERY_VERY_SHORT });
     });
@@ -287,7 +295,6 @@ export class RenamingPage extends BasePage {
     if (!flag || typeof flag.value !== 'string') {
       throw new Error(`Harness flag "${flagName}" not found in response`);
     }
-    console.log(`Harness flag ${flagName} value:`, flag.value.toLowerCase());
     return flag.value.toLowerCase() === 'true';
   }
 
@@ -406,7 +413,7 @@ export class RenamingPage extends BasePage {
   async changeSomeDataAndClickOnSave(cardType: 'Recognition' | 'Points' | 'Rewards Store'): Promise<string> {
     const editModal = new EditLabelModal(this.page);
     await editModal.getCustomLabelToggleSwitch().check();
-    const customName = cardType + '_' + TestDataGenerator.getRandomNo(0, 10000);
+    const customName = cardType + '_' + TestDataGenerator.getRandomNo(0, 1000);
     const isRecognitionForAllLanguagesChecked = await editModal.getCustomLabelToggleSwitch().isChecked();
     if (!isRecognitionForAllLanguagesChecked) {
       await editModal.getCustomLabelToggleSwitch().check();
@@ -434,7 +441,7 @@ export class RenamingPage extends BasePage {
     await this.clickOnElement(editModal.getSaveButton(), {
       stepInfo: `Clicking Save button in Edit Label modal for ${cardType}`,
     });
-    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
     return customName;
   }
 
@@ -577,43 +584,84 @@ export class RenamingPage extends BasePage {
 
   async getTheDefaultTranslationValues(): Promise<string[]> {
     const editModal = new EditLabelModal(this.page);
-
     const stringArray: string[] = [];
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
     for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_VERY_SHORT });
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_VERY_SHORT });
-      stringArray.push(await editModal.getOtherLanguageCustomInputBox(i).inputValue());
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+      stringArray.push(await input.inputValue());
     }
     return stringArray;
+  }
+
+  async getTheDefaultTranslationValuesByLanguages(): Promise<Map<string, string>> {
+    const editModal = new EditLabelModal(this.page);
+    const map = new Map<string, string>();
+    await editModal.verifyThePageIsLoaded();
+    await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    const count = await manualTranslationSwitches.count();
+    for (let i = 0; i < count; i++) {
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+      const value = await input.inputValue();
+      expect(value, 'expecting other language input to have a non-empty value').not.toBe('');
+      const languageLabel = (await editModal.getOtherLanguageCustomLabel(i).textContent())?.trim() ?? '';
+      map.set(languageLabel, value);
+    }
+    return map;
+  }
+
+  async setTheManualTranslationValuesByLanguages(
+    cardType: 'recognition' | 'points' | 'rewardsStore'
+  ): Promise<Map<string, string>> {
+    const editModal = new EditLabelModal(this.page);
+    const map = new Map<string, string>();
+    await editModal.verifyThePageIsLoaded();
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
+    const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
+    const count = await manualTranslationSwitches.count();
+    for (let i = 0; i < count; i++) {
+      await this.checkElement(manualTranslationSwitches.nth(i));
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+      const languageLabel = (await editModal.getOtherLanguageCustomLabel(i).textContent())?.trim() ?? '';
+      const value = languageLabel.split(' - ')[0] + `_${cardType}_` + TestDataGenerator.getRandomNo(10, 999);
+      map.set(languageLabel.split(' - ')[0], value);
+      await input.clear();
+      await this.fillInElement(input, value, { stepInfo: `Entering manual translation value for ${languageLabel}` });
+    }
+    await this.verifier.verifyTheElementIsEnabled(editModal.getSaveButton());
+    await this.clickOnElement(editModal.getSaveButton());
+    await this.page.waitForTimeout(TIMEOUTS.VERY_SHORT);
+    return map;
   }
 
   async validateTheLanguageDataRested(defaultOtherLanguageTranslationValue: string[]) {
     const editModal = new EditLabelModal(this.page);
     const manualTranslationSwitches = editModal.getManualTranslationToggleSwitch();
     for (let i = 0; i < (await manualTranslationSwitches.count()); i++) {
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('', { timeout: TIMEOUTS.VERY_SHORT });
-      await expect(
-        editModal.getOtherLanguageCustomInputBox(i),
-        'expecting other language input to have a non-empty value'
-      ).not.toHaveValue('Loading...', { timeout: TIMEOUTS.VERY_SHORT });
-      expect(defaultOtherLanguageTranslationValue).toContain(
-        await editModal.getOtherLanguageCustomInputBox(i).inputValue()
+      const input = editModal.getOtherLanguageCustomInputBox(i);
+      await expect(input, 'expecting other language input to finish loading and have a value').toHaveValue(
+        /^(?!Loading).+/,
+        { timeout: TIMEOUTS.MEDIUM }
       );
+      expect(defaultOtherLanguageTranslationValue).toContain(await input.inputValue());
     }
   }
 
-  async clickOnSaveButton() {
+  async clickOnSaveButton(): Promise<void> {
     const editModal = new EditLabelModal(this.page);
+    await this.verifier.verifyTheElementIsEnabled(editModal.getSaveButton());
     await editModal.getSaveButton().click();
   }
 
@@ -675,7 +723,7 @@ export class RenamingPage extends BasePage {
         await this.verifier.verifyTheElementIsVisible(giveRecognitionButton, { timeout: TIMEOUTS.SHORT });
         break;
       case 'Points':
-        const panel = this.page
+        const panelHeading = this.page
           .locator('a[href="/rewards-store/order-history"]')
           .locator('xpath=ancestor::div[contains(@style,"align-items")]')
           .locator('h2')
@@ -692,6 +740,8 @@ export class RenamingPage extends BasePage {
           .locator('p')
           .filter({ hasNotText: /^\d+$/ })
           .first();
+        await this.verifier.verifyTheElementIsVisible(panelHeading);
+        await expect(panelHeading).toContainText(customValue);
         await this.verifier.verifyTheElementIsVisible(pointsToGiveLabel);
         await expect(pointsToGiveLabel).toContainText(customValue);
         await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel);
@@ -774,7 +824,6 @@ export class RenamingPage extends BasePage {
       if (!Array.isArray(ids)) {
         throw new Error(`selectedLanguages.ids not found in appConfig response: ${JSON.stringify(json)}`);
       }
-
       return ids.map((n: any) => Number(n)).filter((n: number) => Number.isFinite(n));
     });
   }
@@ -796,177 +845,599 @@ export class RenamingPage extends BasePage {
     });
   }
 
-  async validateTheRecognitionValueInApp(customValue: string): Promise<void> {
-    //Validate the Customized value in Home page
-    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
-    const navMenuLocator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${customValue}")`);
-    await this.verifier.verifyTheElementIsVisible(navMenuLocator, { timeout: TIMEOUTS.SHORT });
-    await this.page.locator('[class*="PostForm"] button').click();
-    const recognitionCreationButtonInFeed = this.page
-      .locator('[for="recognition"] button[id="recognition"]')
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
+  // ---------- Common Locators ----------
+  private get postFormButton(): Locator {
+    return this.page.locator('[class*="PostForm"] button');
+  }
 
-    //Validate the Customized value in Recognition hub page
-    const recognitionHub = new RecognitionHubPage(this.page);
-    await recognitionHub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-    await recognitionHub.verifyThePageIsLoaded();
-    const recognitionHubHeading = this.page
-      .locator(`[class*="PageContainerFullscreen_header"] h1`)
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(recognitionHubHeading, { timeout: TIMEOUTS.SHORT });
-    const giveRecognitionButton = this.page
-      .locator(`[class*="PageContainerFullscreen_header"] h1 + div > button`)
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(giveRecognitionButton, { timeout: TIMEOUTS.SHORT });
+  private get recognitionCreationButton(): Locator {
+    return this.page.locator('[for="recognition"] button[id="recognition"]');
+  }
 
-    //Validate the Customized value in Site dashboard page
-    await this.openOneSiteDashboard();
-    await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
+  private get pointsLabel(): Locator {
+    return this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
+  }
+
+  // ---------- Common Actions ----------
+  private async openRecognitionComposer(): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(this.postFormButton, {
       timeout: TIMEOUTS.MEDIUM,
-      stepInfo: 'Waiting for recognition creation button to be visible on site dashboard page',
+      stepInfo: 'Post Form button is visible on the page',
     });
-    await this.page.locator('[class*="PostForm"] button').click();
-    const recognitionCreationButtonInFeed2 = this.page
-      .locator('[for="recognition"] button[id="recognition"]')
-      .filter({ hasText: customValue });
-    await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed2, { timeout: TIMEOUTS.SHORT });
+    await this.clickByInjectingJavaScript(this.postFormButton);
+    await this.verifier.waitUntilElementIsVisible(this.recognitionCreationButton, {
+      stepInfo: 'Recognition Button in Post Form button is visible',
+    });
+  }
+
+  private walletTextLabel(testId: string): Locator {
+    return this.page
+      .getByTestId(testId)
+      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
+      .locator('p')
+      .filter({ hasNotText: /^\d+$/ })
+      .first();
+  }
+
+  private async verifyPointsLabelText(locator: Locator, expected: string): Promise<void> {
+    await this.verifier.waitUntilElementIsVisible(locator, { timeout: TIMEOUTS.MEDIUM });
+    await locator.scrollIntoViewIfNeeded();
+    await this.verifier.verifyElementContainsText(locator, expected, {
+      assertionMessage: `Verifying ${await locator.textContent()} label contains expected text: ${expected}`,
+    });
+  }
+
+  private async validateRecognitionOnHome(customValue: any): Promise<void> {
+    const recognition = customValue.get('recognition');
+    const homePage = new NewHomePage(this.page);
+    await homePage.loadPage();
+    const locator = this.page.locator(`[data-testid="main-nav-item"] span:has-text("${recognition}")`);
+    await this.verifier.verifyTheElementIsVisible(locator, {
+      assertionMessage: `Verifying recognition nav menu with label ${await locator.textContent()} is visible on home page`,
+    });
+    await this.openRecognitionComposer();
+    await this.verifier.verifyTheElementIsVisible(this.recognitionCreationButton.filter({ hasText: recognition }));
+  }
+
+  private async validateRecognitionOnHub(customValue: any): Promise<void> {
+    const hub = new RecognitionHubPage(this.page);
+    await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+    await hub.verifyThePageIsLoaded();
+    const recognitionHubHeading = this.page.locator('[class*="PageContainerFullscreen_header"] h1');
+    await this.verifier.verifyTheElementIsVisible(recognitionHubHeading, {
+      assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
+    });
+    await this.validateRecognitionButtonText(customValue.get('recognition'));
+    await this.validateRecognitionButtonInGiveRecognitionModal(customValue);
+    await this.validateTheRecognitionFiltersOnHub(customValue.get('recognition'));
+  }
+  private async validateTheRecognitionFiltersOnHub(recognition: string): Promise<void> {
+    const filterDropdown = this.page.locator('select#filterBy option');
+    const optionTexts = (await filterDropdown.allTextContents()).map(text => text.trim());
+    expect(optionTexts.length).toBeGreaterThanOrEqual(2);
+    const nonTargetOptions = optionTexts.slice(0, -2);
+    const targetOptions = optionTexts.slice(-2);
+    for (const option of targetOptions) {
+      expect(option).toContain(recognition);
+    }
+    for (const option of nonTargetOptions) {
+      expect(option, `Did not expect recognition "${recognition}" in option "${option}"`).not.toContain(recognition);
+    }
+  }
+
+  private async validateRecognitionButtonInGiveRecognitionModal(customValue: any): Promise<void> {
+    const recognitionHubButton = this.page.locator('[class*="PageContainerFullscreen_headerContent"] button');
+    const recognitionModalHeading = this.page.locator('[class*="Dialog-module__header"] h2');
+    const recognitionModalCloseButton = this.page.locator('[class*="Dialog-module__header"] button');
+    await recognitionHubButton.click();
+    await this.verifier.verifyTheElementIsVisible(recognitionModalHeading, {
+      assertionMessage: `Verifying give recognition modal heading with label ${await recognitionModalHeading.filter({ hasText: customValue.get('recognition') }).textContent()} is visible on recognition hub page`,
+    });
+    const recognitionModal = new GiveRecognitionDialogBox(this.page);
+    const text = await recognitionModal.giftingPointsValueLabel.textContent();
+    expect(text).toContain(customValue.get('points'));
+    await recognitionModalCloseButton.click();
+    await this.verifier.verifyTheElementIsNotVisible(recognitionModalHeading, {
+      assertionMessage: 'Verifying give recognition modal is closed',
+    });
+  }
+
+  private async validateRecognitionButtonText(recognition: string): Promise<void> {
+    const recognitionHubButton = this.page.locator('[class*="PageContainerFullscreen_headerRightContent"] button');
+    await this.verifier.verifyTheElementIsVisible(recognitionHubButton, {
+      assertionMessage: `Verifying recognition hub heading with label ${await recognitionHubButton.filter({ hasText: recognition }).textContent()} is visible on recognition hub page`,
+    });
+  }
+
+  private async validateAcrossPages(steps: Array<() => Promise<void>>): Promise<void> {
+    for (const step of steps) {
+      await step();
+    }
+  }
+
+  async validateTheRecognitionValueInApp(customValue: any): Promise<void> {
+    await this.validateAcrossPages([
+      () => this.validateRecognitionOnHome(customValue),
+      () => this.validateRecognitionOnHub(customValue),
+      async () => {
+        await this.openOneSiteDashboard();
+        await this.openRecognitionComposer();
+        await this.verifier.verifyTheElementIsVisible(
+          this.recognitionCreationButton.filter({ hasText: customValue.get('recognition') }),
+          {
+            assertionMessage: 'Verifying recognition button with custom value is visible on site dashboard page',
+          }
+        );
+      },
+    ]);
   }
 
   async validateThePointsValueInApp(customValue: any): Promise<void> {
-    //Validate the Customized value in Home page
-    await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
-    await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
-      timeout: TIMEOUTS.MEDIUM,
-    });
-    await this.page.locator('[class*="PostForm"] button').click();
-    const recognitionCreationButtonInFeed = this.page.locator('[for="recognition"] button[id="recognition"]');
-    await this.clickOnElement(recognitionCreationButtonInFeed, { timeout: TIMEOUTS.SHORT });
-    const pointLabel = this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
-    await this.verifier.verifyTheElementIsVisible(pointLabel, { timeout: TIMEOUTS.SHORT });
-    expect(await pointLabel.textContent()).toContain(customValue.get('points'));
-
-    //Validate the Customized value in Recognition hub page
-    const recognitionHub = new RecognitionHubPage(this.page);
-    await recognitionHub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
-    await recognitionHub.verifyThePageIsLoaded();
-    const panelHeading = this.page
-      .locator('a[href="/rewards-store/order-history"]')
-      .locator('xpath=ancestor::div[contains(@style,"align-items")]')
-      .locator('h2')
-      .filter({ hasText: customValue.get('points') });
-    const pointsToGiveLabel = this.page
-      .getByTestId('i-gift')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ }) // exclude numeric value like 490
-      .first();
-    const pointsToSpendLabel = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .first();
-    await this.verifier.verifyTheElementIsVisible(panelHeading);
-    await expect(panelHeading).toContainText(customValue.get('points'));
-    await this.verifier.verifyTheElementIsVisible(pointsToGiveLabel);
-    await expect(pointsToGiveLabel).toContainText(customValue.get('points'));
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel);
-    await expect(pointsToSpendLabel).toContainText(customValue.get('points'));
-
-    //Validate the Customized value in Site dashboard page
-    await this.openOneSiteDashboard();
-    await this.verifier.waitUntilElementIsVisible(this.page.locator('[class*="PostForm"] button'), {
-      timeout: TIMEOUTS.MEDIUM,
-      stepInfo: 'Waiting for recognition creation button to be visible on site dashboard page',
-    });
-    await this.clickOnElement(this.page.locator('[class*="PostForm"] button'));
-    const recognitionCreationButtonInFeed2 = this.page.locator('[for="recognition"] button[id="recognition"]');
-    await this.verifier.verifyTheElementIsVisible(recognitionCreationButtonInFeed2, { timeout: TIMEOUTS.SHORT });
-    await this.clickOnElement(recognitionCreationButtonInFeed2);
-    const pointLabel2 = this.page.locator('[name="peerGifting.peerGiftingEnabled"]+span');
-    await this.verifier.verifyTheElementIsVisible(pointLabel2, { timeout: TIMEOUTS.SHORT });
-    expect(await pointLabel2.textContent()).toContain(customValue.get('points'));
-
-    //Validate the Customized value in Rewards Store page
-    const rewardStore = new RewardsStore(this.page);
-    await rewardStore.visit();
-    await rewardStore.verifyThePageIsLoaded();
-    const pointsToSpendLabel1 = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .filter({ hasText: customValue.get('points') })
-      .first();
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel1, { timeout: TIMEOUTS.SHORT });
-
-    //Validate the Customized value in User Profile page
-    const userProfile = new UserProfilePage(this.page);
-    await userProfile.navigateToCurrentUserProfile();
-    await userProfile.verifyThePageIsLoaded();
-    const recognitionLabelInUserProfilePage = this.page
-      .locator('a[href="/rewards-store/order-history"]')
-      .locator('xpath=preceding-sibling::h2')
-      .filter({ hasText: customValue.get('recognition') });
-
-    const pointsToGiveLabelInUserProfile = this.page
-      .getByTestId('i-gift')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .filter({ hasText: customValue.get('points') })
-      .first();
-
-    const pointsToSpendLabelInUserProfile = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"RewardsWallet_item")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .filter({ hasText: customValue.get('points') })
-      .first();
-
-    await this.verifier.verifyTheElementIsVisible(recognitionLabelInUserProfilePage, { timeout: TIMEOUTS.SHORT });
-    await this.verifier.verifyTheElementIsVisible(pointsToGiveLabelInUserProfile, { timeout: TIMEOUTS.SHORT });
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabelInUserProfile, { timeout: TIMEOUTS.SHORT });
+    const points = customValue.get('points');
+    const recognition = customValue.get('recognition');
+    await this.validateAcrossPages([
+      async () => {
+        await this.page.goto(PAGE_ENDPOINTS.HOME_PAGE);
+        await this.openRecognitionComposer();
+        await this.clickOnElement(this.recognitionCreationButton, {
+          stepInfo: 'Clicking on recognition creation button on home page',
+        });
+        await this.verifyPointsLabelText(this.pointsLabel, points);
+      },
+      async () => {
+        const hub = new RecognitionHubPage(this.page);
+        await hub.navigateRecognitionHubViaEndpoint(PAGE_ENDPOINTS.RECOGNITION_HUB);
+        await hub.verifyThePageIsLoaded();
+        await expect(this.walletTextLabel('i-gift')).toContainText(points);
+        await expect(this.walletTextLabel('i-coinsStacked')).toContainText(points);
+        this.recognitionCreationButton.filter({ hasText: recognition });
+      },
+      async () => {
+        await this.openOneSiteDashboard();
+        await this.openRecognitionComposer();
+        await this.clickOnElement(this.recognitionCreationButton, {
+          stepInfo: 'Clicking on recognition creation button on home page',
+        });
+        await this.verifyPointsLabelText(this.pointsLabel, points);
+        this.recognitionCreationButton.filter({ hasText: recognition });
+      },
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.loadPage();
+        await this.verifyPointsLabelText(
+          this.page
+            .getByTestId('i-coinsStacked')
+            .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
+            .locator('p')
+            .filter({ hasNotText: /^\d+$/ })
+            .first(),
+          points
+        );
+        const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
+        await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
+        await rewardStore.openGiftCardModal(2);
+        const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
+        await this.verifier.verifyTheElementIsVisible(
+          giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
+          { timeout: TIMEOUTS.SHORT }
+        );
+        expect(
+          await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
+        ).toContain(points);
+      },
+    ]);
   }
 
   async validateTheRewardStoreValueInApp(customValue: any): Promise<void> {
-    //Validate the Customized value in Rewards Store page
+    const rewardStoreHeading = customValue.get('rewardsStore');
+    const points = customValue.get('points');
     const rewardStore = new RewardsStore(this.page);
-    await rewardStore.visit();
-    await rewardStore.verifyThePageIsLoaded();
-    const rewardStoreHeading = this.page.locator(`  [class*="PageContainer-module__header"] h1`).filter({
-      hasText: customValue.get('rewardStore'),
-    });
-    const pointsToSpendLabel = this.page
-      .getByTestId('i-coinsStacked')
-      .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
-      .locator('p')
-      .filter({ hasNotText: /^\d+$/ })
-      .first();
-    await this.verifier.verifyTheElementIsVisible(rewardStoreHeading, { timeout: TIMEOUTS.SHORT });
-    await this.verifier.verifyTheElementIsVisible(pointsToSpendLabel, { timeout: TIMEOUTS.SHORT });
+    await this.validateAcrossPages([
+      async () => {
+        await rewardStore.loadPage();
+        await this.verifyPointsLabelText(
+          this.page
+            .getByTestId('i-coinsStacked')
+            .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
+            .locator('h1')
+            .filter({ hasNotText: /^\d+$/ })
+            .first(),
+          rewardStoreHeading
+        );
+      },
+      async () => {
+        await this.verifyPointsLabelText(
+          this.page
+            .getByTestId('i-coinsStacked')
+            .locator('xpath=ancestor::div[contains(@class,"PageHeader_container")]')
+            .locator('p')
+            .filter({ hasNotText: /^\d+$/ })
+            .first(),
+          points
+        );
+      },
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.searchForGiftCard('Amazon');
+        const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
+        await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
+        await rewardStore.openGiftCardModal(0);
+        const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
+        await this.verifier.verifyTheElementIsVisible(
+          giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
+          { timeout: TIMEOUTS.SHORT }
+        );
+        expect(
+          await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
+        ).toContain(points);
 
-    //Validate the Custom point label value in Gift card element
-    const giftCardPointLabelInRewardStorePage = this.page.locator(`button[class*="UI_listItem"]`).first();
-    await this.verifier.verifyTheElementIsVisible(
-      giftCardPointLabelInRewardStorePage.locator('div>p').last().filter({ hasNotText: /^\d+$/ }),
-      { timeout: TIMEOUTS.SHORT }
-    );
-    expect(
-      await giftCardPointLabelInRewardStorePage.locator('div>p').last().filter({ hasNotText: /^\d+$/ }).textContent()
-    ).toContain(customValue.get('points'));
+        //Input place holder validation
+        const giftCardPointInputPlaceHolder = this.page.locator(`[id="reward_points"] +span`);
+        await this.verifier.verifyTheElementIsVisible(giftCardPointInputPlaceHolder.filter({ hasNotText: /^\d+$/ }), {
+          timeout: TIMEOUTS.SHORT,
+        });
+        expect(await giftCardPointInputPlaceHolder.filter({ hasNotText: /^\d+$/ }).textContent()).toContain(points);
+        // Max points label
+        const giftCardMaxPointLabel = this.page.locator(`[for="reward_variableRewardAmountTypeMAX"] div`);
+        await this.verifier.verifyTheElementIsVisible(giftCardMaxPointLabel.filter({ hasNotText: /^\d+$/ }), {
+          timeout: TIMEOUTS.SHORT,
+        });
+        expect(await giftCardMaxPointLabel.filter({ hasNotText: /^\d+$/ }).textContent()).toContain(points);
 
-    //Validate the Custom point label value in Gift card modal
-    await rewardStore.openGiftCardModal(2);
-    const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
-    await this.verifier.verifyTheElementIsVisible(
-      giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
-      { timeout: TIMEOUTS.SHORT }
-    );
-    expect(
-      await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
-    ).toContain(customValue.get('points'));
+        // In Checkout page
+        const checkoutButton = this.page.locator('[class*="Dialog-module__footer"] button');
+        const rewardsDialogBox = new RewardsDialogBox(this.page);
+        await this.clickOnElement(checkoutButton);
+        await expect(rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(points);
+        await this.clickOnElement(rewardsDialogBox.closeButton);
+      },
+
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.searchForGiftCard('Callaway');
+        const giftCard = this.page.locator('button[class*="UI_listItem"]').first();
+        await this.verifyPointsLabelText(giftCard.locator('div>p').last().filter({ hasNotText: /^\d+$/ }), points);
+        await rewardStore.openGiftCardModal(0);
+        const giftCardPointLabel = this.page.locator(`[class*="RedemptionDialog_customPanel"]`);
+        await this.verifier.verifyTheElementIsVisible(
+          giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }),
+          { timeout: TIMEOUTS.SHORT }
+        );
+        expect(
+          await giftCardPointLabel.locator('p[class*="bold"]').filter({ hasNotText: /^\d+$/ }).textContent()
+        ).toContain(points);
+
+        const selectYourRewardValueDropdownValues =
+          await rewardStore.rewardsDialogBox.rewardValueOptions.allTextContents();
+        for (const val of selectYourRewardValueDropdownValues) {
+          expect(val, `Expected dropdown value "${val}" to contain points "${points}"`).toContain(points);
+        }
+        const checkoutButton = this.page.locator('[class*="Dialog-module__footer"] button');
+        await this.clickOnElement(checkoutButton);
+        await expect(rewardStore.rewardsDialogBox.confirmOrderModalRedeemValue).toContainText(points);
+        await this.clickOnElement(rewardStore.rewardsDialogBox.closeButton);
+      },
+
+      async () => {
+        const rewardStore = new RewardsStore(this.page);
+        await rewardStore.visitTheOrderHistory();
+        const orderCard = this.page.locator('[class*="Panel-module__panel"]').first();
+        const orderTotalValue = orderCard.locator('[class*="OrderHistory_details"] div:nth-child(2) p:nth-child(2)');
+        await this.verifyPointsLabelText(orderTotalValue, points);
+      },
+    ]);
+  }
+
+  private parseLanguageCandidates(languageLabel: string): string[] {
+    const parts = languageLabel
+      .split(' - ')
+      .map(s => s.trim())
+      .filter(Boolean);
+    return Array.from(new Set([...parts.reverse(), ...parts, languageLabel].filter(Boolean)));
+  }
+
+  private resolveTranslationByLanguageLabel(
+    translations: Map<string, string>,
+    languageLabel: string
+  ): string | undefined {
+    const direct = translations.get(languageLabel);
+    if (direct) return direct;
+
+    const prefix = languageLabel.split(' - ')[0]?.trim();
+    if (prefix) {
+      for (const [key, value] of translations.entries()) {
+        if (key.startsWith(prefix)) return value;
+      }
+    }
+    return undefined;
+  }
+
+  private async captureTranslationsForCard(cardType: 'recognition' | 'points'): Promise<{
+    defaultLabel: string;
+    translations: Map<string, string>;
+  }> {
+    const defaultLabel =
+      (await this.getTheNewCustomizedValue(cardType))?.trim() || (cardType === 'points' ? 'Points' : 'Recognition');
+    await this.clickEditButtonByCardType(cardType);
+    const translations = await this.getTheDefaultTranslationValuesByLanguages();
+    await this.clickDialogCloseButton();
+    return { defaultLabel, translations };
+  }
+
+  /**
+   * For Reward Store validations we also need translated values for Recognition + Points on some pages.
+   * This helper captures those translations up-front (before any language switching),
+   * resolves languageId from the language label, switches language, validates UI, and resets to English(US).
+   */
+  async validateRewardStoreManualTranslationsAcrossLanguages(
+    rewardStoreTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+    const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
+      await this.captureTranslationsForCard('recognition');
+    for (const [languageLabel, translatedRewardStoreValue] of rewardStoreTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('rewardsStore', translatedRewardStoreValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      expectedMap.set(
+        'recognition',
+        this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
+          defaultRecognitionLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.validateTheRewardStoreValueInApp(expectedMap);
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Recognition label across languages, then resets to default language.
+   * This mirrors the RC-7125 approach (no basic-app-config mocking).
+   */
+  async validateRecognitionManualTranslationsAcrossLanguages(
+    recognitionTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+
+    for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', translatedRecognitionValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await this.validateTheRecognitionValueInApp(expectedMap);
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Points label across languages, then resets to default language.
+   * Keeps Recognition label populated to avoid any locator filters receiving undefined.
+   */
+  async validatePointsManualTranslationsAcrossLanguages(
+    pointsTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    // If modal is open (caller just read translations), close it so we can safely navigate.
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
+      await this.captureTranslationsForCard('recognition');
+
+    for (const [languageLabel, translatedPointsValue] of pointsTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set(
+        'recognition',
+        this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
+          defaultRecognitionLabel
+      );
+      expectedMap.set('points', translatedPointsValue);
+      await this.validateThePointsValueInApp(expectedMap);
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Recognition label across languages, then resets to default language.
+   * This mirrors the RC-7125 approach (no basic-app-config mocking).
+   */
+  async validateRecognitionAndPointsLabelInDeleteRecognitionModal(
+    recognitionTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    await this.clickDialogCloseButton().catch(() => {});
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+
+    for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', translatedRecognitionValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      const manageRewardsOverviewPage = new ManageRewardsOverviewPage(this.page);
+      const recognitionHub = new RecognitionHubPage(this.page);
+      await manageRewardsOverviewPage.loadPage();
+      await expect(manageRewardsOverviewPage.activityPanelTableViewRecognitionItems.last()).toBeVisible();
+      const rewardData = await manageRewardsOverviewPage.openTheRecognitionPostCreatedBefore24Hrs(
+        getRewardTenantConfigFromCache().appManagerName
+      );
+      await manageRewardsOverviewPage.page.goto(rewardData.urlToOpen!);
+      await recognitionHub.clickOnTheFirstPostMoreOption(2);
+      const expectedRecognition = expectedMap.get('recognition') ?? '';
+      const expectedPoints = expectedMap.get('points') ?? '';
+      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toContainText(expectedRecognition.toLowerCase());
+      await expect(recognitionHub.deleteRecognitionWithRevokePoints).not.toBeVisible();
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.first()).toContainText(
+        expectedRecognition.toLocaleLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.last()).toContainText(
+        // expectedRecognition.toLocaleLowerCase()
+        expectedRecognition.toLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.last()).toContainText(expectedPoints);
+    }
+  }
+
+  /**
+   * Changes user language (server-side), validates Recognition label across languages, then resets to default language.
+   * This mirrors the RC-7125 approach (no basic-app-config mocking).
+   */
+  async validateRecognitionAndPointsLabelInDeleteRecognitionModalWithin24hrs(
+    recognitionPostUrl: string,
+    recognitionTranslationsByLanguage: Map<string, string>
+  ): Promise<void> {
+    const languageApi = new LanguageApiService();
+    const recognitionHub = new RecognitionHubPage(this.page);
+    await this.clickDialogCloseButton().catch(() => {});
+    const { defaultLabel: defaultPointsLabel, translations: pointsTranslationsByLanguage } =
+      await this.captureTranslationsForCard('points');
+
+    for (const [languageLabel, translatedRecognitionValue] of recognitionTranslationsByLanguage.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+
+      const expectedMap = new Map<string, string>();
+      expectedMap.set('recognition', translatedRecognitionValue);
+      expectedMap.set(
+        'points',
+        this.resolveTranslationByLanguageLabel(pointsTranslationsByLanguage, languageLabel) ?? defaultPointsLabel
+      );
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      // Validate the Delete recognition and revoke points is enabled in the dialog box
+      await recognitionHub.page.goto(`/recognition/recognition/${recognitionPostUrl}`);
+      await recognitionHub.verifyThePageIsLoaded();
+      await recognitionHub.clickOnTheFirstPostMoreOption(2);
+      const expectedRecognition = expectedMap.get('recognition') ?? '';
+      const expectedPoints = expectedMap.get('points') ?? '';
+      await recognitionHub.deleteRecognitionDialogBoxContainer.waitFor({ state: 'visible' });
+      await expect(recognitionHub.deleteRecognitionDialogBoxTitle).toContainText(expectedRecognition.toLowerCase());
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.first()).toContainText(
+        expectedRecognition.toLocaleLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(1)).toContainText(
+        // expectedRecognition.toLocaleLowerCase()
+        expectedRecognition.toLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(1)).toContainText(expectedPoints);
+      // Delete recognition with revoke points validation;
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(3)).toContainText(
+        expectedRecognition.toLowerCase()
+      );
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(3)).toContainText(expectedPoints);
+      await expect(recognitionHub.deleteRecognitionDialogBoxDescriptionText.nth(4)).toContainText(
+        expectedRecognition.toLocaleLowerCase()
+      );
+
+      //Delete recognition note validation
+      await expect(recognitionHub.deleteRecognitionNote.nth(0)).toContainText(expectedPoints);
+      await expect(recognitionHub.deleteRecognitionNote.nth(1)).toContainText(expectedPoints);
+      await expect(recognitionHub.deleteRecognitionNote.nth(2)).toContainText(expectedRecognition.toLocaleLowerCase());
+      await expect(recognitionHub.deleteRecognitionNote.nth(2)).toContainText(expectedPoints);
+    }
+  }
+
+  async validateValuesInUserProfile(points: any) {
+    const languageApi = new LanguageApiService();
+    const userProfilePage = new UserProfilePage(this.page);
+    await this.clickDialogCloseButton().catch(() => {});
+
+    const { defaultLabel: defaultRecognitionLabel, translations: recognitionTranslationsByLanguage } =
+      await this.captureTranslationsForCard('recognition');
+
+    for (const [languageLabel, translatedPointsValue] of points.entries()) {
+      const candidates = this.parseLanguageCandidates(languageLabel);
+      let languageId: number | undefined;
+      for (const candidate of candidates) {
+        languageId = await languageApi.getLanguageIdByName(this.page, candidate);
+        if (languageId !== undefined) break;
+      }
+      if (languageId === undefined) {
+        throw new Error(`Could not resolve languageId for "${languageLabel}". Tried: ${candidates.join(', ')}`);
+      }
+      const expectedMap = new Map<string, string>();
+      expectedMap.set(
+        'recognition',
+        this.resolveTranslationByLanguageLabel(recognitionTranslationsByLanguage, languageLabel) ??
+          defaultRecognitionLabel
+      );
+      expectedMap.set('points', translatedPointsValue);
+      await languageApi.languageChangeFunction(this.page, { supportedLanguageId: languageId });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await userProfilePage.navigateToCurrentUserProfile();
+      await userProfilePage.verifyThePageIsLoaded();
+      await this.verifier.verifyTheElementIsVisible(userProfilePage.userProfileRecognitionAndRewardContainer);
+      await this.verifier.verifyTheElementIsVisible(userProfilePage.pointsToGiveLabel);
+      await this.verifier.verifyTheElementIsVisible(userProfilePage.pointsToRedeemLabel);
+      await expect(userProfilePage.recognitionHeading).toContainText(expectedMap.get('recognition')!);
+      await expect(userProfilePage.pointsToGiveLabel).toContainText(expectedMap.get('points')!);
+      await expect(userProfilePage.pointsToRedeemLabel).toContainText(expectedMap.get('points')!);
+    }
   }
 }

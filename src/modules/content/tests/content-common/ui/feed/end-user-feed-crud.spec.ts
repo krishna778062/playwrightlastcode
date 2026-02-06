@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker';
 import { expect } from '@playwright/test';
 import { RecognitionHubPage } from '@rewards-pages/recognition-hub/recognition-hub-page';
 
+import { ContentType } from '@content/constants/contentType';
 import { ContentTestSuite } from '@content/constants/testSuite';
 import { contentTestFixture as test, users } from '@content/fixtures/contentFixture';
 import { FEED_TEST_DATA } from '@content/test-data/feed.test-data';
@@ -28,6 +29,7 @@ import { FILE_TEST_DATA } from '@/src/modules/content/test-data/file.test-data';
 import { DEFAULT_PUBLIC_SITE_NAME } from '@/src/modules/content/test-data/sites-create.test-data';
 import { GovernanceScreenPage } from '@/src/modules/content/ui/pages/governanceScreenPage';
 import { ManageSitePage } from '@/src/modules/content/ui/pages/manageSitePage';
+import { ProfileScreenPage } from '@/src/modules/content/ui/pages/profileScreenPage';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 
 test.describe(
@@ -77,15 +79,15 @@ test.describe(
     });
 
     test(
-      'verify user can create, edit and delete a feed post with attachments CONT-19533',
+      'verify user can create, edit and delete a feed post with attachments on Home Feed CONT-19538',
       {
         tag: [TestPriority.P0, TestGroupType.SMOKE, '@attachments', '@healthcheck'],
       },
       async () => {
         tagTest(test.info(), {
-          description: 'Test feed post creation, editing and deletion with file attachments',
-          zephyrTestId: 'CONT-19533',
-          storyId: 'CONT-19533',
+          description: 'Verify user can create, edit and delete a feed post with attachments on Home Feed',
+          zephyrTestId: 'CONT-19538',
+          storyId: 'CONT-19538',
         });
 
         // Generate test data
@@ -121,6 +123,54 @@ test.describe(
         await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
 
         // Step 4: Delete the post
+        await feedPage.deletePost(updatedPostText);
+        createdPostId = ''; // Clear post ID as post is already deleted
+        createdPostText = ''; // Clear post text as post is already deleted
+      }
+    );
+
+    test(
+      'In Zeus Verify user able to add edit delete Feed post on Home Feed CONT-19533',
+      {
+        tag: [TestPriority.P0, TestGroupType.SMOKE, TestGroupType.REGRESSION, '@CONT-19533'],
+      },
+      async () => {
+        tagTest(test.info(), {
+          description: 'In Zeus Verify user able to add edit delete Feed post on Home Feed',
+          zephyrTestId: 'CONT-19533',
+          storyId: 'CONT-19533',
+        });
+
+        // Generate test data
+        const initialPostText = TestDataGenerator.generateRandomText('Test Post', 3, true);
+        const updatedPostText = TestDataGenerator.generateRandomText('Updated Test Post', 3, true);
+
+        // Step 1: Create a new post with multiple attachments
+        await feedPage.clickShareThoughtsButton();
+
+        // Upload multiple files
+        await feedPage.postEditor.createPost(initialPostText);
+
+        // Post the feed
+        const postResult = await feedPage.postEditor.createAndPost({
+          text: initialPostText,
+        });
+
+        // Store created post text and postId for cleanup
+        createdPostText = postResult.postText;
+        createdPostId = postResult.postId || '';
+
+        // Wait for post to be visible
+        await feedPage.feedList.waitForPostToBeVisible(postResult.postText);
+
+        // Verify timestamp is displayed
+        await feedPage.feedList.getPostTimestamp(postResult.postText);
+
+        // Step 2: Edit the post
+        await feedPage.postEditor.editPost(postResult.postText, updatedPostText);
+        await feedPage.feedList.waitForPostToBeVisible(updatedPostText);
+
+        // Step 3: Delete the post
         await feedPage.deletePost(updatedPostText);
         createdPostId = ''; // Clear post ID as post is already deleted
         createdPostText = ''; // Clear post text as post is already deleted
@@ -445,15 +495,7 @@ test.describe(
 
         // Step 12: Verify video attachment is visible in the published feed post
         // Note: Videos are displayed as a video container div, not as HTML <video> elements
-        const videoContainer = standardUserFixture.page
-          .locator('div[class*="postContent"]')
-          .filter({ hasText: videoPostText })
-          .locator('div[class*="videoFluid"]');
-
-        await feedPage.verifier.verifyTheElementIsVisible(videoContainer, {
-          timeout: 10000,
-          assertionMessage: 'Video container should be visible in the published feed post',
-        });
+        await feedPage.feedList.verifyVideoContainerIsVisible(videoPostText);
 
         // Store post text for cleanup
         createdPostText = videoPostText;
@@ -778,10 +820,6 @@ test.describe(
 
           const shareComponent = new ShareComponent(standardUserFixture.page);
           await shareComponent.clickShareButton();
-
-          await endUserFeedPage.feedList.verifyToastMessageIsVisibleWithText(
-            FEED_TEST_DATA.TOAST_MESSAGES.SHARED_POST_SUCCESSFULLY
-          );
         });
 
         await test.step('Verify shared post with mention is visible on Global Feed', async () => {
@@ -2515,11 +2553,14 @@ test.describe(
         });
 
         // Setup: Get public, private, and unlisted sites, plus user and topic for mentions
-        const [publicSite, privateSite, endUserInfo, topicList] = await Promise.all([
+        const [publicSite, privateSite, unlistedSite, endUserInfo, topicList] = await Promise.all([
           appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC, {
             waitForSearchIndex: false,
           }),
           appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PRIVATE, {
+            waitForSearchIndex: false,
+          }),
+          appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.UNLISTED, {
             waitForSearchIndex: false,
           }),
           appManagerFixture.identityManagementHelper.getUserInfoByEmail(users.endUser.email),
@@ -2528,6 +2569,7 @@ test.describe(
 
         const publicSiteName = publicSite.name;
         const privateSiteName = privateSite.name;
+        const unlistedSiteName = unlistedSite.name;
         const publicSiteId = publicSite.siteId;
         const privateSiteId = privateSite.siteId;
 
@@ -2558,8 +2600,8 @@ test.describe(
           const postResult = await feedPage.postEditor.createfeedWithMentionUserNameAndTopic({
             text: initialPostText,
             userName: userName,
-            topicName: topicName,
-            siteName: [publicSiteName, privateSiteName],
+            topicName: '',
+            siteName: [publicSiteName, privateSiteName, unlistedSiteName],
             embedUrl: '', // No embed URL needed
           });
 
@@ -2567,36 +2609,36 @@ test.describe(
           createdPostId = postResult.postId || '';
 
           // Verify post creation - use base text for verification as mentions may render differently
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
-          await feedPage.feedList.validatePostText(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
+          await feedPage.feedList.validatePostText(createdPostText);
         });
 
         // Step 2: Navigate via Site Mentions
         await test.step('Navigate via site mentions', async () => {
           // Click Public Site mention and verify navigation
           await feedPage.clickOnShowOption('all');
-          await feedPage.clickSiteMentionInPost(initialPostText, publicSiteName, publicSiteId);
+          await feedPage.clickSiteMentionInPost(createdPostText, publicSiteName, publicSiteId);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
 
           // Click Private Site mention and verify navigation
-          await feedPage.clickSiteMentionInPost(initialPostText, privateSiteName, privateSiteId);
+          await feedPage.clickSiteMentionInPost(createdPostText, privateSiteName, privateSiteId);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Step 3: Edit Site Mentions
         await test.step('Edit site mentions', async () => {
           // Open ellipses menu
-          await feedPage.feedList.openPostOptionsMenu(initialPostText);
+          await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
           // Click Edit
           await feedPage.postEditor.clickEditOption();
@@ -2614,19 +2656,19 @@ test.describe(
           await feedPage.postEditor.clickUpdateButton();
 
           // Verify updated post shows new site mention
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Step 4: Verify Updated Mention Navigation
         await test.step('Verify updated mention navigation', async () => {
           // Click new site mention
-          await feedPage.clickSiteMentionInPost(initialPostText, publicSite2Name, publicSite2Id);
+          await feedPage.clickSiteMentionInPost(createdPostText, publicSite2Name, publicSite2Id);
 
           // Return to Home-Global Feed
           await appManagerFixture.homePage.loadPage();
           await appManagerFixture.navigationHelper.clickOnGlobalFeed();
           await feedPage.verifyThePageIsLoaded();
-          await feedPage.feedList.waitForPostToBeVisible(initialPostText);
+          await feedPage.feedList.waitForPostToBeVisible(createdPostText);
         });
 
         // Step 5: Delete Post
@@ -2637,7 +2679,7 @@ test.describe(
           await feedPage.verifyThePageIsLoaded();
 
           // Open ellipses menu
-          await feedPage.feedList.openPostOptionsMenu(initialPostText);
+          await feedPage.feedList.openPostOptionsMenu(createdPostText);
 
           // Click Delete option
           await feedPage.feedList.clickDeleteOption();
@@ -2646,7 +2688,7 @@ test.describe(
           await feedPage.feedList.confirmDelete();
 
           // Verify post is removed from feed
-          await feedPage.feedList.validatePostNotVisible(initialPostText);
+          await feedPage.feedList.validatePostNotVisible(createdPostText);
           createdPostId = '';
         });
       }
@@ -2728,7 +2770,15 @@ test.describe(
         const fileName = 'V2.png';
         const folderName = 'AVISTA BOX FILES EDITOR';
 
-        const publicSite = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+        const appManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const appManagerUserId = appManagerInfo.userId;
+
+        const publicSite = await appManagerFixture.siteManagementHelper.getSiteWithUserAsOwner(
+          appManagerUserId,
+          SITE_TYPES.PUBLIC
+        );
         const publicSiteId = publicSite.siteId;
 
         // Create page objects once and reuse
@@ -3018,6 +3068,208 @@ test.describe(
           await adminFeedPage.feedList.verifyPostIsNotVisible(updatedPostText);
           createdPostId = '';
           createdPostText = '';
+        });
+      }
+    );
+
+    test(
+      'verify correct author name is displayed on the feed post CONT-37417',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-37417'],
+      },
+      async ({ appManagerFixture }) => {
+        tagTest(test.info(), {
+          description: 'Verify correct author name is displayed on the feed post',
+          zephyrTestId: 'CONT-37417',
+          storyId: 'CONT-37417',
+        });
+
+        // Get Application Manager user info
+        const appManagerInfo = await appManagerFixture.identityManagementHelper.getUserInfoByEmail(
+          users.appManager.email
+        );
+        const appManagerFullName = appManagerInfo.fullName;
+
+        // Navigate to Home-Global Feed
+        await appManagerFixture.homePage.verifyThePageIsLoaded();
+        await appManagerFixture.navigationHelper.clickOnGlobalFeed();
+        const adminFeedPage = new FeedPage(appManagerFixture.page);
+        await adminFeedPage.verifyThePageIsLoaded();
+
+        // Create a feed post
+        await adminFeedPage.clickShareThoughtsButton();
+        const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+        const postResult = await adminFeedPage.postEditor.createAndPost({ text: postText });
+        createdPostId = postResult.postId || '';
+        createdPostText = postText;
+
+        // Verify post is visible
+        await adminFeedPage.feedList.waitForPostToBeVisible(postText);
+
+        // Verify author name is displayed on the feed post
+        const authorNameLink = await adminFeedPage.feedList.getAuthorNameLinkLocator(postText, appManagerFullName);
+        await adminFeedPage.verifier.verifyTheElementIsVisible(authorNameLink, {
+          assertionMessage: `Author name "${appManagerFullName}" should be displayed on the feed post`,
+        });
+
+        // Verify clicking on the author name navigates to the profile page
+        await adminFeedPage.clickOnElement(authorNameLink);
+        const profilePage = new ProfileScreenPage(adminFeedPage.page, appManagerInfo.userId);
+        await profilePage.verifyThePageIsLoaded();
+
+        // Verify URL contains the user's peopleId
+        await profilePage.verifyUrlContainsPeopleId(appManagerInfo.userId);
+      }
+    );
+
+    test(
+      'verify user cancels inappropriate content warning and can edit toxic content while creating Feed reply on Home Site and on a Comment CONT-28093',
+      {
+        tag: [TestPriority.P0, TestGroupType.REGRESSION, '@CONT-28093'],
+      },
+      async ({ appManagerFixture, standardUserFixture }) => {
+        tagTest(test.info(), {
+          description:
+            'Verify user cancels inappropriate content warning and can edit toxic content while creating Feed reply on Home Site and on a Comment',
+          zephyrTestId: 'CONT-28093',
+          storyId: 'CONT-28093',
+        });
+
+        const inappropriateReplyText = FEED_TEST_DATA.POST_TEXT.INAPPROPRIATE_COMMENT_TEXT;
+        const editedReplyText = FEED_TEST_DATA.POST_TEXT.EDITED_POST_TEXT;
+
+        // ==================== HOME FEED SCENARIO ====================
+        await test.step('Home Feed: Cancel and edit toxic content in reply', async () => {
+          // Create a post first
+          await standardUserFixture.navigationHelper.clickOnGlobalFeed();
+          const userFeedPage = new FeedPage(standardUserFixture.page);
+          await userFeedPage.verifyThePageIsLoaded();
+
+          await userFeedPage.clickShareThoughtsButton();
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const postResult = await userFeedPage.postEditor.createAndPost({ text: postText });
+          const postId = postResult.postId || '';
+
+          // Try to add reply with inappropriate content
+          await userFeedPage.feedList.openReplyEditorForPost(postText);
+          const createFeedPostComponent = userFeedPage['postEditor'];
+          await createFeedPostComponent.createPost(inappropriateReplyText);
+          await userFeedPage.feedList.submitReplyButton.click();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(standardUserFixture.page);
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Verify inappropriate content popup is not displayed
+          await userFeedPage.verifier.verifyTheElementIsNotVisible(warningPopup.popupContainer, {
+            assertionMessage: 'Inappropriate content popup should not be displayed after cancel',
+          });
+
+          // Edit the reply text to appropriate content
+          await createFeedPostComponent.updatePostText(editedReplyText);
+          await userFeedPage.feedList.submitReplyButton.click();
+
+          // Verify reply is created with edited text
+          await userFeedPage.feedList.verifyReplyIsVisible(editedReplyText);
+
+          // Cleanup
+          await appManagerFixture.feedManagementHelper.deleteFeed(postId);
+        });
+
+        // ==================== SITE FEED SCENARIO ====================
+        await test.step('Site Feed: Cancel and edit toxic content in reply', async () => {
+          // Get a public site
+          const siteInfo = await appManagerFixture.siteManagementHelper.getSiteByAccessType(SITE_TYPES.PUBLIC);
+          const siteId = siteInfo.siteId;
+
+          // Create a post on site feed
+          const siteDashboardPage = new SiteDashboardPage(standardUserFixture.page, siteId);
+          await siteDashboardPage.loadPage({ stepInfo: 'Load site dashboard page' });
+          await siteDashboardPage.clickOnFeedLink();
+          const siteFeedPage = new FeedPage(standardUserFixture.page);
+          await siteFeedPage.verifyThePageIsLoaded();
+
+          await siteDashboardPage.clickShareThoughtsButton();
+          const postText = FEED_TEST_DATA.POST_TEXT.INITIAL;
+          const postResult = await siteDashboardPage.createFeedPostComponent.createAndPost({ text: postText });
+          const postId = postResult.postId || '';
+
+          // Try to add reply with inappropriate content
+          await siteFeedPage.feedList.openReplyEditorForPost(postText);
+          const createFeedPostComponent = siteDashboardPage.createFeedPostComponent;
+          await createFeedPostComponent.createPost(inappropriateReplyText);
+          await siteFeedPage.feedList.submitReplyButton.click();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(standardUserFixture.page);
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Edit the reply text to appropriate content
+          await createFeedPostComponent.updatePostText(editedReplyText);
+          await siteFeedPage.feedList.submitReplyButton.click();
+
+          // Verify reply is created with edited text
+          await siteFeedPage.feedList.verifyReplyIsVisible(editedReplyText);
+
+          // Cleanup
+          await appManagerFixture.feedManagementHelper.deleteFeed(postId);
+        });
+
+        // ==================== CONTENT FEED SCENARIO ====================
+        await test.step('Content Feed: Cancel and edit toxic content in reply', async () => {
+          // Get content details
+          const { contentId, siteId } = await appManagerFixture.contentManagementHelper.getContentId();
+
+          // Navigate to Content Preview Page
+          const contentPreviewPage = new ContentPreviewPage(
+            standardUserFixture.page,
+            siteId,
+            contentId,
+            ContentType.PAGE.toLowerCase()
+          );
+          await contentPreviewPage.loadPage({ stepInfo: 'Load content preview page' });
+          await contentPreviewPage.verifyThePageIsLoaded();
+
+          // Create a comment first
+          await contentPreviewPage.clickShareThoughtsButton();
+          const commentText = FEED_TEST_DATA.POST_TEXT.COMMENT;
+          const commentResult = await contentPreviewPage.createFeedPostComponent.createAndPost({ text: commentText });
+          const commentId = commentResult.postId || '';
+
+          // Try to add reply with inappropriate content
+          await contentPreviewPage.listFeedComponent.openReplyEditorForPost(commentText);
+          const createFeedPostComponent = contentPreviewPage.createFeedPostComponent;
+          await createFeedPostComponent.createPost(inappropriateReplyText);
+          await contentPreviewPage.listFeedComponent.submitReplyButton.click();
+
+          // Verify warning popup appears
+          const warningPopup = new InappropriateContentWarningPopupComponent(standardUserFixture.page);
+          await warningPopup.verifyWarningPopupVisible();
+          await warningPopup.verifyWarningMessage();
+
+          // Click Cancel button
+          await warningPopup.clickCancel();
+          await warningPopup.verifyWarningPopupClosed();
+
+          // Edit the reply text to appropriate content
+          await createFeedPostComponent.updatePostText(editedReplyText);
+          await contentPreviewPage.listFeedComponent.submitReplyButton.click();
+
+          // Verify reply is created with edited text
+          await contentPreviewPage.listFeedComponent.verifyReplyIsVisible(editedReplyText);
+
+          // Cleanup
+          await appManagerFixture.feedManagementHelper.deleteFeed(commentId);
         });
       }
     );

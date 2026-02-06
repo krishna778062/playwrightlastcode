@@ -1,6 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
 import { TIMEOUTS } from '@core/constants/timeouts';
+import { AUDIENCE_MESSAGES } from '@platforms/constants/audience';
 
 import { PAGE_ENDPOINTS } from '@/src/core/constants/pageEndpoints';
 import { BasePage } from '@/src/core/ui/pages/basePage';
@@ -15,6 +16,9 @@ export class AudiencePage extends BasePage {
   createAudience: Locator;
   createCategory: Locator;
   createAudienceWithCSV: Locator;
+  mainPageSearchBox: Locator;
+  filtersButton: Locator;
+  filterContainer: Locator;
 
   // Legacy category dialog elements - now handled by CategoryModalComponent
   // These are kept for backward compatibility but should be removed eventually
@@ -47,6 +51,7 @@ export class AudiencePage extends BasePage {
   typeSelectInput: Locator;
   adGroupSelectInput: Locator;
   selectParentButton: Locator;
+  buttonByText: (buttonName: string) => Locator;
   createAudienceBtn: Locator;
 
   // Operator-related locators
@@ -73,6 +78,9 @@ export class AudiencePage extends BasePage {
     this.createCategory = page.locator('[role="menuitem"]:has-text("Create category")');
     this.createAudienceWithCSV = page.locator('[role="menuitem"]:has-text("Create audience with CSV")');
     this.labelAudience = page.getByTestId('pageContainer-page').locator('header h1').filter({ hasText: 'Audiences' });
+    this.mainPageSearchBox = pageContainer.getByRole('textbox', { name: /search|filter/i });
+    this.filtersButton = pageContainer.getByRole('button', { name: 'filters' });
+    this.filterContainer = page.locator('xpath=//div[contains(@class, "Dialog-module__children")]');
     this.nameAlreadyUsedError = page.getByText('Category name already exists');
     this.deleteCategoryOption = page.getByText('Delete category');
     this.deleteCategoryButton = page.getByRole('button', { name: 'Delete' });
@@ -86,8 +94,9 @@ export class AudiencePage extends BasePage {
     this.audienceNameInput = page.getByRole('textbox', { name: 'Name*' });
     this.addAudienceDescriptionButton = page.getByRole('button', { name: 'Add description' });
     this.audienceDescriptionInput = page.getByRole('textbox', { name: 'Description' });
-    this.selectParentTile = this.createAudienceDialog.locator('div:has-text("Select parent")').first();
-    this.selectParentButton = page.getByRole('button').nth(2);
+    this.selectParentTile = this.createAudienceDialog.locator("div[class*='ParentAudience']");
+    this.selectParentButton = this.selectParentTile.getByRole('button');
+    // this.selectParentButton = page.locator(`xpath=//div[contains(@class,'ParentAudience')]//button`);
     this.audiencePickerDialog = page.getByRole('dialog', { name: 'Audiences' });
     this.audiencePickerSearchBox = this.audiencePickerDialog
       .getByRole('textbox', { name: /search|filter|find/i })
@@ -95,6 +104,8 @@ export class AudiencePage extends BasePage {
     this.audiencePickerDoneButton = page.getByRole('button', { name: 'Done' });
     this.typeSelectInput = page.getByTestId('field-Type').getByTestId('SelectInput');
     this.adGroupSelectInput = page.locator('#groups_0_subGroups_0_adGroup');
+
+    this.buttonByText = (buttonName: string) => page.getByText(buttonName);
     this.createAudienceBtn = page.getByRole('button', { name: 'Create' });
 
     // Operator-related locators
@@ -547,6 +558,52 @@ export class AudiencePage extends BasePage {
     });
   }
 
+  async verifyCreateAudienceModalAppearance(): Promise<void> {
+    await test.step('Verify Create audience modal appearance', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.createAudienceDialog, {
+        assertionMessage: 'Verify Create audience dialog is visible',
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const dialogTitle = this.createAudienceDialog.getByRole('heading', { name: 'Create audience' });
+      await this.verifier.verifyTheElementIsVisible(dialogTitle, {
+        assertionMessage: 'Verify dialog title "Create audience" is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.audienceNameInput, {
+        assertionMessage: 'Verify Name input field is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.addAudienceDescriptionButton, {
+        assertionMessage: 'Verify "Add description" button is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.selectParentTile, {
+        assertionMessage: 'Verify "Select parent" section is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.typeSelectInput, {
+        assertionMessage: 'Verify "Type" dropdown is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      await this.verifier.verifyTheElementIsVisible(this.createAudienceBtn, {
+        assertionMessage: 'Verify "Create" button is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+
+      const closeButton = this.createAudienceDialog.getByRole('button', { name: 'Close' });
+      await this.verifier.verifyTheElementIsVisible(closeButton, {
+        assertionMessage: 'Verify Close button is visible',
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
   /**
    * Fill basic audience fields
    */
@@ -559,6 +616,47 @@ export class AudiencePage extends BasePage {
         await this.clickOnElement(this.addAudienceDescriptionButton, { stepInfo: 'Click Add description' });
         await this.fillInElement(this.audienceDescriptionInput, description, { stepInfo: 'Fill audience description' });
       }
+    });
+  }
+
+  /**
+   * Click Add description button to reveal description field
+   */
+  async clickAddDescriptionButton(): Promise<void> {
+    await test.step('Click Add description button', async () => {
+      await this.clickOnElement(this.addAudienceDescriptionButton, { stepInfo: 'Click Add description' });
+    });
+  }
+
+  /**
+   * Verify description field has the expected maxlength attribute
+   */
+  async verifyDescriptionMaxLength(expectedMaxLength: number): Promise<void> {
+    await test.step(`Verify description field has maxlength attribute of ${expectedMaxLength}`, async () => {
+      await expect(this.audienceDescriptionInput).toHaveAttribute('maxlength', expectedMaxLength.toString());
+    });
+  }
+
+  /**
+   * Fill description with specified text and verify the input length
+   */
+  async fillDescriptionAndVerifyLength(description: string, expectedLength: number): Promise<void> {
+    await test.step(`Fill description with ${description.length} characters and verify length is ${expectedLength}`, async () => {
+      await this.audienceDescriptionInput.fill(description);
+      const inputValue = await this.audienceDescriptionInput.inputValue();
+      expect(inputValue.length).toBe(expectedLength);
+    });
+  }
+
+  /**
+   * Verify that description field enforces max length by truncating oversized input
+   */
+  async verifyDescriptionMaxLengthEnforced(maxAllowedLength: number): Promise<void> {
+    await test.step(`Verify description is truncated to max ${maxAllowedLength} characters`, async () => {
+      const oversizedText = 'a'.repeat(maxAllowedLength + 1);
+      await this.audienceDescriptionInput.fill(oversizedText);
+      const inputValue = await this.audienceDescriptionInput.inputValue();
+      expect(inputValue.length).toBeLessThanOrEqual(maxAllowedLength);
     });
   }
 
@@ -581,6 +679,94 @@ export class AudiencePage extends BasePage {
       await this.clickOnElement(itemExact, { stepInfo: `Choose parent: ${parentName}` });
 
       await this.clickOnElement(this.audiencePickerDoneButton, { stepInfo: 'Confirm parent selection' });
+    });
+  }
+
+  async clickParentEditIcon(): Promise<void> {
+    await test.step('Click on Edit icon of parent', async () => {
+      // Find the pencil/edit icon button next to "Select parent"
+      const editIconButton = this.createAudienceDialog
+        .locator(
+          'xpath=//p[contains(text(), "Select parent")]/ancestor::div[contains(@class, "ParentAudience")]//button[contains(@class, "IconButton")]'
+        )
+        .or(
+          this.createAudienceDialog
+            .locator('button[class*="IconButton"][class*="primary"]')
+            .filter({ has: this.page.locator('svg') })
+        )
+        .first();
+
+      await this.clickOnElement(editIconButton, { stepInfo: 'Click Edit icon (pencil) of parent' });
+      await expect(this.audiencePickerDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await this.page.waitForTimeout(1000);
+    });
+  }
+
+  async searchAudienceInPicker(searchTerm: string): Promise<void> {
+    await test.step(`Search audience: "${searchTerm}"`, async () => {
+      await this.audiencePickerSearchBox.fill(searchTerm);
+
+      const searchButton = this.audiencePickerDialog.getByRole('button', { name: 'Search' });
+
+      await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/audiences') && resp.status() === 200),
+        this.clickOnElement(searchButton, { stepInfo: 'Click Search button' }),
+      ]);
+    });
+  }
+
+  async verifyNoResultsMessage(): Promise<void> {
+    await test.step('Verify No Results messages', async () => {
+      const noResultsText = this.audiencePickerDialog.getByText(AUDIENCE_MESSAGES.NO_RESULTS_FOUND);
+      await this.verifier.verifyTheElementIsVisible(noResultsText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.NO_RESULTS_FOUND}" message is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+
+      const adjustSearchText = this.audiencePickerDialog.getByText(AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH);
+      await this.verifier.verifyTheElementIsVisible(adjustSearchText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH}" message is visible`,
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  async openParentPicker(): Promise<void> {
+    await test.step('Open Select parent picker', async () => {
+      await this.clickOnElement(this.selectParentButton, { stepInfo: 'Open Select parent picker' });
+      await expect(this.audiencePickerDialog).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await this.page.waitForTimeout(2000); // Give the dialog time to load its content
+    });
+  }
+
+  async clickButtonByText(buttonName: string): Promise<void> {
+    await test.step('Click "+ New category" in parent picker', async () => {
+      const button = this.buttonByText(buttonName);
+      await this.clickOnElement(button, { stepInfo: 'Click + New category' });
+    });
+  }
+
+  async verifyCategoryPresentInParentPicker(categoryName: string): Promise<void> {
+    await test.step(`Verify category "${categoryName}" is listed in parent picker`, async () => {
+      const itemExact = this.audiencePickerDialog.getByText(categoryName, { exact: true }).first();
+      await expect(itemExact).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    });
+  }
+
+  async verifyCategoryNotPresentInParentPicker(categoryName: string): Promise<void> {
+    await test.step(`Verify category "${categoryName}" is NOT listed in parent picker`, async () => {
+      const itemExact = this.audiencePickerDialog.getByText(categoryName, { exact: true }).first();
+      await this.verifier.verifyTheElementIsNotVisible(itemExact, {
+        assertionMessage: `Verify "${categoryName}" is not visible in parent picker`,
+        timeout: TIMEOUTS.VERY_SHORT,
+      });
+    });
+  }
+
+  async verifyButtonVisible(buttonName: string): Promise<void> {
+    await test.step(`Verify presence of "${buttonName}" button in parent picker`, async () => {
+      const button = this.buttonByText(buttonName);
+      await expect(button).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
     });
   }
 
@@ -869,6 +1055,59 @@ export class AudiencePage extends BasePage {
           timeout: TIMEOUTS.SHORT,
         });
       }
+    });
+  }
+
+  /**
+   * Search for an audience on the main Audiences page
+   */
+  async searchAudienceOnMainPage(searchTerm: string): Promise<void> {
+    await test.step(`Search for audience: "${searchTerm}" on main page`, async () => {
+      await this.mainPageSearchBox.fill(searchTerm);
+      const pageContainer = this.page.getByTestId('pageContainer-page');
+      const searchButton = pageContainer.getByRole('button', { name: 'Search' });
+
+      await Promise.all([
+        this.page.waitForResponse(resp => resp.url().includes('/audiences') && resp.status() === 200),
+        this.clickOnElement(searchButton, { stepInfo: 'Click Search button' }),
+      ]);
+    });
+  }
+
+  /**
+   * Verify No Results messages on main Audiences page
+   */
+  async verifyNoResultsOnMainPage(): Promise<void> {
+    await test.step('Verify No Results messages on main page', async () => {
+      const pageContainer = this.page.getByTestId('pageContainer-page');
+      const noResultsText = pageContainer.getByText(AUDIENCE_MESSAGES.NO_RESULTS_FOUND);
+      await this.verifier.verifyTheElementIsVisible(noResultsText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.NO_RESULTS_FOUND}" message is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      const adjustSearchText = pageContainer.getByText(AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH);
+      await this.verifier.verifyTheElementIsVisible(adjustSearchText, {
+        assertionMessage: `Verify "${AUDIENCE_MESSAGES.TRY_ADJUSTING_SEARCH}" message is visible`,
+        timeout: TIMEOUTS.SHORT,
+      });
+    });
+  }
+
+  // ========== FILTERS METHODS ==========
+
+  async clickFiltersButton(): Promise<void> {
+    await test.step('Click Filters button', async () => {
+      await this.clickOnElement(this.filtersButton, { stepInfo: 'Click Filters button' });
+    });
+  }
+
+  async verifyFilterElementPresence(filterName: string): Promise<void> {
+    await test.step(`Verify presence of "${filterName}" filter`, async () => {
+      const filterElement = this.filterContainer.locator('button h3', { hasText: filterName });
+      await this.verifier.verifyTheElementIsVisible(filterElement, {
+        assertionMessage: `Verify "${filterName}" filter is visible`,
+        timeout: TIMEOUTS.MEDIUM,
+      });
     });
   }
 }

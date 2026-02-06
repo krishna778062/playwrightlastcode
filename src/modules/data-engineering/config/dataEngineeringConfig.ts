@@ -10,7 +10,17 @@
 import { log } from '@core/utils/logger';
 
 export type TenantKey = 'primary' | 'abac';
-export type EnvironmentKey = 'qa' | 'test' | 'uat' | 'uatAU' | 'uatCA' | 'uatEU' | 'prodUS';
+export type EnvironmentKey =
+  | 'qa'
+  | 'test'
+  | 'uat'
+  | 'uatAU'
+  | 'uatCA'
+  | 'uatEU'
+  | 'prodUS'
+  | 'prodEU'
+  | 'prodAU'
+  | 'prodCA';
 
 // Tenant-specific configuration structure
 export interface DataEngineeringTenantConfig {
@@ -97,14 +107,14 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
     },
     uatEU: {
       tenantName: 'Data Engineering Primary',
-      frontendBaseUrl: 'https://de.uat-eu.simpplr.xyz',
-      apiBaseUrl: 'https://de-api.uat-eu.simpplr.xyz',
-      apiBeUrl: 'https://api-be.uat-eu.simpplr.xyz',
-      appManagerEmail: 'divyansh.kumar@simpplr.com',
+      frontendBaseUrl: 'https://de-auto.uat-eu.simpplr.com',
+      apiBaseUrl: 'https://de-auto-api.uat-eu.simpplr.com',
+      apiBeUrl: 'https://api-be.uat-eu.simpplr.com',
+      appManagerEmail: 'bharat.madaan@simpplr.com',
       appManagerPassword: 'Simpplr@123',
-      standardUserEmail: 'adil.shamim+2@simpplr.com',
-      standardUserPassword: 'Simpplr@2025',
-      orgId: 'uat-eu-primary-org-id',
+      standardUserEmail: 'simpplr.dev+amber.rich@example.com',
+      standardUserPassword: 'Simpplr@123',
+      orgId: '039a0ab4-d82d-4d79-9d53-8b2b41754cd5',
       odinOrgId: 'uat-eu-odin-org-id',
     },
     prodUS: {
@@ -118,6 +128,39 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
       standardUserPassword: 'Simpplr@2025',
       orgId: 'prod-primary-org-id',
       odinOrgId: 'prod-odin-org-id',
+    },
+    prodEU: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://zeus.eu.simpplr.com/',
+      apiBaseUrl: 'https://zeus-api.eu.simpplr.com',
+      apiBeUrl: 'https://api-be.eu.simpplr.com',
+      appManagerEmail: 'divya.jain@simpplr.com',
+      appManagerPassword: 'Simpplr@1234',
+      standardUserEmail: 'adil.shamim@simpplr.com',
+      standardUserPassword: 'Simpplr@1234',
+      orgId: '40909597-98d6-440e-9d08-c8ed8c2761ea',
+    },
+    prodAU: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://au-5.au.simpplr.com/',
+      apiBaseUrl: 'https://au5-api.au.simpplr.com',
+      apiBeUrl: 'https://api-be.au.simpplr.com',
+      appManagerEmail: 'parul.sharma@simpplr.com',
+      appManagerPassword: 'Simpplr@1234',
+      standardUserEmail: '',
+      standardUserPassword: '',
+      orgId: 'fcab0fbd-2288-495a-982e-e8f90a016719',
+    },
+    prodCA: {
+      tenantName: 'Data Engineering Primary',
+      frontendBaseUrl: 'https://winter-is-coming-1.ca.simpplr.com/',
+      apiBaseUrl: 'https://winter-is-coming-1-api.ca.simpplr.com',
+      apiBeUrl: 'https://api-be.ca.simpplr.com',
+      appManagerEmail: 'parul.sharma@simpplr.com',
+      appManagerPassword: 'Simpplr@1234',
+      standardUserEmail: '',
+      standardUserPassword: '',
+      orgId: 'b8fd4d0e-5b38-433e-982f-e216a510873a',
     },
   },
   abac: {
@@ -180,7 +223,18 @@ export const config: Record<TenantKey, Partial<Record<EnvironmentKey, DataEngine
 function getCurrentEnvironment(): EnvironmentKey {
   const testEnv = process.env.TEST_ENV || 'qa';
 
-  const validEnvs: EnvironmentKey[] = ['qa', 'test', 'uat', 'uatAU', 'uatCA', 'uatEU', 'prodUS'];
+  const validEnvs: EnvironmentKey[] = [
+    'qa',
+    'test',
+    'uat',
+    'uatAU',
+    'uatCA',
+    'uatEU',
+    'prodUS',
+    'prodEU',
+    'prodAU',
+    'prodCA',
+  ];
   if (!validEnvs.includes(testEnv as EnvironmentKey)) {
     throw new Error(
       `Invalid TEST_ENV value: '${testEnv}'\n` +

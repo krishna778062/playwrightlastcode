@@ -71,12 +71,12 @@ export class RewardsStore extends BasePage {
     this.pointToSpend = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(0);
     this.pointToSpendText = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(1);
     this.pendingPoints = this.pointsBalanceContainer.locator('[class*="PageHeader_details"] p').nth(2);
-    this.giftCardsTab = page.getByRole('tab', { name: 'Gift cards' });
+    this.giftCardsTab = page.locator('div[role="tablist"] button[role="tab"]').first();
     this.prepaidCardsTab = page.getByRole('tab', { name: 'Prepaid cards' });
     this.charityDonationsTab = page.getByRole('tab', { name: 'Charity donations' });
-    this.orderHistoryTab = page.getByRole('tab', { name: 'Order history' });
+    this.orderHistoryTab = page.locator('div[role="tablist"] button[role="tab"]').last();
     this.searchField = page.locator('#q');
-    this.searchButton = page.locator('[class^="UI_searchBar"] button[aria-label="Search"]');
+    this.searchButton = page.locator('[class^="UI_searchBar"] button');
     this.rewardCategory = page.locator('#categoryId');
     this.rewardCountry = page.locator('#countryCode');
     this.firstTimeCountrySelectDropdown = page.locator(
@@ -152,7 +152,8 @@ export class RewardsStore extends BasePage {
     });
     await this.searchField.clear(); // clear any previous input
     await this.searchField.fill(searchTerm);
-    await this.searchButton.click({ force: true });
+    await this.clickOnElement(this.searchButton.last());
+    await this.page.waitForTimeout(TIMEOUTS.VERY_VERY_SHORT);
   }
 
   async selectCountry(countryName: string) {
@@ -211,15 +212,11 @@ export class RewardsStore extends BasePage {
           res.request().method() === 'GET'
       ),
       rewardStore.loadPage(), // action that triggers API
-      rewardStore.verifyThePageIsLoaded(),
     ]);
     const body = await apiResponse.json();
-    console.log(`/recognition/v1/tenant/config Response is:\n${JSON.stringify(body, null, 2)}`);
     const isRewardEnabled = body.rewardConfig?.enabled;
     const isPeerGiftingDisabled = body.rewardConfig?.peerGiftingEnabled;
-    console.log(
-      `${test.info().title}: Rewards Enabled: ${isRewardEnabled}, Peer Gifting Enabled: ${isPeerGiftingDisabled}`
-    );
+    console.log(`${test.info().title}: Rewards: ${isRewardEnabled}, Peer Gifting: ${isPeerGiftingDisabled}`);
     if (!isPeerGiftingDisabled || !isRewardEnabled) {
       const manageRewards = new ManageRewardsOverviewPage(this.page);
       await manageRewards.enableTheRewardsAndPeerGiftingIfDisabled();
