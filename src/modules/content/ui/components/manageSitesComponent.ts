@@ -233,6 +233,18 @@ export class ManageSitesComponent extends BaseComponent {
       await this.clickOnElement(this.clickOnTheManageSiteButton);
     });
   }
+
+  /**
+   * Navigates to the manage site setup page for a specific site
+   * @param siteId - The site ID to navigate to
+   */
+  async navigateToManageSiteSetupAbac(siteId: string): Promise<void> {
+    await test.step(`Navigate to manage site setup for site ${siteId}`, async () => {
+      await this.page.goto(PAGE_ENDPOINTS.MANAGE_SITE_SETUP_PAGE(siteId));
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.page.waitForTimeout(1000);
+    });
+  }
   async clickOnThePeopleTabAction(): Promise<void> {
     await test.step('Click on the people tab', async () => {
       await this.clickOnElement(this.clickOnThePeopleTab);
