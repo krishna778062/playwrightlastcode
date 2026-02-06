@@ -660,7 +660,7 @@ export class SiteManagementService implements ISiteManagementOperations {
   ): Promise<SiteMembershipListResponse> {
     return await test.step(`Getting membership list for site ${siteId}`, async () => {
       const defaultOptions = {
-        size: 100,
+        size: 500,
         type: 'members',
         ...options,
       };
@@ -694,6 +694,50 @@ export class SiteManagementService implements ISiteManagementOperations {
         );
       }
 
+      return responseBody;
+    });
+  }
+
+  /**
+   * Updates site settings including feed posting permission.
+   * The API expects the full site object; this method GETs site details, merges isBroadcast, then PUTs.
+   * @param siteId - The site ID to update
+   * @param settings - The settings to update
+   * @param settings.isBroadcast - Feed posting: false = anyone can post, true = only owner/manager can make feed post
+   * @returns Promise containing the update response
+   */
+  async updateSiteSettings(
+    siteId: string,
+    settings: {
+      isBroadcast?: boolean;
+    }
+  ): Promise<any> {
+    return await test.step(`Updating site settings for site ID: ${siteId}`, async () => {
+      const getResponse = await this.getSiteDetails(siteId);
+      const sitePayload = getResponse.result;
+
+      if (!sitePayload) {
+        throw new Error(`Failed to get site details for ${siteId}; no result in response`);
+      }
+
+      const payload = {
+        ...sitePayload,
+        ...(settings.isBroadcast !== undefined && { isBroadcast: settings.isBroadcast }),
+      };
+
+      const response = await this.httpClient.put(API_ENDPOINTS.site.updateSiteSettings(siteId), {
+        data: payload,
+      });
+
+      const responseBody = await response.json();
+
+      if (!response.ok()) {
+        throw new Error(
+          `Failed to update site settings for ${siteId}. Status: ${response.status()}, Response: ${JSON.stringify(responseBody)}`
+        );
+      }
+
+      log.debug(`Successfully updated site settings for ${siteId}`, { settings });
       return responseBody;
     });
   }
