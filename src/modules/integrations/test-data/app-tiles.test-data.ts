@@ -305,4 +305,9 @@ export const ZENDESK_VALUES = {
   SubmittedRequestsTile: 'Display submitted requests',
   TicketsUsingSearchQueryTile: 'Display tickets using Zendesk search query',
   UnassignedTicketsTile: 'Display unassigned tickets',
+  Priority: 'Priority',
+  HighPriority: 'High',
+  NormalPriority: 'Normal',
+  LowPriority: 'Low',
+  UrgentPriority: 'Urgent',
 } as const;
