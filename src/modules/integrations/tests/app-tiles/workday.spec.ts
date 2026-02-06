@@ -525,7 +525,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           paystubsTileName,
           AppManagerDefined,
           PayslipListUrl,
@@ -565,7 +565,7 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           paystubsTileName,
           SiteManagerDefined,
           PayslipListUrl,
@@ -604,7 +604,7 @@ test.describe(
         //add,personalize,edit,verify
         await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           paystubsTileName,
           FIELD_NAMES.PAYSLIP_LIST_URL
         );
@@ -647,7 +647,7 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           paystubsTileName,
           FIELD_NAMES.PAYSLIP_LIST_URL
         );
@@ -686,7 +686,7 @@ test.describe(
         //add,personalize,edit,verify
         await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           paystubsTileName,
           FIELD_NAMES.PAYSLIP_LIST_URL
         );
@@ -758,7 +758,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTilewithDefinedSettingsEnableToggle(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           paystubsTileName,
           AppManagerDefined,
           PayslipListUrl,
@@ -873,7 +873,7 @@ test.describe(
         //add,personalize,edit,verify
         await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           FIELD_NAMES.INBOX_REPORT_URL
         );
@@ -917,7 +917,7 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           FIELD_NAMES.INBOX_REPORT_URL
         );
@@ -952,7 +952,7 @@ test.describe(
         createdTileTitle = `Workday Display Inbox apptile ${faker.string.alphanumeric({ length: 6 })}`;
         await homeDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           AppManagerDefined,
           InboxTasksReportUrl,
@@ -987,7 +987,7 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           SiteManagerDefined,
           InboxTasksReportUrl,
@@ -1022,7 +1022,7 @@ test.describe(
         //add,personalize,edit,verify
         await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           FIELD_NAMES.INBOX_REPORT_URL
         );
@@ -1064,7 +1064,7 @@ test.describe(
         // Add, edit, and remove tile
         await siteDashboard.addTilewithDefinedSettings(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           SiteManagerDefined,
           InboxTasksReportUrl,
@@ -1098,7 +1098,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTilewithDefinedSettingsEnableToggle(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           inboxTileName,
           AppManagerDefined,
           InboxTasksReportUrl,
@@ -1197,7 +1197,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           jobPostingsTileName,
           UI_ACTIONS.ADD_TO_HOME,
           JobType,
@@ -1278,7 +1278,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           jobPostingsTileName,
           JobType,
           InternalJobPostingsUrl
@@ -1403,7 +1403,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           jobPostingsTileName,
           UI_ACTIONS.ADD_TO_HOME,
           JobType,
@@ -1436,7 +1436,7 @@ test.describe(
         // Create via UI with App manager defined and enter URL, then add to home
         await homeDashboard.addTileWithAppManagerDefinedDropdownAndText(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           jobPostingsTileName,
           UI_ACTIONS.ADD_TO_HOME,
           JobType,
@@ -1521,7 +1521,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard - time off',
+      'verify app manager is able to create, edit and remove Workday Display Time Off app manager defined tile on home dashboard - leave of absence',
       {
         tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
       },
@@ -1538,11 +1538,11 @@ test.describe(
         //add, edit, verify
         await homeDashboard.addAppManagerDefinedWithOptions(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           WORKDAY_VALUES.timeOffBalanceTileName,
           UI_ACTIONS.ADD_TO_HOME,
           WORKDAY_VALUES.LeaveType,
-          WORKDAY_VALUES.TimeOffLeaveType
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
         );
         await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
         await homeDashboard.isTilePresent(createdTileTitle);
@@ -1575,7 +1575,7 @@ test.describe(
         //add, edit, verify
         await siteDashboard.addAppManagerDefinedWithOptions(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           WORKDAY_VALUES.timeOffBalanceTileName,
           UI_ACTIONS.ADD_TO_SITE,
           WORKDAY_VALUES.LeaveType,
@@ -1614,7 +1614,7 @@ test.describe(
         //add,personalize,edit,verify
         await homeDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           WORKDAY_VALUES.timeOffBalanceTileName,
           WORKDAY_VALUES.LeaveType
         );
@@ -1636,7 +1636,7 @@ test.describe(
     );
 
     test(
-      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard - time off',
+      'verify app manager is able to create, edit and remove Workday Display Time Off user defined tile on site dashboard - leave of absence',
       {
         tag: [TestPriority.P2, TestGroupType.SANITY],
       },
@@ -1656,7 +1656,7 @@ test.describe(
         //add,personalize,edit,verify
         await siteDashboard.addTilewithPersonalizeSingleField(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           WORKDAY_VALUES.timeOffBalanceTileName,
           WORKDAY_VALUES.LeaveType
         );
@@ -1664,7 +1664,7 @@ test.describe(
         await siteDashboard.personalizeDropdownAndText(
           createdTileTitle,
           WORKDAY_VALUES.LeaveType,
-          WORKDAY_VALUES.TimeOffLeaveType
+          WORKDAY_VALUES.LeaveOfAbsenceLeaveType
         );
         const updatedTileTitle = `${createdTileTitle}-Updated`;
         await siteDashboard.clickEditDashboard();
@@ -1709,7 +1709,8 @@ test.describe(
     test(
       'verify metadata and show more behavior for Workday Display Time Off(Time off) app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P2],
+        // TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
@@ -1724,7 +1725,7 @@ test.describe(
         //add, edit, verify
         await homeDashboard.addAppManagerDefinedWithOptions(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           WORKDAY_VALUES.timeOffBalanceTileName,
           UI_ACTIONS.ADD_TO_HOME,
           WORKDAY_VALUES.LeaveType,
@@ -1755,7 +1756,7 @@ test.describe(
         //add, edit, verify
         await homeDashboard.addAppManagerDefinedWithOptions(
           createdTileTitle,
-          AppName,
+          WORKDAY_VALUES.AppName,
           WORKDAY_VALUES.timeOffBalanceTileName,
           UI_ACTIONS.ADD_TO_HOME,
           WORKDAY_VALUES.LeaveType,
