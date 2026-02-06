@@ -465,6 +465,52 @@ export class SiteMembershipHelper {
     await this.siteManagementService.acceptMembershipRequest(siteId, requestId);
   }
 
+  /**
+   * Sets up site memberships in bulk - adds members, managers, and removes users.
+   * This is a convenience method that encapsulates common membership setup patterns.
+   *
+   * @param siteId - The site ID
+   * @param setup - Configuration object for memberships
+   * @param setup.members - Array of user IDs to add as members
+   * @param setup.managers - Array of user IDs to add as managers (will be added as members first, then promoted)
+   * @param setup.removeUsers - Array of user IDs to remove from the site
+   */
+  async setupSiteMemberships(
+    siteId: string,
+    setup: {
+      members?: string[];
+      managers?: string[];
+      removeUsers?: string[];
+    }
+  ): Promise<void> {
+    return await test.step(`Setting up site memberships for site ${siteId}`, async () => {
+      const { members = [], managers = [], removeUsers = [] } = setup;
+
+      // Add members
+      for (const userId of members) {
+        log.debug(`Adding user ${userId} as member to site ${siteId}`);
+        await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+      }
+
+      // Add managers (first as members, then set as managers)
+      for (const userId of managers) {
+        log.debug(`Adding user ${userId} as manager to site ${siteId}`);
+        await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.ADD);
+        await this.makeUserSiteMembership(siteId, userId, SitePermission.MANAGER, SiteMembershipAction.SET_PERMISSION);
+      }
+
+      // Remove users
+      for (const userId of removeUsers) {
+        log.debug(`Removing user ${userId} from site ${siteId}`);
+        await this.makeUserSiteMembership(siteId, userId, SitePermission.MEMBER, SiteMembershipAction.REMOVE);
+      }
+
+      log.debug(
+        `Site membership setup complete - Members added: ${members.length}, Managers added: ${managers.length}, Users removed: ${removeUsers.length}`
+      );
+    });
+  }
+
   // State management
   getTrackedMembers(): SiteMember[] {
     return [...this.siteMembers];

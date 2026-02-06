@@ -9,6 +9,7 @@ import { SiteMembershipHelper } from './siteMembershipHelper';
 import { SiteCreationPayload, SiteMembershipAction, SitePermission } from '@/src/core/types/siteManagement.types';
 import { ContentManagementService } from '@/src/modules/content/apis/services/ContentManagementService';
 import { SiteManagementService } from '@/src/modules/content/apis/services/SiteManagementService';
+import { FeedPostingPermission } from '@/src/modules/content/constants/feedPostingPermission';
 import { SITE_TYPES } from '@/src/modules/content/constants/siteTypes';
 import { IdentityManagementHelper } from '@/src/modules/platforms/apis/helpers/identityManagementHelper';
 import { IdentityService } from '@/src/modules/platforms/apis/services/IdentityService';
@@ -115,6 +116,12 @@ export class SiteQueryHelper {
 
   /**
    * Gets a site by access type (e.g., 'public', 'private').
+   * When feedPostingPermission is provided: first tries to find an existing site with that setting;
+   * if none exists, uses the first matching site or creates one, then updates its feed posting permission.
+   *
+   * @param accessType - The access type of the site (public, private, unlisted)
+   * @param options - Optional configuration
+   * @param options.feedPostingPermission - If provided, prefers a site with this setting; otherwise updates the chosen/created site
    */
   async getSiteByAccessType(
     accessType: string,
@@ -128,6 +135,7 @@ export class SiteQueryHelper {
       isMembershipAutoApproved?: boolean;
       isBroadcast?: boolean;
       waitForSearchIndex?: boolean;
+      feedPostingPermission?: FeedPostingPermission;
     }
   ): Promise<{ siteId: string; name: string; siteListResponse?: any[] }> {
     if (typeof accessType !== 'string') {
@@ -141,37 +149,83 @@ export class SiteQueryHelper {
     const requiredHasPages = options?.hasPages;
     const requiredHasEvents = options?.hasEvents;
     const requiredHasAlbums = options?.hasAlbums;
+    // Default to EVERYONE (isBroadcast = false) when feedPostingPermission is not specified
+    const desiredIsBroadcast =
+      options?.feedPostingPermission !== undefined
+        ? options.feedPostingPermission === FeedPostingPermission.MANAGERS_ONLY
+        : false;
 
     log.debug(
       `Looking for site with hasPages: ${requiredHasPages}, hasEvents: ${requiredHasEvents}, hasAlbums: ${requiredHasAlbums}`
     );
 
+    let firstMatchingSite: { siteId: string; name: string } | null = null;
+
     for (const site of siteListResponse.result.listOfItems) {
       if (!site.isActive) continue;
-      // Only filter by properties that are explicitly specified (not undefined)
       const matchesHasPages = requiredHasPages === undefined || site.hasPages === requiredHasPages;
       const matchesHasEvents = requiredHasEvents === undefined || site.hasEvents === requiredHasEvents;
       const matchesHasAlbums = requiredHasAlbums === undefined || site.hasAlbums === requiredHasAlbums;
-
       const matchesRequirements = matchesHasPages && matchesHasEvents && matchesHasAlbums;
 
-      if (matchesRequirements) {
+      if (!matchesRequirements) {
+        log.debug(`Site ${site.name} doesn't match requirements`);
+        continue;
+      }
+
+      if (!firstMatchingSite) {
+        firstMatchingSite = { siteId: site.siteId, name: site.name };
+      }
+
+      if (desiredIsBroadcast !== undefined) {
+        const siteDetails = await this.siteManagementService.getSiteDetails(site.siteId);
+        const currentIsBroadcast = siteDetails?.result?.isBroadcast;
+        if (currentIsBroadcast === desiredIsBroadcast) {
+          log.debug(
+            `Found matching site with desired isBroadcast=${desiredIsBroadcast}: ${site.name} (${site.siteId})`
+          );
+          const activeSites = siteListResponse.result.listOfItems.filter((s: any) => s.isActive === true);
+          return { siteId: site.siteId, name: site.name, siteListResponse: activeSites };
+        }
+      } else {
         log.debug(`Found matching site: ${site.name} (${site.siteId})`);
-        // Filter to only include active sites in the response
         const activeSites = siteListResponse.result.listOfItems.filter((s: any) => s.isActive === true);
         return { siteId: site.siteId, name: site.name, siteListResponse: activeSites };
-      } else {
-        log.debug(`Site ${site.name} doesn't match requirements`);
       }
+    }
+
+    if (firstMatchingSite) {
+      if (desiredIsBroadcast !== undefined) {
+        await this.siteManagementService.updateSiteSettings(firstMatchingSite.siteId, {
+          isBroadcast: desiredIsBroadcast,
+        });
+        log.debug(
+          `Updated feed posting permission (isBroadcast=${desiredIsBroadcast}) for site ${firstMatchingSite.siteId}`
+        );
+      }
+      const activeSites = siteListResponse.result.listOfItems.filter((s: any) => s.isActive === true);
+      return {
+        siteId: firstMatchingSite.siteId,
+        name: firstMatchingSite.name,
+        siteListResponse: activeSites,
+      };
     }
 
     const createdSite = await this.creationHelper.createSiteByAccessType(accessType, undefined, {
       ...options,
       waitForSearchIndex: options?.waitForSearchIndex,
     });
-    // Fetch the site list to include in the response for consistency
+
+    if (desiredIsBroadcast !== undefined) {
+      await this.siteManagementService.updateSiteSettings(createdSite.siteId, {
+        isBroadcast: desiredIsBroadcast,
+      });
+      log.debug(
+        `Set feed posting permission (isBroadcast=${desiredIsBroadcast}) for created site ${createdSite.siteId}`
+      );
+    }
+
     const updatedSiteListResponse = await this.getListOfSites({ filter: accessType.toLowerCase() });
-    // Filter to only include active sites in the response
     const activeSites = updatedSiteListResponse.result.listOfItems.filter((s: any) => s.isActive === true);
     return {
       siteId: createdSite.siteId,
