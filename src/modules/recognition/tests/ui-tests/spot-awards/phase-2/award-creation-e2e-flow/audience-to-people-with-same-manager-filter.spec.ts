@@ -13,7 +13,7 @@ import { tagTest } from '@core/utils/testDecorator';
 
 import { LoginHelper } from '@/src/core/helpers/loginHelper';
 
-test.describe('Spot award end to end flow - audience to direct reporter', () => {
+test.describe('Spot award end to end flow - audience to people with same manager', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -26,11 +26,11 @@ test.describe('Spot award end to end flow - audience to direct reporter', () => 
 
   [
     {
-      testId: 'RC-6437',
+      testId: 'RC-6433',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s direct reports for Specific period limited times',
+        'Validate creation of Spot award when Users in audience selected to give award to People with the same manager as the award giver for Specific period limited times',
       giverType: 'Users in an audience',
-      receiverType: 'Award giver’s direct reports',
+      receiverType: 'People with the same manager as the award giver',
       selectAwardPeriodValue: 'During a specified period',
       selectHowOftenAwardGivenValue: 'Limited',
       timesValue: '1',
@@ -38,11 +38,22 @@ test.describe('Spot award end to end flow - audience to direct reporter', () => 
       testGroup: TestGroupType.SANITY,
     },
     {
-      testId: 'RC-6436',
+      testId: 'RC-6432',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s direct reports for Indefinitely limited times',
+        'Validate creation of Spot award when Users in audience selected to give award to People with the same manager as the award giver for Specific period unlimited times',
       giverType: 'Users in an audience',
-      receiverType: 'Award giver’s direct reports',
+      receiverType: 'People with the same manager as the award giver',
+      selectAwardPeriodValue: 'During a specified period',
+      selectHowOftenAwardGivenValue: 'Unlimited',
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
+    {
+      testId: 'RC-6431',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to People with the same manager as the award giver for Indefinitely limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'People with the same manager as the award giver',
       selectAwardPeriodValue: 'Indefinitely',
       selectHowOftenAwardGivenValue: 'Limited',
       timesValue: '3',
@@ -50,23 +61,12 @@ test.describe('Spot award end to end flow - audience to direct reporter', () => 
       testGroup: TestGroupType.REGRESSION,
     },
     {
-      testId: 'RC-6435',
+      testId: 'RC-6427',
       testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s direct reports for Indefinitely unlimited times',
+        'Validate creation of Spot award when Users in audience selected to give award to People with the same manager as the award giver for Indefinitely unlimited times',
       giverType: 'Users in an audience',
-      receiverType: 'Award giver’s direct reports',
+      receiverType: 'People with the same manager as the award giver',
       selectAwardPeriodValue: 'Indefinitely',
-      selectHowOftenAwardGivenValue: 'Unlimited',
-      priority: TestPriority.P2,
-      testGroup: TestGroupType.REGRESSION,
-    },
-    {
-      testId: 'RC-6434',
-      testTitle:
-        'Validate creation of Spot award when Users in audience selected to give award to Award giver’s direct reports for Specific period unlimited times',
-      giverType: 'Users in an audience',
-      receiverType: 'Award giver’s direct reports',
-      selectAwardPeriodValue: 'During a specified period',
       selectHowOftenAwardGivenValue: 'Unlimited',
       priority: TestPriority.P2,
       testGroup: TestGroupType.REGRESSION,
