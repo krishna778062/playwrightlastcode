@@ -14,12 +14,14 @@ export enum ContentSuiteTags {
   SITE_DEACTIVATION = '@site-deactivation',
   TOPIC_MANAGEMENT = '@topic-management',
   FEED_ABAC = '@feed-abac',
+  SUBSCRIPTIONS_ABAC = '@subscriptions-abac',
 }
 
 export enum ContentFeatureTags {
   ADD_SITE = '@add-site',
   COVER_IMAGE = '@cover-image',
   ADD_TARGET_AUDIENCE = '@add-target-audience',
+  ADD_SUBSCRIPTION = '@add-subscription',
   ADD_USERS_TO_AUTHOR = '@add-users-to-author',
   ADD_USERS_TO_ALLOWLIST = '@add-users-to-allowlist',
   CONTENT_HOME_DASHBOARD_TILES = '@content-home-dashboard-tiles',
