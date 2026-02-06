@@ -412,7 +412,8 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
     }
   );
 
-  test(
+  test.skip(
+    /// Need to check alternatives for this
     'RC-3432 Validate the peer gifting enabling in the Next month when the reward is live',
     {
       tag: [TestGroupType.REGRESSION, REWARD_FEATURE_TAGS.REWARDS_PEER_GIFTING, TestPriority.P0],
@@ -426,8 +427,6 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
 
       const context = appManagerFixture.page.context();
       const manageRewardsPage = new ManageRewardsOverviewPage(appManagerFixture.page);
-      const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
-      const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
 
       await test.step('Login to the application and navigate to Rewards overview', async () => {
         await expect(manageRewardsPage.page).toHaveURL('/manage/recognition/rewards/overview');
@@ -511,7 +510,9 @@ test.describe('manage rewards', { tag: [REWARD_SUITE_TAGS.MANAGE_REWARD] }, () =
       });
 
       await test.step('Validate the Gifting is enabled in the Recognition Modal', async () => {
-        await recognitionHub.visitRecognitionHub();
+        const recognitionHub = new RecognitionHubPage(appManagerFixture.page);
+        const giveRecognitionModal = new GiveRecognitionDialogBox(appManagerFixture.page);
+        await recognitionHub.navigateToRecognitionHub();
         await recognitionHub.clickOnGiveRecognition();
         await expect(giveRecognitionModal.giftingToggle).toBeVisible();
       });

@@ -1,15 +1,15 @@
 import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
-import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe('renaming page', () => {
+test.describe('Points Renaming', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -36,6 +36,16 @@ test.describe('renaming page', () => {
       tagTest(test.info(), {
         description: 'Verify save button on edit program name and translation of points',
         zephyrTestId: 'RC-7008',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify home page of naming after saving the changes of points',
+        zephyrTestId: 'RC-7002',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify manual translation button on "edit program name and translation" for points',
+        zephyrTestId: 'RC-7074',
         storyId: 'RC-6370',
       });
       tagTest(test.info(), {
@@ -123,7 +133,7 @@ test.describe('renaming page', () => {
       const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       const customOtherLanguageValue = await renamingPage.getTheDefaultTranslationValues();
-      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!, defaultCustomizedValue!];
+      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!];
       expect(customOtherLanguageValue).toEqual(customOtherLanguage);
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
       const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
@@ -144,24 +154,116 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-6977',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description:
+          'Verify option "Use the default language name for all languages" on edit program name and translation page for points',
+        zephyrTestId: 'RC-7104',
+        storyId: 'RC-6370',
+      });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      const userProfile = new UserProfilePage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       await renamingPage.changeSomeDataAndClickOnSave('Points');
       await renamingPage.verifyThePageIsLoaded();
-      const getCustomValue: Map<string, string> = await renamingPage.getAllTheCustomValue();
-      const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
-      const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
-      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0]);
+      await renamingPage.clickEditButtonByCardType('points');
+      const pointsTranslationsByLanguage: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
 
-      // Mock each non-default language and re-run validations
-      for (const langId of otherLanguageIds) {
-        // ensure we don't stack multiple route handlers
-        await appManagerFixture.page.unroute('**/account/appConfig').catch(() => {});
-        await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
-        await renamingPage.validateThePointsValueInApp(getCustomValue);
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validatePointsManualTranslationsAcrossLanguages(pointsTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
+
+  test(
+    '[RC-7126] Validate custom and manual translation for points in different languages showing in application',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description: 'Validate custom and manual translation for points in different languages showing in application',
+        zephyrTestId: 'RC-7126',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Verify custom and manual translation for points on "Edit program name and translation" page',
+        zephyrTestId: 'RC-7122',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Validate custom points name translation along with "use the name in default languages" in different languages showing in application',
+        zephyrTestId: 'RC-7120',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify custom option enable along with "use the name in default languages" for different language for points',
+        zephyrTestId: 'RC-7116',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate custom points name translation in different languages showing in application',
+        zephyrTestId: 'RC-7055',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      await renamingPage.changeSomeDataAndClickOnSave('Points');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const pointsTranslationsByLanguage: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validatePointsManualTranslationsAcrossLanguages(pointsTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
+
+  test(
+    '[RC-7084] Validate manual translation of points name in selected language showing in application',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description: 'Validate manual translation of points name in selected language showing in application',
+        zephyrTestId: 'RC-7084',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('points');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      await renamingPage.changeSomeDataAndClickOnSave('Points');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('points');
+      const pointsTranslationsByLanguage: Map<string, string> =
+        await renamingPage.setTheManualTranslationValuesByLanguages('points');
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validatePointsManualTranslationsAcrossLanguages(pointsTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
       }
     }
   );

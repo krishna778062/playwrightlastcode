@@ -1,15 +1,16 @@
 import { expect } from '@playwright/test';
 import { ManageRecognitionPage } from '@recognition/ui/pages/manage/manageRecognitionPage';
+import { LanguageApiService } from '@rewards/api/services/LanguageApiService';
 import { rewardTestFixture as test } from '@rewards/fixtures/rewardFixture';
 import { RenamingPage } from '@rewards/ui/pages/manage-renaming/renamingPage';
-import { UserProfilePage } from '@rewards-pages/user-profile/user-profile-page';
+import { RewardsStore } from '@rewards-pages/reward-store/reward-store';
 
 import { PAGE_ENDPOINTS } from '@core/constants/pageEndpoints';
 import { TestPriority } from '@core/constants/testPriority';
 import { TestGroupType } from '@core/constants/testType';
 import { tagTest } from '@core/utils/testDecorator';
 
-test.describe('renaming page', () => {
+test.describe('Reward Store renaming', () => {
   test.beforeEach(async ({ appManagerFixture }) => {
     const { page: appManagerPage } = appManagerFixture;
     const manageRecognitionPage = new ManageRecognitionPage(appManagerPage);
@@ -123,7 +124,7 @@ test.describe('renaming page', () => {
       const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       const customOtherLanguageValue = await renamingPage.getTheDefaultTranslationValues();
-      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!, defaultCustomizedValue!];
+      const customOtherLanguage: string[] = [defaultCustomizedValue!, defaultCustomizedValue!];
       expect(customOtherLanguageValue).toEqual(customOtherLanguage);
       await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
       const defaultOtherLanguageTranslationValue = await renamingPage.getTheDefaultTranslationValues();
@@ -144,24 +145,145 @@ test.describe('renaming page', () => {
         zephyrTestId: 'RC-6991',
         storyId: 'RC-6370',
       });
+      tagTest(test.info(), {
+        description: 'Verify home page of naming after saving the changes of reward store',
+        zephyrTestId: 'RC-7003',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify option "Use the default language name for all languages" on edit program name and translation page for reward store',
+        zephyrTestId: 'RC-7105',
+        storyId: 'RC-6370',
+      });
       const renamingPage = new RenamingPage(appManagerFixture.page);
-      const userProfile = new UserProfilePage(appManagerFixture.page);
       await renamingPage.verifyThePageIsLoaded();
       await renamingPage.validateTheCurrentPageURL(PAGE_ENDPOINTS.MANAGE_RECOGNITION_RENAMING);
       await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('checked', defaultCustomizedValue!);
       await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
       await renamingPage.verifyThePageIsLoaded();
-      const getCustomValue: Map<string, string> = await renamingPage.getAllTheCustomValue();
-      const selectedLanguageIds = await renamingPage.getSelectedLanguageIdsFromAppConfig();
-      const uniqueLanguageIds = Array.from(new Set(selectedLanguageIds));
-      const otherLanguageIds = uniqueLanguageIds.filter(id => id !== uniqueLanguageIds[0]);
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const rewardStoreTranslationsByLanguage: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRewardStoreManualTranslationsAcrossLanguages(rewardStoreTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
 
-      // Mock each non-default language and re-run validations
-      for (const langId of otherLanguageIds) {
-        // ensure we don't stack multiple route handlers
-        await appManagerFixture.page.unroute('**/account/appConfig').catch(() => {});
-        await userProfile.mockAppConfigLanguage(appManagerFixture.page, langId);
-        await renamingPage.validateTheRewardStoreValueInApp(getCustomValue);
+  test(
+    '[RC-7125] Validate custom and manual translation for reward store in different languages showing in application',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description:
+          'Validate custom and manual translation for reward store in different languages showing in application',
+        zephyrTestId: 'RC-7125',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify custom and manual translation for reward store on "Edit program name and translation" page',
+        zephyrTestId: 'RC-7123',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify translation name on "Edit program name and translation" when custom option set to Enable for reward store',
+        zephyrTestId: 'RC-7048',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify custom option enable along with "use the name in default languages" for different language for reward store',
+        zephyrTestId: 'RC-7117',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Validate custom reward store name translation along with "use the name in default languages" in different languages showing in application',
+        zephyrTestId: 'RC-7119',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate custom reward store name translation in different languages showing in application',
+        zephyrTestId: 'RC-7054',
+        storyId: 'RC-6370',
+      });
+
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+
+      // Save a new custom label (manual translations enabled) then capture per-language translation values.
+      await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const rewardStoreTranslationsByLanguage: Map<string, string> =
+        await renamingPage.getTheDefaultTranslationValuesByLanguages();
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRewardStoreManualTranslationsAcrossLanguages(rewardStoreTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
+      }
+    }
+  );
+
+  test(
+    '[RC-7075] Validate manual translation of reward store name in selected language showing in application',
+    {
+      tag: [TestGroupType.REGRESSION, TestPriority.P0, TestGroupType.SMOKE, TestGroupType.SANITY],
+    },
+    async ({ appManagerFixture }) => {
+      test.setTimeout(360_000);
+      tagTest(test.info(), {
+        description: 'Validate manual translation of reward store name in selected language showing in application',
+        zephyrTestId: 'RC-7075',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description: 'Validate manual translation of reward store name in selected language showing in application',
+        zephyrTestId: 'RC-7085',
+        storyId: 'RC-6370',
+      });
+      tagTest(test.info(), {
+        description:
+          'Verify reward store name translation in different languages on "Edit program name and translation" for reward store',
+        zephyrTestId: 'RC-7035',
+        storyId: 'RC-6370',
+      });
+      const renamingPage = new RenamingPage(appManagerFixture.page);
+      const rewardStore = new RewardsStore(appManagerFixture.page);
+      await rewardStore.loadPage();
+      await rewardStore.selectCountry('United States');
+      await renamingPage.loadPage();
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const defaultCustomizedValue = await renamingPage.getTheNewCustomizedValue('rewardsStore');
+      await renamingPage.unCheckAndCheckTheCustomLanguageForAll('unchecked', defaultCustomizedValue!);
+      await renamingPage.changeSomeDataAndClickOnSave('Rewards Store');
+      await renamingPage.verifyThePageIsLoaded();
+      await renamingPage.clickEditButtonByCardType('rewardsStore');
+      const rewardStoreTranslationsByLanguage: Map<string, string> =
+        await renamingPage.setTheManualTranslationValuesByLanguages('rewardsStore');
+      const languageApi = new LanguageApiService();
+      try {
+        await renamingPage.validateRewardStoreManualTranslationsAcrossLanguages(rewardStoreTranslationsByLanguage);
+      } finally {
+        await languageApi.languageChangeFunction(renamingPage.page, { supportedLanguageId: 1 });
+        await renamingPage.page.reload({ waitUntil: 'domcontentloaded' });
       }
     }
   );

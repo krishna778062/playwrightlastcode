@@ -28,6 +28,7 @@ export class GiveRecognitionDialogBox extends DialogBox {
   readonly recognizeButton: Locator;
   readonly doneButton: Locator;
   readonly giftingToggle: Locator;
+  readonly giftingPointsValueLabel: Locator;
   readonly loadingIndicator: Locator;
   readonly insufficientPointErrorMessage: Locator;
   readonly minimumPointErrorMessage: Locator;
@@ -72,6 +73,7 @@ export class GiveRecognitionDialogBox extends DialogBox {
     this.recognizeButton = this.container.getByRole('button', { name: 'Recognize' });
     this.doneButton = this.container.getByRole('button', { name: 'Done' });
     this.giftingToggle = page.locator('button[role="switch"]');
+    this.giftingPointsValueLabel = page.locator('button[role="switch"] + span');
     this.loadingIndicator = page.locator('div[class*="LoadingIndicator-module__wrapper"]');
     this.insufficientPointErrorMessage = this.container.locator('[role="alert"][id="gifting-points"]');
     this.minimumPointErrorMessage = this.container.locator('//p[text()="Minimum 1 points required"]');

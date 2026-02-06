@@ -54,6 +54,7 @@ export class FormParticipationPage extends BasePage {
   readonly multiSelectResponseFirstOption: Locator;
   readonly multiSelectResponseOptions: (index: number) => Locator;
   readonly genericGetByTextLocator: (text: string) => Locator;
+
   readonly mandatoryFieldError2: (heading: string) => Locator;
   readonly formNameInNotification: (formName: string) => Locator;
   readonly submitButton: Locator;
@@ -61,10 +62,12 @@ export class FormParticipationPage extends BasePage {
   readonly dismissSurvey: Locator;
   readonly fileUploadImage: Locator;
   readonly imageResponseSingle: Locator;
-
+  readonly duplicatedFormName: (formname: string) => Locator;
+  readonly archievedFormName: (formname: string) => Locator;
   constructor(page: Page) {
     super(page, PAGE_ENDPOINTS.FORM_CREATION_PAGE);
     this.threeDotsIcon = this.page.getByRole('button', { name: 'Show more button' }).nth(1);
+
     this.copyLink = this.page.getByText('Copy link');
     this.shortTextResponse = this.page.getByRole('textbox', { name: 'Short text' });
     this.longTextResponse = this.page.getByRole('textbox', { name: 'Long text' });
@@ -95,7 +98,7 @@ export class FormParticipationPage extends BasePage {
     this.timecomponent1 = this.page.locator('input[type="time"]');
     this.timecomponent = this.page.getByRole('combobox', { name: 'hh:mm' });
     this.timeOption = (timeValue: string) => this.page.getByRole('option', { name: `${timeValue}` });
-    this.genericGetByTextLocator = (text: string) => this.page.getByText(text);
+    this.genericGetByTextLocator = (text: string) => this.page.getByText(text, { exact: true });
     this.mandatoryFieldError2 = (heading: string) =>
       this.page.locator(
         `//span[normalize-space()='${heading}']/../../following::div[text()='This is a required field']`
@@ -135,6 +138,8 @@ export class FormParticipationPage extends BasePage {
     this.dismissSurvey = this.page.getByRole('button', { name: 'Dismiss' });
 
     this.fileUploadImage = this.page.getByRole('button', { name: 'Upload file Drop files here' });
+    this.duplicatedFormName = (formname: string) => this.page.locator(`//button[text()="${formname} - Copy"]`);
+    this.archievedFormName = (formname: string) => this.page.locator(`//button[text()="${formname}"]`);
   }
 
   async verifyThePageIsLoaded(): Promise<void> {
@@ -166,6 +171,47 @@ export class FormParticipationPage extends BasePage {
       await this.clickOnElement(this.actionLocator(formCreationConstants.FORM_NAME));
     });
   }
+  async clickOnOptionInThreeDotsIcon(option: string): Promise<void> {
+    await test.step('Click on option in three dots icon', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      await this.clickOnElement(this.genericGetByTextLocator(option));
+    });
+  }
+
+  async verifyDuplicatedFormName(name: string): Promise<void> {
+    await test.step('Verify duplicated form name', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.duplicatedFormName(name), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.duplicatedFormName(name).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Duplicated form name should be visible'
+        )
+        .toBe(true);
+    });
+  }
+  async verifyFormNotExists(name: string): Promise<void> {
+    await test.step('Verify form not exists', async () => {
+      await this.verifier.verifyTheElementIsNotVisible(this.archievedFormName(name), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.archievedFormName(name).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Form should not be visible'
+        )
+        .toBe(false);
+    });
+  }
+
+  async verifyOptionVisible(option: string): Promise<void> {
+    await test.step('Verify option is visible', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.genericGetByTextLocator(option), { timeout: TIMEOUTS.MEDIUM });
+      test
+        .expect(
+          await this.genericGetByTextLocator(option).isVisible({ timeout: TIMEOUTS.MEDIUM }),
+          'Option should be visible'
+        )
+        .toBe(true);
+    });
+  }
 
   async verifyTimeFieldIsDisabledOnParticipationPage(): Promise<void> {
     await test.step('Verify time field is disabled', async () => {
@@ -182,6 +228,15 @@ export class FormParticipationPage extends BasePage {
         timeout: TIMEOUTS.MEDIUM,
       });
       await this.clickOnElement(this.actionLocator(formName));
+    });
+  }
+
+  async clickOnThreeDotsIconInTab(): Promise<void> {
+    await test.step('Click on three dots icon in tab', async () => {
+      await this.verifier.verifyTheElementIsVisible(this.threeDotsIcon, {
+        timeout: TIMEOUTS.MEDIUM,
+      });
+      await this.clickOnElement(this.threeDotsIcon);
     });
   }
   async clickOnCopyLink(): Promise<void> {
@@ -338,7 +393,7 @@ export class FormParticipationPage extends BasePage {
   async fillResponseIntoImageField(fileName: string): Promise<void> {
     await test.step(`Upload image file: ${fileName}`, async () => {
       const filePath = path.join(TEST_DATA_FILES_PATH, fileName);
-      await this.fileUploadImage.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+      await this.imageResponse.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
       await this.imageResponse.setInputFiles(filePath);
     });
   }
@@ -348,6 +403,15 @@ export class FormParticipationPage extends BasePage {
       const filePath = path.join(TEST_DATA_FILES_PATH, fileName);
       await this.imageResponseSingle.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
       await this.imageResponseSingle.setInputFiles(filePath);
+    });
+  }
+
+  async uploadMultipleFilesIntoUploadImageComponent(fileNames: string[]): Promise<void> {
+    await test.step(`Upload multiple image files: ${fileNames.join(', ')}`, async () => {
+      const filePaths = fileNames.map(name => path.join(TEST_DATA_FILES_PATH, name));
+      await this.imageResponseSingle.scrollIntoViewIfNeeded().catch(() => {});
+      await this.imageResponseSingle.waitFor({ state: 'attached', timeout: TIMEOUTS.MEDIUM });
+      await this.imageResponseSingle.setInputFiles(filePaths);
     });
   }
   async fillResponseIntoMultiSelectField(response: string): Promise<void> {

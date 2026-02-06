@@ -9,8 +9,11 @@ export class UserProfilePage extends BasePage {
 
   // User profile page locators
   readonly userProfileRecognitionAndRewardContainer: Locator;
+  readonly recognitionHeading: Locator;
   readonly rewardIcons: Locator;
+  readonly pointsToGiveLabel: Locator;
   readonly pointsToGiveValue: Locator;
+  readonly pointsToRedeemLabel: Locator;
   readonly pointsToRedeemValue: Locator;
   readonly pointsRefreshingText: Locator;
   readonly viewOrderButton: Locator;
@@ -32,6 +35,7 @@ export class UserProfilePage extends BasePage {
     // User profile page locators
 
     this.userProfileRecognitionAndRewardContainer = page.locator('[class*="UserRecognition_container"]');
+    this.recognitionHeading = this.userProfileRecognitionAndRewardContainer.locator('h2');
     this.rewardIcons = this.userProfileRecognitionAndRewardContainer.locator('div[class*="RewardsWallet_icon"]');
     this.pointsToGiveContainer = this.userProfileRecognitionAndRewardContainer
       .locator('[class*="RewardsWallet_item"]')
@@ -41,9 +45,15 @@ export class UserProfilePage extends BasePage {
       .locator('[class*="RewardsWallet_item"]')
       .nth(1);
     this.pointsToRedeemValue = this.pointsToRedeemContainer.locator('div[class*="RewardsWallet_details"] > p');
+    this.pointsToGiveLabel = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
+      .nth(0);
     this.pointsRefreshingText = this.userProfileRecognitionAndRewardContainer
       .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
       .nth(1);
+    this.pointsToRedeemLabel = this.userProfileRecognitionAndRewardContainer
+      .locator('[class*="RewardsWallet_item"] p[class*="Typography-module__secondary"]')
+      .nth(2);
     this.viewOrderButton = this.userProfileRecognitionAndRewardContainer.locator('a[href*="/order-history"]');
     this.allowanceRefreshingInfoIcon = this.userProfileRecognitionAndRewardContainer.locator(
       'button[aria-label="Allowance refreshing information"]'
@@ -204,7 +214,7 @@ export class UserProfilePage extends BasePage {
    * Mock the basic-app-config API and reload the page with new language
    */
   async mockAppConfigLanguage(page: Page, langCode: number): Promise<void> {
-    await page.route('**/v2/account/basic-app-config', async route => {
+    await page.route('**/account/basic-app-config', async route => {
       const originalResponse = await route.fetch();
       const body = await originalResponse.json();
 
@@ -230,7 +240,7 @@ export class UserProfilePage extends BasePage {
    * Restore original behavior (disable API mocking)
    */
   async restoreAppConfigMock(page: Page): Promise<void> {
-    await page.unroute('**/v2/account/basic-app-config');
+    await page.unroute('**/account/basic-app-config');
     await page.reload();
     console.log('✅ Restored API, mock disabled, page reloaded.');
   }
@@ -251,24 +261,30 @@ export class UserProfilePage extends BasePage {
   /**
    * Set notification settings for recognition
    */
-  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<void> {
+  async setTheNotificationSettingsForRecognition(enabled: boolean): Promise<boolean> {
     const isChecked = await this.recognitionEmailCheckbox.isChecked();
+    let valueChanged = false;
     if (isChecked !== enabled) {
       await this.clickOnElement(this.recognitionEmailCheckbox, {
         stepInfo: `Setting recognition notifications to ${enabled ? 'enabled' : 'disabled'}`,
       });
+      valueChanged = true;
     }
+    return valueChanged;
   }
 
   /**
    * Set notification settings for rewards
    */
-  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<void> {
+  async setTheNotificationSettingsForRewards(enabled: boolean): Promise<boolean> {
     const isChecked = await this.rewardsEmailCheckbox.isChecked();
+    let valueChanged = false;
     if (isChecked !== enabled) {
       await this.clickOnElement(this.rewardsEmailCheckbox, {
         stepInfo: `Setting rewards notifications to ${enabled ? 'enabled' : 'disabled'}`,
       });
+      valueChanged = true;
     }
+    return valueChanged;
   }
 }
