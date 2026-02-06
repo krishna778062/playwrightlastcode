@@ -1709,7 +1709,8 @@ test.describe(
     test(
       'verify metadata and show more behavior for Workday Display Time Off(Time off) app manager defined tile on home dashboard',
       {
-        tag: [TestPriority.P2, TestGroupType.SANITY],
+        tag: [TestPriority.P2],
+        // TestGroupType.SANITY],
       },
       async ({ appManagerFixture }) => {
         const { homeDashboard } = appManagerFixture;
