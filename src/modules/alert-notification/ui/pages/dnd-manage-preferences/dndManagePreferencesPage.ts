@@ -74,22 +74,6 @@ export class DndManagePreferencesPage extends BasePage {
   }
 
   /**
-   * Verifies the DND page shows all main elements after clicking the DND tab (heading, descriptions, link, All organization, Audience)
-   */
-  async verifyDndPageAllTextElementsAfterDNDTabClick(): Promise<void> {
-    await this.commonActionsComponent.verifyTextIsVisible(DND_PAGE_TEXT.HEADING);
-    await this.commonActionsComponent.verifyTextIsVisible(DND_PAGE_TEXT.DESCRIPTION_LINE_1, { exact: false });
-    await this.commonActionsComponent.verifyTextIsVisible(DND_PAGE_TEXT.DESCRIPTION_LINE_2, { exact: false });
-    await this.commonActionsComponent.verifyLinkIsVisible(DND_PAGE_TEXT.MANAGE_PREFERENCES_BUTTON);
-    await this.commonActionsComponent.verifyHeadingIsVisible(DND_PAGE_TEXT.ALL_ORGANIZATION.LABEL);
-    await this.commonActionsComponent.verifyTextIsVisible(DND_PAGE_TEXT.ALL_ORGANIZATION.HELPER_TEXT, {
-      exact: false,
-    });
-    await this.commonActionsComponent.verifyHeadingIsVisible(DND_PAGE_TEXT.AUDIENCE.LABEL);
-    await this.commonActionsComponent.verifyTextIsVisible(DND_PAGE_TEXT.AUDIENCE.HELPER_TEXT, { exact: false });
-  }
-
-  /**
    * Verifies the Manage Preferences page heading is visible
    */
   async verifyManagePreferencesPageHeading(): Promise<void> {
@@ -160,54 +144,6 @@ export class DndManagePreferencesPage extends BasePage {
 
   async clickBackToDndPage(): Promise<void> {
     return this.dndManagePreferencesComponent.clickBackButton();
-  }
-
-  async verifyDoNotDisturbTabIsVisible(): Promise<void> {
-    return this.dndManagePreferencesComponent.verifyDoNotDisturbTabIsVisible();
-  }
-
-  async checkAllOrganizationToggleEnabled(): Promise<boolean> {
-    return this.dndManagePreferencesComponent.isAllOrganizationToggleEnabled();
-  }
-
-  async setAllOrganizationToggle(enabled: boolean): Promise<void> {
-    return this.dndManagePreferencesComponent.setAllOrganizationToggle(enabled);
-  }
-
-  async verifyAllOrganizationToggleIsOnOrOff(expectedState: 'on' | 'off'): Promise<void> {
-    return this.dndManagePreferencesComponent.verifyAllOrganizationToggleState(expectedState);
-  }
-
-  async verifySelectSourceSectionIsVisible(): Promise<void> {
-    return this.dndManagePreferencesComponent.verifySelectSourceSection();
-  }
-
-  async selectSourceOptionAs(source: 'UKG' | 'Manual'): Promise<void> {
-    return this.dndManagePreferencesComponent.selectSourceOption(source);
-  }
-
-  async verifyWorkDaysSectionAndOptionsAreVisible(): Promise<void> {
-    return this.dndManagePreferencesComponent.verifyWorkDaysSectionAndOptions();
-  }
-
-  async selectWorkDaysAs(days: string[]): Promise<void> {
-    return this.dndManagePreferencesComponent.selectWorkDays(days);
-  }
-
-  async verifyWorkHoursSection(): Promise<void> {
-    return this.dndManagePreferencesComponent.verifyWorkHoursSection();
-  }
-
-  async confirmDisableAllOrganizationDnd(): Promise<void> {
-    return this.dndManagePreferencesComponent.confirmDisableAllOrganizationDnd();
-  }
-
-  async setWorkHours(startTime: string, endTime: string): Promise<void> {
-    return this.dndManagePreferencesComponent.setWorkHours(startTime, endTime);
-  }
-
-  async verifyUserEditableOption(): Promise<void> {
-    return this.dndManagePreferencesComponent.verifyUserEditableOption();
   }
 
   async verifyAllNotificationRows(

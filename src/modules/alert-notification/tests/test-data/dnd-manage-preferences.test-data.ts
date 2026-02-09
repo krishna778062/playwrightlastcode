@@ -52,6 +52,20 @@ export const DND_PAGE_TEXT = {
   SIDEBAR_MENU: {
     DO_NOT_DISTURB: 'Do not disturb',
   },
+
+  // Confirm disable DND dialog (button label: use POPUP_BUTTONS.CONFIRM)
+  CONFIRM_DISABLE_DND: {
+    BODY: 'Are you sure you want to continue?',
+  },
+} as const;
+
+/** Profile / My Settings page text (used by ProfileDndComponent) */
+export const MY_SETTINGS_PAGE_TEXT = {
+  BROWSER_TAB: 'Browser',
+  PROFILE_SETTINGS_BUTTON: 'Profile settings',
+  MY_SETTINGS_MENU_ITEM: 'My settings',
+  /** Tooltip shown when profile DND fields are read-only (override disabled at app level) */
+  PROFILE_DND_READONLY_TOOLTIP: 'Only app managers can change work days & work hours',
 } as const;
 
 export const MANAGE_PREFERENCES_PAGE_TEXT = {

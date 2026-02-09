@@ -1,6 +1,7 @@
 export enum POPUP_BUTTONS {
   OK = 'OK',
   CANCEL = 'Cancel',
+  CONFIRM = 'Confirm',
   BROWSE = 'Browse',
   DONE = 'Done',
   NEXT = 'Next',

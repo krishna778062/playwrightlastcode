@@ -244,6 +244,48 @@ export class CommonActionsComponent extends BaseComponent {
     });
   }
 
+  // ==================== CHECKBOX ACTIONS ====================
+
+  /**
+   * Sets a checkbox by its accessible name (e.g. label text).
+   * Uses click to toggle so it works with custom checkbox implementations.
+   * @param name - Accessible name of the checkbox (e.g. "User editable", "Monday")
+   * @param checked - true to check, false to uncheck
+   */
+  async setCheckboxByName(name: string, checked: boolean): Promise<void> {
+    const stepName = checked ? `Check checkbox "${name}"` : `Uncheck checkbox "${name}"`;
+    await test.step(stepName, async () => {
+      const checkbox = this.page.getByRole('checkbox', { name }).first();
+      await checkbox.waitFor({ state: 'visible', timeout: 10_000 });
+      const isChecked = await checkbox.isChecked();
+      if (isChecked !== checked) {
+        await checkbox.click();
+      }
+    });
+  }
+
+  /**
+   * Checks multiple checkboxes by their accessible names.
+   * Skips clicking if already checked. Reusable for work days, notification options, etc.
+   * @param names - Accessible names of the checkboxes (e.g. ["Monday", "Tuesday", "Friday"])
+   */
+  async checkCheckboxesByNames(names: string[]): Promise<void> {
+    for (const name of names) {
+      await this.setCheckboxByName(name, true);
+    }
+  }
+
+  /**
+   * Unchecks multiple checkboxes by their accessible names.
+   * Skips clicking if already unchecked.
+   * @param names - Accessible names of the checkboxes
+   */
+  async uncheckCheckboxesByNames(names: string[]): Promise<void> {
+    for (const name of names) {
+      await this.setCheckboxByName(name, false);
+    }
+  }
+
   // ==================== KEYBOARD ACTIONS ====================
 
   /**
