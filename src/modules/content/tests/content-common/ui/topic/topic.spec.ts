@@ -461,6 +461,73 @@ test.describe(ContentSuiteTags.TOPIC_MANAGEMENT, () => {
   );
 
   test(
+    'verify user is able to view Content tab first and Feed as Second Tab on Manage Topics page CONT-23772',
+    {
+      tag: [TestPriority.P0, TestGroupType.SMOKE, ContentFeatureTags.MANAGE_TOPICS, '@CONT-23772'],
+    },
+    async ({ appManagerFixture }) => {
+      tagTest(test.info(), {
+        description: 'Verify user is able to view Content tab first and Feed as Second Tab on Manage Topics page',
+        zephyrTestId: 'CONT-23772',
+        storyId: 'CONT-23772',
+      });
+
+      // Navigate to Application Settings
+      await appManagerFixture.navigationHelper.openApplicationSettings();
+
+      // Click on Topics link
+      await applicationScreenPage.clickOnTopics();
+      await manageTopicsPage.verifyThePageIsLoaded();
+
+      // Get an existing topic name from the list (or create one if list is empty)
+      let topicName: string;
+      let topicId: string;
+
+      try {
+        topicName = await manageTopicsPage.getTopicNameFromList();
+        topicId = await appManagerFixture.contentManagementHelper.getTopicIdByName(topicName);
+      } catch {
+        // If no topic exists, create one
+        topicName = faker.lorem.words(2);
+        const topicInfo = await appManagerFixture.contentManagementHelper.createTopic(topicName);
+        topicId = topicInfo.topicId;
+        manualCleanupNeeded = true;
+
+        // Reload Manage Topics page and click on the newly created topic
+        await manageTopicsPage.loadPage();
+        await manageTopicsPage.searchingTopicInSearchBar(topicName);
+        await manageTopicsPage.openingSearchedTopic(topicName);
+      }
+
+      // Verify navigation to TopicDetailsPage
+      const topicDetailsPage = new TopicDetailsPage(appManagerFixture.page, topicId);
+      await topicDetailsPage.loadPage({ stepInfo: 'Load topic details page' });
+      await topicDetailsPage.verifyThePageIsLoaded();
+
+      // Verify Content tab is selected by default (first tab)
+      await topicDetailsPage.verifyContentTabIsSelected();
+
+      // Verify Feed tab is visible (second tab)
+      await topicDetailsPage.verifier.verifyTheElementIsVisible(topicDetailsPage.clickingOnFeedTab, {
+        assertionMessage: 'Feed tab should be visible as the second tab',
+      });
+
+      // Click on Feed tab to verify it's functional
+      await topicDetailsPage.clickOnFeedTab();
+
+      // Verify Feed tab is now selected
+      await topicDetailsPage.verifier.verifyElementHasAttribute(
+        topicDetailsPage.clickingOnFeedTab,
+        'aria-selected',
+        'true',
+        {
+          assertionMessage: 'Feed tab should be selected after clicking',
+        }
+      );
+    }
+  );
+
+  test(
     'verify standard user is able to add/list topic in Content CONT-25968',
     {
       tag: [TestPriority.P0, TestGroupType.SMOKE, '@CONT-25968'],

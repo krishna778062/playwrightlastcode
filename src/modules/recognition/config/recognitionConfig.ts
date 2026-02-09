@@ -121,15 +121,15 @@ export const config = {
       apiBaseUrl: 'https://reco-api.uat.simpplr.xyz',
       appManagerEmail: 'aishma.gupta@simpplr.com',
       appManagerName: 'Aishma Gupta',
-      appManagerUserId: 'c42b4bf9-870a-46ec-86c8-ece90b278ad9',
+      appManagerUserId: 'aa140356-20a0-412d-830f-ac82a1dfe092',
       appManagerPassword: 'simpplr123',
       recognitionManagerEmail: 'sonu.kumar@simpplr.com',
       recognitionManagerName: 'Aishma RecoManager',
-      recognitionManagerUserId: 'a5796274-2d24-49c2-be22-c9defdc37311',
+      recognitionManagerUserId: 'f7541d92-814a-4588-8e63-0d7adf7ca161',
       recognitionManagerPassword: 'simpplr123',
       endUserEmail: 'aishma.gupta+2@simpplr.com',
       endUserName: 'aishma enduser',
-      endUserUserId: '2affbcf8-a848-4eb0-8ff7-71db03b59ac1',
+      endUserUserId: '41e24b6e-0860-4b61-ba3f-ca8f0ab5c7fe',
       endUserPassword: 'simpplr123',
       newUxEnabled: true,
     },
@@ -389,7 +389,7 @@ export function getCurrentEnvironment(): EnvironmentKey {
 export function initializeRecognitionConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     console.log(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return;
   }

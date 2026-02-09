@@ -79,6 +79,7 @@ export interface SiteDetailsResponse {
     isAlertEnabled: boolean;
     isQuestionAnswerEnabled: boolean;
     systemAudience: any[];
+    isBroadcast?: boolean;
   };
 }
 

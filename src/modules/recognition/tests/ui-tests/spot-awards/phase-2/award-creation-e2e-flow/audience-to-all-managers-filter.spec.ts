@@ -49,6 +49,30 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
       priority: TestPriority.P2,
       testGroup: TestGroupType.REGRESSION,
     },
+    {
+      testId: 'RC-6444',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to All managers for Indefinitely limited times',
+      giverType: 'Users in an audience',
+      receiverType: 'All managers',
+      selectAwardPeriodValue: 'Indefinitely',
+      selectHowOftenAwardGivenValue: 'Limited',
+      timesValue: '3',
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
+    {
+      testId: 'RC-6443',
+      testTitle:
+        'Validate creation of Spot award when Users in audience selected to give award to All managers for Indefinitely unlimited times',
+      giverType: 'Users in an audience',
+      receiverType: 'All managers',
+      selectAwardPeriodValue: 'Indefinitely',
+      selectHowOftenAwardGivenValue: 'Unlimited',
+      timesValue: undefined,
+      priority: TestPriority.P2,
+      testGroup: TestGroupType.REGRESSION,
+    },
   ].forEach(
     ({
       testId,
@@ -113,7 +137,7 @@ test.describe('Spot award end to end flow - audience to all managers', () => {
           await giveRecognitionDialogBox.publishSpotAward(
             awardName,
             'spot award description for ' + awardName + ' ' + faker.string.alphanumeric(8),
-            getRecognitionTenantConfigFromCache().appManagerName
+            0
           );
           await spotAwardPage.verifyToastMessage('Recognition published');
           await spotAwardPage.waitForToastToHide();

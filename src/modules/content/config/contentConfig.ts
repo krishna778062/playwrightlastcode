@@ -63,6 +63,8 @@ export interface ContentTenantConfig {
   endUserPassword: string;
   siteManagerEmail: string;
   siteManagerPassword: string;
+  standardUser2Email: string;
+  standardUser2Password: string;
   newUxEnabled: boolean;
   orgId: string;
   socialCampaignManagerEmail: string;
@@ -304,6 +306,8 @@ export const config = {
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+9@simpplr.com',
       siteManagerPassword: 'simpplr001',
+      standardUser2Email: 'prashant.baghel@simpplr.com',
+      standardUser2Password: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+3@simpplr.com',
@@ -323,6 +327,8 @@ export const config = {
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+3@simpplr.com',
       siteManagerPassword: 'simpplr001',
+      standardUser2Email: 'prashant.baghel@simpplr.com',
+      standardUser2Password: 'simpplr001',
       newUxEnabled: true,
       orgId: 'd6a1c58b-6569-4ae0-9db4-fdbce096db4f',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
@@ -342,6 +348,8 @@ export const config = {
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'diksha.gaur@simpplr.com',
       siteManagerPassword: 'simpplr001',
+      standardUser2Email: 'prashant.baghel@simpplr.com',
+      standardUser2Password: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
@@ -361,6 +369,8 @@ export const config = {
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+1@simpplr.com',
       siteManagerPassword: 'simpplr001',
+      standardUser2Email: 'prashant.baghel@simpplr.com',
+      standardUser2Password: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta@simpplr.com',
@@ -380,6 +390,8 @@ export const config = {
       endUserPassword: 'simpplr001',
       siteManagerEmail: 'sonali.gupta+1@simpplr.com',
       siteManagerPassword: 'simpplr001',
+      standardUser2Email: 'prashant.baghel@simpplr.com',
+      standardUser2Password: 'simpplr001',
       newUxEnabled: true,
       orgId: 'abac-qa-org-id',
       socialCampaignManagerEmail: 'sonali.gupta+2@simpplr.com',
@@ -531,7 +543,7 @@ function getCurrentEnvironment(): EnvironmentKey {
 export function initializeContentConfig(tenant: TenantKey): void {
   const caller = getCallerInfo();
 
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     log.debug(`🔧 Config already initialized for tenant: ${tenant} (called from: ${caller})`);
     return; // Already initialized for same tenant
   }
@@ -558,7 +570,11 @@ export function initializeContentConfig(tenant: TenantKey): void {
   configCache = {
     environment,
     currentTenant: tenant,
-    tenantConfig: envConfig,
+    tenantConfig: {
+      ...envConfig,
+      standardUser2Email: (envConfig as any).standardUser2Email ?? '',
+      standardUser2Password: (envConfig as any).standardUser2Password ?? '',
+    },
     appConfig: config.appConfig,
   };
 
@@ -594,7 +610,7 @@ export function getContentTenantConfigFor(tenant: TenantKey): ContentTenantConfi
   const caller = getCallerInfo();
 
   // If cache is initialized for the same tenant, use it
-  if (configCache && configCache.currentTenant === tenant) {
+  if (configCache?.currentTenant === tenant) {
     log.debug(`🔧 Using cached config for tenant: ${tenant} (called from: ${caller})`);
     return configCache.tenantConfig;
   }

@@ -1,5 +1,7 @@
 import { expect, Locator, Page, test } from '@playwright/test';
 
+import { AbacSubscriptionComponent } from '../subscriptions/abacSubscriptionComponent';
+
 import { AccessSectionComponent } from './accessSectionComponent';
 import { SubscriptionsSectionComponent } from './subscriptionsSectionComponent';
 import { TargetAudienceSectionComponent } from './targetAudienceSectionComponent';
@@ -26,6 +28,7 @@ export class SiteCreationFormComponent extends BaseComponent {
   readonly accessSection: AccessSectionComponent;
   readonly targetAudienceSection: TargetAudienceSectionComponent;
   readonly subscriptionsSection: SubscriptionsSectionComponent;
+  readonly abacSubscriptionComponent: AbacSubscriptionComponent;
 
   constructor(page: Page) {
     super(page);
@@ -48,6 +51,7 @@ export class SiteCreationFormComponent extends BaseComponent {
     this.accessSection = new AccessSectionComponent(page);
     this.targetAudienceSection = new TargetAudienceSectionComponent(page);
     this.subscriptionsSection = new SubscriptionsSectionComponent(page);
+    this.abacSubscriptionComponent = new AbacSubscriptionComponent(page);
   }
 
   async verifyTheSiteCreationFormIsVisible(options?: { stepInfo?: string }): Promise<void> {

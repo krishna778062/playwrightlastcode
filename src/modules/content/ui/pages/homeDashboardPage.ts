@@ -49,6 +49,7 @@ export class HomeDashboardPage extends BasePage {
       'This tile is already added to this dashboard. Edit dashboard to update or remove this tile.'
     );
   }
+
   async verifyThePageIsLoaded(): Promise<void> {
     await test.step('Verify home dashboard page is loaded', async () => {
       const isEditButtonVisible = await this.verifier.isTheElementVisibleWithLessTimeout(this.editDashboardButton);

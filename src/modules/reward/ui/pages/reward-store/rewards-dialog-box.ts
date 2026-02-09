@@ -47,7 +47,7 @@ export class RewardsDialogBox extends BasePage {
     // Locators for the rewards dialog box
     this.container = page.getByRole('dialog');
     this.title = this.container.getByRole('heading').first();
-    this.closeButton = this.container.getByRole('button', { name: 'Close' });
+    this.closeButton = this.container.locator('button[class*="Dialog-module__close"]');
     this.description = this.container.locator('[data-testid="truncate-text-block"] p').first();
     this.descriptionTextShowMoreButton = this.container.locator('[data-testid="truncate-text-block"] + div button');
     this.pointsAvailable = this.container.getByText('points available');

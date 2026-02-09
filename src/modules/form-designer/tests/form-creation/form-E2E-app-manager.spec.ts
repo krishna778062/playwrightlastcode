@@ -2328,7 +2328,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2379,7 +2378,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2428,7 +2426,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2678,7 +2675,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2734,7 +2730,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2786,7 +2781,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2835,7 +2829,6 @@ test.describe(
           TestGroupType.REGRESSION,
           TestGroupType.HEALTHCHECK,
           FormSuiteTags.FORM_E2E,
-          FormSuiteTags.FORM_INCLUDE_CONDITION,
         ],
       },
       async ({ appManagerPage, standardUserPage }) => {
@@ -2872,6 +2865,281 @@ test.describe(
         await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: samplepptx');
         await endUserFormCreationPage.clickOn('button', 'Submit');
         await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify app manager by default able to upload upto 5 files if multiple file toggle is enabled',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager by default able to upload upto 5 files if multiple file toggle is enabled',
+          zephyrTestId: 'ELF-175',
+          storyId: 'ELF-175',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('upload image');
+        await formCreationPage.addHeadingIntoComponent('upload image', 'Automation Test - upload image Description');
+        await formCreationPage.clickOnSettingsIcon();
+        await formCreationPage.clickOnCheckboxOptionIntoSettingForUploadImageComponent('Enable multiple files');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.uploadMultipleFilesIntoUploadImageComponent([
+          'branding.jpg',
+          'favicon.png',
+          'image1.jpg',
+          'image3.jpg',
+          'image4.jpg',
+          'image786.jpg',
+        ]);
+        await endUserParticipationPage.verifyToastMessage('You can only upload up to 5 files');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image1.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image1');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('branding.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: branding');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image3.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image3');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image4.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image4');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('image786.jpg');
+        await endUserParticipationPage.verifyImageUploadResponseVisible('Uploaded file name: image786');
+        await endUserParticipationPage.fillResponseIntoSingleImageField('favicon.png');
+        await endUserParticipationPage.verifyImageUploadResponseNotVisible('Uploaded file name: favicon');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify that App Manager should be able to create the form for Audience',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage, standardUserPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify that App Manager should be able to create the form for Audience',
+          zephyrTestId: 'ELF-315',
+          storyId: 'ELF-315',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        const endUserParticipationPage = new FormParticipationPage(standardUserPage);
+        const endUserFormCreationPage = new FormCreationPage(standardUserPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.searchAudience('Automation');
+        await formCreationPage.clickOn('button', 'Search');
+        await formCreationPage.selectAudience('Automation-India');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.verifyAudienceIsSelected('Automation-India');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await endUserParticipationPage.waitforNotification();
+        await endUserParticipationPage.clickOnNotificationBell();
+        await endUserFormCreationPage.clickOn('link', 'View all');
+        await endUserParticipationPage.verifyNotificationExistsForNewForm();
+        await endUserParticipationPage.openFormFromNotification(formCreationConstants.FORM_NAME);
+        await endUserParticipationPage.fillResponseIntoShortTextField('Automation Test - short text Description');
+        await endUserFormCreationPage.clickOn('button', 'Submit');
+        await endUserParticipationPage.verifyFormSubmittedMessage('Your response has been recorded');
+      }
+    );
+
+    test(
+      'Verify result preview and settings options are visible for published form',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify result preview and settings options are visible for published form',
+          zephyrTestId: 'ELF-320',
+          storyId: 'ELF-330',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Preview');
+        await formParticipationPage.verifyOptionVisible('Settings');
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Settings');
+        await formParticipationPage.verifyOptionVisible('Preview');
+        await formParticipationPage.verifyOptionVisible('Result');
+      }
+    );
+
+    test(
+      'Verify app manager able to duplicate a published form',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager able to duplicate a published form',
+          zephyrTestId: 'ELF-322',
+          storyId: 'ELF-322',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Duplicate');
+        await formParticipationPage.verifyToastMessage('Form duplicated');
+        await formParticipationPage.verifyDuplicatedFormName(formCreationConstants.FORM_NAME);
+      }
+    );
+
+    test(
+      'Verify app manager able to duplicate archieved form ',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager able to duplicate archieved form',
+          zephyrTestId: 'ELF-328',
+          storyId: 'ELF-328',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Archive');
+        await formCreationPage.clickOn('button', 'Archive');
+        await formParticipationPage.verifyToastMessage('Form archived');
+        await formCreationPage.clickonTabOnFormDashboard('Archived');
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Duplicate');
+        await formParticipationPage.verifyToastMessage('Form duplicated');
+        await formCreationPage.clickonTabOnFormDashboard('All');
+        await formParticipationPage.verifyDuplicatedFormName(formCreationConstants.FORM_NAME);
+      }
+    );
+
+    test(
+      'Verify app manager able to delete archieved form',
+      {
+        tag: [
+          TestPriority.P1,
+          TestGroupType.SANITY,
+          TestGroupType.REGRESSION,
+          TestGroupType.HEALTHCHECK,
+          FormSuiteTags.FORM_E2E,
+        ],
+      },
+      async ({ appManagerPage }) => {
+        tagTest(test.info(), {
+          description: 'Verify app manager able to delete archieved form',
+          zephyrTestId: 'ELF-329',
+          storyId: 'ELF-329',
+        });
+        const formCreationPage = new FormCreationPage(appManagerPage);
+        const formParticipationPage = new FormParticipationPage(appManagerPage);
+
+        await formCreationPage.clickOnCreateFormButton();
+        await formCreationPage.dragAndDropElement('short text');
+        await formCreationPage.addHeadingIntoComponent('short text', 'Automation Test - short text Description');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.enterFormName('Automation-E2E-Form-');
+        await formCreationPage.clickOn('button', 'Browse');
+        await formCreationPage.clickOn('switch', 'All organization');
+        await formCreationPage.clickOn('button', 'Done');
+        await formCreationPage.clickOn('button', 'Publish');
+        await formCreationPage.verifyPublishedFormToastMessage();
+        await formParticipationPage.waitForFormToBePublished();
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Archive');
+        await formCreationPage.clickOn('button', 'Archive');
+        await formParticipationPage.verifyToastMessage('Form archived');
+        await formCreationPage.clickonTabOnFormDashboard('Archived');
+        await formParticipationPage.clickOnThreeDotsIcon();
+        await formParticipationPage.clickOnOptionInThreeDotsIcon('Delete');
+        await formCreationPage.clickOn('button', 'Delete');
+        await formParticipationPage.verifyToastMessage('Form deleted');
+        await formCreationPage.clickonTabOnFormDashboard('All');
+        await formParticipationPage.verifyFormNotExists(formCreationConstants.FORM_NAME);
       }
     );
   }

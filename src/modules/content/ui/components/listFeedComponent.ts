@@ -614,6 +614,17 @@ export class ListFeedComponent extends BaseComponent {
   }
 
   /**
+   * Gets the author name link locator for a given post
+   * @param postText - The text of the post to get the author link for
+   * @param authorName - The name of the author to find
+   * @returns Locator for the author name link
+   */
+  async getAuthorNameLinkLocator(postText: string, authorName: string): Promise<Locator> {
+    const postContainer = await this.getPostContainerLocator(postText);
+    return postContainer.getByRole('link').filter({ hasText: authorName }).first();
+  }
+
+  /**
    * Validates that a post is not visible
    * @param postText - The text content of the post that should not be visible
    */
@@ -1451,6 +1462,57 @@ export class ListFeedComponent extends BaseComponent {
       .first();
 
   /**
+   * Gets a locator for the video container in a feed post
+   * @param postText - The text of the post to find video container for
+   * @returns Locator for the video container
+   */
+  getVideoContainerLocator(postText: string): Locator {
+    return this.page
+      .locator('div[class*="postContent"]')
+      .filter({ hasText: postText })
+      .locator('div[class*="videoFluid"]');
+  }
+
+  /**
+   * Verifies that a video container is visible in a feed post
+   * @param postText - The text of the post containing the video
+   */
+  async verifyVideoContainerIsVisible(postText: string): Promise<void> {
+    await test.step(`Verify video container is visible for post: ${postText}`, async () => {
+      const videoContainer = this.getVideoContainerLocator(postText);
+      await this.verifier.verifyTheElementIsVisible(videoContainer, {
+        timeout: 10000,
+        assertionMessage: `Video container should be visible for post "${postText}"`,
+      });
+    });
+  }
+
+  /**
+   * Gets a locator for the embed preview (iframe or embed div) in a feed post
+   * @param postText - The text of the post to find embed preview for
+   * @returns Locator for the embed preview
+   */
+  getEmbedPreviewLocator(postText: string): Locator {
+    const postContent = this.getFeedTextLocator(postText);
+    return postContent
+      .locator('iframe[src*="youtube.com"], iframe[src*="youtu.be"], div[class*="embed"], div[class*="preview"]')
+      .first();
+  }
+
+  /**
+   * Verifies that an embed preview is visible in a feed post
+   * @param postText - The text of the post containing the embed
+   */
+  async verifyEmbedPreviewIsVisible(postText: string): Promise<void> {
+    await test.step(`Verify embed preview is visible for post: ${postText}`, async () => {
+      const embedPreview = this.getEmbedPreviewLocator(postText);
+      await embedPreview.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
+        console.log('Embed preview may not be visible immediately or uses different structure');
+      });
+    });
+  }
+
+  /**
    * Clicks the share icon on a feed post
    * @param postText - The text of the post to share
    */
@@ -1725,6 +1787,32 @@ export class ListFeedComponent extends BaseComponent {
     await this.clickOnElement(reactionButton);
     await this.verifier.verifyTheElementIsVisible(this.likeButton.first(), {
       assertionMessage: `Like button should be visible for post "${postText}"`,
+    });
+  }
+
+  /**
+   * Gets the locator for a selected reaction button (button showing the selected emoji after reaction is added)
+   * @param emojiText - The emoji text or name to match (e.g., "haha", "Haha", "😆")
+   * @returns Locator for the selected reaction button
+   */
+  getSelectedReactionButtonLocator(emojiText: string): Locator {
+    return this.page
+      .getByRole('button')
+      .filter({ hasText: new RegExp(emojiText, 'i') })
+      .first();
+  }
+
+  /**
+   * Verifies that a selected reaction button is visible (showing the emoji after reaction is added)
+   * @param emojiText - The emoji text or name to verify (e.g., "haha", "Haha", "😆")
+   * @param assertionMessage - Optional custom assertion message
+   */
+  async verifySelectedReactionButtonIsVisible(emojiText: string, assertionMessage?: string): Promise<void> {
+    await test.step(`Verify selected reaction button is visible for emoji: ${emojiText}`, async () => {
+      const reactionButton = this.getSelectedReactionButtonLocator(emojiText);
+      await this.verifier.verifyTheElementIsVisible(reactionButton, {
+        assertionMessage: assertionMessage || `Selected reaction button with emoji "${emojiText}" should be visible`,
+      });
     });
   }
 

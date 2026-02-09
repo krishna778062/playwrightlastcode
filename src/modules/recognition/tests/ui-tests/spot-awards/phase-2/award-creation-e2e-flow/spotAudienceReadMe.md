@@ -12,3 +12,6 @@ Location: `src/modules/recognition/config/recognitionConfig.ts`
 - **Location filter**
   - `appManagerName`, `endUserName` → location = `Gurugram`
   - `recognitionManagerName` → location ≠ `Gurugram` (not equal to this location)
+
+  - **Full ladder & direct report filter**
+  - `endUserName` should have a direct reporter ( any one )

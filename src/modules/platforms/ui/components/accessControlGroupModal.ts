@@ -33,6 +33,7 @@ export class AccessControlGroupModalComponent extends BaseComponent {
   private addUsersButton: Locator;
   private addUserDialog: Locator;
   private userSearchInput: Locator;
+  private userSearchButton: Locator;
   private userSearchResult: (userName: string) => Locator;
   private userRow: (userName: string) => Locator;
   private doneButton: Locator;
@@ -65,8 +66,9 @@ export class AccessControlGroupModalComponent extends BaseComponent {
     this.addUsersButton = this.acgDialog.getByRole('button', { name: 'Add users' });
     this.browseUsersButton = this.acgDialog.getByRole('button', { name: 'Browse' });
     this.addUserDialog = this.page.getByRole('dialog', { name: 'Users' });
-    this.userSearchInput = this.page.getByRole('combobox').first();
-    this.userSearchResult = (userName: string) => this.page.getByRole('menuitem', { name: `profile icon ${userName}` });
+    this.userSearchInput = this.page.getByRole('textbox', { name: 'Search…' }).first();
+    this.userSearchButton = this.page.getByRole('button', { name: 'Search' }).first();
+    this.userSearchResult = (userName: string) => this.page.getByRole('checkbox', { name: userName });
     this.userRow = (userName: string) =>
       this.page.locator('[class*="Spacing-module__divider__bvKBb"]').filter({ hasText: userName });
     this.doneButton = this.addUserDialog.getByRole('button', { name: 'Done' });
@@ -338,11 +340,10 @@ export class AccessControlGroupModalComponent extends BaseComponent {
         await this.clickOnElement(this.addUsersButton);
       }
 
-      // Search for user in the user picker
+      await this.clickOnElement(this.userSearchInput);
       await this.typeInElement(this.userSearchInput, userName);
-
+      await this.clickOnElement(this.userSearchButton);
       await this.clickOnElement(this.userSearchResult(userName));
-
       await this.clickOnElement(this.doneButton);
       return true;
     });

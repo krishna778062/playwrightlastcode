@@ -224,5 +224,105 @@ test.describe(
         createdTileTitle = undefined;
       }
     );
+    test(
+      'verify app manager is able to create, edit and remove display tickets using search query zendesk apptile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard, tileManagementHelper } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23978, INT-23983',
+          storyId: 'INT-22919',
+        });
+
+        createdTileTitle = `zendesk display tickets using search query apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        await tileManagementHelper.createIntegrationAppTile(
+          createdTileTitle,
+          TILE_IDS.ZENDESK_DISPLAY_TICKETS_USING_SEARCH_QUERY,
+          CONNECTOR_IDS.ZENDESK
+        );
+        //add, edit, verify
+        await homeDashboard.isTilePresent(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTile(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
+
+    test(
+      'verify site manager is able to create, edit and remove display tickets using search query zendesk apptile on site dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { siteManagementHelper, siteDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23984, INT-23989',
+          storyId: 'INT-22919',
+        });
+
+        createdTileTitle = `zendesk display tickets using search query apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        const category = await siteManagementHelper.siteManagementService.getCategoryId('Uncategorized');
+        const createdSite = await siteManagementHelper.createPublicSite({ category });
+        await siteDashboard.navigateToSite(createdSite.siteId);
+
+        //add, edit, verify
+        await siteDashboard.addTile(
+          createdTileTitle,
+          ZENDESK_VALUES.AppName,
+          ZENDESK_VALUES.TicketsUsingSearchQueryTile,
+          UI_ACTIONS.ADD_TO_SITE
+        );
+        await siteDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await siteDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await siteDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+        await siteDashboard.removeTile(updatedTileTitle, MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        await siteDashboard.verifyToastMessage(MESSAGES.REMOVED_TILE_SUCCESS_MESSAGE);
+        createdTileTitle = undefined;
+      }
+    );
+
+    test(
+      'verify app manager is able to create, edit and remove zendesk display open tickets app manager defined tile on home dashboard',
+      {
+        tag: [TestPriority.P1, TestGroupType.SANITY, TestGroupType.SMOKE, IntegrationsSuiteTags.HEALTH_CHECK],
+      },
+      async ({ appManagerFixture }) => {
+        const { homeDashboard } = appManagerFixture;
+        tagTest(test.info(), {
+          zephyrTestId: 'INT-23910, INT-23916',
+          storyId: 'INT-26724',
+        });
+
+        //Generate a random tile title
+        createdTileTitle = `zendesk display open tickets apptile ${faker.string.alphanumeric({ length: 6 })}`;
+
+        //add, edit, verify
+        await homeDashboard.addAppManagerDefinedWithOptions(
+          createdTileTitle,
+          ZENDESK_VALUES.AppName,
+          ZENDESK_VALUES.OpenTicketsTile,
+          UI_ACTIONS.ADD_TO_HOME,
+          ZENDESK_VALUES.Priority,
+          ZENDESK_VALUES.NormalPriority
+        );
+        await homeDashboard.verifyToastMessage(MESSAGES.ADD_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(createdTileTitle);
+        await homeDashboard.verifyPersonalizeNotVisible(createdTileTitle);
+        const updatedTileTitle = `${createdTileTitle}-Updated`;
+        await homeDashboard.editTileName(createdTileTitle, updatedTileTitle);
+        await homeDashboard.verifyToastMessage(MESSAGES.EDIT_TILE_SUCCESS_MESSAGE);
+        await homeDashboard.isTilePresent(updatedTileTitle);
+        createdTileTitle = updatedTileTitle;
+      }
+    );
   }
 );

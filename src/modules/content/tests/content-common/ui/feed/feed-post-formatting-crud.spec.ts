@@ -208,14 +208,7 @@ test.describe(
         await feedPage.feedList.validatePostText(expectedText);
 
         // Verify inline preview is displayed for embedded URL
-        const postContent = feedPage['feedList'].getFeedTextLocator(expectedText);
-        await postContent
-          .locator('iframe[src*="youtube.com"], iframe[src*="youtu.be"], div[class*="embed"], div[class*="preview"]')
-          .first()
-          .waitFor({ state: 'visible', timeout: 10000 })
-          .catch(() => {
-            console.log('Embed preview may not be visible immediately or uses different structure');
-          });
+        await feedPage.feedList.verifyEmbedPreviewIsVisible(expectedText);
 
         // ==================== EDIT SECTION ====================
         // Navigate to Home-Global Feed and click ellipses on feed post
