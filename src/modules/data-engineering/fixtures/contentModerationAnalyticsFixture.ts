@@ -28,7 +28,8 @@ export interface ContentModerationAnalyticsUiFixture {
 
 // Combined user fixture type that extends both API and UI fixtures
 export interface ContentModerationAnalyticsUserFixture
-  extends ContentModerationAnalyticsApiFixture, ContentModerationAnalyticsUiFixture {}
+  extends ContentModerationAnalyticsApiFixture,
+    ContentModerationAnalyticsUiFixture {}
 
 export type UserType = 'appManager' | 'standardUser';
 
